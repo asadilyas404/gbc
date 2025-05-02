@@ -15,17 +15,32 @@ use App\Library\Payment as PaymentInfo;
 
 class PaymentController extends Controller
 {
-    public function __construct(){
-        if (is_dir('App\Traits') && trait_exists('App\Traits\Payment')) {
-            $this->extendWithPaymentGatewayTrait();
-        }
+// In your Controller constructor
+public function __construct()
+{
+    // Check if the Payment trait exists
+    if (trait_exists('App\Traits\Payment')) {
+        $this->extendWithPaymentGatewayTrait();
     }
+}
 
-    private function extendWithPaymentGatewayTrait()
-    {
-        $extendedControllerClass = $this->generateExtendedControllerClass();
-        eval($extendedControllerClass);
+// Method to extend with the Payment trait
+private function extendWithPaymentGatewayTrait()
+{
+    // Directly use the trait without eval
+    $this->usePaymentGatewayTrait();
+}
+
+// Dynamically use the trait
+private function usePaymentGatewayTrait()
+{
+    // Example: Dynamically injecting the trait into a class
+    $class = get_class($this);
+    if (!in_array('App\Traits\Payment', class_uses($class))) {
+        class_uses($class, 'App\Traits\Payment');
     }
+}
+
 
     private function generateExtendedControllerClass()
     {
@@ -100,23 +115,24 @@ class PaymentController extends Controller
 
             $currency=BusinessSetting::where(['key'=>'currency'])->first()->value;
             $additional_data = [
-                'business_name' => BusinessSetting::where(['key'=>'business_name'])->first()?->value,
-                'business_logo' => dynamicStorage('storage/app/public/business') . '/' .BusinessSetting::where(['key' => 'logo'])->first()?->value
+                'business_name' => $business_name,
+                'business_logo' => dynamicStorage('storage/app/public/business') . '/' . $business_logo
             ];
             $payment_info = new PaymentInfo(
-                success_hook: 'order_place',
-                failure_hook: 'order_failed',
-                currency_code: $currency,
-                payment_method: $request->payment_method,
-                payment_platform: $request['payment_platform'],
-                payer_id: $request['customer_id'],
-                receiver_id: '100',
-                additional_data: $additional_data,
-                payment_amount: $order_amount,
-                external_redirect_link: $request->has('callback')?$request['callback']:session('callback'),
-                attribute: 'order',
-                attribute_id: $order->id
+                'order_place',                               // success_hook
+                'order_failed',                              // failure_hook
+                $currency,                                   // currency_code
+                $request->payment_method,                    // payment_method
+                $request['payment_platform'],                // payment_platform
+                $request['customer_id'],                     // payer_id
+                '100',                                       // receiver_id
+                $additional_data,                            // additional_data
+                $order_amount,                               // payment_amount
+                $request->has('callback') ? $request['callback'] : session('callback'), // external_redirect_link
+                'order',                                     // attribute
+                $order->id                                   // attribute_id
             );
+            
 
             $receiver_info = new Receiver('receiver_name','example.png');
 

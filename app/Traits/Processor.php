@@ -94,4 +94,5 @@ trait  Processor
         }
         return redirect()->route('payment-' . $payment_flag, ['token' => base64_encode($token_string)]);
     }
+    
 }

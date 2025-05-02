@@ -89,4 +89,12 @@ class AddOn extends Model
         });
     }
 
+// In AddOn model (app/Models/AddOn.php)
+public function food()
+{
+    return $this->belongsTo(\App\Models\Food::class);
+}
+
+    
+
 }

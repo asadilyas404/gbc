@@ -311,10 +311,12 @@ Route::group(['namespace' => 'Api\V1', 'middleware'=>['localization','react']], 
     Route::group(['prefix' => 'categories'], function () {
         Route::get('/', 'CategoryController@get_categories');
         Route::get('childes/{category_id}', 'CategoryController@get_childes');
-        Route::get('products/{category_id}', 'CategoryController@get_products');   // visitor logs
+        Route::get('products/{category_id}', 'CategoryController@get_products');
         Route::get('products/{category_id}/all', 'CategoryController@get_all_products');
         Route::get('restaurants/{category_id}', 'CategoryController@get_restaurants');
+        Route::get('/categories', 'CategoryController@apiIndex'); // ← this one is redundant
     });
+    
 
     Route::group(['prefix' => 'cuisine'], function () {
         Route::get('/', 'CuisineController@get_all_cuisines');

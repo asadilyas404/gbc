@@ -9,7 +9,7 @@ use App\Models\PaymentRequest;
 
 trait Payment
 {
-    public static function generate_link(object $payer, object $payment_info, object $receiver): Application|bool|string|UrlGenerator|\Illuminate\Contracts\Foundation\Application
+    public static function generate_link(object $payer, object $payment_info, object $receiver): mixed
     {
         if ($payment_info->getPaymentAmount() <= 0) {
             throw new InvalidArgumentException(translate('Payment amount can not be 0'));

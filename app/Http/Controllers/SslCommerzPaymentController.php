@@ -184,45 +184,52 @@ class SslCommerzPaymentController extends Controller
         }
     }
 
-    public function success(Request $request): JsonResponse|Redirector|RedirectResponse|Application
-    {
-        if ($request['status'] == 'VALID' && $this->SSLCOMMERZ_hash_verify($this->store_password, $request)) {
+// Use mixed or a specific return type compatible with PHP 7.4
+// Remove union types to be compatible with PHP 7.4
+public function success(Request $request)
+{
+    if ($request['status'] == 'VALID' && $this->SSLCOMMERZ_hash_verify($this->store_password, $request)) {
+        $this->payment::where(['id' => $request['payment_id']])->update([
+            'payment_method' => 'ssl_commerz',
+            'is_paid' => 1,
+            'transaction_id' => $request->input('tran_id')
+        ]);
 
-            $this->payment::where(['id' => $request['payment_id']])->update([
-                'payment_method' => 'ssl_commerz',
-                'is_paid' => 1,
-                'transaction_id' => $request->input('tran_id')
-            ]);
+        $data = $this->payment::where(['id' => $request['payment_id']])->first();
 
-            $data = $this->payment::where(['id' => $request['payment_id']])->first();
-
-            if (isset($data) && function_exists($data->success_hook)) {
-                call_user_func($data->success_hook, $data);
-            }
-            return $this->payment_response($data, 'success');
+        if (isset($data) && function_exists($data->success_hook)) {
+            call_user_func($data->success_hook, $data);
         }
-        $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
-        if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
-            call_user_func($payment_data->failure_hook, $payment_data);
-        }
-        return $this->payment_response($payment_data, 'fail');
+        return $this->payment_response($data, 'success');
     }
 
-    public function failed(Request $request): JsonResponse|Redirector|RedirectResponse|Application
-    {
-        $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
-        if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
-            call_user_func($payment_data->failure_hook, $payment_data);
-        }
-        return $this->payment_response($payment_data, 'fail');
+    $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
+    if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
+        call_user_func($payment_data->failure_hook, $payment_data);
     }
+    return $this->payment_response($payment_data, 'fail');
+}
 
-    public function canceled(Request $request): JsonResponse|Redirector|RedirectResponse|Application
-    {
-        $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
-        if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
-            call_user_func($payment_data->failure_hook, $payment_data);
-        }
-        return $this->payment_response($payment_data, 'cancel');
+// Similarly for the failed method
+public function failed(Request $request)
+{
+    $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
+    if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
+        call_user_func($payment_data->failure_hook, $payment_data);
     }
+    return $this->payment_response($payment_data, 'fail');
+}
+
+// Similarly for the canceled method
+public function canceled(Request $request)
+{
+    $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
+    if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
+        call_user_func($payment_data->failure_hook, $payment_data);
+    }
+    return $this->payment_response($payment_data, 'cancel');
+}
+
+
+
 }

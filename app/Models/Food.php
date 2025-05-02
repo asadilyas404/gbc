@@ -332,5 +332,12 @@ class Food extends Model
         }
 
     }
+// In Food model (app/Models/Food.php)
+public function add_ons()
+{
+    return $this->hasMany(\App\Models\AddOn::class, 'category_id');  // Relate add_ons by category_id (if required)
+}
+
+    
 
 }

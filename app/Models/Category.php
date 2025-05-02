@@ -133,5 +133,15 @@ class Category extends Model
     {
         return $this->morphToMany(User::class ,'visitor_log' );
     }
+    public function foods()
+    {
+        return $this->hasMany(\App\Models\Food::class, 'category_id');
+    }
+    
+    public function add_ons()
+    {
+        return $this->hasMany(\App\Models\AddOn::class, 'category_id');
+    }
+
 
 }

@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Models\Food;
 use App\Models\Category;
+use App\Models\AddOn;
 use App\Models\PriorityList;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
 use App\CentralLogics\CategoryLogic;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\CategoryResource;
 use Illuminate\Support\Facades\Validator;
 
 class CategoryController extends Controller
@@ -17,9 +19,12 @@ class CategoryController extends Controller
     public function get_categories(Request $request)
     {
         try {
-            $category_list_default_status = BusinessSetting::where('key', 'category_list_default_status')->first()?->value ?? 1;
-            $category_list_sort_by_general = PriorityList::where('name', 'category_list_sort_by_general')->where('type','general')->first()?->value ?? '';
-
+            $setting = BusinessSetting::where('key', 'category_list_default_status')->first();
+            $category_list_default_status = $setting ? $setting->value : 1;
+            $category_list_sort_by_general = optional(
+                PriorityList::where('name', 'category_list_sort_by_general')->where('type', 'general')->first()
+            )->value ?? '';
+            
             $zone_id=  $request->header('zoneId') ? json_decode($request->header('zoneId'), true) : [];
             $name= $request->query('name');
             $categories = Category::withCount(['products','childes'])->with(['childes' => function($query)  {
@@ -207,4 +212,37 @@ class CategoryController extends Controller
             return response()->json([], 200);
         }
     }
+    // public function apiIndex()
+    // {
+    //     // Fetch categories from the database
+    //     $categories = Category::all();
+
+    //     // Return the data as a JSON response
+    //     return response()->json($categories);
+    // }
+    // public function apiIndex()
+    // {
+    //     // Fetch all categories along with their related foods
+    //     $categories = Category::with('foods')->get();
+    
+    //     return response()->json($categories);
+    // }
+
+//     public function apiIndex()
+// {
+//     $categories = Category::with(['foods.add_ons'])->get();
+
+//     return response()->json($categories);
+// }
+
+public function apiIndex()
+{
+    $categories = Category::all();
+    return response()->json([
+        'categories' => CategoryResource::collection($categories)
+    ]);
+}
+
+
+
 }

@@ -403,13 +403,15 @@ class FoodController extends Controller
             }
 
         }
-        if($request?->removedVariationOptionIDs && is_string($request?->removedVariationOptionIDs)){
-            VariationOption::whereIn('id',explode(',',$request->removedVariationOptionIDs))->delete();
+        if ($request?->removedVariationOptionIDs && is_string($request?->removedVariationOptionIDs)) {
+            VariationOption::whereIn('id', explode(',', $request->removedVariationOptionIDs))->delete();
         }
-        if($request?->removedVariationIDs && is_string($request?->removedVariationIDs)){
-            VariationOption::whereIn('variation_id',explode(',',$request->removedVariationIDs))->delete();
-            Variation::whereIn('id',explode(',',$request->removedVariationIDs))->delete();
+        
+        if ($request?->removedVariationIDs && is_string($request?->removedVariationIDs)) {
+            VariationOption::whereIn('variation_id', explode(',', $request->removedVariationIDs))->delete();
+            Variation::whereIn('id', explode(',', $request->removedVariationIDs))->delete();
         }
+        
 
         $slug = Str::slug($request->name[array_search('default', $request->lang)]);
         $p->slug = $p->slug? $p->slug :"{$slug}{$p->id}";
@@ -1055,5 +1057,19 @@ class FoodController extends Controller
         Toastr::success(translate('Stock_updated_successfully'));
         return back();
     }
+    public function deleteVariation(Request $request)
+    {
+        $variationId = $request->input('variation_id');
+    
+        // Find the variation and delete it along with its options
+        $variation = Variation::find($variationId);
+        if ($variation) {
+            $variation->variationOptions()->delete(); // Delete associated variation options
+            $variation->delete(); // Delete the variation itself
+        }
+    
+        return response()->json(['message' => 'Variation deleted successfully']);
+    }
+    
 
 }

@@ -8,10 +8,11 @@
                 <span class="form-check-label">{{ translate('Required') }}</span>
             </label>
             <div>
-                <button type="button" data-id='{{  data_get($item,'variation_id') }}' class="btn btn-danger btn-sm delete_input_button remove_variation"
-                        title="{{ translate('Delete') }}">
-                    <i class="tio-add-to-trash"></i>
-                </button>
+            <button type="button" data-id="{{ data_get($item,'variation_id') }}" class="btn btn-danger btn-sm delete_input_button remove_variation"
+    title="{{ translate('Delete') }}">
+    <i class="tio-add-to-trash"></i>
+</button>
+
             </div>
         </div>
         <div class="row g-2">
@@ -130,3 +131,27 @@
         </div>
     </div>
 </div>
+<script>
+    $(document).on('click', '.remove_variation', function() {
+    var variationId = $(this).data('id');
+    var $thisButton = $(this); // To remove the element after successful deletion
+
+    // Send delete request
+    $.ajax({
+        url: '/variation-delete', // Update this route accordingly
+        method: 'POST',
+        data: {
+            _token: '{{ csrf_token() }}',
+            variation_id: variationId
+        },
+        success: function(response) {
+            // On success, remove the variation from the UI
+            $thisButton.closest('.d-flex').remove(); // Remove the parent div that contains the button
+        },
+        error: function(response) {
+            alert('Something went wrong while deleting the variation!');
+        }
+    });
+});
+
+</script>

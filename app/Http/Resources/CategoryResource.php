@@ -11,9 +11,7 @@ class CategoryResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'foods' => FoodResource::collection(
-                \App\Models\Food::where('category_id', $this->id)->get()
-            )
+            'foods' => FoodResource::collection($this->foods) // Use relationship directly
         ];
     }
 }

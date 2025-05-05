@@ -237,11 +237,19 @@ class CategoryController extends Controller
 
 public function apiIndex()
 {
-    $categories = Category::all();
+    // Eager load the foods relationship
+    $categories = Category::with('foods')->get();
+
+    // Filter out categories where foods are empty
+    $categories = $categories->filter(function ($category) {
+        return $category->foods->isNotEmpty(); // Keep only categories with non-empty foods
+    });
+
     return response()->json([
         'categories' => CategoryResource::collection($categories)
     ]);
 }
+
 
 
 

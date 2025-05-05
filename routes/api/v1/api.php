@@ -43,13 +43,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware'=>['localization','react']], 
             Route::post('firebase-verify-token', 'DMPasswordResetController@firebase_auth_verify');
             Route::put('reset-password', 'DMPasswordResetController@reset_password_submit');
         });
-        Route::group(['prefix' => 'vendor'], function () {
-            Route::post('login', 'VendorLoginController@login');
-            Route::post('forgot-password', 'VendorPasswordResetController@reset_password_request');
-            Route::post('verify-token', 'VendorPasswordResetController@verify_token');
-            Route::put('reset-password', 'VendorPasswordResetController@reset_password_submit');
-            Route::post('register','VendorLoginController@register');
-        });
+
     });
 
         //Store Subscription
@@ -236,6 +230,8 @@ Route::group(['namespace' => 'Api\V1', 'middleware'=>['localization','react']], 
             Route::put('reply-update', 'FoodController@update_reply');
             Route::get('details/{id}', 'FoodController@get_product');
             Route::put('update-stock', 'FoodController@updateStock');
+            Route::post('variation-delete', 'FoodController@deleteVariation');
+
 
 
         });

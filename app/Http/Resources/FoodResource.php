@@ -11,37 +11,41 @@ class FoodResource extends JsonResource
         $data = [
             'id' => $this->id,
             'name' => $this->name,
-            'image' => $this->image,
+            'image' => url('storage/product/' . $this->image),  // Assuming images are stored in public/storage/images/
+            'price' => $this->price,
+            'discount_price' => $this->discount_price ?? 0,  // Ensure this matches your DB column name
             'addons' => AddOnResource::collection($this->getAddOns()),
         ];
-    
-        // If this food has variations (assume a column `variations` as JSON)
-        if ($this->variations && is_array(json_decode($this->variations, true))) {
-            $data['variations'] = collect(json_decode($this->variations))->map(function ($var) {
+
+        if ($this->variationOptions && $this->variationOptions->count() > 0) {
+            $data['variations'] = $this->variationOptions->map(function ($option) {
                 return [
-                    'size' => $var->size ?? 'Standard',
-                    'price' => $var->price ?? 0,
-                    'discount_price' => $var->discount_price ?? 0
+                    'size' => $option->option_name,
+                    'price' => $option->option_price,
+                    'discount_price' => $option->discount_price ?? 0,
                 ];
             });
-        } else {
-            // Otherwise just use standard pricing
-            $data['price'] = $this->price;
-            $data['discount_price'] = $this->discount_price;
         }
-    
+
         return $data;
     }
 
     private function getAddOns()
-{
-    if (is_string($this->add_ons)) {
-        $ids = json_decode($this->add_ons, true);
-        return \App\Models\AddOn::whereIn('id', $ids)->get();
-    }
-
-    return [];
-}
-
+    {
+        if (is_string($this->add_ons)) {
+            $ids = json_decode($this->add_ons, true);
+            if (is_array($ids)) {
+                // Ensure integer and unique IDs
+                $uniqueIds = array_unique(array_map('intval', $ids));
     
+                // Fetch only once, then ensure unique collection by ID
+                return \App\Models\AddOn::whereIn('id', $uniqueIds)
+                    ->get()
+                    ->unique('id')
+                    ->values(); // reindex to avoid gaps
+            }
+        }
+    
+        return collect();
+    }
 }

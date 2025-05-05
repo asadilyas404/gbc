@@ -645,4 +645,6 @@ class ProductLogic
             return  $paginator;
 
     }
+
+    
 }

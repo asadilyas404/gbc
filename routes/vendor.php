@@ -103,6 +103,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('update/{id}', 'EmployeeController@update')->name('update');
             Route::delete('delete/{id}', 'EmployeeController@distroy')->name('delete');
             Route::post('search', 'EmployeeController@search')->name('search');
+            Route::post('login', 'EmployeeController@login'); // Update here
         });
 
         Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.'], function () {

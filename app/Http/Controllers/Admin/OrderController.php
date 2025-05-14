@@ -1022,7 +1022,6 @@ class OrderController extends Controller
 
     public function add_to_cart(Request $request)
     {
-
         $old_selected_addons=[];
         $old_selected_variations=[];
         $old_selected_without_variation = $request?->old_selected_without_variation ?? 0;
@@ -1733,4 +1732,26 @@ class OrderController extends Controller
 
         return view('admin-views.order.offline_verification_list', compact('orders', 'status', 'reasons'));
     }
+    public function store(Request $request)
+{
+    $validated = $request->validate([
+        
+        'user_id' => 'required|integer|exists:users,id',
+        'order_amount' => 'required|numeric',
+        'coupon_discount_amount' => 'nullable|numeric',
+        'coupon_discount_title' => 'nullable|string',
+        'payment_status' => 'required|string',
+        'order_status' => 'required|string',
+        'total_tax_status' => 'nullable|string',
+        'payment_method' => 'required|string',
+    ]);
+    $order = Order::create($validated);
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Order created successfully!',
+        'data' => $order
+    ]);
+}
+
 }

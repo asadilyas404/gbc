@@ -235,14 +235,16 @@ class CategoryController extends Controller
 //     return response()->json($categories);
 // }
 
-public function apiIndex()
+public function apiIndex($restaurant_id)
 {
-    // Eager load the foods relationship
-    $categories = Category::with('foods')->get();
+    // Eager load foods filtered by restaurant_id
+    $categories = Category::with(['foods' => function ($query) use ($restaurant_id) {
+        $query->where('restaurant_id', $restaurant_id);
+    }])->get();
 
-    // Filter out categories where foods are empty
+    // Remove categories that have no foods after filtering
     $categories = $categories->filter(function ($category) {
-        return $category->foods->isNotEmpty(); // Keep only categories with non-empty foods
+        return $category->foods->isNotEmpty();
     });
 
     return response()->json([

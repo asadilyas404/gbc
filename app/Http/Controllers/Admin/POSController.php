@@ -516,6 +516,7 @@ class POSController extends Controller
         DB::beginTransaction();
 
         foreach ($cart as $c) {
+            dd($cart);
             if (is_array($c)) {
                 $product = Food::withoutGlobalScope(RestaurantScope::class)->with('restaurant')->find($c['id']);
                 if ($product) {

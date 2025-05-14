@@ -18,6 +18,10 @@ use App\Http\Controllers\BkashPaymentController;
 use App\Http\Controllers\PaystackController;
 use App\Http\Controllers\FirebaseController;
 use App\Http\Controllers\InitDataController;
+use App\Http\Controllers\TableEmployeeController;
+
+Route::resource('table_employees', TableEmployeeController::class);
+
 
 /*
 |--------------------------------------------------------------------------

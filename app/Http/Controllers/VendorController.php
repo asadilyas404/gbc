@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use MatanYadaev\EloquentSpatial\Objects\Point;
+use App\Models\VendorEmployee;
+use Illuminate\Support\Facades\Hash;
+
 
 class VendorController extends Controller
 {
@@ -30,12 +33,21 @@ class VendorController extends Controller
             Toastr::error(translate('messages.not_found'));
             return back();
         }
-        $page_data=   DataSetting::Where('type' , 'restaurant')->where('key' , 'restaurant_page_data')->first()?->value;
-        $page_data =  $page_data ? json_decode($page_data ,true)  :[];
+        $page_data = DataSetting::where('type', 'restaurant')
+        ->where('key', 'restaurant_page_data')
+        ->first();
 
-        $admin_commission= BusinessSetting::where('key','admin_commission')->first()?->value;
-        $business_name= BusinessSetting::where('key','business_name')->first()?->value;
-        $packages= SubscriptionPackage::where('status',1)->latest()->get();
+$page_data_value = $page_data ? $page_data->value : null;
+$page_data =  $page_data ? json_decode($page_data ,true)  :[];
+
+$admin_commission = BusinessSetting::where('key', 'admin_commission')->first();
+
+$admin_commission_value = $admin_commission ? $admin_commission->value : null;
+$business_name = BusinessSetting::where('key', 'business_name')->first();
+$business_name_value = $business_name ? $business_name->value : null;
+
+$packages = SubscriptionPackage::where('status', 1)->latest()->get();
+
 
 
         return view('vendor-views.auth.register-step-1',compact('page_data','admin_commission','business_name','packages')) ;
@@ -85,10 +97,10 @@ class VendorController extends Controller
         }
 
 
-        if($request?->latitude == null  &&  $request?->longitude == null){
+        if ($request->latitude == null && $request->longitude == null) {
             return back()->withErrors($validator)->withInput();
         }
-
+        
         if($request->zone_id)
         {
             $zone = Zone::query()
@@ -143,8 +155,8 @@ class VendorController extends Controller
             $restaurant->name =  $request->name[array_search('default', $request->lang)];
             $restaurant->phone = $request->phone;
             $restaurant->email = $request->email;
-            $restaurant->logo = Helpers::upload( dir:'restaurant/',  format:'png', image:  $request->file('logo'));
-            $restaurant->cover_photo = Helpers::upload( dir:'restaurant/cover/', format: 'png',  image: $request->file('cover_photo'));
+            $restaurant->logo = Helpers::upload('restaurant/', 'png', $request->file('logo'));
+            $restaurant->cover_photo = Helpers::upload('restaurant/cover/', 'png', $request->file('cover_photo'));            
             $restaurant->address = $request->address[array_search('default', $request->lang)];
             $restaurant->latitude = $request->latitude;
             $restaurant->longitude = $request->longitude;
@@ -175,29 +187,37 @@ class VendorController extends Controller
             }
 
             $restaurant->save();
-            $restaurant?->cuisine()?->sync($cuisine_ids);
-            $restaurant->tags()->sync($tag_ids);
+            if ($restaurant && $restaurant->cuisine) {
+                $restaurant->cuisine()->sync($cuisine_ids);
+            }
+                        $restaurant->tags()->sync($tag_ids);
 
-            Helpers::add_or_update_translations(request: $request, key_data: 'name', name_field: 'name', model_name: 'Restaurant', data_id: $restaurant->id, data_value: $restaurant->name);
-            Helpers::add_or_update_translations(request: $request, key_data: 'address', name_field: 'address', model_name: 'Restaurant', data_id: $restaurant->id, data_value: $restaurant->address);
+                        Helpers::add_or_update_translations($request, 'name', 'name', 'Restaurant', $restaurant->id, $restaurant->name);
+                        Helpers::add_or_update_translations($request, 'address', 'address', 'Restaurant', $restaurant->id, $restaurant->address);
+                        
 
             DB::commit();
-            try{
-                $admin= Admin::where('role_id', 1)->first();
-                $notification_status= Helpers::getNotificationStatusData('restaurant','restaurant_registration');
-
-                if( $notification_status?->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('registration_mail_status_restaurant') == '1'){
+            try {
+                $admin = Admin::where('role_id', 1)->first();
+                $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_registration');
+            
+                // Check if mail_status is active and other conditions
+                if ($notification_status && $notification_status->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('registration_mail_status_restaurant') == '1') {
                     Mail::to($request['email'])->send(new \App\Mail\VendorSelfRegistration('pending', $vendor->f_name.' '.$vendor->l_name));
                 }
-                $notification_status= null ;
-                $notification_status= Helpers::getNotificationStatusData('admin','restaurant_self_registration');
-
-                if( $notification_status?->mail_status == 'active' && config('mail.status') &&  Helpers::get_mail_status('restaurant_registration_mail_status_admin')== '1'){
+            
+                $notification_status = null;  // Clear the notification_status variable
+                $notification_status = Helpers::getNotificationStatusData('admin', 'restaurant_self_registration');
+            
+                // Check if mail_status is active and other conditions
+                if ($notification_status && $notification_status->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('restaurant_registration_mail_status_admin') == '1') {
                     Mail::to($admin['email'])->send(new \App\Mail\RestaurantRegistration('pending', $vendor->f_name.' '.$vendor->l_name));
                 }
-            }catch(\Exception $exception){
-                info([$exception->getFile(),$exception->getLine(),$exception->getMessage()]);
+            
+            } catch (\Exception $exception) {
+                info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
             }
+            
 
             if (Helpers::subscription_check()) {
                 if ($request->business_plan == 'subscription-base' && $request->package_id != null) {
@@ -225,12 +245,13 @@ class VendorController extends Controller
                     $packages = SubscriptionPackage::where('status', 1)->latest()->get();
                     Toastr::error(translate('messages.please_follow_the_steps_properly.'));
                     return view('vendor-views.auth.register-step-2', [
-                        'admin_commission' => $admin_commission?->value,
-                        'business_name' => $business_name?->value,
+                        'admin_commission' => $admin_commission ? $admin_commission->value : null,
+                        'business_name' => $business_name ? $business_name->value : null,
                         'packages' => $packages,
                         'restaurant_id' => $restaurant->id,
                         'type' => $request->type
                     ]);
+                    
                 }
             } else {
                 $restaurant->restaurant_model = 'commission';
@@ -281,12 +302,13 @@ class VendorController extends Controller
             $packages = SubscriptionPackage::where('status', 1)->latest()->get();
             Toastr::error(translate('messages.please_follow_the_steps_properly.'));
             return view('vendor-views.auth.register-step-2', [
-                'admin_commission' => $admin_commission?->value,
-                'business_name' => $business_name?->value,
+                'admin_commission' => $admin_commission ? $admin_commission->value : null,
+                'business_name' => $business_name ? $business_name->value : null,
                 'packages' => $packages,
                 'restaurant_id' => $request->restaurant_id,
                 'type' => $request->type
             ]);
+            
         }
     }
 
@@ -303,11 +325,30 @@ class VendorController extends Controller
 
         if (!in_array($request->payment, ['free_trial'])) {
             $url = route('restaurant.final_step', ['restaurant_id' => $restaurant->id ?? null]);
-            return redirect()->away(Helpers::subscriptionPayment(restaurant_id: $restaurant->id, package_id: $package->id, payment_gateway: $request->payment, payment_platform: 'web', url: $url, type: 'new_join'));
+            
+            return redirect()->away(Helpers::subscriptionPayment(
+                restaurant_id: $restaurant->id ?? null,   // Ensure restaurant ID is provided or null
+                package_id: $package->id ?? null,         // Ensure package ID is provided or null
+                payment_gateway: $request->payment,       // Payment method from the request
+                payment_platform: 'web',                  // Always set to 'web' for web platform
+                url: $url,                                // The final step URL to redirect
+                type: 'new_join'                          // Set type to 'new_join'
+            ));
         }
+        
+        }
+        
         if ($request->payment == 'free_trial') {
-            $plan_data =   Helpers::subscription_plan_chosen(restaurant_id: $restaurant->id, package_id: $package->id, payment_method: 'free_trial', discount: 0, reference: 'free_trial', type: 'new_join');
+            $plan_data = Helpers::subscription_plan_chosen(
+                restaurant_id: $restaurant->id ?? null,
+                package_id: $package->id ?? null,
+                payment_method: 'free_trial',
+                discount: 0,
+                reference: 'free_trial',
+                type: 'new_join'
+            );
         }
+        
         $plan_data != false ?  Toastr::success(translate('Successfully_Subscribed.')) : Toastr::error(translate('Something_went_wrong!.'));
         return to_route('restaurant.final_step');
     }
@@ -341,4 +382,43 @@ class VendorController extends Controller
 
         return view('vendor-views.auth.register-complete', ['restaurant_id' => $restaurant_id, 'payment_status' => $payment_status]);
     }
+
+    public function loginVendorEmployee(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|min:6'
+        ]);
+    
+        // Return validation errors if validation fails
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+    
+        // Find the employee by email
+        $employee = VendorEmployee::where('email', $request->email)->first();
+    
+        // Check if the employee exists and password matches
+        if ($employee && Hash::check($request->password, $employee->password)) {
+            // Generate a new token
+            $token = bin2hex(random_bytes(40));
+    
+            // Save the token to the employee record
+            $employee->auth_token = $token;
+            $employee->save();
+    
+            return response()->json([
+                'status' => true,
+                'token' => $token,
+                'employee' => $employee,
+                'vendor_id' => $employee->vendor_id
+            ]);
+        }
+    
+        return response()->json([
+            'status' => false,
+            'message' => 'Invalid email or password.'
+        ], 401);
+    }
+    
 }

@@ -528,7 +528,7 @@ class OrderController extends Controller
                 $product->tax = $restaurant->tax;
 
                 $product = Helpers::product_data_formatting($product, false, false, app()->getLocale());
-
+                $notes = $request->notes;
                 $or_d = [
                     'food_id' => $food_id ??  null,
                     'item_campaign_id' => $campaign_id ?? null,
@@ -541,6 +541,7 @@ class OrderController extends Controller
                     'variation' => json_encode($variations),
                     'add_ons' => json_encode($addon_data['addons']),
                     'total_add_on_price' => $addon_data['total_add_on_price'],
+                    'details' => $notes,
                     'created_at' => now(),
                     'updated_at' => now()
                 ];

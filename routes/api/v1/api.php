@@ -3,6 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\WebSockets\Handler\DMLocationSocketHandler;
 use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
+use App\Http\Controllers\Api\V1\Auth\VendorLoginController;
+use App\Http\Controllers\VendorController;
+
+Route::middleware('api')->group(function () {
+    Route::post('vendor/login', [VendorLoginController::class, 'ApiLogin']);
+    Route::post('vendor-employee/login', [VendorController::class, 'loginVendorEmployee']);
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -310,9 +317,9 @@ Route::group(['namespace' => 'Api\V1', 'middleware'=>['localization','react']], 
         Route::get('products/{category_id}', 'CategoryController@get_products');
         Route::get('products/{category_id}/all', 'CategoryController@get_all_products');
         Route::get('restaurants/{category_id}', 'CategoryController@get_restaurants');
-        Route::get('/categories', 'CategoryController@apiIndex'); // ← this one is redundant
     });
     
+    Route::get('/categories-food/{restaurant_id}', 'CategoryController@apiIndex');
 
     Route::group(['prefix' => 'cuisine'], function () {
         Route::get('/', 'CuisineController@get_all_cuisines');
@@ -385,9 +392,10 @@ Route::group(['namespace' => 'Api\V1', 'middleware'=>['localization','react']], 
             Route::put('payment-method', 'OrderController@update_payment_method');
             Route::put('offline-payment', 'OrderController@offline_payment');
             Route::put('offline-payment-update', 'OrderController@update_offline_payment_info');
+            
         });
         Route::get('getPendingReviews', 'OrderController@getPendingReviews');
-
+        Route::post('/orders', 'OrderController@store');
         Route::post('food-list','OrderController@food_list');
         Route::get('order-again', 'OrderController@order_again');
 

@@ -10,18 +10,20 @@ class OrderDetail extends Model
 {
     use HasFactory,ReportFilter;
 
+
+    
     protected $casts = [
         'price' => 'float',
         'discount_on_food' => 'float',
         'total_add_on_price' => 'float',
         'tax_amount' => 'float',
-        'food_id'=> 'integer',
-        'order_id'=> 'integer',
-        'quantity'=>'integer',
-        'item_campaign_id'=>'integer',
+        'food_id' => 'integer',
+        'order_id' => 'integer',
         'quantity' => 'integer',
-
+        'item_campaign_id' => 'integer',
+        'details' => 'string',
     ];
+    
 
     protected $primaryKey   = 'id';
 

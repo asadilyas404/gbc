@@ -2192,7 +2192,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 });
                 $.ajax({
                     type: "POST",
-                    url: '{{ route('admin.pos.variant_price') }}',
+                    url: '{{ route('admin.pos.o') }}',
                     data: $('#add-to-cart-form').serializeArray(),
                     success: function(data) {
                         if (data.error === 'quantity_error') {

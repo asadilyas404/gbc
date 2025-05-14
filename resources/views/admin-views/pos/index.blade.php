@@ -731,6 +731,7 @@
 
 
         function getVariantPrice() {
+            
             getCheckedInputs();
             if ($('#add-to-cart-form input[name=quantity]').val() > 0) {
                 $.ajaxSetup({

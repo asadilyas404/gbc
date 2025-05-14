@@ -66,6 +66,8 @@ class POSController extends Controller
                     $product->tax = $restaurant->tax;
                     $product = Helpers::product_data_formatting($product);
                     $addon_data = Helpers::calculate_addon_price(\App\Models\AddOn::withOutGlobalScope(App\Scopes\RestaurantScope::class)->whereIn('id',$c['add_on_ids'])->get(), $c['add_on_qtys']);
+                    $notes = $request->notes; // get from form
+
                     $or_d = [
                         'food_id' => $product->id,
                         'item_campaign_id' => null,
@@ -79,9 +81,11 @@ class POSController extends Controller
                         'variation' => json_encode([$c['variation']]),
                         'add_ons' => json_encode($addon_data['addons']),
                         'total_add_on_price' => $addon_data['total_add_on_price'],
+                        'details' => $notes, // now storing user's textarea input
                         'created_at' => now(),
                         'updated_at' => now()
                     ];
+                    
                     $total_addon_price += $or_d['total_add_on_price'];
                     $product_price += $price*$or_d['quantity'];
                     $restaurant_discount_amount += $or_d['discount_on_food']*$or_d['quantity'];

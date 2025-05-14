@@ -23,32 +23,46 @@ class VendorLoginController extends Controller
 {
     public function login(Request $request)
     {
-
         $validator = Validator::make($request->all(), [
-            'email' => 'required',
+            'email' => 'required|email',
             'password' => 'required|min:6'
         ]);
-
+    
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
-
+    
         $data = [
             'email' => $request->email,
             'password' => $request->password
         ];
-
+    
         if (auth('vendor')->attempt($data)) {
             $token = $this->genarate_token($request['email']);
             $vendor = Vendor::where(['email' => $request['email']])->first();
-
-            $restaurantSubscriptionCheck =  $this->restaurantSubscriptionCheck($vendor?->restaurants[0], $vendor, $token);
-            if (data_get($restaurantSubscriptionCheck, 'type') != null) {
-                return response()->json(data_get($restaurantSubscriptionCheck, 'data'), data_get($restaurantSubscriptionCheck, 'code'));
+    
+            // Ensure vendor and restaurants exist
+            if ($vendor && isset($vendor->restaurants) && count($vendor->restaurants) > 0) {
+                $restaurant = $vendor->restaurants[0];  // Get the first restaurant if exists
+                $restaurantSubscriptionCheck = $this->restaurantSubscriptionCheck($restaurant, $vendor, $token);
+    
+                if (data_get($restaurantSubscriptionCheck, 'type') != null) {
+                    return response()->json(data_get($restaurantSubscriptionCheck, 'data'), data_get($restaurantSubscriptionCheck, 'code'));
+                }
+    
+                // If subscription check is successful, store the token and save the vendor
+                $vendor->auth_token = $token;
+                $vendor->save();
+    
+                return response()->json([
+                    'token' => $token,
+                    'zone_wise_topic' => $restaurant->zone->restaurant_wise_topic ?? null,  // Ensure zone and topic are available
+                ], 200);
+            } else {
+                return response()->json([
+                    'errors' => [['code' => 'auth-002', 'message' => 'Restaurant not found or subscription issue.']]
+                ], 404);
             }
-            $vendor->auth_token = $token;
-            $vendor?->save();
-            return response()->json(['token' => $token, 'zone_wise_topic' => $vendor?->restaurants[0]?->zone?->restaurant_wise_topic], 200);
         } else {
             $errors = [];
             array_push($errors, ['code' => 'auth-001', 'message' => translate('Credential_do_not_match,_please_try_again.')]);
@@ -57,6 +71,7 @@ class VendorLoginController extends Controller
             ], 401);
         }
     }
+    
 
     private function genarate_token($email)
     {
@@ -147,8 +162,8 @@ class VendorLoginController extends Controller
         $restaurant->name = $data[0]['value'];
         $restaurant->phone = $request->phone;
         $restaurant->email = $request->email;
-        $restaurant->logo = Helpers::upload(dir: 'restaurant/', format: 'png', image: $request->file('logo'));
-        $restaurant->cover_photo = Helpers::upload(dir: 'restaurant/cover/', format: 'png', image: $request->file('cover_photo'));
+        $restaurant->logo = Helpers::upload('restaurant/', 'png', $request->file('logo'));
+        $restaurant->cover_photo = Helpers::upload('restaurant/cover/', 'png', $request->file('cover_photo'));
         $restaurant->address = $data[1]['value'];
 
         $restaurant->latitude = $request->lat;
@@ -190,17 +205,19 @@ class VendorLoginController extends Controller
 
         $cuisine_ids = [];
         $cuisine_ids = json_decode($request->cuisine_ids, true);
-        $restaurant?->cuisine()?->sync($cuisine_ids);
-        try {
+        if ($restaurant && $restaurant->cuisine()) {
+            $restaurant->cuisine()->sync($cuisine_ids);
+        }
+                try {
             $admin = Admin::where('role_id', 1)->first();
             $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_registration');
-            if ($notification_status?->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('registration_mail_status_restaurant') == '1') {
+            if ($notification_status && $notification_status->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('registration_mail_status_restaurant') == '1') {
                 Mail::to($request['email'])->send(new \App\Mail\VendorSelfRegistration('pending', $vendor->f_name . ' ' . $vendor->l_name));
             }
 
             $notification_status = null;
             $notification_status = Helpers::getNotificationStatusData('admin', 'restaurant_self_registration');
-            if ($notification_status?->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('restaurant_registration_mail_status_admin') == '1') {
+            if ($notification_status && $notification_status->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('restaurant_registration_mail_status_admin') == '1') {
                 Mail::to($admin['email'])->send(new \App\Mail\RestaurantRegistration('pending', $vendor->f_name . ' ' . $vendor->l_name));
             }
         } catch (\Exception $ex) {
@@ -255,18 +272,20 @@ class VendorLoginController extends Controller
     {
 
 
-        if ($restaurant?->restaurant_model == 'none') {
+        if ($restaurant && $restaurant->restaurant_model == 'none') {
             $vendor->auth_token = $token;
-            $vendor?->save();
-            return [
+            if ($vendor) {
+                $vendor->save();
+            }
+                        return [
                 'type' => 'subscribed',
                 'code' => 200,
                 'data' => [
                     'subscribed' => [
-                        'restaurant_id' => $restaurant?->id,
+'restaurant_id' => $restaurant ? $restaurant->id : null,
                         'token' => $token,
-                        'package_id' => $restaurant?->package_id,
-                        'zone_wise_topic' => $restaurant?->zone?->restaurant_wise_topic,
+'package_id' => $restaurant ? $restaurant->package_id : null,
+'zone_wise_topic' => $restaurant && $restaurant->zone ? $restaurant->zone->restaurant_wise_topic : null,
                         'type' => 'new_join'
                     ]
                 ]
@@ -285,7 +304,7 @@ class VendorLoginController extends Controller
                     ]
                 ]
             ];
-        } elseif ($restaurant->status == 0 && $vendor->status == 1 && in_array($restaurant?->restaurant_model ,['subscription' ,'commission']) ) {
+        } elseif ($restaurant->status == 0 && $vendor->status == 1 && in_array(($restaurant && $restaurant->restaurant_model) ? $restaurant->restaurant_model : null, ['subscription', 'commission'])) {
 
             return [
                 'type' => 'errors',
@@ -299,10 +318,10 @@ class VendorLoginController extends Controller
         }
 
 
-        if ($restaurant?->restaurant_model == 'subscription') {
-            $restaurant_sub = $restaurant?->restaurant_sub;
+        if ($restaurant && $restaurant->restaurant_model == 'subscription') {
+            $restaurant_sub = $restaurant ? $restaurant->restaurant_sub : null;
             if (isset($restaurant_sub)) {
-                if ($restaurant_sub?->mobile_app == 0) {
+                if ($restaurant_sub && $restaurant_sub->mobile_app == 0) {
                     return [
                         'type' => 'errors',
                         'code' => 401,
@@ -317,26 +336,71 @@ class VendorLoginController extends Controller
         }
 
 
-        if ($restaurant?->restaurant_model == 'unsubscribed' && isset($restaurant?->restaurant_sub_update_application)) {
+        if ($restaurant && $restaurant->restaurant_model == 'unsubscribed' && isset($restaurant->restaurant_sub_update_application)) {
             return null;
         }
+        
 
-        if ($restaurant?->restaurant_model == 'unsubscribed' && !isset($restaurant?->restaurant_sub_update_application)) {
+        if ($restaurant && $restaurant->restaurant_model == 'unsubscribed' && !isset($restaurant->restaurant_sub_update_application)) {
             $vendor->auth_token = $token;
-            $vendor?->save();
+            if ($vendor) {
+                $vendor->save();
+            }
             return [
                 'type' => 'subscribed',
                 'code' => 200,
                 'data' => [
                     'subscribed' => [
-                        'restaurant_id' => $restaurant?->id,
+                        'restaurant_id' => $restaurant->id,
                         'token' => $token,
-                        'zone_wise_topic' => $restaurant?->zone?->restaurant_wise_topic,
+                        'zone_wise_topic' => $restaurant->zone ? $restaurant->zone->restaurant_wise_topic : null,
                         'type' => 'new_join'
                     ]
                 ]
             ];
         }
+        
         return null;
     }
+
+    public function ApiLogin(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required|min:6'
+        ]);
+    
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
+        }
+    
+        $credentials = $request->only('email', 'password');
+    
+        // Attempt to authenticate the vendor
+        if (auth('vendor')->attempt($credentials)) {
+            $vendor = auth('vendor')->user(); // Get the authenticated vendor
+    
+            if ($vendor) {  // Check if vendor is found
+                $token = bin2hex(random_bytes(40)); // Generate token
+    
+                $vendor->auth_token = $token;
+                $vendor->save();                
+    
+                return response()->json([
+                    'status' => true,
+                    'token' => $token,
+                    'vendor' => $vendor,
+                ]);
+            }
+        }
+    
+        // If no vendor found or invalid credentials
+        return response()->json([
+            'status' => false,
+            'message' => 'Invalid email or password.'
+        ], 401);
+    }
+    
+
+
 }

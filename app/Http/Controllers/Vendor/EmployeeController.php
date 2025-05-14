@@ -13,6 +13,9 @@ use Maatwebsite\Excel\Facades\Excel;
 use Rap2hpoutre\FastExcel\FastExcel;
 use Illuminate\Validation\Rules\Password;
 use App\Exports\RestaurantEmployeeListExport;
+use Validator;
+use Illuminate\Support\Facades\Hash;
+
 
 class EmployeeController extends Controller
 {
@@ -21,6 +24,11 @@ class EmployeeController extends Controller
     {
         $rls = EmployeeRole::where('restaurant_id',Helpers::get_restaurant_id())->get();
         return view('vendor-views.employee.add-new', compact('rls'));
+    }
+    public function table_new()
+    {
+        $rls = EmployeeRole::where('restaurant_id',Helpers::get_restaurant_id())->get();
+        return view('vendor-views.employee.table-new', compact('rls'));
     }
 
     public function store(Request $request)
@@ -54,7 +62,7 @@ class EmployeeController extends Controller
         $vendor->password = bcrypt($request->password);
         $vendor->vendor_id = Helpers::get_vendor_id();
         $vendor->restaurant_id =Helpers::get_restaurant_id();
-        $vendor->image = Helpers::upload(dir:'vendor/', format:'png', image: $request->file('image'));
+        $vendor->image = Helpers::upload('vendor/', 'png', $request->file('image'));
         $vendor->save();
 
         Toastr::success('Employee added successfully!');
@@ -128,7 +136,7 @@ class EmployeeController extends Controller
         }
 
         if ($request->has('image')) {
-            $e['image'] = Helpers::update(dir:'vendor/', old_image: $e->image, format:'png',  image:$request->file('image'));
+            $e['image'] = Helpers::update('vendor/', $e->image, 'png', $request->file('image'));
         }
 
         DB::table('vendor_employees')->where(['id' => $id])->update([
@@ -200,5 +208,33 @@ class EmployeeController extends Controller
         } else if ($request->type == 'csv') {
             return Excel::download(new RestaurantEmployeeListExport($data), 'Employees.csv');
         }
+    }
+    public function login(Request $request)
+    {
+        // Validation
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 400);
+        }
+
+        // Check if employee exists
+        $employee = VendorEmployee::where('email', $request->email)->first();
+
+        if (!$employee || !Hash::check($request->password, $employee->password)) {
+            return response()->json(['message' => 'Invalid credentials'], 401);
+        }
+
+        // Generate Token
+        $token = $employee->createToken('EmployeeToken')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Login successful',
+            'token' => $token,
+            'employee' => $employee,
+        ]);
     }
 }

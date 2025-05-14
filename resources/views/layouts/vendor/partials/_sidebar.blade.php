@@ -172,6 +172,147 @@
                         </li>
                     @endif
                     <!-- End AddOn -->
+                                         <!-- Employee-->
+                    <li class="nav-item">
+                        <small class="nav-subtitle" title="{{translate('messages.Report_section')}}">{{translate('messages.Report_section')}}</small>
+                        <small class="tio-more-horizontal nav-subtitle-replacer"></small>
+                    </li>
+
+                    @if(\App\CentralLogics\Helpers::employee_module_permission_check('report'))
+                    <li class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/report/expense-report') ? 'active' : '' }}">
+                        <a class="nav-link " href="{{ route('vendor.report.expense-report') }}" title="{{ translate('messages.expense_report') }}">
+                            <span class="tio-money nav-icon"></span>
+                            <span class="text-truncate">{{ translate('messages.expense_report') }}</span>
+                        </a>
+                    </li>
+
+
+                    <li class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/report/transaction-report') ? 'active' : '' }}">
+                    <a class="nav-link " href="{{ route('vendor.report.day-wise-report') }}"
+                        title="{{ translate('messages.transaction_report') }}">
+                        <span class="tio-chart-pie-1 nav-icon"></span>
+                        <span class="text-truncate">{{ translate('messages.transaction_report') }}</span>
+                    </a>
+                    </li>
+
+                    <li class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/report/disbursement-report') ? 'active' : '' }}">
+                    <a class="nav-link " href="{{ route('vendor.report.disbursement-report') }}"
+                        title="{{ translate('messages.disbursement_report') }}">
+                        <span class="tio-saving nav-icon"></span>
+                        <span class="text-truncate">{{ translate('messages.disbursement_report') }}</span>
+                    </a>
+                    </li>
+
+
+                    <li class="navbar-vertical-aside-has-menu  {{Request::is('restaurant-panel/report/order-report') || Request::is('restaurant-panel/report/campaign-order-report') ? 'active' : '' }}">
+                        <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
+                            title="{{ translate('messages.Order_Report') }}">
+                            <i class="tio-user nav-icon"></i>
+                            <span
+                                class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.Order_Report') }}</span>
+                        </a>
+                        <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
+                            style="display: {{Request::is('restaurant-panel/report/order-report') || Request::is('restaurant-panel/report/campaign-order-report') ? 'block' : 'none' }}">
+                            <li class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/report/order-report') ? 'active' : '' }}">
+                                <a class="nav-link " href="{{ route('vendor.report.order-report') }}" title="{{ translate('messages.order_report') }}">
+                                    <span class="tio-circle nav-indicator-icon"></span>
+                                    <span class="text-truncate text-capitalize">{{ translate('messages.Regular_order_report') }}</span>
+                                </a>
+                            </li>
+                            <li class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/report/campaign-order-report') ? 'active' : '' }}">
+                                <a class="nav-link " href="{{ route('vendor.report.campaign_order-report') }}" title="{{ translate('messages.Campaign_Order_Report') }}">
+                                    <span class="tio-circle nav-indicator-icon"></span>
+                                    <span class="text-truncate text-capitalize">{{ translate('messages.Campaign_Order_Report') }}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/report/food-wise-report') ? 'active' : '' }}">
+                        <a class="nav-link " href="{{ route('vendor.report.food-wise-report') }}"
+                            title="{{ translate('messages.food_report') }}">
+                            <span class="tio-fastfood nav-icon"></span>
+                            <span class="text-truncate">{{ translate('messages.food_report') }}</span>
+                        </a>
+                    </li>
+                    @endif
+                    <!-- Employee-->
+                    <li class="nav-item">
+                        <small class="nav-subtitle" title="{{translate('messages.employee_section')}}">{{translate('messages.employee_section')}}</small>
+                        <small class="tio-more-horizontal nav-subtitle-replacer"></small>
+                    </li>
+
+                    @if(\App\CentralLogics\Helpers::employee_module_permission_check('custom_role'))
+                    <li class="navbar-vertical-aside-has-menu {{Request::is('restaurant-panel/custom-role*')?'active':''}}">
+                        <a class="js-navbar-vertical-aside-menu-link nav-link" href="{{route('vendor.custom-role.create')}}"
+                        title="{{translate('messages.employee_Role')}}">
+                            <i class="tio-incognito nav-icon"></i>
+                            <span
+                                class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('messages.employee_Role')}}</span>
+                        </a>
+                    </li>
+                    @endif
+
+                    @if(\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
+                    <li class="navbar-vertical-aside-has-menu {{Request::is('restaurant-panel/employee*')?'active':''}}">
+                        <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
+                        title="{{translate('messages.employees')}}">
+                            <i class="tio-user nav-icon"></i>
+                            <span
+                                class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('messages.employees')}}</span>
+                        </a>
+                        <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
+                        style="display: {{Request::is('restaurant-panel/employee*')?'block':'none'}}">
+                            <li class="nav-item {{Request::is('restaurant-panel/employee/add-new')?'active':''}}">
+                                <a class="nav-link " href="{{route('vendor.employee.add-new')}}" title="{{translate('messages.add_new_Employee')}}">
+                                    <span class="tio-circle nav-indicator-icon"></span>
+                                    <span class="text-truncate">{{translate('messages.add_new_employee')}}</span>
+                                </a>
+                            </li>
+                            <li class="nav-item {{Request::is('restaurant-panel/employee/list')?'active':''}}">
+                                <a class="nav-link " href="{{route('vendor.employee.list')}}" title="{{translate('messages.Employee_list')}}">
+                                    <span class="tio-circle nav-indicator-icon"></span>
+                                    <span class="text-truncate">{{translate('messages.list')}}</span>
+                                </a>
+                            </li>
+
+                        </ul>
+                    </li>
+                    @endif
+                    <!-- End Employee -->
+
+                    @if(\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
+                    <li class="navbar-vertical-aside-has-menu {{Request::is('restaurant-panel/employee*')?'active':''}}">
+                        <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
+                        title="{{translate('messages.employees')}}">
+                            <i class="tio-user nav-icon"></i>
+                            <span
+                                class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('messages.Setiing')}}</span>
+                        </a>
+                        <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
+                        style="display: {{Request::is('restaurant-panel/employee*')?'block':'none'}}">
+                            <li class="nav-item {{Request::is('restaurant-panel/employee/add-new')?'active':''}}">
+                                <a class="nav-link " href="{{route('table_employees.index')}}" title="{{translate('messages.add_new_Employee')}}">
+                                    <span class="tio-circle nav-indicator-icon"></span>
+                                    <span class="text-truncate">{{translate('messages.table')}}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    @endif
+                    <!-- End Employee -->
+
+                    <li class="nav-item px-20 pb-5">
+                        <div class="promo-card">
+                            <div class="position-relative">
+                                <img src="{{dynamicAsset('public/assets/admin/img/promo.png')}}" class="mw-100" alt="">
+                                <h4 class="mb-2 mt-3">{{ translate('Want_to_get_highlighted?') }}</h4>
+                                <p class="mb-4">
+                                    {{ translate('Create_ads_to_get_highlighted_on_the_app_and_web_browser') }}
+                                </p>
+                                <a href="{{ route('vendor.advertisement.create') }}" class="btn btn--primary">{{ translate('Create_Ads') }}</a>
+                            </div>
+                        </div>
+                    </li>
                 </ul>
             </div>
             <!-- End Content -->

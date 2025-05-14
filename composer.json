@@ -35,6 +35,7 @@
         "mpdf/mpdf": "^8.0",
         "nwidart/laravel-modules": "^8.0",
         "paypal/paypal-checkout-sdk": "^1.0",
+        "psy/psysh": "@stable",
         "rap2hpoutre/fast-excel": "^3.0",
         "razorpay/razorpay": "^2.8",
         "simplesoftwareio/simple-qrcode": "^4.0",

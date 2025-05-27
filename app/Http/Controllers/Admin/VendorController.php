@@ -46,7 +46,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use MatanYadaev\EloquentSpatial\Objects\Point;
+// use MatanYadaev\EloquentSpatial\Objects\Point;
+use Grimzy\LaravelMysqlSpatial\Types\Point;
 use App\Exports\RestauranrWiseFoodReviewExport;
 use App\Exports\RestaurantWiseCashCollectionExport;
 use App\Exports\RestaurantWithdrawTransactionExport;
@@ -59,9 +60,11 @@ class VendorController extends Controller
     public function index()
     {
 
-        $page_data=   DataSetting::Where('type' , 'restaurant')->where('key' , 'restaurant_page_data')->first()?->value;
-        $page_data =  $page_data ? json_decode($page_data ,true)  :[];
-        return view('admin-views.vendor.index', compact('page_data')) ;
+        $page_data = optional(
+            DataSetting::where('type', 'restaurant')->where('key', 'restaurant_page_data')->first()
+        )->value ?? null;
+        $page_data =  $page_data ? json_decode($page_data, true)  : [];
+        return view('admin-views.vendor.index', compact('page_data'));
     }
 
     public function store(Request $request)
@@ -86,7 +89,7 @@ class VendorController extends Controller
             'logo' => 'required|max:2048',
             'cover_photo' => 'required|max:2048',
             'tax' => 'required',
-            'delivery_time_type'=>'required',
+            'delivery_time_type' => 'required',
         ], [
             'f_name.required' => translate('messages.first_name_is_required'),
             'password.min_length' => translate('The password must be at least :min characters long'),
@@ -100,10 +103,10 @@ class VendorController extends Controller
         ]);
 
         $cuisine_ids = [];
-        $cuisine_ids=$request->cuisine_ids;
+        $cuisine_ids = $request->cuisine_ids;
         if ($request->zone_id) {
             $zone = Zone::query()
-            ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))->where('id', $request->zone_id)->first();
+                ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))->where('id', $request->zone_id)->first();
             if (!$zone) {
                 $validator->getMessageBag()->add('latitude', translate('messages.coordinates_out_of_zone'));
                 return back()->withErrors($validator)
@@ -111,14 +114,14 @@ class VendorController extends Controller
             }
         }
 
-        if($request->name[array_search('default', $request->lang)] == '' ){
-                    $validator->getMessageBag()->add('address', translate('messages.default_restaurant_name_is_required'));
-                return back()->withErrors($validator)->withInput();
-            }
-        if($request->address[array_search('default', $request->lang)] == '' ){
-                    $validator->getMessageBag()->add('address', translate('messages.default_restaurant_address_is_required'));
-                return back()->withErrors($validator)->withInput();
-                }
+        if ($request->name[array_search('default', $request->lang)] == '') {
+            $validator->getMessageBag()->add('address', translate('messages.default_restaurant_name_is_required'));
+            return back()->withErrors($validator)->withInput();
+        }
+        if ($request->address[array_search('default', $request->lang)] == '') {
+            $validator->getMessageBag()->add('address', translate('messages.default_restaurant_address_is_required'));
+            return back()->withErrors($validator)->withInput();
+        }
 
         if ($request->delivery_time_type == 'min') {
             $minimum_delivery_time = (int) $request->input('minimum_delivery_time');
@@ -134,17 +137,17 @@ class VendorController extends Controller
         }
 
 
-        $tag_ids=[];
+        $tag_ids = [];
         if ($request->tags != null) {
             $tags = explode(",", $request->tags);
         }
-        if(isset($tags)){
+        if (isset($tags)) {
             foreach ($tags as $key => $value) {
                 $tag = Tag::firstOrNew(
                     ['tag' => $value]
                 );
                 $tag->save();
-                array_push($tag_ids,$tag->id);
+                array_push($tag_ids, $tag->id);
             }
         }
 
@@ -162,8 +165,8 @@ class VendorController extends Controller
         $restaurant->name = $request->name[array_search('default', $request->lang)];
         $restaurant->phone = $request->phone;
         $restaurant->email = $request->email;
-        $restaurant->logo = Helpers::upload( dir: 'restaurant/', format: 'png',  image: $request->file('logo'));
-        $restaurant->cover_photo = Helpers::upload( dir: 'restaurant/cover/',  format:'png', image:  $request->file('cover_photo'));
+        $restaurant->logo = Helpers::upload('restaurant/', 'png', $request->file('logo'));
+        $restaurant->cover_photo = Helpers::upload('restaurant/cover/', 'png', $request->file('cover_photo'));
         $restaurant->address = $request->address[array_search('default', $request->lang)];
         $restaurant->latitude = $request->latitude;
         $restaurant->longitude = $request->longitude;
@@ -171,22 +174,22 @@ class VendorController extends Controller
         $restaurant->zone_id = $request->zone_id;
         $restaurant->tax = $request->tax;
         $restaurant->restaurant_model = 'none';
-        $restaurant->delivery_time =$request->minimum_delivery_time .'-'. $request->maximum_delivery_time.'-'.$request->delivery_time_type;
+        $restaurant->delivery_time = $request->minimum_delivery_time . '-' . $request->maximum_delivery_time . '-' . $request->delivery_time_type;
 
-        if(isset($request->additional_data)  && count($request->additional_data) > 0){
-            $restaurant->additional_data = json_encode($request->additional_data) ;
+        if (isset($request->additional_data)  && count($request->additional_data) > 0) {
+            $restaurant->additional_data = json_encode($request->additional_data);
         }
 
         $additional_documents = [];
         if ($request->additional_documents) {
             foreach ($request->additional_documents as $key => $data) {
                 $additional = [];
-                foreach($data as $file){
-                    if(is_file($file)){
+                foreach ($data as $file) {
+                    if (is_file($file)) {
                         $file_name = Helpers::upload('additional_documents/', $file->getClientOriginalExtension(), $file);
-                        $additional[] = $file_name ;
+                        $additional[] = $file_name;
                     }
-                    $additional[] = ['file'=>$file_name, 'storage'=> Helpers::getDisk()];
+                    $additional[] = ['file' => $file_name, 'storage' => Helpers::getDisk()];
                 }
             }
             $restaurant->additional_documents = json_encode($additional_documents);
@@ -200,7 +203,7 @@ class VendorController extends Controller
         $default_lang = str_replace('_', '-', app()->getLocale());
         $data = [];
         foreach ($request->lang as $index => $key) {
-            if($default_lang == $key && !($request->name[$index])){
+            if ($default_lang == $key && !($request->name[$index])) {
                 if ($key != 'default') {
                     array_push($data, array(
                         'translationable_type' => 'App\Models\Restaurant',
@@ -210,7 +213,7 @@ class VendorController extends Controller
                         'value' => $restaurant->name,
                     ));
                 }
-            }else{
+            } else {
                 if ($request->name[$index] && $key != 'default') {
                     array_push($data, array(
                         'translationable_type' => 'App\Models\Restaurant',
@@ -221,7 +224,7 @@ class VendorController extends Controller
                     ));
                 }
             }
-            if($default_lang == $key && !($request->address[$index])){
+            if ($default_lang == $key && !($request->address[$index])) {
                 if ($key != 'default') {
                     array_push($data, array(
                         'translationable_type' => 'App\Models\Restaurant',
@@ -231,7 +234,7 @@ class VendorController extends Controller
                         'value' => $restaurant->address,
                     ));
                 }
-            }else{
+            } else {
                 if ($request->address[$index] && $key != 'default') {
                     array_push($data, array(
                         'translationable_type' => 'App\Models\Restaurant',
@@ -265,8 +268,8 @@ class VendorController extends Controller
             'f_name' => 'required|max:100',
             'l_name' => 'nullable|max:100',
             'name' => 'required|max:191',
-            'email' => 'required|unique:vendors,email,' . $restaurant?->vendor?->id,
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|max:20|unique:vendors,phone,' . $restaurant?->vendor?->id,
+            'email' => 'required|unique:vendors,email,' . ($restaurant->vendor->id ?? ''),
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|max:20|unique:vendors,phone,' . (isset($restaurant) && isset($restaurant->vendor) ? $restaurant->vendor->id : ''),
             'zone_id' => 'required',
             'latitude' => 'required|min:-90|max:90',
             'longitude' => 'required|min:-180|max:180',
@@ -276,7 +279,7 @@ class VendorController extends Controller
             'maximum_delivery_time' => 'required|gt:minimum_delivery_time',
             'logo' => 'nullable|max:2048',
             'cover_photo' => 'nullable|max:2048',
-            'delivery_time_type'=>'required',
+            'delivery_time_type' => 'required',
         ], [
             'f_name.required' => translate('messages.first_name_is_required'),
             'password.min_length' => translate('The password must be at least :min characters long'),
@@ -289,19 +292,19 @@ class VendorController extends Controller
         ]);
 
 
-        if($request->name[array_search('default', $request->lang)] == '' ){
-                    $validator->getMessageBag()->add('address', translate('messages.default_restaurant_name_is_required'));
-                return back()->withErrors($validator)->withInput();
-            }
-        if($request->address[array_search('default', $request->lang)] == '' ){
-                    $validator->getMessageBag()->add('address', translate('messages.default_restaurant_address_is_required'));
-                return back()->withErrors($validator)->withInput();
-                }
-        if ($request?->zone_id) {
+        if ($request->name[array_search('default', $request->lang)] == '') {
+            $validator->getMessageBag()->add('address', translate('messages.default_restaurant_name_is_required'));
+            return back()->withErrors($validator)->withInput();
+        }
+        if ($request->address[array_search('default', $request->lang)] == '') {
+            $validator->getMessageBag()->add('address', translate('messages.default_restaurant_address_is_required'));
+            return back()->withErrors($validator)->withInput();
+        }
+        if ($request && $request->zone_id) {
             $zone = Zone::query()
-            ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))
-            ->where('id',$request->zone_id)
-            ->first();
+                ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))
+                ->where('id', $request->zone_id)
+                ->first();
 
             if (!$zone) {
                 $validator->getMessageBag()->add('latitude', translate('messages.coordinates_out_of_zone'));
@@ -309,6 +312,7 @@ class VendorController extends Controller
                     ->withInput();
             }
         }
+
 
 
         if ($request->delivery_time_type == 'min') {
@@ -328,18 +332,22 @@ class VendorController extends Controller
         if ($request->tags != null) {
             $tags = explode(",", $request->tags);
         }
-        if(isset($tags)){
+        if (isset($tags)) {
             foreach ($tags as $key => $value) {
                 $tag = Tag::firstOrNew(
                     ['tag' => $value]
                 );
                 $tag->save();
-                array_push($tag_ids,$tag->id);
+                array_push($tag_ids, $tag->id);
             }
         }
 
 
-        $vendor = Vendor::findOrFail($restaurant?->vendor?->id);
+        if (!$restaurant || !$restaurant->vendor || !$restaurant->vendor->id) {
+            abort(404, 'Vendor not found.');
+        }
+
+        $vendor = Vendor::findOrFail($restaurant->vendor->id);
         $vendor->f_name = $request->f_name;
         $vendor->l_name = $request->l_name;
         $vendor->email = $request->email;
@@ -348,29 +356,32 @@ class VendorController extends Controller
         $vendor->save();
 
         $cuisine_ids = [];
-        $cuisine_ids=$request->cuisine_ids;
+        $cuisine_ids = $request->cuisine_ids;
 
         $slug = Str::slug($request->name[array_search('default', $request->lang)]);
-        $restaurant->slug = $restaurant->slug? $restaurant->slug :"{$slug}{$restaurant->id}";
+        $restaurant->slug = $restaurant->slug ? $restaurant->slug : "{$slug}{$restaurant->id}";
 
         $restaurant->email = $request->email;
         $restaurant->phone = $request->phone;
-        $restaurant->logo = $request->has('logo') ? Helpers::update( dir:'restaurant/',old_image: $restaurant->logo, format:'png',image: $request->file('logo')) : $restaurant->logo;
-        $restaurant->cover_photo = $request->has('cover_photo') ? Helpers::update( dir:'restaurant/cover/', old_image: $restaurant->cover_photo, format:'png', image:$request->file('cover_photo')) : $restaurant->cover_photo;
+        $restaurant->logo = $request->has('logo')
+            ? Helpers::update('restaurant/', $restaurant->logo, 'png', $request->file('logo'))
+            : $restaurant->logo;
+        $restaurant->cover_photo = $request->has('cover_photo')
+            ? Helpers::update('restaurant/cover/', $restaurant->cover_photo, 'png', $request->file('cover_photo'))
+            : $restaurant->cover_photo;
         $restaurant->name = $request->name[array_search('default', $request->lang)];
         $restaurant->address = $request->address[array_search('default', $request->lang)];
         $restaurant->latitude = $request->latitude;
         $restaurant->longitude = $request->longitude;
         $restaurant->zone_id = $request->zone_id;
         $restaurant->tax = $request->tax;
-        $restaurant->delivery_time =$request->minimum_delivery_time .'-'. $request->maximum_delivery_time.'-'.$request->delivery_time_type;
+        $restaurant->delivery_time = $request->minimum_delivery_time . '-' . $request->maximum_delivery_time . '-' . $request->delivery_time_type;
         $restaurant->save();
         $restaurant->tags()->sync($tag_ids);
 
         $default_lang = str_replace('_', '-', app()->getLocale());
-        foreach($request->lang as $index=>$key)
-        {
-            if($default_lang == $key && !($request->name[$index])){
+        foreach ($request->lang as $index => $key) {
+            if ($default_lang == $key && !($request->name[$index])) {
                 if ($key != 'default') {
                     Translation::updateOrInsert(
                         [
@@ -382,19 +393,21 @@ class VendorController extends Controller
                         ['value' => $restaurant->name]
                     );
                 }
-            }else{
+            } else {
 
                 if ($request->name[$index] && $key != 'default') {
                     Translation::updateOrInsert(
-                        ['translationable_type'  => 'App\Models\Restaurant',
+                        [
+                            'translationable_type'  => 'App\Models\Restaurant',
                             'translationable_id'    => $restaurant->id,
                             'locale'                => $key,
-                            'key'                   => 'name'],
+                            'key'                   => 'name'
+                        ],
                         ['value'                 => $request->name[$index]]
                     );
                 }
             }
-            if($default_lang == $key && !($request->address[$index])){
+            if ($default_lang == $key && !($request->address[$index])) {
                 if ($key != 'default') {
                     Translation::updateOrInsert(
                         [
@@ -406,21 +419,26 @@ class VendorController extends Controller
                         ['value' => $restaurant->address]
                     );
                 }
-            }else{
+            } else {
 
                 if ($request->address[$index] && $key != 'default') {
                     Translation::updateOrInsert(
-                        ['translationable_type'  => 'App\Models\Restaurant',
+                        [
+                            'translationable_type'  => 'App\Models\Restaurant',
                             'translationable_id'    => $restaurant->id,
                             'locale'                => $key,
-                            'key'                   => 'address'],
+                            'key'                   => 'address'
+                        ],
                         ['value'                 => $request->address[$index]]
                     );
                 }
             }
         }
-        $restaurant?->cuisine()?->sync($cuisine_ids);
-        if ($vendor?->userinfo) {
+        if ($restaurant && $restaurant->cuisine()) {
+            $restaurant->cuisine()->sync($cuisine_ids);
+        }
+
+        if ($vendor && $vendor->userinfo) {
             $userinfo = $vendor->userinfo;
             $userinfo->f_name = $restaurant->name;
             $userinfo->l_name = '';
@@ -428,11 +446,13 @@ class VendorController extends Controller
             $userinfo->image = $restaurant->logo;
             $userinfo->save();
         }
+
         Toastr::success(translate('messages.restaurant_updated_successfully'));
 
-        if($request?->new_join){
-            return to_route('admin.restaurant.pending');
+        if (isset($request->new_join) && $request->new_join) {
+            return redirect()->route('admin.restaurant.pending');
         }
+
         return redirect('admin/restaurant/list');
     }
 
@@ -442,24 +462,43 @@ class VendorController extends Controller
             Toastr::warning(translate('messages.you_can_not_delete_this_restaurant_please_add_a_new_restaurant_to_delete'));
             return back();
         }
-        Helpers::check_and_delete('restaurant/' , $restaurant['logo']);
-        $vendor = Vendor::findOrFail($restaurant?->vendor?->id);
-        $restaurant?->delete();
-        $vendor?->userinfo?->delete();
-        $vendor?->delete();
+        Helpers::check_and_delete('restaurant/', $restaurant['logo']);
+        $vendorId = $restaurant && $restaurant->vendor ? $restaurant->vendor->id : null;
+
+        if ($vendorId) {
+            $vendor = Vendor::findOrFail($vendorId);
+        } else {
+            // handle the case when vendor ID is missing, maybe throw an exception or return null
+            $vendor = null;
+        }
+        if ($restaurant) {
+            $restaurant->delete();
+        }
+
+        if ($vendor) {
+            if ($vendor->userinfo) {
+                $vendor->userinfo->delete();
+            }
+            $vendor->delete();
+        }
+
         Toastr::success(translate('messages.restaurant_removed'));
         return back();
     }
 
-    public function view($restaurant,Request $request, $tab = null, $sub_tab = 'cash')
+    public function view($restaurant, Request $request, $tab = null, $sub_tab = 'cash')
     {
         $key = explode(' ', $request['search']);
 
-        $restaurant= Restaurant::find($restaurant);
-        $wallet = $restaurant?->vendor?->wallet;
-        if (!$wallet) {
+        $restaurant = Restaurant::find($restaurant);
+        $wallet = null;
+        if ($restaurant && $restaurant->vendor) {
+            $wallet = $restaurant->vendor->wallet;
+        }
+
+        if (!$wallet && $restaurant && $restaurant->vendor) {
             $wallet = new RestaurantWallet();
-            $wallet->vendor_id = $restaurant?->vendor?->id;
+            $wallet->vendor_id = $restaurant->vendor->id;
             $wallet->total_earning = 0.0;
             $wallet->total_withdrawn = 0.0;
             $wallet->pending_withdraw = 0.0;
@@ -467,38 +506,39 @@ class VendorController extends Controller
             $wallet->updated_at = now();
             $wallet->save();
         }
+
         if ($tab == 'settings') {
             return view('admin-views.vendor.view.settings', compact('restaurant'));
         } else if ($tab == 'order') {
-            $orders=Order::where('restaurant_id', $restaurant->id)->with('customer')
-            ->when(isset($key ), function ($q) use ($key){
-                $q->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhere('id', 'like', "%{$value}%");
-                    }
-                });
-            })
-            ->latest()->Notpos()
-            ->paginate(config('default_pagination'));
+            $orders = Order::where('restaurant_id', $restaurant->id)->with('customer')
+                ->when(isset($key), function ($q) use ($key) {
+                    $q->where(function ($q) use ($key) {
+                        foreach ($key as $value) {
+                            $q->orWhere('id', 'like', "%{$value}%");
+                        }
+                    });
+                })
+                ->latest()->Notpos()
+                ->paginate(config('default_pagination'));
 
 
-            return view('admin-views.vendor.view.order', compact('restaurant','orders'));
+            return view('admin-views.vendor.view.order', compact('restaurant', 'orders'));
         } else if ($tab == 'product') {
 
 
-            $foods =Food::withoutGlobalScope(\App\Scopes\RestaurantScope::class)
-            ->with('category.parent')
-            ->where('restaurant_id', $restaurant->id)
-            ->when(isset($key) , function($q) use($key) {
-                $q->where(function($q) use($key){
-                    foreach ($key as $value) {
-                        $q->where('name', 'like', "%{$value}%");
-                    }
-                });
-            })
-            ->latest()->paginate(config('default_pagination'));
+            $foods = Food::withoutGlobalScope(\App\Scopes\RestaurantScope::class)
+                ->with('category.parent')
+                ->where('restaurant_id', $restaurant->id)
+                ->when(isset($key), function ($q) use ($key) {
+                    $q->where(function ($q) use ($key) {
+                        foreach ($key as $value) {
+                            $q->where('name', 'like', "%{$value}%");
+                        }
+                    });
+                })
+                ->latest()->paginate(config('default_pagination'));
 
-            return view('admin-views.vendor.view.product', compact('restaurant','foods'));
+            return view('admin-views.vendor.view.product', compact('restaurant', 'foods'));
         } else if ($tab == 'discount') {
             return view('admin-views.vendor.view.discount', compact('restaurant'));
         } else if ($tab == 'transaction') {
@@ -506,7 +546,10 @@ class VendorController extends Controller
         } else if ($tab == 'reviews') {
             return view('admin-views.vendor.view.review', compact('restaurant', 'sub_tab'));
         } else if ($tab == 'conversations') {
-            $user = UserInfo::where(['vendor_id' => $restaurant?->vendor?->id])->first();
+            $user = null;
+            if ($restaurant && $restaurant->vendor) {
+                $user = UserInfo::where(['vendor_id' => $restaurant->vendor->id])->first();
+            }
             if ($user) {
                 $conversations = Conversation::with(['sender', 'receiver', 'last_message'])->WhereUser($user->id)
                     ->paginate(8);
@@ -514,24 +557,44 @@ class VendorController extends Controller
                 $conversations = [];
             }
             return view('admin-views.vendor.view.conversations', compact('restaurant', 'sub_tab', 'conversations'));
-        } elseif ($tab == 'business_plan'){
+        } elseif ($tab == 'business_plan') {
 
-            $restaurant= Restaurant::where('id',$restaurant->id)->with([
-                'restaurant_sub_update_application.package','vendor','restaurant_sub_update_application.last_transcations'
+            $restaurant = Restaurant::where('id', $restaurant->id)->with([
+                'restaurant_sub_update_application.package',
+                'vendor',
+                'restaurant_sub_update_application.last_transcations'
             ])->withcount('foods')
-            ->first();
-            $packages = SubscriptionPackage::where('status',1)->latest()->get();
-            $admin_commission=BusinessSetting::where('key', 'admin_commission')->first()?->value ;
-            $business_name=BusinessSetting::where('key', 'business_name')->first()?->value ;
-            try {
-                $index=  $restaurant->restaurant_model == 'commission' ? 0 : 1+ array_search($restaurant?->restaurant_sub_update_application?->package_id??1 ,array_column($packages->toArray() ,'id') );
-            } catch (\Throwable $th) {
-                $index= 2;
+                ->first();
+            $packages = SubscriptionPackage::where('status', 1)->latest()->get();
+            $admin_commission = null;
+            $setting = BusinessSetting::where('key', 'admin_commission')->first();
+            if ($setting) {
+                $admin_commission = $setting->value;
             }
-            return view('admin-views.vendor.view.subscriptions',compact('restaurant','packages','business_name','admin_commission','index'));
+            $business_name = null;
+            $setting = BusinessSetting::where('key', 'business_name')->first();
+            if ($setting) {
+                $business_name = $setting->value;
+            }
+            try {
+                $packageId = 1; // default fallback
+                if ($restaurant && $restaurant->restaurant_sub_update_application && isset($restaurant->restaurant_sub_update_application->package_id)) {
+                    $packageId = $restaurant->restaurant_sub_update_application->package_id;
+                }
+                $packageIds = array_column($packages->toArray(), 'id');
 
+                if ($restaurant && $restaurant->restaurant_model === 'commission') {
+                    $index = 0;
+                } else {
+                    $pos = array_search($packageId, $packageIds);
+                    $index = ($pos !== false) ? 1 + $pos : 2;
+                }
+            } catch (\Throwable $th) {
+                $index = 2;
+            }
 
-        } elseif ($tab == 'subscriptions-transactions'){
+            return view('admin-views.vendor.view.subscriptions', compact('restaurant', 'packages', 'business_name', 'admin_commission', 'index'));
+        } elseif ($tab == 'subscriptions-transactions') {
             abort(404);
             // $from=$request?->start_date;
             // $to= $request?->end_date;
@@ -566,16 +629,16 @@ class VendorController extends Controller
             // 'from' =>  $from,
             // 'to' =>  $to,
             // ]);
-    } else if ($tab == 'meta-data') {
-        return view('admin-views.vendor.view.meta-data', compact('restaurant', 'sub_tab'));
-    } else if ($tab == 'qr-code') {
-        $data = json_decode($restaurant->qr_code, true);
-        $qr = base64_encode(json_encode($data));
-        $code = isset($data)?QrCode::size(180)->generate($data['website'].'?qrcode='.$qr):'';
-        return view('admin-views.vendor.view.qrcode', compact('restaurant','data', 'code'));
-    } else if ($tab == 'disbursements') {
-            $disbursements=DisbursementDetails::where('restaurant_id', $restaurant->id)
-                ->when(isset($key), function ($q) use ($key){
+        } else if ($tab == 'meta-data') {
+            return view('admin-views.vendor.view.meta-data', compact('restaurant', 'sub_tab'));
+        } else if ($tab == 'qr-code') {
+            $data = json_decode($restaurant->qr_code, true);
+            $qr = base64_encode(json_encode($data));
+            $code = isset($data) ? QrCode::size(180)->generate($data['website'] . '?qrcode=' . $qr) : '';
+            return view('admin-views.vendor.view.qrcode', compact('restaurant', 'data', 'code'));
+        } else if ($tab == 'disbursements') {
+            $disbursements = DisbursementDetails::where('restaurant_id', $restaurant->id)
+                ->when(isset($key), function ($q) use ($key) {
                     $q->where(function ($q) use ($key) {
                         foreach ($key as $value) {
                             $q->orWhere('disbursement_id', 'like', "%{$value}%")
@@ -584,15 +647,16 @@ class VendorController extends Controller
                     });
                 })
                 ->latest()->paginate(config('default_pagination'));
-        return view('admin-views.vendor.view.disbursement', compact('restaurant','disbursements'));
+            return view('admin-views.vendor.view.disbursement', compact('restaurant', 'disbursements'));
+        } else if ($tab == 'pending-list') {
+            $admin_commission_setting = BusinessSetting::where('key', 'admin_commission')->first();
+            $admin_commission = $admin_commission_setting ? $admin_commission_setting->value : null;
 
-    } else if ($tab == 'pending-list') {
-        $admin_commission=BusinessSetting::where('key', 'admin_commission')->first()?->value ;
+            return view('admin-views.vendor.pending_list_view', compact('restaurant', 'admin_commission'));
+        }
 
-        return view('admin-views.vendor.pending_list_view', compact('restaurant','admin_commission'));
-    }
 
-        return view('admin-views.vendor.view.index', compact('restaurant','wallet'));
+        return view('admin-views.vendor.view.index', compact('restaurant', 'wallet'));
     }
 
 
@@ -612,16 +676,16 @@ class VendorController extends Controller
         $type = $request->query('type', 'all');
         $typ = $request->query('restaurant_model', '');
         $restaurants = Restaurant::when(is_numeric($zone_id), function ($query) use ($zone_id) {
-                return $query->where('zone_id', $zone_id);
-            })
-            ->with(['zone' , 'cuisine', 'vendor'])
-            ->withSum('reviews' , 'rating')
+            return $query->where('zone_id', $zone_id);
+        })
+            ->with(['zone', 'cuisine', 'vendor'])
+            ->withSum('reviews', 'rating')
             ->withCount('reviews')
-            ->whereHas('vendor', function($q){
-                $q->where('status',1);
+            ->whereHas('vendor', function ($q) {
+                $q->where('status', 1);
             })
-            ->when(isset($key) , function($q) use($key){
-                $q->where(function($query)use ($key){
+            ->when(isset($key), function ($q) use ($key) {
+                $q->where(function ($query) use ($key) {
                     $query->orWhereHas('vendor', function ($q) use ($key) {
                         foreach ($key as $value) {
                             $q->orWhere('f_name', 'like', "%{$value}%")
@@ -630,7 +694,7 @@ class VendorController extends Controller
                                 ->orWhere('phone', 'like', "%{$value}%");
                         }
                     })
-                    ->where(function ($q) use ($key) {
+                        ->where(function ($q) use ($key) {
                             foreach ($key as $value) {
                                 $q->orWhere('name', 'like', "%{$value}%")
                                     ->orWhere('email', 'like', "%{$value}%")
@@ -641,8 +705,8 @@ class VendorController extends Controller
             })
             ->cuisine($cuisine_id)
             ->type($type)->RestaurantModel($typ)->latest()->paginate(config('default_pagination'));
-                $zone = is_numeric($zone_id) ? Zone::findOrFail($zone_id) : null;
-        return view('admin-views.vendor.list', compact('restaurants', 'zone', 'type','typ','cuisine_id'));
+        $zone = is_numeric($zone_id) ? Zone::findOrFail($zone_id) : null;
+        return view('admin-views.vendor.list', compact('restaurants', 'zone', 'type', 'typ', 'cuisine_id'));
     }
 
     public function pending(Request $request)
@@ -652,24 +716,24 @@ class VendorController extends Controller
         $type = $request->query('type', '');
         $typ = $request->query('restaurant_model', '');
         $restaurants = Restaurant::when(is_numeric($zone_id), function ($query) use ($zone_id) {
-                return $query->where('zone_id', $zone_id);
-            })
-            ->when(isset($key),function($query)use($key){
-                $query->where(function($q)use($key){
+            return $query->where('zone_id', $zone_id);
+        })
+            ->when(isset($key), function ($query) use ($key) {
+                $query->where(function ($q) use ($key) {
                     foreach ($key as $value) {
                         $q->orWhere('name', 'like', "%{$value}%")
-                        ->orWhere('email', 'like', "%{$value}%")
-                        ->orWhere('phone', 'like', "%{$value}%");
+                            ->orWhere('email', 'like', "%{$value}%")
+                            ->orWhere('phone', 'like', "%{$value}%");
                     }
                 });
             })
-            ->with(['vendor','zone'])
+            ->with(['vendor', 'zone'])
             ->whereHas('vendor', function ($q) {
                 $q->where('status', null);
             })
             ->type($type)->RestaurantModel($typ)->latest()->paginate(config('default_pagination'));
-                $zone = is_numeric($zone_id) ? Zone::findOrFail($zone_id) : null;
-        return view('admin-views.vendor.pending_list', compact('restaurants', 'zone', 'type','typ'));
+        $zone = is_numeric($zone_id) ? Zone::findOrFail($zone_id) : null;
+        return view('admin-views.vendor.pending_list', compact('restaurants', 'zone', 'type', 'typ'));
     }
     public function denied(Request $request)
     {
@@ -678,24 +742,24 @@ class VendorController extends Controller
         $type = $request->query('type', '');
         $typ = $request->query('restaurant_model', '');
         $restaurants = Restaurant::when(is_numeric($zone_id), function ($query) use ($zone_id) {
-                    return $query->where('zone_id', $zone_id);
-                })
-                ->when(isset($key),function($query)use($key){
-                    $query->where(function($q)use($key){
-                        foreach ($key as $value) {
-                            $q->orWhere('name', 'like', "%{$value}%")
+            return $query->where('zone_id', $zone_id);
+        })
+            ->when(isset($key), function ($query) use ($key) {
+                $query->where(function ($q) use ($key) {
+                    foreach ($key as $value) {
+                        $q->orWhere('name', 'like', "%{$value}%")
                             ->orWhere('email', 'like', "%{$value}%")
                             ->orWhere('phone', 'like', "%{$value}%");
-                        }
-                    });
-                })
-                ->with(['vendor','zone'])
-                ->whereHas('vendor', function ($q) {
-                    $q->Where('status', 0);
-                })
-                ->type($type)->RestaurantModel($typ)->latest()->paginate(config('default_pagination'));
-                $zone = is_numeric($zone_id) ? Zone::findOrFail($zone_id) : null;
-        return view('admin-views.vendor.denied', compact('restaurants', 'zone', 'type','typ'));
+                    }
+                });
+            })
+            ->with(['vendor', 'zone'])
+            ->whereHas('vendor', function ($q) {
+                $q->Where('status', 0);
+            })
+            ->type($type)->RestaurantModel($typ)->latest()->paginate(config('default_pagination'));
+        $zone = is_numeric($zone_id) ? Zone::findOrFail($zone_id) : null;
+        return view('admin-views.vendor.denied', compact('restaurants', 'zone', 'type', 'typ'));
     }
 
     // public function search(Request $request)
@@ -735,26 +799,24 @@ class VendorController extends Controller
 
         $zone_ids = isset($request->zone_ids) ? (count($request->zone_ids) > 0 ? $request->zone_ids : []) : 0;
         $zone_id = $request->zone_id ??  null;
-        $data = Restaurant::with('zone')->
+        $data = Restaurant::with('zone')->when($zone_ids, function ($query) use ($zone_ids) {
+                $query->whereIn('restaurants.zone_id', $zone_ids);
+            })
+            ->when($zone_id, function ($query) use ($zone_id) {
+                $query->where('restaurants.zone_id', $zone_id);
+            })
 
-        when($zone_ids, function($query) use($zone_ids){
-            $query->whereIn('restaurants.zone_id', $zone_ids);
-        })
-       ->when($zone_id, function($query) use($zone_id){
-            $query->where('restaurants.zone_id', $zone_id);
-        })
+            ->where('restaurants.name', 'like', '%' . $request->q . '%')
+            ->limit(8)->get()
+            ->map(function ($restaurant) {
+                return [
+                    'id' => $restaurant->id,
+                    'text' => $restaurant->name . ' (' . ($restaurant->zone ? $restaurant->zone->name : '') . ')',
+                ];
+            });
 
-        ->where('restaurants.name', 'like', '%'.$request->q.'%')
-        ->limit(8)->get()
-        ->map(function ($restaurant) {
-            return [
-                'id' => $restaurant->id,
-                'text' => $restaurant->name . ' (' . $restaurant->zone?->name . ')',
-            ];
-        });
-
-        if(isset($request->all)){
-            $data[]=(object)['id'=>'all', 'text'=>'All'];
+        if (isset($request->all)) {
+            $data[] = (object)['id' => 'all', 'text' => 'All'];
         }
 
         return response()->json($data);
@@ -762,26 +824,26 @@ class VendorController extends Controller
     public function get_restaurant_ratings(Request $request)
     {
 
-        $data=['review' => 4.7, 'rating' => 2];
+        $data = ['review' => 4.7, 'rating' => 2];
 
-        if(!$request->restaurant_id){
+        if (!$request->restaurant_id) {
             return response()->json($data);
         }
 
 
-        $restaurant =  Restaurant::where('id',$request->restaurant_id)->first();
-        if(!$restaurant){
+        $restaurant =  Restaurant::where('id', $request->restaurant_id)->first();
+        if (!$restaurant) {
             return response()->json($data);
         }
         $review = (int) $restaurant->reviews_comments()->count();
         $reviewsInfo = $restaurant->reviews()
-        ->selectRaw('avg(reviews.rating) as average_rating, count(reviews.id) as total_reviews, food.restaurant_id')
-        ->groupBy('food.restaurant_id')
-        ->first();
+            ->selectRaw('avg(reviews.rating) as average_rating, count(reviews.id) as total_reviews, food.restaurant_id')
+            ->groupBy('food.restaurant_id')
+            ->first();
 
-        $rating = (float)  $reviewsInfo?->average_rating ?? 0;
+        $rating = isset($reviewsInfo->average_rating) ? (float) $reviewsInfo->average_rating : 0;
 
-        $data=['review' => round($review,1), 'rating' => round($rating,1)];
+        $data = ['review' => round($review, 1), 'rating' => round($rating, 1)];
 
         return response()->json($data);
     }
@@ -789,17 +851,28 @@ class VendorController extends Controller
     public function status(Restaurant $restaurant, Request $request)
     {
         $restaurant->status = $request->status;
-        $restaurant?->save();
-        $vendor = $restaurant?->vendor;
+
+        if ($restaurant) {
+            $restaurant->save();
+        }
+
+        $vendor = $restaurant ? $restaurant->vendor : null;
+
 
 
         try {
             if ($request->status == 0) {
                 $vendor->auth_token = null;
-                $push_notification_status=Helpers::getNotificationStatusData('restaurant','restaurant_account_block');
-                $reataurant_push_notification_status=Helpers::getRestaurantNotificationStatusData($restaurant->id,'restaurant_account_block');
+                $push_notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_account_block');
+                $reataurant_push_notification_status = Helpers::getRestaurantNotificationStatusData($restaurant->id, 'restaurant_account_block');
 
-                if ($push_notification_status?->push_notification_status  == 'active' && $reataurant_push_notification_status?->push_notification_status  == 'active' &&  isset($vendor->firebase_token)) {
+                if (
+                    $push_notification_status &&
+                    $push_notification_status->push_notification_status === 'active' &&
+                    $reataurant_push_notification_status &&
+                    $reataurant_push_notification_status->push_notification_status === 'active' &&
+                    isset($vendor->firebase_token)
+                ) {
                     $data = [
                         'title' => translate('messages.suspended'),
                         'description' => translate('messages.your_account_has_been_suspended'),
@@ -807,7 +880,9 @@ class VendorController extends Controller
                         'image' => '',
                         'type' => 'block'
                     ];
+
                     Helpers::send_push_notif_to_device($vendor->firebase_token, $data);
+
                     DB::table('user_notifications')->insert([
                         'data' => json_encode($data),
                         'vendor_id' => $vendor->id,
@@ -818,47 +893,86 @@ class VendorController extends Controller
 
 
 
+
                 $mail_status = Helpers::get_mail_status('suspend_mail_status_restaurant');
-                $notification_status= Helpers::getNotificationStatusData('restaurant','restaurant_account_block');
-                $restaurant_notification_status= Helpers::getRestaurantNotificationStatusData($restaurant?->id,'restaurant_account_block');
+                $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_account_block');
+                $restaurant_notification_status = Helpers::getRestaurantNotificationStatusData(
+                    isset($restaurant) ? $restaurant->id : null,
+                    'restaurant_account_block'
+                );
 
-                if ( $notification_status?->mail_status == 'active' && $restaurant_notification_status?->mail_status == 'active' && config('mail.status') && $mail_status == '1') {
-                    Mail::to( $restaurant?->vendor?->email)->send(new \App\Mail\VendorStatus('suspended', $restaurant?->vendor?->f_name.' '.$restaurant?->vendor?->l_name));
-                    }
-                    }else{
+               if (
+    isset($notification_status) && $notification_status->mail_status === 'active' &&
+    isset($restaurant_notification_status) && $restaurant_notification_status->mail_status === 'active' &&
+    config('mail.status') &&
+    $mail_status === '1'
+) {
+    if (
+        isset($restaurant) && isset($restaurant->vendor) &&
+        isset($restaurant->vendor->email)
+    ) {
+        $vendorEmail = $restaurant->vendor->email;
+        $vendorName = trim(($restaurant->vendor->f_name ?? '') . ' ' . ($restaurant->vendor->l_name ?? ''));
 
+        Mail::to($vendorEmail)->send(new \App\Mail\VendorStatus('suspended', $vendorName));
+    }
+}
 
-                        $push_notification_status=Helpers::getNotificationStatusData('restaurant','restaurant_account_unblock');
-                        $reataurant_push_notification_status=Helpers::getRestaurantNotificationStatusData($restaurant?->id,'restaurant_account_unblock');
-
-                        if ($push_notification_status?->push_notification_status  == 'active' && $reataurant_push_notification_status?->push_notification_status  == 'active' &&  isset($vendor->firebase_token)) {
-                            $data = [
-                                'title' => translate('Account_Activation'),
-                                'description' => translate('messages.your_account_has_been_activated'),
-                                'order_id' => '',
-                                'image' => '',
-                                'type' => 'unblock'
-                            ];
-                            Helpers::send_push_notif_to_device($vendor->firebase_token, $data);
-                            DB::table('user_notifications')->insert([
-                                'data' => json_encode($data),
-                                'vendor_id' => $vendor->id,
-                                'created_at' => now(),
-                                'updated_at' => now()
-                            ]);
-                        }
+            } else {
 
 
+                $push_notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_account_unblock');
+$restaurantId = isset($restaurant) ? $restaurant->id : null;
+$reataurant_push_notification_status = Helpers::getRestaurantNotificationStatusData($restaurantId, 'restaurant_account_unblock');
+
+if (
+    isset($push_notification_status) && 
+    $push_notification_status->push_notification_status == 'active' &&
+    isset($reataurant_push_notification_status) &&
+    $reataurant_push_notification_status->push_notification_status == 'active' &&
+    isset($vendor->firebase_token)
+) {
+    $data = [
+        'title' => translate('Account_Activation'),
+        'description' => translate('messages.your_account_has_been_activated'),
+        'order_id' => '',
+        'image' => '',
+        'type' => 'unblock'
+    ];
+    Helpers::send_push_notif_to_device($vendor->firebase_token, $data);
+    DB::table('user_notifications')->insert([
+        'data' => json_encode($data),
+        'vendor_id' => $vendor->id,
+        'created_at' => now(),
+        'updated_at' => now()
+    ]);
+}
 
 
-                $notification_status=null;
-                $notification_status= Helpers::getNotificationStatusData('restaurant','restaurant_account_unblock');
-                $restaurant_notification_status=null;
-                $restaurant_notification_status= Helpers::getRestaurantNotificationStatusData($restaurant?->id,'restaurant_account_unblock');
+
+
+
+                $notification_status = null;
+                $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_account_unblock');
+                $restaurant_notification_status = null;
+$restaurant_notification_status = null;
+if ($restaurant && isset($restaurant->id)) {
+    $restaurant_notification_status = Helpers::getRestaurantNotificationStatusData($restaurant->id, 'restaurant_account_unblock');
+}
                 $mail_status = Helpers::get_mail_status('unsuspend_mail_status_restaurant');
-                if ( $notification_status?->mail_status == 'active' && $restaurant_notification_status?->mail_status == 'active'  && config('mail.status') && $mail_status == '1') {
-                    Mail::to( $restaurant?->vendor?->email)->send(new \App\Mail\VendorStatus('unsuspended', $restaurant?->vendor?->f_name.' '.$restaurant?->vendor?->l_name));
-                }
+  if (
+    $notification_status !== null && $notification_status->mail_status === 'active' &&
+    $restaurant_notification_status !== null && $restaurant_notification_status->mail_status === 'active' &&
+    config('mail.status') &&
+    $mail_status == '1' &&
+    $restaurant !== null &&
+    $restaurant->vendor !== null &&
+    isset($restaurant->vendor->email, $restaurant->vendor->f_name, $restaurant->vendor->l_name)
+) {
+    $fullName = $restaurant->vendor->f_name . ' ' . $restaurant->vendor->l_name;
+    Mail::to($restaurant->vendor->email)->send(new \App\Mail\VendorStatus('unsuspended', $fullName));
+}
+
             }
         } catch (\Exception $ex) {
             info($ex->getMessage());
@@ -874,22 +988,28 @@ class VendorController extends Controller
             Toastr::warning(translate('messages.schedule_order_disabled_warning'));
             return back();
         }
-        $home_delivery = BusinessSetting::where('key', 'home_delivery')->first()?->value ?? null;
+$setting = BusinessSetting::where('key', 'home_delivery')->first();
+$home_delivery = $setting ? $setting->value : null;
         if ($request->menu == "delivery" && !$home_delivery) {
             Toastr::warning(translate('messages.Home_delivery_is_disabled_by_admin'));
             return back();
         }
-        $take_away = BusinessSetting::where('key', 'take_away')->first()?->value ?? null;
-        if ($request->menu == "take_away" && !$take_away) {
-            Toastr::warning(translate('messages.Take_away_is_disabled_by_admin'));
-            return back();
-        }
+   $setting = BusinessSetting::where('key', 'take_away')->first();
+$take_away = $setting ? $setting->value : null;
 
-        $instant_order = BusinessSetting::where('key', 'instant_order')->first()?->value ?? null;
-        if ($request->menu == "instant_order" && !$instant_order && $request->status == 1 ) {
-            Toastr::warning(translate('messages.instant_order_is_disabled_by_admin'));
-            return back();
-        }
+if ($request->menu == "take_away" && !$take_away) {
+    Toastr::warning(translate('messages.Take_away_is_disabled_by_admin'));
+    return back();
+}
+
+$instant_order_setting = BusinessSetting::where('key', 'instant_order')->first();
+$instant_order = $instant_order_setting ? $instant_order_setting->value : null;
+
+if ($request->menu == "instant_order" && !$instant_order && $request->status == 1) {
+    Toastr::warning(translate('messages.instant_order_is_disabled_by_admin'));
+    return back();
+}
+
 
         if ((($request->menu == "delivery" && $restaurant->take_away == 0) || ($request->menu == "take_away" && $restaurant->delivery == 0)) &&  $request->status == 0) {
             Toastr::warning(translate('messages.can_not_disable_both_take_away_and_delivery'));
@@ -900,18 +1020,36 @@ class VendorController extends Controller
             Toastr::warning(translate('messages.veg_non_veg_disable_warning'));
             return back();
         }
-        if ($request->menu == "self_delivery_system" && $request->status == '0') {
-            $restaurant['free_delivery'] = 0;
-            $restaurant?->coupon()?->where('created_by','vendor')->where('coupon_type','free_delivery')?->delete();
-        }
+if ($request->menu == "self_delivery_system" && $request->status == '0') {
+    $restaurant['free_delivery'] = 0;
+    if ($restaurant) {
+        $restaurant->coupon()
+            ->where('created_by', 'vendor')
+            ->where('coupon_type', 'free_delivery')
+            ->delete();
+    }
+}
 
-        if((($request->menu == "instant_order" && $restaurant->schedule_order==0) || ( isset($restaurant->restaurant_config)   && ($request->menu == "schedule_order" && $restaurant?->restaurant_config?->instant_order ==0))) &&  $request->status == 0 && $instant_order )
-        {
-            Toastr::warning(translate('messages.can_not_disable_both_instant_order_and_schedule_order'));
-            return back();
-        }
 
-        if($request->menu == 'instant_order'  || $request->menu == 'customer_date_order_sratus' || $request->menu == 'halal_tag_status' ){
+
+if (
+    (
+        ($request->menu == "instant_order" && $restaurant->schedule_order == 0) 
+        || 
+        (
+            isset($restaurant->restaurant_config) 
+            && ($request->menu == "schedule_order" && $restaurant->restaurant_config->instant_order == 0)
+        )
+    ) 
+    && $request->status == 0 
+    && $instant_order
+) {
+    Toastr::warning(translate('messages.can_not_disable_both_instant_order_and_schedule_order'));
+    return back();
+}
+
+
+        if ($request->menu == 'instant_order'  || $request->menu == 'customer_date_order_sratus' || $request->menu == 'halal_tag_status') {
             $conf = RestaurantConfig::firstOrNew(
                 ['restaurant_id' =>  $restaurant->id]
             );
@@ -923,7 +1061,9 @@ class VendorController extends Controller
 
 
         $restaurant[$request->menu] = $request->status;
-        $restaurant?->save();
+if ($restaurant) {
+    $restaurant->save();
+}
         Toastr::success(translate('messages.Restaurant_settings_updated'));
         return back();
     }
@@ -932,33 +1072,39 @@ class VendorController extends Controller
     {
         $message = translate('messages.discount');
         $message .= $restaurant->discount ? translate('messages.updated_successfully') : translate('messages.added_successfully');
-        $restaurant?->discount()?->updateOrinsert(
+       if ($restaurant && method_exists($restaurant, 'discount')) {
+    $discountQuery = $restaurant->discount(); // Assuming this returns a relationship (query builder)
+    
+    if ($discountQuery) {
+        $discountQuery->updateOrInsert(
+            ['restaurant_id' => $restaurant->id],
             [
-                'restaurant_id' => $restaurant->id
-            ],
-            [
-                'start_date' => $request->start_date,
-                'end_date' => $request->end_date,
-                'start_time' => $request->start_time,
-                'end_time' => $request->end_time,
-                'min_purchase' => $request->min_purchase != null ? $request->min_purchase : 0,
-                'max_discount' => $request->max_discount != null ? $request->max_discount : 0,
-                'discount' => $request->discount_type == 'amount' ? $request->discount : $request['discount'],
-                'discount_type' => 'percent'
+                'start_date'    => $request->start_date,
+                'end_date'      => $request->end_date,
+                'start_time'    => $request->start_time,
+                'end_time'      => $request->end_time,
+                'min_purchase'  => $request->min_purchase ?? 0,
+                'max_discount'  => $request->max_discount ?? 0,
+                'discount'      => $request->discount_type === 'amount' ? $request->discount : $request['discount'],
+                'discount_type' => 'percent',
             ]
         );
+    }
+}
+
         return response()->json(['message' => $message], 200);
     }
 
     public function updateRestaurantSettings(Restaurant $restaurant, Request $request)
     {
 
-        if($request?->tab == 'business_plan'){
-            $restaurant->comission = $request->comission_status ?  $request->comission : null;
-            $restaurant->save();
-            Toastr::success(translate('messages.Commission_updated'));
-            return back();
-        }
+       if ($request->tab == 'business_plan') {
+    $restaurant->comission = $request->comission_status ? $request->comission : null;
+    $restaurant->save();
+    Toastr::success(translate('messages.Commission_updated'));
+    return back();
+}
+
 
         $request->validate([
             'minimum_order' => 'required',
@@ -966,7 +1112,7 @@ class VendorController extends Controller
             'tax' => 'required',
             'minimum_delivery_time' => 'required',
             'maximum_delivery_time' => 'required|gt:minimum_delivery_time',
-            'delivery_time_type'=>'required',
+            'delivery_time_type' => 'required',
 
         ]);
 
@@ -989,7 +1135,7 @@ class VendorController extends Controller
         $restaurant->opening_time = $request->opening_time;
         $restaurant->closeing_time = $request->closeing_time;
         $restaurant->tax = $request->tax;
-        $restaurant->delivery_time =$request->minimum_delivery_time .'-'. $request->maximum_delivery_time.'-'.$request->delivery_time_type;
+        $restaurant->delivery_time = $request->minimum_delivery_time . '-' . $request->maximum_delivery_time . '-' . $request->delivery_time_type;
         if ($request->menu == "veg") {
             $restaurant->veg = 1;
             $restaurant->non_veg = 0;
@@ -1012,41 +1158,77 @@ class VendorController extends Controller
         return back();
     }
 
-    public function update_application($id,$status)
+    public function update_application($id, $status)
     {
         $restaurant = Restaurant::findOrFail($id);
         $restaurant->vendor->status = $status;
-        $restaurant?->vendor?->save();
+if ($restaurant && $restaurant->vendor) {
+    $restaurant->vendor->save();
+}
         if ($status) $restaurant->status = 1;
-        $add_days= 1;
-        if($restaurant?->restaurant_sub_update_application){
-            if($restaurant?->restaurant_sub_update_application && ($restaurant?->restaurant_sub_update_application->is_trial == 1 || $restaurant?->restaurant_sub_trans?->payment_method == 'free_trial') ){
-                $add_days= BusinessSetting::where(['key' => 'subscription_free_trial_days'])->first()?->value ?? 1;
-            }elseif($restaurant?->restaurant_sub_update_application && $restaurant?->restaurant_sub_update_application->is_trial == 0){
-                $add_days=$restaurant?->restaurant_sub_update_application->validity;
-            }
-                $restaurant?->restaurant_sub_update_application->update([
-                    'expiry_date'=> Carbon::now()->addDays($add_days)->format('Y-m-d'),
-                    'status'=>1
-                ]);
-            $restaurant->restaurant_model= 'subscription';
-        }
-        $restaurant?->save();
+        $add_days = 1;
+       if ($restaurant && $restaurant->restaurant_sub_update_application) {
+    $subUpdateApp = $restaurant->restaurant_sub_update_application;
+    $subTrans = $restaurant->restaurant_sub_trans ?? null;
+
+    if (($subUpdateApp->is_trial == 1) || ($subTrans && $subTrans->payment_method == 'free_trial')) {
+        $add_days = BusinessSetting::where(['key' => 'subscription_free_trial_days'])->first()->value ?? 1;
+    } elseif ($subUpdateApp->is_trial == 0) {
+        $add_days = $subUpdateApp->validity;
+    }
+
+    $subUpdateApp->update([
+        'expiry_date' => Carbon::now()->addDays($add_days)->format('Y-m-d'),
+        'status' => 1
+    ]);
+
+    $restaurant->restaurant_model = 'subscription';
+}
+
+if ($restaurant) {
+    $restaurant->save();
+}
         try {
-            if($status==1){
-                $notification_status= Helpers::getNotificationStatusData('restaurant','restaurant_registration_approval');
+            if ($status == 1) {
+                $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_registration_approval');
 
                 $mail_status = Helpers::get_mail_status('approve_mail_status_restaurant');
-                if ( $notification_status?->mail_status == 'active' && config('mail.status') && $mail_status == '1') {
-                    Mail::to( $restaurant?->vendor?->email)->send(new \App\Mail\VendorSelfRegistration('approved', $restaurant?->vendor?->f_name.' '.$restaurant?->vendor?->l_name));
-                    }
-                    }else{
-                $notification_status=  null ;
-                $notification_status= Helpers::getNotificationStatusData('restaurant','restaurant_registration_deny');
+                if (
+    $notification_status && 
+    $notification_status->mail_status === 'active' && 
+    config('mail.status') && 
+    $mail_status == '1' && 
+    $restaurant && 
+    $restaurant->vendor && 
+    $restaurant->vendor->email
+) {
+    Mail::to($restaurant->vendor->email)
+        ->send(new \App\Mail\VendorSelfRegistration(
+            'approved', 
+            ($restaurant->vendor->f_name ?? '') . ' ' . ($restaurant->vendor->l_name ?? '')
+        ));
+}
+
+            } else {
+                $notification_status =  null;
+                $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_registration_deny');
                 $mail_status = Helpers::get_mail_status('deny_mail_status_restaurant');
-                if ( $notification_status?->mail_status == 'active' && config('mail.status') && $mail_status == '1') {
-                    Mail::to( $restaurant?->vendor?->email)->send(new \App\Mail\VendorSelfRegistration('denied', $restaurant?->vendor?->f_name.' '.$restaurant?->vendor?->l_name));
-                }
+               if (
+    $notification_status && 
+    $notification_status->mail_status === 'active' && 
+    config('mail.status') && 
+    $mail_status == '1' && 
+    $restaurant && 
+    $restaurant->vendor && 
+    $restaurant->vendor->email
+) {
+    Mail::to($restaurant->vendor->email)
+        ->send(new \App\Mail\VendorSelfRegistration(
+            'denied', 
+            ($restaurant->vendor->f_name ?? '') . ' ' . ($restaurant->vendor->l_name ?? '')
+        ));
+}
+
             }
         } catch (\Exception $ex) {
             info($ex->getMessage());
@@ -1055,12 +1237,15 @@ class VendorController extends Controller
         return back();
     }
 
-    public function cleardiscount(Restaurant $restaurant)
-    {
-        $restaurant?->discount?->delete();
-        Toastr::success(translate('messages.restaurant_discount_cleared'));
-        return back();
+public function cleardiscount(Restaurant $restaurant)
+{
+    if ($restaurant->discount) {
+        $restaurant->discount->delete();
     }
+    Toastr::success(translate('messages.restaurant_discount_cleared'));
+    return back();
+}
+
 
     public function withdraw(Request $request)
     {
@@ -1071,7 +1256,7 @@ class VendorController extends Controller
         $denied = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'denied' ? 1 : 0;
         $pending = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'pending' ? 1 : 0;
 
-        $withdraw_req = WithdrawRequest::with(['vendor','vendor.restaurants'])
+        $withdraw_req = WithdrawRequest::with(['vendor', 'vendor.restaurants'])
             ->when($all, function ($query) {
                 return $query;
             })
@@ -1101,7 +1286,7 @@ class VendorController extends Controller
 
     public function withdraw_view($withdraw_id, $seller_id)
     {
-        $wr = WithdrawRequest::with(['vendor','method:id,method_name'])->where(['id' => $withdraw_id])->first();
+        $wr = WithdrawRequest::with(['vendor', 'method:id,method_name'])->where(['id' => $withdraw_id])->first();
         return view('admin-views.wallet.withdraw-view', compact('wr'));
     }
 
@@ -1117,7 +1302,7 @@ class VendorController extends Controller
         $withdraw->approved = $request->approved;
         $withdraw->transaction_note = $request['note'];
         $wallet = RestaurantWallet::where('vendor_id', $withdraw->vendor_id)->first();
-        if ($wallet->total_earning < ($wallet->total_withdrawn + $wallet->pending_withdraw) ) {
+        if ($wallet->total_earning < ($wallet->total_withdrawn + $wallet->pending_withdraw)) {
             Toastr::error(translate('messages.Blalnce_mismatched_total_earning_is_too_low'));
             return redirect()->route('admin.restaurant.withdraw_list');
         }
@@ -1126,79 +1311,132 @@ class VendorController extends Controller
             $wallet->increment('total_withdrawn', $withdraw->amount);
             $wallet->decrement('pending_withdraw', $withdraw->amount);
             $withdraw->save();
-            try
-            {
+            try {
 
-                $push_notification_status=Helpers::getNotificationStatusData('restaurant','restaurant_withdraw_approve');
-                $reataurant_push_notification_status=Helpers::getRestaurantNotificationStatusData($withdraw->vendor?->restaurants[0]?->id,'restaurant_withdraw_approve');
+                $push_notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_withdraw_approve');
+$restaurantId = null;
+if ($withdraw->vendor && isset($withdraw->vendor->restaurants[0])) {
+    $restaurantId = $withdraw->vendor->restaurants[0]->id;
+}
+$reataurant_push_notification_status = Helpers::getRestaurantNotificationStatusData($restaurantId, 'restaurant_withdraw_approve');
 
-                if( $push_notification_status?->push_notification_status  == 'active' && $reataurant_push_notification_status?->push_notification_status  == 'active' && $withdraw->vendor?->firebase_token ){
+               if (
+    $push_notification_status &&
+    $push_notification_status->push_notification_status === 'active' &&
+    $reataurant_push_notification_status &&
+    $reataurant_push_notification_status->push_notification_status === 'active' &&
+    $withdraw->vendor &&
+    !empty($withdraw->vendor->firebase_token)
+) {
+    $data = [
+        'title' => translate('Withdraw_approved'),
+        'description' => translate('Withdraw_request_approved_by_admin'),
+        'order_id' => '',
+        'image' => '',
+        'type' => 'withdraw',
+        'order_status' => '',
+    ];
+    
+    Helpers::send_push_notif_to_device($withdraw->vendor->firebase_token, $data);
+    
+    DB::table('user_notifications')->insert([
+        'data' => json_encode($data),
+        'vendor_id' => $withdraw->vendor_id,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
 
-                    $data = [
-                        'title' => translate('Withdraw_approved'),
-                        'description' => translate('Withdraw_request_approved_by_admin'),
-                        'order_id' => '',
-                        'image' => '',
-                        'type' => 'withdraw',
-                        'order_status' => '',
-                    ];
-                    Helpers::send_push_notif_to_device($withdraw->vendor->firebase_token, $data);
-                    DB::table('user_notifications')->insert([
-                        'data' => json_encode($data),
-                        'vendor_id' => $withdraw->vendor_id,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
 
-                $notification_status= Helpers::getNotificationStatusData('restaurant','restaurant_withdraw_approve');
-                $restaurant_notification_status= Helpers::getRestaurantNotificationStatusData($withdraw->vendor?->restaurants[0]?->id,'restaurant_withdraw_approve');
+                $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_withdraw_approve');
+$restaurant_notification_status = null;
+if (
+    $withdraw->vendor &&
+    isset($withdraw->vendor->restaurants[0]) &&
+    $withdraw->vendor->restaurants[0]->id
+) {
+    $restaurant_notification_status = Helpers::getRestaurantNotificationStatusData(
+        $withdraw->vendor->restaurants[0]->id,
+        'restaurant_withdraw_approve'
+    );
+}
 
-                if($notification_status?->mail_status == 'active' && $restaurant_notification_status?->mail_status == 'active' &&  config('mail.status') && Helpers::get_mail_status('withdraw_approve_mail_status_restaurant') == '1') {
-                    Mail::to($withdraw->vendor->email)->send(new \App\Mail\WithdrawRequestMail('approved',$withdraw));
-                }
-            }
-            catch(\Exception $e)
-            {
+               $restaurant_notification_status = null;
+if (
+    $withdraw->vendor &&
+    isset($withdraw->vendor->restaurants[0]) &&
+    $withdraw->vendor->restaurants[0]->id
+) {
+    $restaurant_notification_status = Helpers::getRestaurantNotificationStatusData(
+        $withdraw->vendor->restaurants[0]->id,
+        'restaurant_withdraw_approve'
+    );
+}
+
+            } catch (\Exception $e) {
                 info($e->getMessage());
             }
             Toastr::success(translate('messages.seller_payment_approved'));
             return redirect()->route('admin.restaurant.withdraw_list');
         } else if ($request->approved == 2) {
-            try
-            {
+            try {
 
-                $push_notification_status=Helpers::getNotificationStatusData('restaurant','restaurant_withdraw_rejaction');
-                $reataurant_push_notification_status=Helpers::getRestaurantNotificationStatusData($withdraw->vendor?->restaurants[0]?->id,'restaurant_withdraw_rejaction');
+                $push_notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_withdraw_rejaction');
+$restaurant_push_notification_status = null;
+if (
+    $withdraw->vendor &&
+    isset($withdraw->vendor->restaurants[0]) &&
+    $withdraw->vendor->restaurants[0]->id
+) {
+    $restaurant_push_notification_status = Helpers::getRestaurantNotificationStatusData(
+        $withdraw->vendor->restaurants[0]->id,
+        'restaurant_withdraw_rejaction'
+    );
+}
 
-                if( $push_notification_status?->push_notification_status  == 'active' && $reataurant_push_notification_status?->push_notification_status  == 'active' && $withdraw->vendor?->firebase_token ){
+               if (
+    isset($push_notification_status->push_notification_status) && $push_notification_status->push_notification_status == 'active' &&
+    isset($restaurant_push_notification_status->push_notification_status) && $restaurant_push_notification_status->push_notification_status == 'active' &&
+    isset($withdraw->vendor->firebase_token)
+) {
+    $data = [
+        'title' => translate('Withdraw_rejected'),
+        'description' => translate('Withdraw_request_rejected_by_admin'),
+        'order_id' => '',
+        'image' => '',
+        'type' => 'withdraw',
+        'order_status' => '',
+    ];
+    Helpers::send_push_notif_to_device($withdraw->vendor->firebase_token, $data);
+    DB::table('user_notifications')->insert([
+        'data' => json_encode($data),
+        'vendor_id' => $withdraw->vendor_id,
+        'created_at' => now(),
+        'updated_at' => now()
+    ]);
+}
 
-                    $data = [
-                        'title' => translate('Withdraw_rejected'),
-                        'description' => translate('Withdraw_request_rejected_by_admin'),
-                        'order_id' => '',
-                        'image' => '',
-                        'type' => 'withdraw',
-                        'order_status' => '',
-                    ];
-                    Helpers::send_push_notif_to_device($withdraw->vendor->firebase_token, $data);
-                    DB::table('user_notifications')->insert([
-                        'data' => json_encode($data),
-                        'vendor_id' => $withdraw->vendor_id,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
 
-                $notification_status= Helpers::getNotificationStatusData('restaurant','restaurant_withdraw_rejaction');
-                $restaurant_notification_status= Helpers::getRestaurantNotificationStatusData($withdraw->vendor?->restaurants[0]?->id,'restaurant_withdraw_rejaction');
+                $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_withdraw_rejaction');
+$restaurantId = null;
+if (isset($withdraw->vendor) && isset($withdraw->vendor->restaurants) && isset($withdraw->vendor->restaurants[0])) {
+    $restaurantId = $withdraw->vendor->restaurants[0]->id;
+}
 
-                if( $notification_status?->mail_status == 'active' && $restaurant_notification_status?->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('withdraw_deny_mail_status_restaurant') == '1') {
-                    Mail::to($withdraw->vendor->email)->send(new \App\Mail\WithdrawRequestMail('denied',$withdraw));
-                }
-            }
-            catch(\Exception $e)
-            {
+$restaurant_notification_status = Helpers::getRestaurantNotificationStatusData($restaurantId, 'restaurant_withdraw_rejaction');
+
+               if (
+    isset($notification_status) && $notification_status->mail_status == 'active' &&
+    isset($restaurant_notification_status) && $restaurant_notification_status->mail_status == 'active' &&
+    config('mail.status') &&
+    Helpers::get_mail_status('withdraw_deny_mail_status_restaurant') == '1'
+) {
+    if (isset($withdraw->vendor) && isset($withdraw->vendor->email)) {
+        Mail::to($withdraw->vendor->email)->send(new \App\Mail\WithdrawRequestMail('denied', $withdraw));
+    }
+}
+
+            } catch (\Exception $e) {
                 info($e->getMessage());
             }
             $wallet->decrement('pending_withdraw', $withdraw->amount);
@@ -1244,19 +1482,28 @@ class VendorController extends Controller
         return back();
     }
 
-    public function get_account_data(Restaurant $restaurant)
-    {
-        $wallet = $restaurant?->vendor?->wallet;
-        $cash_in_hand = 0;
-        $balance = 0;
-
-        if ($wallet) {
-            $cash_in_hand = $wallet->collected_cash;
-            $balance = $wallet->balance;
-            // $balance = $wallet->total_earning - $wallet->total_withdrawn - $wallet->pending_withdraw - $wallet->collected_cash;
-        }
-        return response()->json(['cash_in_hand' => $cash_in_hand, 'earning_balance' => $balance], 200);
+public function get_account_data(Restaurant $restaurant)
+{
+    $wallet = null;
+    if ($restaurant && $restaurant->vendor) {
+        $wallet = $restaurant->vendor->wallet ?? null;
     }
+
+    $cash_in_hand = 0;
+    $balance = 0;
+
+    if ($wallet) {
+        $cash_in_hand = $wallet->collected_cash ?? 0;
+        $balance = $wallet->balance ?? 0;
+        // $balance = $wallet->total_earning - $wallet->total_withdrawn - $wallet->pending_withdraw - $wallet->collected_cash;
+    }
+
+    return response()->json([
+        'cash_in_hand' => $cash_in_hand,
+        'earning_balance' => $balance
+    ], 200);
+}
+
 
     public function bulk_import_index()
     {
@@ -1265,7 +1512,7 @@ class VendorController extends Controller
 
     public function bulk_import_data(Request $request)
     {
-        $validator=  Validator::make($request->all(), [
+        $validator =  Validator::make($request->all(), [
             'upload_excel' => 'required|max:2048',
         ]);
         if ($validator->fails()) {
@@ -1274,79 +1521,80 @@ class VendorController extends Controller
         try {
             $collections = (new FastExcel)->import($request->file('upload_excel'));
         } catch (\Exception $exception) {
-            info(["line___{$exception->getLine()}",$exception->getMessage()]);
+            info(["line___{$exception->getLine()}", $exception->getMessage()]);
             Toastr::error(translate('messages.you_have_uploaded_a_wrong_format_file'));
             return back();
         }
-            $duplicate_phones = $collections->duplicates('phone');
-            $duplicate_emails = $collections->duplicates('email');
+        $duplicate_phones = $collections->duplicates('phone');
+        $duplicate_emails = $collections->duplicates('email');
 
-            if ($duplicate_emails->isNotEmpty()) {
-                Toastr::error(translate('messages.duplicate_data_on_column', ['field' => translate('messages.email')]));
+        if ($duplicate_emails->isNotEmpty()) {
+            Toastr::error(translate('messages.duplicate_data_on_column', ['field' => translate('messages.email')]));
+            return back();
+        }
+
+        if ($duplicate_phones->isNotEmpty()) {
+            Toastr::error(translate('messages.duplicate_data_on_column', ['field' => translate('messages.phone')]));
+            return back();
+        }
+        $vendors = [];
+        $restaurants = [];
+        if ($request->button === 'import') {
+
+            $email = $collections->pluck('email')->toArray();
+            $phone = $collections->pluck('phone')->toArray();
+
+            if (Restaurant::whereIn('email', $email)->orWhereIn('phone', $phone)->exists()) {
+                Toastr::error(translate('messages.duplicate_email_or_phone_exists_at_the_database'));
                 return back();
             }
-
-            if ($duplicate_phones->isNotEmpty()) {
-                Toastr::error(translate('messages.duplicate_data_on_column', ['field' => translate('messages.phone')]));
-                return back();
-            }
-            $vendors = [];
-            $restaurants = [];
-            if($request->button === 'import'){
-
-                $email= $collections->pluck('email')->toArray();
-                $phone= $collections->pluck('phone')->toArray();
-
-                if(Restaurant::whereIn('email', $email)->orWhereIn('phone', $phone)->exists()
-                ){
-                    Toastr::error(translate('messages.duplicate_email_or_phone_exists_at_the_database'));
-                    return back();
-                }
 
             $vendor = Vendor::orderBy('id', 'desc')->first('id');
             $vendor_id = $vendor ? $vendor->id : 0;
-            try{
+            try {
                 foreach ($collections as $key => $collection) {
-                    if ( !isset($collection['id'])   || $collection['id'] === "" ||  $collection['ownerFirstName'] === "" || $collection['restaurantName'] === "" || $collection['phone'] === ""|| $collection['Comission'] === "" || $collection['Tax'] === ""
-                    || $collection['email'] === "" || $collection['latitude'] === "" || $collection['longitude'] === ""
-                    || $collection['zone_id'] === "" ||  $collection['DeliveryTime'] === ""  || $collection['RestaurantModel'] === "" ) {
+                    if (
+                        !isset($collection['id'])   || $collection['id'] === "" ||  $collection['ownerFirstName'] === "" || $collection['restaurantName'] === "" || $collection['phone'] === "" || $collection['Comission'] === "" || $collection['Tax'] === ""
+                        || $collection['email'] === "" || $collection['latitude'] === "" || $collection['longitude'] === ""
+                        || $collection['zone_id'] === "" ||  $collection['DeliveryTime'] === ""  || $collection['RestaurantModel'] === ""
+                    ) {
                         Toastr::error(translate('messages.please_fill_all_required_fields'));
                         return back();
                     }
-                    if(isset($collection['DeliveryTime']) && explode("-", (string)$collection['DeliveryTime'])[0] >  explode("-", (string)$collection['DeliveryTime'])[1]){
-                        Toastr::error(translate('messages.max_delivery_time_must_be_greater_than_min_delivery_time_on_id').' '.$collection['id']);
+                    if (isset($collection['DeliveryTime']) && explode("-", (string)$collection['DeliveryTime'])[0] >  explode("-", (string)$collection['DeliveryTime'])[1]) {
+                        Toastr::error(translate('messages.max_delivery_time_must_be_greater_than_min_delivery_time_on_id') . ' ' . $collection['id']);
                         return back();
                     }
-                    if(isset($collection['Comission']) && ($collection['Comission'] < 0 ||  $collection['Comission'] > 100) ) {
-                        Toastr::error(translate('messages.Comission_must_be_in_0_to_100_on_id').' '.$collection['id']);
+                    if (isset($collection['Comission']) && ($collection['Comission'] < 0 ||  $collection['Comission'] > 100)) {
+                        Toastr::error(translate('messages.Comission_must_be_in_0_to_100_on_id') . ' ' . $collection['id']);
                         return back();
                     }
-                    if(isset($collection['Tax']) && ($collection['Tax'] < 0 ||  $collection['Tax'] > 100 )) {
-                        Toastr::error(translate('messages.Tax_must_be_in_0_to_100_on_Id').' '.$collection['id']);
+                    if (isset($collection['Tax']) && ($collection['Tax'] < 0 ||  $collection['Tax'] > 100)) {
+                        Toastr::error(translate('messages.Tax_must_be_in_0_to_100_on_Id') . ' ' . $collection['id']);
                         return back();
                     }
-                    if(isset($collection['latitude']) && ($collection['latitude'] < -90 ||  $collection['latitude'] > 90 )) {
-                        Toastr::error(translate('messages.latitude_must_be_in_-90_to_90_on_Id').' '.$collection['id']);
+                    if (isset($collection['latitude']) && ($collection['latitude'] < -90 ||  $collection['latitude'] > 90)) {
+                        Toastr::error(translate('messages.latitude_must_be_in_-90_to_90_on_Id') . ' ' . $collection['id']);
                         return back();
                     }
-                    if(isset($collection['longitude']) && ($collection['longitude'] < -180 ||  $collection['longitude'] > 180 )) {
-                        Toastr::error(translate('messages.longitude_must_be_in_-180_to_180_on_Id').' '.$collection['id']);
+                    if (isset($collection['longitude']) && ($collection['longitude'] < -180 ||  $collection['longitude'] > 180)) {
+                        Toastr::error(translate('messages.longitude_must_be_in_-180_to_180_on_Id') . ' ' . $collection['id']);
                         return back();
                     }
-                    if(isset($collection['MinimumDeliveryFee']) && ($collection['MinimumDeliveryFee'] < 0  )) {
-                        Toastr::error(translate('messages.Enter_valid_Minimum_Delivery_Fee_on_Id').' '.$collection['id']);
+                    if (isset($collection['MinimumDeliveryFee']) && ($collection['MinimumDeliveryFee'] < 0)) {
+                        Toastr::error(translate('messages.Enter_valid_Minimum_Delivery_Fee_on_Id') . ' ' . $collection['id']);
                         return back();
                     }
-                    if(isset($collection['MinimumOrderAmount']) && ($collection['MinimumOrderAmount'] < 0  )) {
-                        Toastr::error(translate('messages.Enter_valid_Minimum_Order_Amount_on_Id').' '.$collection['id']);
+                    if (isset($collection['MinimumOrderAmount']) && ($collection['MinimumOrderAmount'] < 0)) {
+                        Toastr::error(translate('messages.Enter_valid_Minimum_Order_Amount_on_Id') . ' ' . $collection['id']);
                         return back();
                     }
-                    if(isset($collection['PerKmDeliveryFee']) && ($collection['PerKmDeliveryFee'] < 0  )) {
-                        Toastr::error(translate('messages.Enter_valid_Per_Km_Delivery_Fee_on_Id').' '.$collection['id']);
+                    if (isset($collection['PerKmDeliveryFee']) && ($collection['PerKmDeliveryFee'] < 0)) {
+                        Toastr::error(translate('messages.Enter_valid_Per_Km_Delivery_Fee_on_Id') . ' ' . $collection['id']);
                         return back();
                     }
-                    if(isset($collection['MaximumDeliveryFee']) && ($collection['MaximumDeliveryFee'] < 0  )  ) {
-                        Toastr::error(translate('messages.Enter_valid_Maximum_Delivery_Fee_on_Id').' '.$collection['id']);
+                    if (isset($collection['MaximumDeliveryFee']) && ($collection['MaximumDeliveryFee'] < 0)) {
+                        Toastr::error(translate('messages.Enter_valid_Maximum_Delivery_Fee_on_Id') . ' ' . $collection['id']);
                         return back();
                     }
 
@@ -1379,7 +1627,7 @@ class VendorController extends Controller
                         'minimum_shipping_charge' => $collection['MinimumDeliveryFee'] ?? 0,
                         'per_km_shipping_charge' => $collection['PerKmDeliveryFee'] ?? 0,
                         'maximum_shipping_charge' => $collection['MaximumDeliveryFee'] ?? 0,
-                        'restaurant_model' =>  $collection['RestaurantModel'] == 'subscription' ? 'unsubscribed' : 'commission'  ,
+                        'restaurant_model' =>  $collection['RestaurantModel'] == 'subscription' ? 'unsubscribed' : 'commission',
                         'schedule_order' => $collection['ScheduleOrder'] == 'yes' ? 1 : 0,
                         'take_away' => $collection['TakeAway'] == 'yes' ? 1 : 0,
                         'free_delivery' => $collection['FreeDelivery']  == 'yes' ? 1 : 0,
@@ -1389,48 +1637,47 @@ class VendorController extends Controller
 
                         'delivery' => $collection['Delivery']  == 'yes' ? 1 : 0,
                         'status' => $collection['Status']  == 'active' ? 1 : 0,
-                        'food_section' => $collection['FoodSection']  == 'active' ?1 : 0,
-                        'reviews_section' => $collection['ReviewsSection']   == 'active' ?1 : 0,
-                        'pos_system' => $collection['PosSystem']  == 'active' ?1 : 0,
-                        'self_delivery_system' => $collection['SelfDeliverySystem']  == 'active' ?1 : 0,
-                        'active' => $collection['RestaurantOpen']  == 'yes' ?1 : 0,
+                        'food_section' => $collection['FoodSection']  == 'active' ? 1 : 0,
+                        'reviews_section' => $collection['ReviewsSection']   == 'active' ? 1 : 0,
+                        'pos_system' => $collection['PosSystem']  == 'active' ? 1 : 0,
+                        'self_delivery_system' => $collection['SelfDeliverySystem']  == 'active' ? 1 : 0,
+                        'active' => $collection['RestaurantOpen']  == 'yes' ? 1 : 0,
                         'created_at' => now(),
                         'updated_at' => now()
                     ]);
                 }
-                $restaurant_ids[] = $vendor_id+$key+1;
-                $data = array_map(function($id){
-                    return array_map(function($item)use($id){
-                        return     ['restaurant_id'=>$id,'day'=>$item,'opening_time'=>'00:00:00','closing_time'=>'23:59:59'];
-                    },[0,1,2,3,4,5,6]);
-                },$restaurant_ids);
-
-            } catch(\Exception $e) {
-                info(["line___{$e->getLine()}",$e->getMessage()]);
+                $restaurant_ids[] = $vendor_id + $key + 1;
+                $data = array_map(function ($id) {
+                    return array_map(function ($item) use ($id) {
+                        return     ['restaurant_id' => $id, 'day' => $item, 'opening_time' => '00:00:00', 'closing_time' => '23:59:59'];
+                    }, [0, 1, 2, 3, 4, 5, 6]);
+                }, $restaurant_ids);
+            } catch (\Exception $e) {
+                info(["line___{$e->getLine()}", $e->getMessage()]);
                 Toastr::error(translate('messages.failed_to_import_data'));
                 return back();
             }
             try {
                 $chunkSize = 100;
-                $chunk_restaurants= array_chunk($restaurants,$chunkSize);
-                $chunk_vendors= array_chunk($vendors,$chunkSize);
+                $chunk_restaurants = array_chunk($restaurants, $chunkSize);
+                $chunk_vendors = array_chunk($vendors, $chunkSize);
 
                 DB::beginTransaction();
-                    foreach($chunk_restaurants as $key=> $chunk_restaurant){
+                foreach ($chunk_restaurants as $key => $chunk_restaurant) {
                     DB::table('vendors')->insert($chunk_vendors[$key]);
-//                    DB::table('restaurants')->insert($chunk_restaurant);
-                        foreach ($chunk_restaurant as $restaurant) {
-                            $insertedId = DB::table('restaurants')->insertGetId($restaurant);
-                            Helpers::updateStorageTable(get_class(new Restaurant), $insertedId, $restaurant['logo']);
-                            Helpers::updateStorageTable(get_class(new Restaurant), $insertedId, $restaurant['cover_photo']);
-                        }
+                    //                    DB::table('restaurants')->insert($chunk_restaurant);
+                    foreach ($chunk_restaurant as $restaurant) {
+                        $insertedId = DB::table('restaurants')->insertGetId($restaurant);
+                        Helpers::updateStorageTable(get_class(new Restaurant), $insertedId, $restaurant['logo']);
+                        Helpers::updateStorageTable(get_class(new Restaurant), $insertedId, $restaurant['cover_photo']);
+                    }
                 }
 
                 DB::table('restaurant_schedule')->insert(array_merge(...$data));
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                info(["line___{$e->getLine()}",$e->getMessage()]);
+                info(["line___{$e->getLine()}", $e->getMessage()]);
                 Toastr::error(translate('messages.failed_to_import_data'));
                 return back();
             }
@@ -1440,108 +1687,109 @@ class VendorController extends Controller
         }
 
 
-        if($request->button === 'update'){
+        if ($request->button === 'update') {
 
-            $email= $collections->pluck('email')->toArray();
-            $phone= $collections->pluck('phone')->toArray();
-            if(Restaurant::whereIn('email', $email)->orWhereIn('phone', $phone)->doesntExist()
-            ){
+            $email = $collections->pluck('email')->toArray();
+            $phone = $collections->pluck('phone')->toArray();
+            if (Restaurant::whereIn('email', $email)->orWhereIn('phone', $phone)->doesntExist()) {
                 Toastr::error(translate('messages.email_or_phone_doesnt_exist_at_the_database'));
                 return back();
             }
-        try{
-            foreach ($collections as $key => $collection) {
-                if ( !isset($collection['id'])   || $collection['id'] === "" ||  $collection['ownerFirstName'] === "" || $collection['restaurantName'] === "" || $collection['phone'] === ""|| $collection['Comission'] === "" || $collection['Tax'] === ""
-                || $collection['email'] === "" || $collection['latitude'] === "" || $collection['longitude'] === ""
-                || $collection['zone_id'] === "" ||  $collection['DeliveryTime'] === ""  || $collection['RestaurantModel'] === "" ) {
-                    Toastr::error(translate('messages.please_fill_all_required_fields'));
-                    return back();
-                }
-                if(isset($collection['DeliveryTime']) && explode("-", (string)$collection['DeliveryTime'])[0] >  explode("-", (string)$collection['DeliveryTime'])[1]){
-                    Toastr::error(translate('messages.max_delivery_time_must_be_greater_than_min_delivery_time_on_id').' '.$collection['id']);
-                    return back();
-                }
-                if(isset($collection['Comission']) && ($collection['Comission'] < 0 ||  $collection['Comission'] > 100) ) {
-                    Toastr::error(translate('messages.Comission_must_be_in_0_to_100_on_id').' '.$collection['id']);
-                    return back();
-                }
-                if(isset($collection['Tax']) && ($collection['Tax'] < 0 ||  $collection['Tax'] > 100 )) {
-                    Toastr::error(translate('messages.Tax_must_be_in_0_to_100_on_id').' '.$collection['id']);
-                    return back();
-                }
-                if(isset($collection['latitude']) && ($collection['latitude'] < -90 ||  $collection['latitude'] > 90 )) {
-                    Toastr::error(translate('messages.latitude_must_be_in_-90_to_90_on_id').' '.$collection['id']);
-                    return back();
-                }
-                if(isset($collection['longitude']) && ($collection['longitude'] < -180 ||  $collection['longitude'] > 180 )) {
-                    Toastr::error(translate('messages.longitude_must_be_in_-180_to_180_on_id').' '.$collection['id']);
-                    return back();
-                }
-                if(isset($collection['MinimumDeliveryFee']) && ($collection['MinimumDeliveryFee'] < 0  )) {
-                    Toastr::error(translate('messages.Enter_valid_Minimum_Delivery_Fee_on_id').' '.$collection['id']);
-                    return back();
-                }
-                if(isset($collection['MinimumOrderAmount']) && ($collection['MinimumOrderAmount'] < 0  )) {
-                    Toastr::error(translate('messages.Enter_valid_Minimum_Order_Amount_on_id').' '.$collection['id']);
-                    return back();
-                }
-                if(isset($collection['PerKmDeliveryFee']) && ($collection['PerKmDeliveryFee'] < 0  )) {
-                    Toastr::error(translate('messages.Enter_valid_Per_Km_Delivery_Fee_on_id').' '.$collection['id']);
-                    return back();
-                }
-                if(isset($collection['MaximumDeliveryFee']) && ($collection['MaximumDeliveryFee'] < 0  )  ) {
-                    Toastr::error(translate('messages.Enter_valid_Maximum_Delivery_Fee_on_id').' '.$collection['id']);
-                    return back();
-                }
+            try {
+                foreach ($collections as $key => $collection) {
+                    if (
+                        !isset($collection['id'])   || $collection['id'] === "" ||  $collection['ownerFirstName'] === "" || $collection['restaurantName'] === "" || $collection['phone'] === "" || $collection['Comission'] === "" || $collection['Tax'] === ""
+                        || $collection['email'] === "" || $collection['latitude'] === "" || $collection['longitude'] === ""
+                        || $collection['zone_id'] === "" ||  $collection['DeliveryTime'] === ""  || $collection['RestaurantModel'] === ""
+                    ) {
+                        Toastr::error(translate('messages.please_fill_all_required_fields'));
+                        return back();
+                    }
+                    if (isset($collection['DeliveryTime']) && explode("-", (string)$collection['DeliveryTime'])[0] >  explode("-", (string)$collection['DeliveryTime'])[1]) {
+                        Toastr::error(translate('messages.max_delivery_time_must_be_greater_than_min_delivery_time_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
+                    if (isset($collection['Comission']) && ($collection['Comission'] < 0 ||  $collection['Comission'] > 100)) {
+                        Toastr::error(translate('messages.Comission_must_be_in_0_to_100_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
+                    if (isset($collection['Tax']) && ($collection['Tax'] < 0 ||  $collection['Tax'] > 100)) {
+                        Toastr::error(translate('messages.Tax_must_be_in_0_to_100_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
+                    if (isset($collection['latitude']) && ($collection['latitude'] < -90 ||  $collection['latitude'] > 90)) {
+                        Toastr::error(translate('messages.latitude_must_be_in_-90_to_90_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
+                    if (isset($collection['longitude']) && ($collection['longitude'] < -180 ||  $collection['longitude'] > 180)) {
+                        Toastr::error(translate('messages.longitude_must_be_in_-180_to_180_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
+                    if (isset($collection['MinimumDeliveryFee']) && ($collection['MinimumDeliveryFee'] < 0)) {
+                        Toastr::error(translate('messages.Enter_valid_Minimum_Delivery_Fee_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
+                    if (isset($collection['MinimumOrderAmount']) && ($collection['MinimumOrderAmount'] < 0)) {
+                        Toastr::error(translate('messages.Enter_valid_Minimum_Order_Amount_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
+                    if (isset($collection['PerKmDeliveryFee']) && ($collection['PerKmDeliveryFee'] < 0)) {
+                        Toastr::error(translate('messages.Enter_valid_Per_Km_Delivery_Fee_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
+                    if (isset($collection['MaximumDeliveryFee']) && ($collection['MaximumDeliveryFee'] < 0)) {
+                        Toastr::error(translate('messages.Enter_valid_Maximum_Delivery_Fee_on_id') . ' ' . $collection['id']);
+                        return back();
+                    }
 
-                array_push($vendors, [
-                    'id'=>$collection['ownerID'],
-                    'f_name' => $collection['ownerFirstName'],
-                    'l_name' => $collection['ownerLastName'],
-                    'phone' => $collection['phone'],
-                    'email' => $collection['email'],
-                    'status' => 1,
-                    'password' => bcrypt(12345678),
-                    'updated_at' => now()
-                ]);
-                array_push($restaurants, [
-                    'id' => $collection['id'],
-                    'name' => $collection['restaurantName'],
-                    'logo' => $collection['logo'] ?? null,
-                    'cover_photo' => $collection['CoverPhoto'] ?? null,
-                    'phone' => $collection['phone'],
-                    'email' => $collection['email'],
-                    'latitude' => $collection['latitude'],
-                    'longitude' => $collection['longitude'],
-                    'vendor_id' => $collection['ownerID'],
-                    'zone_id' => $collection['zone_id'],
-                    'address' => $collection['Address'] ?? null,
-                    'tax' => $collection['Tax'] ?? 0,
-                    'minimum_order' => $collection['MinimumOrderAmount'] ?? 0,
-                    'delivery_time' => $collection['DeliveryTime'] ?? '15-30',
-                    'comission' => $collection['Comission'] ?? 'comission',
-                    'minimum_shipping_charge' => $collection['MinimumDeliveryFee'] ?? 0,
-                    'per_km_shipping_charge' => $collection['PerKmDeliveryFee'] ?? 0,
-                    'maximum_shipping_charge' => $collection['MaximumDeliveryFee'] ?? 0,
-                    'restaurant_model' =>  $collection['RestaurantModel']  == 'subscription' ? 'unsubscribed' : 'commission'  ,
-                    'order_subscription_active' => $collection['OrderSubscription']  == 'yes' ? 1 : 0,
-                    'schedule_order' => $collection['ScheduleOrder']  == 'yes' ? 1 : 0,
-                    'take_away' => $collection['TakeAway']  == 'yes' ? 1 : 0,
-                    'free_delivery' => $collection['FreeDelivery']   == 'yes' ? 1 : 0,
-                    'veg' => $collection['Veg']   == 'yes' ? 1 : 0,
-                    'non_veg' => $collection['NonVeg']   == 'yes' ? 1 : 0,
-                    'delivery' => $collection['Delivery']   == 'yes' ? 1 : 0,
-                    'status' => $collection['Status']   == 'active' ? 1 : 0,
-                    'food_section' => $collection['FoodSection']   == 'active' ?1 : 0,
-                    'reviews_section' => $collection['ReviewsSection']    == 'active' ?1 : 0,
-                    'pos_system' => $collection['PosSystem']   == 'active' ?1 : 0,
-                    'self_delivery_system' => $collection['SelfDeliverySystem']   == 'active' ?1 : 0,
-                    'active' => $collection['RestaurantOpen']   == 'yes' ?1 : 0,
-                    'updated_at' => now()
-                ]);
-            }
+                    array_push($vendors, [
+                        'id' => $collection['ownerID'],
+                        'f_name' => $collection['ownerFirstName'],
+                        'l_name' => $collection['ownerLastName'],
+                        'phone' => $collection['phone'],
+                        'email' => $collection['email'],
+                        'status' => 1,
+                        'password' => bcrypt(12345678),
+                        'updated_at' => now()
+                    ]);
+                    array_push($restaurants, [
+                        'id' => $collection['id'],
+                        'name' => $collection['restaurantName'],
+                        'logo' => $collection['logo'] ?? null,
+                        'cover_photo' => $collection['CoverPhoto'] ?? null,
+                        'phone' => $collection['phone'],
+                        'email' => $collection['email'],
+                        'latitude' => $collection['latitude'],
+                        'longitude' => $collection['longitude'],
+                        'vendor_id' => $collection['ownerID'],
+                        'zone_id' => $collection['zone_id'],
+                        'address' => $collection['Address'] ?? null,
+                        'tax' => $collection['Tax'] ?? 0,
+                        'minimum_order' => $collection['MinimumOrderAmount'] ?? 0,
+                        'delivery_time' => $collection['DeliveryTime'] ?? '15-30',
+                        'comission' => $collection['Comission'] ?? 'comission',
+                        'minimum_shipping_charge' => $collection['MinimumDeliveryFee'] ?? 0,
+                        'per_km_shipping_charge' => $collection['PerKmDeliveryFee'] ?? 0,
+                        'maximum_shipping_charge' => $collection['MaximumDeliveryFee'] ?? 0,
+                        'restaurant_model' =>  $collection['RestaurantModel']  == 'subscription' ? 'unsubscribed' : 'commission',
+                        'order_subscription_active' => $collection['OrderSubscription']  == 'yes' ? 1 : 0,
+                        'schedule_order' => $collection['ScheduleOrder']  == 'yes' ? 1 : 0,
+                        'take_away' => $collection['TakeAway']  == 'yes' ? 1 : 0,
+                        'free_delivery' => $collection['FreeDelivery']   == 'yes' ? 1 : 0,
+                        'veg' => $collection['Veg']   == 'yes' ? 1 : 0,
+                        'non_veg' => $collection['NonVeg']   == 'yes' ? 1 : 0,
+                        'delivery' => $collection['Delivery']   == 'yes' ? 1 : 0,
+                        'status' => $collection['Status']   == 'active' ? 1 : 0,
+                        'food_section' => $collection['FoodSection']   == 'active' ? 1 : 0,
+                        'reviews_section' => $collection['ReviewsSection']    == 'active' ? 1 : 0,
+                        'pos_system' => $collection['PosSystem']   == 'active' ? 1 : 0,
+                        'self_delivery_system' => $collection['SelfDeliverySystem']   == 'active' ? 1 : 0,
+                        'active' => $collection['RestaurantOpen']   == 'yes' ? 1 : 0,
+                        'updated_at' => now()
+                    ]);
+                }
             } catch (\Exception $e) {
-                info(["line___{$e->getLine()}",$e->getMessage()]);
+                info(["line___{$e->getLine()}", $e->getMessage()]);
                 Toastr::error(translate('messages.failed_to_update_data'));
                 return back();
             }
@@ -1549,12 +1797,12 @@ class VendorController extends Controller
             try {
 
                 $chunkSize = 100;
-                $chunk_restaurants= array_chunk($restaurants,$chunkSize);
-                $chunk_vendors= array_chunk($vendors,$chunkSize);
+                $chunk_restaurants = array_chunk($restaurants, $chunkSize);
+                $chunk_vendors = array_chunk($vendors, $chunkSize);
                 DB::beginTransaction();
-                foreach($chunk_restaurants as $key=> $chunk_restaurant){
-                    DB::table('vendors')->upsert($chunk_vendors[$key],['id','email','phone','password'],['f_name','l_name']);
-//                    DB::table('restaurants')->upsert($chunk_restaurant,['id','email','phone','vendor_id',],['name','logo','cover_photo','latitude','longitude','address','zone_id','minimum_order','comission','tax','delivery_time','minimum_shipping_charge','per_km_shipping_charge','maximum_shipping_charge','schedule_order','status','self_delivery_system','veg','non_veg','free_delivery','take_away','delivery','reviews_section','pos_system','active','restaurant_model','food_section','order_subscription_active']);
+                foreach ($chunk_restaurants as $key => $chunk_restaurant) {
+                    DB::table('vendors')->upsert($chunk_vendors[$key], ['id', 'email', 'phone', 'password'], ['f_name', 'l_name']);
+                    //                    DB::table('restaurants')->upsert($chunk_restaurant,['id','email','phone','vendor_id',],['name','logo','cover_photo','latitude','longitude','address','zone_id','minimum_order','comission','tax','delivery_time','minimum_shipping_charge','per_km_shipping_charge','maximum_shipping_charge','schedule_order','status','self_delivery_system','veg','non_veg','free_delivery','take_away','delivery','reviews_section','pos_system','active','restaurant_model','food_section','order_subscription_active']);
                     foreach ($chunk_restaurant as $restaurant) {
                         if (isset($restaurant['id']) && DB::table('food')->where('id', $restaurant['id'])->exists()) {
                             DB::table('restaurants')->where('id', $restaurant['id'])->update($restaurant);
@@ -1570,14 +1818,13 @@ class VendorController extends Controller
                 DB::commit();
             } catch (\Exception $e) {
                 DB::rollBack();
-                info(["line___{$e->getLine()}",$e->getMessage()]);
+                info(["line___{$e->getLine()}", $e->getMessage()]);
                 Toastr::error(translate('messages.failed_to_update_data'));
                 return back();
             }
             Toastr::success(translate('messages.restaurant_update_successfully', ['count' => count($restaurants)]));
             return back();
         }
-
     }
 
     public function bulk_export_index()
@@ -1595,19 +1842,19 @@ class VendorController extends Controller
             'to_date' => 'required_if:type,date_wise'
         ]);
         $vendors = Vendor::with('restaurants')->has('restaurants')
-        ->when($request['type'] == 'date_wise', function ($query) use ($request) {
-            $query->whereBetween('created_at', [$request['from_date'] . ' 00:00:00', $request['to_date'] . ' 23:59:59']);
-        })
-        ->when($request['type'] == 'id_wise', function ($query) use ($request) {
-            $query->whereBetween('id', [$request['start_id'], $request['end_id']]);
-        })
-        ->when($request->type == 'all' ,function($q){
-            $q->where('status',1);
-        })
-        ->get();
+            ->when($request['type'] == 'date_wise', function ($query) use ($request) {
+                $query->whereBetween('created_at', [$request['from_date'] . ' 00:00:00', $request['to_date'] . ' 23:59:59']);
+            })
+            ->when($request['type'] == 'id_wise', function ($query) use ($request) {
+                $query->whereBetween('id', [$request['start_id'], $request['end_id']]);
+            })
+            ->when($request->type == 'all', function ($q) {
+                $q->where('status', 1);
+            })
+            ->get();
 
-            // Export consumes only a few MB, even with 10M+ rows.
-            return  (new FastExcel(RestaurantLogic::format_export_restaurants(Helpers::Export_generator($vendors))))->download('Restaurants.xlsx');
+        // Export consumes only a few MB, even with 10M+ rows.
+        return (new FastExcel(RestaurantLogic::format_export_restaurants(Helpers::Export_generator($vendors))))->download('Restaurants.xlsx');
     }
 
     public function add_schedule(Request $request)
@@ -1648,18 +1895,21 @@ class VendorController extends Controller
         ]);
     }
 
-    public function remove_schedule($restaurant_schedule)
-    {
-        $schedule = RestaurantSchedule::find($restaurant_schedule);
-        if (!$schedule) {
-            return response()->json([], 404);
-        }
-        $restaurant = $schedule?->restaurant;
-        $schedule?->delete();
-        return response()->json([
-            'view' => view('admin-views.vendor.view.partials._schedule', compact('restaurant'))->render(),
-        ]);
+public function remove_schedule($restaurant_schedule)
+{
+    $schedule = RestaurantSchedule::find($restaurant_schedule);
+    if (!$schedule) {
+        return response()->json([], 404);
     }
+
+    $restaurant = $schedule->restaurant ?? null;
+    $schedule->delete();
+
+    return response()->json([
+        'view' => view('admin-views.vendor.view.partials._schedule', compact('restaurant'))->render(),
+    ]);
+}
+
 
 
 
@@ -1670,7 +1920,7 @@ class VendorController extends Controller
 
 
         $user = UserInfo::where('vendor_id', $request->user_id)->first();
-        $restaurant= Restaurant::where('vendor_id' ,$request->user_id)->first();
+        $restaurant = Restaurant::where('vendor_id', $request->user_id)->first();
         $conversations = Conversation::WhereUser($user->id);
         if ($request->query('key') != null) {
             $key = explode(' ', $request->get('key'));
@@ -1680,14 +1930,14 @@ class VendorController extends Controller
                         $query->where('f_name', 'like', "%{$value}%")->orWhere('l_name', 'like', "%{$value}%")->orWhere('phone', 'like', "%{$value}%");
                     }
                 })->orWhereHas('receiver', function ($query1) use ($key) {
-                        foreach ($key as $value) {
-                            $query1->where('f_name', 'like', "%{$value}%")->orWhere('l_name', 'like', "%{$value}%")->orWhere('phone', 'like', "%{$value}%");
-                        }
-                    });
+                    foreach ($key as $value) {
+                        $query1->where('f_name', 'like', "%{$value}%")->orWhere('l_name', 'like', "%{$value}%")->orWhere('phone', 'like', "%{$value}%");
+                    }
+                });
             });
         }
         $conversations = $conversations->paginate(8);
-        $view = view('admin-views.vendor.view.partials._conversation_list', compact('conversations','restaurant'))->render();
+        $view = view('admin-views.vendor.view.partials._conversation_list', compact('conversations', 'restaurant'))->render();
         return response()->json(['html' => $view]);
     }
 
@@ -1705,60 +1955,58 @@ class VendorController extends Controller
 
     public function cash_transaction_export(Request $request)
     {
-        try{
-            $transaction = AccountTransaction::where('from_type', 'restaurant')->where('type', 'collected' )->where('from_id', $request->restaurant)->get();
-            $data=[
-                'data' =>$transaction,
-                'search' =>$request['search'] ?? null,
+        try {
+            $transaction = AccountTransaction::where('from_type', 'restaurant')->where('type', 'collected')->where('from_id', $request->restaurant)->get();
+            $data = [
+                'data' => $transaction,
+                'search' => $request['search'] ?? null,
             ];
-            if($request->type == 'csv'){
+            if ($request->type == 'csv') {
                 return Excel::download(new RestaurantWiseCashCollectionExport($data), 'CashTransaction.csv');
             }
             return Excel::download(new RestaurantWiseCashCollectionExport($data), 'CashTransaction.xlsx');
-        } catch(\Exception $e) {
-            Toastr::error("line___{$e->getLine()}",$e->getMessage());
-            info(["line___{$e->getLine()}",$e->getMessage()]);
+        } catch (\Exception $e) {
+            Toastr::error("line___{$e->getLine()}", $e->getMessage());
+            info(["line___{$e->getLine()}", $e->getMessage()]);
             return back();
         }
-
     }
 
     public function digital_transaction_export(Request $request)
     {
-        try{
+        try {
             $transaction = OrderTransaction::where('vendor_id', $request->restaurant)->latest()->get();
 
-            $data=[
-                'data' =>$transaction,
-                'search' =>$request['search'] ?? null,
+            $data = [
+                'data' => $transaction,
+                'search' => $request['search'] ?? null,
             ];
-            if($request->type == 'csv'){
+            if ($request->type == 'csv') {
                 return Excel::download(new RestaurantWiseWithdrawOrderTransactionExport($data), 'AdminOrderTransaction.csv');
             }
             return Excel::download(new RestaurantWiseWithdrawOrderTransactionExport($data), 'AdminOrderTransaction.xlsx');
-        } catch(\Exception $e) {
-            Toastr::error("line___{$e->getLine()}",$e->getMessage());
-            info(["line___{$e->getLine()}",$e->getMessage()]);
+        } catch (\Exception $e) {
+            Toastr::error("line___{$e->getLine()}", $e->getMessage());
+            info(["line___{$e->getLine()}", $e->getMessage()]);
             return back();
         }
-
     }
 
     public function withdraw_transaction_export(Request $request)
     {
-        try{
-            $withdraw_transaction =WithdrawRequest::where('vendor_id', $request->restaurant)->get();
-            $data=[
-                'data' =>$withdraw_transaction,
-                'search' =>$request['search'] ?? null,
+        try {
+            $withdraw_transaction = WithdrawRequest::where('vendor_id', $request->restaurant)->get();
+            $data = [
+                'data' => $withdraw_transaction,
+                'search' => $request['search'] ?? null,
             ];
-            if($request->type == 'csv'){
+            if ($request->type == 'csv') {
                 return Excel::download(new RestaurantWiseWithdrawTransactionExport($data), 'WithdrawTransaction.csv');
             }
             return Excel::download(new RestaurantWiseWithdrawTransactionExport($data), 'WithdrawTransaction.xlsx');
-        } catch(\Exception $e) {
-            Toastr::error("line___{$e->getLine()}",$e->getMessage());
-            info(["line___{$e->getLine()}",$e->getMessage()]);
+        } catch (\Exception $e) {
+            Toastr::error("line___{$e->getLine()}", $e->getMessage());
+            info(["line___{$e->getLine()}", $e->getMessage()]);
             return back();
         }
     }
@@ -1776,16 +2024,17 @@ class VendorController extends Controller
             });
         })->get();
 
-        return response()->json([
-            'view' => view('admin-views.wallet.partials._table', compact('withdraw_req'))->render(),
-            'total' => $withdraw_req?->count()
-        ]);
+      return response()->json([
+    'view' => view('admin-views.wallet.partials._table', compact('withdraw_req'))->render(),
+    'total' => $withdraw_req ? $withdraw_req->count() : 0
+]);
+
     }
 
 
-    public function restaurants_export( Request $request,  $type)
+    public function restaurants_export(Request $request,  $type)
     {
-        try{
+        try {
             $key = explode(' ', $request['search']);
             $zone_id = $request->query('zone_id', 'all');
             $cuisine_id = $request->query('cuisine_id', 'all');
@@ -1794,86 +2043,86 @@ class VendorController extends Controller
             $restaurants = Restaurant::when(is_numeric($zone_id), function ($query) use ($zone_id) {
                 return $query->where('zone_id', $zone_id);
             })
-            ->with(['zone' , 'cuisine', 'vendor'])
-            ->withSum('reviews' , 'rating')
-            ->withCount('reviews','foods')
-            ->whereHas('vendor', function($q){
-                $q->where('status',1);
-            })
-            ->when(isset($key) , function($q) use($key){
-                $q->where(function($query)use ($key){
-                    $query->orWhereHas('vendor', function ($q) use ($key) {
-                        foreach ($key as $value) {
-                            $q->orWhere('f_name', 'like', "%{$value}%")
-                                ->orWhere('l_name', 'like', "%{$value}%")
-                                ->orWhere('email', 'like', "%{$value}%")
-                                ->orWhere('phone', 'like', "%{$value}%");
-                        }
-                    })
-                    ->where(function ($q) use ($key) {
+                ->with(['zone', 'cuisine', 'vendor'])
+                ->withSum('reviews', 'rating')
+                ->withCount('reviews', 'foods')
+                ->whereHas('vendor', function ($q) {
+                    $q->where('status', 1);
+                })
+                ->when(isset($key), function ($q) use ($key) {
+                    $q->where(function ($query) use ($key) {
+                        $query->orWhereHas('vendor', function ($q) use ($key) {
                             foreach ($key as $value) {
-                                $q->orWhere('name', 'like', "%{$value}%")
+                                $q->orWhere('f_name', 'like', "%{$value}%")
+                                    ->orWhere('l_name', 'like', "%{$value}%")
                                     ->orWhere('email', 'like', "%{$value}%")
                                     ->orWhere('phone', 'like', "%{$value}%");
                             }
-                        });
-                });
-            })
-            ->cuisine($cuisine_id)
-            ->type($type)->RestaurantModel($typ)->latest()->get();
+                        })
+                            ->where(function ($q) use ($key) {
+                                foreach ($key as $value) {
+                                    $q->orWhere('name', 'like', "%{$value}%")
+                                        ->orWhere('email', 'like', "%{$value}%")
+                                        ->orWhere('phone', 'like', "%{$value}%");
+                                }
+                            });
+                    });
+                })
+                ->cuisine($cuisine_id)
+                ->type($type)->RestaurantModel($typ)->latest()->get();
 
 
-            $data=[
-                'data' =>$restaurants,
-                'zone' =>is_numeric($zone_id)?Helpers::get_zones_name($zone_id):null,
-                'search' =>$request['search'] ?? null,
-                'model' =>$typ ?? null,
-                'type' =>$type ?? null,
-                'cuisine' =>is_numeric($cuisine_id)? Cuisine::where('id',$cuisine_id)->first()?->name:null,
+$data = [
+    'data' => $restaurants,
+    'zone' => is_numeric($zone_id) ? Helpers::get_zones_name($zone_id) : null,
+    'search' => $request['search'] ?? null,
+    'model' => $typ ?? null,
+    'type' => $type ?? null,
+    'cuisine' => is_numeric($cuisine_id) ? optional(Cuisine::where('id', $cuisine_id)->first())->name : null,
+];
 
-            ];
-            if($request->type == 'csv'){
+            if ($request->type == 'csv') {
                 return Excel::download(new RestaurantListExport($data), 'Restaurants.csv');
             }
             return Excel::download(new RestaurantListExport($data), 'Restaurants.xlsx');
-
-        } catch(\Exception $e) {
-            Toastr::error("line___{$e->getLine()}",$e->getMessage());
-            info(["line___{$e->getLine()}",$e->getMessage()]);
+        } catch (\Exception $e) {
+            Toastr::error("line___{$e->getLine()}", $e->getMessage());
+            info(["line___{$e->getLine()}", $e->getMessage()]);
             return back();
         }
     }
 
-    public function restaurant_wise_reviwe_export(Request $request){
-        try{
-            $restaurant =Restaurant::where('id',$request->id)->first();
-            $reviews = $restaurant->reviews()->with('food',function($query){
+    public function restaurant_wise_reviwe_export(Request $request)
+    {
+        try {
+            $restaurant = Restaurant::where('id', $request->id)->first();
+            $reviews = $restaurant->reviews()->with('food', function ($query) {
                 $query->withoutGlobalScope(\App\Scopes\RestaurantScope::class);
             })->get();
 
             $user_rating = null;
             $total_rating = 0;
             $total_reviews = 0;
-            foreach($reviews as $key=>$value){
+            foreach ($reviews as $key => $value) {
                 $user_rating += $value->rating;
-                $total_rating +=1;
-                $total_reviews +=1;
+                $total_rating += 1;
+                $total_reviews += 1;
             }
-            $user_rating = isset($user_rating) ? ($user_rating)/count($reviews) : 0;
-            $data=[
-                'restaurant_name' =>$restaurant->name,
-                'restaurant_id' =>$restaurant->id,
-                'rating' =>number_format($user_rating, 1),
-                'total_reviews' =>$total_reviews,
+            $user_rating = isset($user_rating) ? ($user_rating) / count($reviews) : 0;
+            $data = [
+                'restaurant_name' => $restaurant->name,
+                'restaurant_id' => $restaurant->id,
+                'rating' => number_format($user_rating, 1),
+                'total_reviews' => $total_reviews,
                 'data' => $reviews
             ];
-            if($request->type == 'csv'){
+            if ($request->type == 'csv') {
                 return Excel::download(new RestauranrWiseFoodReviewExport($data), 'RestaurantWiseFoodReview.csv');
             }
             return Excel::download(new RestauranrWiseFoodReviewExport($data), 'RestaurantWiseFoodReview.xlsx');
-        } catch(\Exception $e) {
-            Toastr::error("line___{$e->getLine()}",$e->getMessage());
-            info(["line___{$e->getLine()}",$e->getMessage()]);
+        } catch (\Exception $e) {
+            Toastr::error("line___{$e->getLine()}", $e->getMessage());
+            info(["line___{$e->getLine()}", $e->getMessage()]);
             return back();
         }
     }
@@ -1881,42 +2130,42 @@ class VendorController extends Controller
 
     public function withdraw_list_export(Request $request)
     {
-        try{
-        $key = isset($request['search']) ? explode(' ', $request['search']) : [];
+        try {
+            $key = isset($request['search']) ? explode(' ', $request['search']) : [];
 
-        $all = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'all' ? 1 : 0;
-        $active = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'approved' ? 1 : 0;
-        $denied = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'denied' ? 1 : 0;
-        $pending = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'pending' ? 1 : 0;
+            $all = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'all' ? 1 : 0;
+            $active = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'approved' ? 1 : 0;
+            $denied = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'denied' ? 1 : 0;
+            $pending = session()->has('withdraw_status_filter') && session('withdraw_status_filter') == 'pending' ? 1 : 0;
 
-        $withdraw_req = WithdrawRequest::with(['vendor'])
-            ->when($all, function ($query) {
-                return $query;
-            })
-            ->when($active, function ($query) {
-                return $query->where('approved', 1);
-            })
-            ->when($denied, function ($query) {
-                return $query->where('approved', 2);
-            })
-            ->when($pending, function ($query) {
-                return $query->where('approved', 0);
-            })
-            ->when(isset($key), function ($query) use ($key) {
-                return $query->whereHas('vendor', function ($query) use ($key) {
-                    $query->whereHas('restaurants', function ($q) use ($key) {
-                        foreach ($key as $value) {
-                            $q->where('name', 'like', "%{$value}%");
-                        }
+            $withdraw_req = WithdrawRequest::with(['vendor'])
+                ->when($all, function ($query) {
+                    return $query;
+                })
+                ->when($active, function ($query) {
+                    return $query->where('approved', 1);
+                })
+                ->when($denied, function ($query) {
+                    return $query->where('approved', 2);
+                })
+                ->when($pending, function ($query) {
+                    return $query->where('approved', 0);
+                })
+                ->when(isset($key), function ($query) use ($key) {
+                    return $query->whereHas('vendor', function ($query) use ($key) {
+                        $query->whereHas('restaurants', function ($q) use ($key) {
+                            foreach ($key as $value) {
+                                $q->where('name', 'like', "%{$value}%");
+                            }
+                        });
                     });
-                });
-            })
-            ->latest()
-            ->get();
+                })
+                ->latest()
+                ->get();
             $data = [
-                'withdraw_requests'=>$withdraw_req,
-                'search'=>$request->search??null,
-                'request_status'=>session()->has('withdraw_status_filter')?session('withdraw_status_filter'):null,
+                'withdraw_requests' => $withdraw_req,
+                'search' => $request->search ?? null,
+                'request_status' => session()->has('withdraw_status_filter') ? session('withdraw_status_filter') : null,
 
             ];
 
@@ -1925,19 +2174,19 @@ class VendorController extends Controller
             } else if ($request->type == 'csv') {
                 return Excel::download(new RestaurantWithdrawTransactionExport($data), 'WithdrawRequests.csv');
             }
-        } catch(\Exception $e) {
-            Toastr::error("line___{$e->getLine()}",$e->getMessage());
-            info(["line___{$e->getLine()}",$e->getMessage()]);
+        } catch (\Exception $e) {
+            Toastr::error("line___{$e->getLine()}", $e->getMessage());
+            info(["line___{$e->getLine()}", $e->getMessage()]);
             return back();
         }
     }
-    public function disbursement_export(Request $request,$id,$type)
+    public function disbursement_export(Request $request, $id, $type)
     {
         $key = explode(' ', $request['search']);
 
-        $restaurant= Restaurant::find($id);
-        $disbursements=DisbursementDetails::where('restaurant_id', $restaurant->id)
-            ->when(isset($key), function ($q) use ($key){
+        $restaurant = Restaurant::find($id);
+        $disbursements = DisbursementDetails::where('restaurant_id', $restaurant->id)
+            ->when(isset($key), function ($q) use ($key) {
                 $q->where(function ($q) use ($key) {
                     foreach ($key as $value) {
                         $q->orWhere('disbursement_id', 'like', "%{$value}%")
@@ -1947,11 +2196,11 @@ class VendorController extends Controller
             })
             ->latest()->get();
         $data = [
-            'disbursements'=>$disbursements,
-            'search'=>$request->search??null,
-            'restaurant'=>$restaurant->name,
-            'type'=>'restaurant',
-         ];
+            'disbursements' => $disbursements,
+            'search' => $request->search ?? null,
+            'restaurant' => $restaurant->name,
+            'type' => 'restaurant',
+        ];
 
         if ($request->type == 'excel') {
             return Excel::download(new DisbursementHistoryExport($data), 'Disbursementlist.xlsx');
@@ -1965,10 +2214,10 @@ class VendorController extends Controller
             'meta_title.0' => 'required',
             'meta_title.*' => 'max:100',
             'meta_description.0' => 'required',
-        ],[
-            'meta_title.0.required'=>translate('default_meta_title_is_required'),
-            'meta_description.0.required'=>translate('default_meta_description_is_required'),
-            'meta_title.max'=>translate('Title_must_be_within_100_character'),
+        ], [
+            'meta_title.0.required' => translate('default_meta_title_is_required'),
+            'meta_description.0.required' => translate('default_meta_description_is_required'),
+            'meta_title.max' => translate('Title_must_be_within_100_character'),
         ]);
 
         $restaurant->meta_image = $request->has('meta_image') ? Helpers::update('restaurant/', $restaurant->meta_image, 'png', $request->file('meta_image')) : $restaurant->meta_image;
@@ -1976,8 +2225,8 @@ class VendorController extends Controller
         $restaurant->meta_description = $request->meta_description[array_search('default', $request->lang)];
         $restaurant->save();
 
-        Helpers::add_or_update_translations(request:$request,key_data: 'meta_title', name_field:'meta_title' , model_name:'Restaurant' ,data_id:$restaurant->id,data_value:$restaurant->meta_title);
-        Helpers::add_or_update_translations(request:$request,key_data: 'meta_description', name_field:'meta_description' , model_name:'Restaurant' ,data_id:$restaurant->id,data_value:$restaurant->meta_description);
+     Helpers::add_or_update_translations($request, 'meta_title', 'meta_title', 'Restaurant', $restaurant->id, $restaurant->meta_title);
+Helpers::add_or_update_translations($request, 'meta_description', 'meta_description', 'Restaurant', $restaurant->id, $restaurant->meta_description);
 
         Toastr::success(translate('messages.meta_data_updated'));
         return back();
@@ -2005,24 +2254,23 @@ class VendorController extends Controller
 
         Toastr::success(translate('updated successfully'));
         return back();
-
     }
 
     public function download_pdf(Restaurant $restaurant)
     {
         $data = json_decode($restaurant->qr_code, true);
-        $code = isset($data)?QrCode::size(180)->generate(json_encode($data)):'';
-//        $mpdf_view = View::make('admin-views.vendor.view.qrcode-pdf', compact('restaurant','data','code')
-//        );
-//        Helpers::gen_mpdf(view: $mpdf_view,file_prefix: 'qr-code' . rand(00001, 99999),file_postfix: $restaurant->id);
-        $pdf = PDF::loadView('admin-views.vendor.view.qrcode-pdf', compact('restaurant','data', 'code'))->setOptions(['defaultFont' => 'sans-serif']);
+        $code = isset($data) ? QrCode::size(180)->generate(json_encode($data)) : '';
+        //        $mpdf_view = View::make('admin-views.vendor.view.qrcode-pdf', compact('restaurant','data','code')
+        //        );
+        //        Helpers::gen_mpdf(view: $mpdf_view,file_prefix: 'qr-code' . rand(00001, 99999),file_postfix: $restaurant->id);
+        $pdf = PDF::loadView('admin-views.vendor.view.qrcode-pdf', compact('restaurant', 'data', 'code'))->setOptions(['defaultFont' => 'sans-serif']);
         return $pdf->download('qr-code' . rand(00001, 99999) . '.pdf');
     }
 
     public function print_qrcode(Restaurant $restaurant)
     {
         $data = json_decode($restaurant->qr_code, true);
-        $code = isset($data)?QrCode::size(180)->generate(json_encode($data)):'';
-        return view('admin-views.vendor.view.qrcode-print', compact('restaurant','data', 'code'));
+        $code = isset($data) ? QrCode::size(180)->generate(json_encode($data)) : '';
+        return view('admin-views.vendor.view.qrcode-print', compact('restaurant', 'data', 'code'));
     }
 }

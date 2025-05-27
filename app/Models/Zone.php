@@ -9,10 +9,12 @@ use MatanYadaev\EloquentSpatial\Objects\Polygon;
 use App\Scopes\ZoneScope;
 use Illuminate\Database\Eloquent\Builder;
 
+
 class Zone extends Model
 {
     use HasFactory;
    //  use HasSpatial;
+   
 
     protected $casts = [
         'id'=>'integer',

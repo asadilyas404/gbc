@@ -500,7 +500,6 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
-
         $cart = $request->session()->get('cart');
 
         $allNotes = [];
@@ -549,7 +548,6 @@ class POSController extends Controller
             }
             $address = $request->session()->get('address');
         }
-
         $restaurant = Helpers::get_restaurant_data();
         $self_delivery_status = $restaurant->self_delivery_system;
 
@@ -731,7 +729,6 @@ class POSController extends Controller
             $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
             $posOrderDtl->card_paid = $request->card_paid ?? 0;
             $posOrderDtl->bank_account = $request->bank_account;
-            $posOrderDtl->details = $request->notes;
             $posOrderDtl->save();
 
             session()->forget('cart');
@@ -755,6 +752,7 @@ class POSController extends Controller
             } catch (\Exception $exception) {
                 info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
             }
+
             //PlaceOrderMail end
 
             Toastr::success(translate('messages.order_placed_successfully'));
@@ -763,6 +761,7 @@ class POSController extends Controller
             DB::rollBack();
             info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
         }
+
         Toastr::warning(translate('messages.failed_to_place_order'));
         return back();
     }
@@ -808,4 +807,6 @@ class POSController extends Controller
         }
         return response()->json($extra_charges, 200);
     }
+
+
 }

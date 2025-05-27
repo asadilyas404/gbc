@@ -2,6 +2,13 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\SubscriptionController;
+use App\Http\Controllers\TableEmployeeController;
+Route::get('table_employees', 'TableEmployeeController@index')->name('table_employees.index');
+Route::get('table_employees/create', 'TableEmployeeController@create')->name('table_employees.create');
+Route::post('table_employees', 'TableEmployeeController@store')->name('table_employees.store');
+Route::get('table_employees/{id}/edit', 'TableEmployeeController@edit')->name('table_employees.edit');
+Route::put('table_employees/{id}', 'TableEmployeeController@update')->name('table_employees.update');
+Route::delete('table_employees/{id}', 'TableEmployeeController@destroy')->name('table_employees.destroy');
 
 
 Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {

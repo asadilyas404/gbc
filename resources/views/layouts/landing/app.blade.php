@@ -356,7 +356,7 @@
 
                             </ul>
                         </div>
-                        <div class="footer-widget widget-links">
+                        <!-- <div class="footer-widget widget-links">
                             <h5 class="subtitle mt-2 text-white">{{ translate('messages.quick_links') }}</h5>
                             <ul>
                                 <li>
@@ -367,7 +367,7 @@
                                 </li>
 
                             </ul>
-                        </div>
+                        </div> -->
                         <div class="footer-widget widget-links">
                             <h5 class="subtitle mt-2 text-white">{{ translate('messages.quick_links') }}</h5>
                             <ul>

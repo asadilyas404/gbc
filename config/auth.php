@@ -36,39 +36,85 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
-
-        'admin' => [
-            'driver' => 'session',
-            'provider' => 'admins',
-        ],
-
-        'vendor' => [
-            'driver' => 'session',
-            'provider' => 'vendors',
-        ],
-        
-        'vendor_employee' => [
-            'driver' => 'session',
-            'provider' => 'vendor_employees',
-        ],
-
-        'api' => [
-            'driver' => 'passport',
-            'provider' => 'users',
-        ],
-        'customer' => [
-            'driver' => 'session',
-            'provider' => 'users',
-        ],
-        'delivery_men' => [
-            'driver' => 'session',
-            'provider' => 'delivery_men',
-        ],
+    'web' => [
+        'driver' => 'session',
+        'provider' => 'users',
     ],
+
+    'admin' => [
+        'driver' => 'session',
+        'provider' => 'admins',
+    ],
+
+    'vendor' => [
+        'driver' => 'session',
+        'provider' => 'vendors',
+    ],
+    'vendor_employee' => [
+        'driver' => 'session',
+        'provider' => 'vendor_employees',
+    ],
+    'vendor_api' => [
+        'driver' => 'session', // ya 'passport' agar API hai
+        'provider' => 'vendor_employees',
+    ],
+
+    'api' => [
+        'driver' => 'passport',
+        'provider' => 'users',
+    ],
+
+    'customer' => [
+        'driver' => 'session',
+        'provider' => 'users',
+    ],
+
+    'delivery_men' => [
+        'driver' => 'session',
+        'provider' => 'delivery_men',
+    ],
+],
+
+
+    // 'guards' => [
+    //     'web' => [
+    //         'driver' => 'session',
+    //         'provider' => 'users',
+    //     ],
+
+    //     'admin' => [
+    //         'driver' => 'session',
+    //         'provider' => 'admins',
+    //     ],
+
+    //     'vendor' => [
+    //         'driver' => 'session',
+    //         'provider' => 'vendors',
+    //     ],
+        
+    //     'vendor' => [
+    //         'driver' => 'session',
+    //         'provider' => 'vendor_employees',
+    //     ],
+
+    //             'vendor_employee' => [
+    //         'driver' => 'session',
+    //         'provider' => 'vendor_employees',
+    //     ],
+
+    //     'api' => [
+    //         'driver' => 'passport',
+    //         'provider' => 'users',
+    //     ],
+    //     'customer' => [
+    //         'driver' => 'session',
+    //         'provider' => 'users',
+    //     ],
+    //     'delivery_men' => [
+    //         'driver' => 'session',
+    //         'provider' => 'delivery_men',
+    //     ],
+    // ],
 
     /*
     |--------------------------------------------------------------------------
@@ -103,10 +149,10 @@ return [
             'model' => App\Models\Vendor::class,
         ],
 
-        'vendor_employees' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\VendorEmployee::class,
-        ],
+     'vendor_employees' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\VendorEmployee::class,
+    ],
 
         'delivery_men' => [
             'driver' => 'database',

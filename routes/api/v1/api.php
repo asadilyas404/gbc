@@ -5,10 +5,20 @@ use App\WebSockets\Handler\DMLocationSocketHandler;
 use BeyondCode\LaravelWebSockets\Facades\WebSocketsRouter;
 use App\Http\Controllers\Api\V1\Auth\VendorLoginController;
 use App\Http\Controllers\VendorController;
+use App\Http\Controllers\Api\TableEmployeeController;
+use App\Http\Controllers\Api\V1\Vendor\POSController;
 
 Route::middleware('api')->group(function () {
-    Route::post('vendor/login', [VendorLoginController::class, 'ApiLogin']);
-    Route::post('vendor-employee/login', [VendorController::class, 'loginVendorEmployee']);
+    Route::post('order-place', [POSController::class, 'order_place']);
+});
+
+Route::post('employees', 'Api\TableEmployeeController@store');  // Store route for creating a new employee
+Route::get('employees', 'Api\TableEmployeeController@index');   // Get all employees
+Route::get('employees/{id}', 'Api\TableEmployeeController@show'); // Get single employee by ID
+Route::put('employees/{id}', 'Api\TableEmployeeController@update'); // Update employee
+Route::delete('employees/{id}', 'Api\TableEmployeeController@destroy'); // Delete employee
+Route::middleware('api')->group(function () {
+    Route::post('vendor-employee/login', [VendorLoginController::class, 'loginVendorEmployee']);
 });
 
 /*

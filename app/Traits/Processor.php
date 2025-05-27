@@ -13,7 +13,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Storage;
 
-trait  Processor
+trait Processor
 {
     public function response_formatter($constant, $content = null, $errors = []): array
     {
@@ -52,7 +52,7 @@ trait  Processor
         }
     }
 
-    public function payment_config($key, $settings_type): object|null
+    public function payment_config($key, $settings_type): ?object
     {
         try {
             $config = DB::table('addon_settings')->where('key_name', $key)
@@ -61,15 +61,16 @@ trait  Processor
             return new Setting();
         }
 
-        return (isset($config)) ? $config : null;
+        return isset($config) ? $config : null;
     }
 
     public static function getDisk()
     {
-        $config=\App\CentralLogics\Helpers::get_business_settings('local_storage');
+        $config = \App\CentralLogics\Helpers::get_business_settings('local_storage');
 
-        return isset($config)?($config==0?'s3':'public'):'public';
+        return isset($config) ? ($config == 0 ? 's3' : 'public') : 'public';
     }
+
     public function file_uploader(string $dir, string $format, $image = null, $old_image = null)
     {
         if ($image == null) return $old_image ?? 'def.png';
@@ -85,7 +86,12 @@ trait  Processor
         return $imageName;
     }
 
-    public function payment_response($payment_info, $payment_flag): Application|JsonResponse|Redirector|RedirectResponse|\Illuminate\Contracts\Foundation\Application
+    /**
+     * @param $payment_info
+     * @param $payment_flag
+     * @return Application|JsonResponse|Redirector|RedirectResponse|\Illuminate\Contracts\Foundation\Application
+     */
+    public function payment_response($payment_info, $payment_flag)
     {
         $payment_info = PaymentRequest::find($payment_info->id);
         $token_string = 'payment_method=' . $payment_info->payment_method . '&&attribute_id=' . $payment_info->attribute_id . '&&transaction_reference=' . $payment_info->transaction_id;
@@ -94,5 +100,4 @@ trait  Processor
         }
         return redirect()->route('payment-' . $payment_flag, ['token' => base64_encode($token_string)]);
     }
-    
 }

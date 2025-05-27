@@ -389,4 +389,9 @@ class Order extends Model
         });
         return $query;
     }
+    public function tableEmployee()
+{
+    return $this->belongsTo(TableEmployee::class, 'table_id');
+}
+
 }

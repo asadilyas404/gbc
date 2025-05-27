@@ -23,7 +23,8 @@ class LandingPageController extends Controller
 {
     public function testimonial(){
         $testimonial_title=DataSetting::withoutGlobalScope('translate')->with('translations')->where('type','admin_landing_page')->where('key','testimonial_title')->first() ?? null ;
-        $language=BusinessSetting::where('key','language')->first()?->value ?? null;
+$languageSetting = BusinessSetting::where('key', 'language')->first();
+$language = $languageSetting ? $languageSetting->value : null;
         $testimonial=  AdminTestimonial::latest()->paginate(config('default_pagination'));
         return view('admin-views.landing_page.testimonial', compact('testimonial','language','testimonial_title'));
     }

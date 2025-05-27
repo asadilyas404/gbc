@@ -7,10 +7,10 @@
                 <div class="sidebar-logo-container">
                     @php($restaurant_data=\App\CentralLogics\Helpers::get_restaurant_data())
                     <a class="navbar-brand pt-0 pb-0" href="{{route('vendor.dashboard')}}" aria-label="Front">
-                            <img class="navbar-brand-logo"
+                            <img class="navbar-brand-logo sidebar--logo-design"
                             src="{{ $restaurant_data->logo_full_url }}"
                             alt="image">
-                            <img class="navbar-brand-logo-mini"
+                            <img class="navbar-brand-logo-mini sidebar--logo-design-2"
                             src="{{ $restaurant_data->logo_full_url }}"
                             alt="image">
 
@@ -234,9 +234,9 @@
                             <span class="text-truncate">{{ translate('messages.food_report') }}</span>
                         </a>
                     </li>
-                    @endif
+                    <!-- @endif -->
                     <!-- Employee-->
-                    <li class="nav-item">
+                    <!-- <li class="nav-item">
                         <small class="nav-subtitle" title="{{translate('messages.employee_section')}}">{{translate('messages.employee_section')}}</small>
                         <small class="tio-more-horizontal nav-subtitle-replacer"></small>
                     </li>
@@ -250,9 +250,9 @@
                                 class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('messages.employee_Role')}}</span>
                         </a>
                     </li>
-                    @endif
+                    @endif -->
 
-                    @if(\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
+                    <!-- @if(\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
                     <li class="navbar-vertical-aside-has-menu {{Request::is('restaurant-panel/employee*')?'active':''}}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                         title="{{translate('messages.employees')}}">
@@ -277,10 +277,10 @@
 
                         </ul>
                     </li>
-                    @endif
+                    @endif -->
                     <!-- End Employee -->
 
-                    @if(\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
+                    <!-- @if(\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
                     <li class="navbar-vertical-aside-has-menu {{Request::is('restaurant-panel/employee*')?'active':''}}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                         title="{{translate('messages.employees')}}">
@@ -298,10 +298,10 @@
                             </li>
                         </ul>
                     </li>
-                    @endif
+                    @endif -->
                     <!-- End Employee -->
 
-                    <li class="nav-item px-20 pb-5">
+                    <!-- <li class="nav-item px-20 pb-5">
                         <div class="promo-card">
                             <div class="position-relative">
                                 <img src="{{dynamicAsset('public/assets/admin/img/promo.png')}}" class="mw-100" alt="">
@@ -312,7 +312,7 @@
                                 <a href="{{ route('vendor.advertisement.create') }}" class="btn btn--primary">{{ translate('Create_Ads') }}</a>
                             </div>
                         </div>
-                    </li>
+                    </li> -->
                 </ul>
             </div>
             <!-- End Content -->

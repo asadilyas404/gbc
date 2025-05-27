@@ -122,7 +122,10 @@ class FoodController extends Controller
             }
         }
 
+        $maxId = Food::max('id');
+
         $food = new Food;
+        $food->id = $maxId ? $maxId + 1 : 1; // Ensure the ID is unique
         $food->name = $request->name[array_search('default', $request->lang)];
 
         $category = [];
@@ -569,28 +572,35 @@ class FoodController extends Controller
         return response()->json([], 200);
     }
 
-    public function delete(Request $request)
-    {
-        if(!Helpers::get_restaurant_data()->food_section)
-        {
-            Toastr::warning(translate('messages.permission_denied'));
-            return back();
-        }
-        $product = Food::find($request->id);
-
-        if($product->image)
-        {
-            Helpers::check_and_delete('product/' , $product['image']);
-        }
-        $product->carts()->delete();
-        $product->newVariationOptions()->delete();
-        $product->newVariations()->delete();
-        $product->translations()->delete();
-
-        $product->delete();
-        Toastr::success(translate('Food removed!'));
+  public function delete(Request $request)
+{
+    if (!Helpers::get_restaurant_data()->food_section) {
+        Toastr::warning(translate('messages.permission_denied'));
         return back();
     }
+
+    $product = Food::find($request->id);
+
+    if (!$product) {
+        Toastr::error(translate('messages.Food_not_found'));
+        return back();
+    }
+
+    if ($product->image) {
+        Helpers::check_and_delete('product/', $product->image);
+    }
+
+    $product->carts()->delete();
+    $product->newVariationOptions()->delete();
+    $product->newVariations()->delete();
+    $product->translations()->delete();
+
+    $product->delete();
+
+    Toastr::success(translate('Food removed!'));
+    return back();
+}
+
 
     public function get_categories(Request $request)
     {
@@ -619,6 +629,8 @@ class FoodController extends Controller
             });
         })
         ->type($type)->latest()->paginate(config('default_pagination'));
+
+       
         $category =$category_id !='all'? Category::findOrFail($category_id):null;
         return view('vendor-views.product.list', compact('foods', 'category', 'type'));
     }

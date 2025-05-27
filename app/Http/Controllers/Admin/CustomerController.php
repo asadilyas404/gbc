@@ -19,28 +19,35 @@ use Illuminate\Support\Facades\Mail;
 use Maatwebsite\Excel\Facades\Excel;
 use App\Exports\SubscriberListExport;
 
+
 class CustomerController extends Controller
 {
     public function customer_list(Request $request)
     {
         $show_limit =  $request->show_limit ?? null;
         $customers = $this->getCustomerListData($request);
-        if (isset($show_limit) && $show_limit > 0) {
-            $customers = $customers->take($show_limit)->get();
-            $perPage = config('default_pagination');
-            $page =  $request?->page ?? 1;
-            $offset = ($page - 1) * $perPage;
-            $itemsForCurrentPage = $customers->slice($offset, $perPage);
-            $customers = new \Illuminate\Pagination\LengthAwarePaginator(
-                $itemsForCurrentPage,
-                $customers->count(),
-                $perPage,
-                $page,
-                ['path' => Paginator::resolveCurrentPath(), 'query' => request()->query()]
-            );
-        } else {
-            $customers = $customers->paginate(config('default_pagination'));
-        }
+
+if (isset($show_limit) && $show_limit > 0) {
+    // First get the limited collection
+    $limitedCustomers = $customers->take($show_limit)->get();
+
+    $perPage = config('default_pagination');
+    $page = $request->page ?? 1;  // null-safe operator '?' not available in PHP 7.4
+    $offset = ($page - 1) * $perPage;
+
+    $itemsForCurrentPage = $limitedCustomers->slice($offset, $perPage);
+
+    $customers = new \Illuminate\Pagination\LengthAwarePaginator(
+        $itemsForCurrentPage,
+        $limitedCustomers->count(),
+        $perPage,
+        $page,
+        ['path' => Paginator::resolveCurrentPath(), 'query' => request()->query()]
+    );
+} else {
+    $customers = $customers->paginate(config('default_pagination'));
+}
+
         return view('admin-views.customer.list', compact('customers'));
     }
 
@@ -67,16 +74,16 @@ class CustomerController extends Controller
         }
 
 
-        $data = [
-            'customers' => $customers,
-            'filter' => $request->filter ?? null,
-            'order_wise' => $order_wise ?? null,
-            'show_limit' => $request->show_limit ?? null,
-            'order_date' => $request?->order_date,
-            'join_date' => $request?->join_date,
-            'search' => $request->search ?? null,
+ $data = [
+    'customers' => $customers,
+    'filter' => $request->filter ?? null,
+    'order_wise' => $order_wise ?? null,
+    'show_limit' => $request->show_limit ?? null,
+    'order_date' => $request->order_date ?? null,
+    'join_date' => $request->join_date ?? null,
+    'search' => $request->search ?? null,
+];
 
-        ];
 
         if ($request->type == 'excel') {
             return Excel::download(new CustomerListExport($data), 'Customers.xlsx');
@@ -103,16 +110,18 @@ class CustomerController extends Controller
         $join_date_start = null;
         $join_date_end = null;
 
-        if ($request?->order_date) {
-            list($order_date_start, $order_date_end) = explode(' - ', $request?->order_date);
-            $order_date_start = Carbon::createFromFormat('m/d/Y', $order_date_start)->startOfDay();
-            $order_date_end = Carbon::createFromFormat('m/d/Y', $order_date_end)->endOfDay();
-        }
-        if ($request?->join_date) {
-            list($join_date_start, $join_date_end) = explode(' - ', $request?->join_date);
-            $join_date_start = Carbon::createFromFormat('m/d/Y', $join_date_start)->startOfDay();
-            $join_date_end = Carbon::createFromFormat('m/d/Y', $join_date_end)->endOfDay();
-        }
+if (isset($request->order_date) && $request->order_date) {
+    list($order_date_start, $order_date_end) = explode(' - ', $request->order_date);
+    $order_date_start = Carbon::createFromFormat('m/d/Y', $order_date_start)->startOfDay();
+    $order_date_end = Carbon::createFromFormat('m/d/Y', $order_date_end)->endOfDay();
+}
+
+if (isset($request->join_date) && $request->join_date) {
+    list($join_date_start, $join_date_end) = explode(' - ', $request->join_date);
+    $join_date_start = Carbon::createFromFormat('m/d/Y', $join_date_start)->startOfDay();
+    $join_date_end = Carbon::createFromFormat('m/d/Y', $join_date_end)->endOfDay();
+}
+
 
 
         $customers = User::when(count($key) > 0, function ($query) use ($key) {
@@ -183,56 +192,60 @@ class CustomerController extends Controller
 
                 $notification_status = Helpers::getNotificationStatusData('customer', 'customer_account_block');
 
-                if ($notification_status?->push_notification_status  == 'active' && isset($customer->cm_firebase_token)) {
-                    $data = [
-                        'title' => translate('messages.suspended'),
-                        'description' => translate('messages.your_account_has_been_blocked'),
-                        'order_id' => '',
-                        'image' => '',
-                        'type' => 'block'
-                    ];
-                    Helpers::send_push_notif_to_device($customer->cm_firebase_token, $data);
+              if (isset($notification_status->push_notification_status) && $notification_status->push_notification_status == 'active' && isset($customer->cm_firebase_token)) {
+    $data = [
+        'title' => translate('messages.suspended'),
+        'description' => translate('messages.your_account_has_been_blocked'),
+        'order_id' => '',
+        'image' => '',
+        'type' => 'block'
+    ];
+    Helpers::send_push_notif_to_device($customer->cm_firebase_token, $data);
 
-                    DB::table('user_notifications')->insert([
-                        'data' => json_encode($data),
-                        'user_id' => $customer->id,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
+    DB::table('user_notifications')->insert([
+        'data' => json_encode($data),
+        'user_id' => $customer->id,
+        'created_at' => now(),
+        'updated_at' => now()
+    ]);
+}
+
 
                 $mail_status = Helpers::get_mail_status('suspend_mail_status_user');
-                if ($notification_status?->mail_status == 'active' &&  config('mail.status') && $mail_status == '1') {
-                    Mail::to($customer->email)->send(new \App\Mail\UserStatus('suspended', $customer->f_name . ' ' . $customer->l_name));
-                }
+               if (isset($notification_status->mail_status) && $notification_status->mail_status == 'active' && config('mail.status') && $mail_status == '1') {
+    Mail::to($customer->email)->send(new \App\Mail\UserStatus('suspended', $customer->f_name . ' ' . $customer->l_name));
+}
+
             } else {
 
                 $notification_status = null;
                 $notification_status = Helpers::getNotificationStatusData('customer', 'customer_account_unblock');
 
-                if ($notification_status?->push_notification_status  == 'active' && isset($customer->cm_firebase_token)) {
-                    $data = [
-                        'title' => translate('messages.account_activation'),
-                        'description' => translate('messages.your_account_has_been_activated'),
-                        'order_id' => '',
-                        'image' => '',
-                        'type' => 'unblock'
-                    ];
-                    Helpers::send_push_notif_to_device($customer->cm_firebase_token, $data);
+               if (isset($notification_status->push_notification_status) && $notification_status->push_notification_status == 'active' && isset($customer->cm_firebase_token)) {
+    $data = [
+        'title' => translate('messages.account_activation'),
+        'description' => translate('messages.your_account_has_been_activated'),
+        'order_id' => '',
+        'image' => '',
+        'type' => 'unblock'
+    ];
+    Helpers::send_push_notif_to_device($customer->cm_firebase_token, $data);
 
-                    DB::table('user_notifications')->insert([
-                        'data' => json_encode($data),
-                        'user_id' => $customer->id,
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ]);
-                }
+    DB::table('user_notifications')->insert([
+        'data' => json_encode($data),
+        'user_id' => $customer->id,
+        'created_at' => now(),
+        'updated_at' => now()
+    ]);
+}
+
 
 
                 $mail_status = Helpers::get_mail_status('unsuspend_mail_status_user');
-                if ($notification_status?->mail_status == 'active' &&  config('mail.status') && $mail_status == '1') {
-                    Mail::to($customer->email)->send(new \App\Mail\UserStatus('unsuspended', $customer->f_name . ' ' . $customer->l_name));
-                }
+                if (isset($notification_status->mail_status) && $notification_status->mail_status == 'active' && config('mail.status') && $mail_status == '1') {
+    Mail::to($customer->email)->send(new \App\Mail\UserStatus('unsuspended', $customer->f_name . ' ' . $customer->l_name));
+}
+
             }
         } catch (\Exception $ex) {
             info($ex->getMessage());
@@ -242,25 +255,29 @@ class CustomerController extends Controller
         return back();
     }
 
-    public function view($id)
-    {
-        $key = explode(' ', request()?->search);
-        $customer = User::find($id);
-        if (isset($customer)) {
-            $orders = Order::latest()->where(['user_id' => $id])->Notpos()->where('is_guest', 0)
-                ->when(isset($key), function ($q) use ($key) {
-                    $q->where(function ($q) use ($key) {
-                        foreach ($key as $value) {
-                            $q->Where('id', 'like', "%{$value}%");
-                        }
-                    });
-                })
-                ->paginate(config('default_pagination'));
-            return view('admin-views.customer.customer-view', compact('customer', 'orders'));
-        }
-        Toastr::error(translate('messages.customer_not_found'));
-        return back();
+  public function view($id)
+{
+    $key = explode(' ', request()->search ?? '');
+    $customer = User::find($id);
+    if (isset($customer)) {
+        $orders = Order::latest()
+            ->where(['user_id' => $id])
+            ->Notpos()
+            ->where('is_guest', 0)
+            ->when(!empty($key), function ($q) use ($key) {
+                $q->where(function ($q) use ($key) {
+                    foreach ($key as $value) {
+                        $q->where('id', 'like', "%{$value}%");
+                    }
+                });
+            })
+            ->paginate(config('default_pagination'));
+        return view('admin-views.customer.customer-view', compact('customer', 'orders'));
     }
+    Toastr::error(translate('messages.customer_not_found'));
+    return back();
+}
+
 
     public function get_customers(Request $request)
     {
@@ -355,20 +372,24 @@ class CustomerController extends Controller
     {
         $show_limit =  $request->show_limit ?? null;
         $customers = $this->getSubscribersMail($request);
-        if (isset($show_limit) && $show_limit > 0) {
-            $customers = $customers->take($show_limit)->get();
-            $perPage = config('default_pagination');
-            $page =  $request?->page ?? 1;
-            $offset = ($page - 1) * $perPage;
-            $itemsForCurrentPage = $customers->slice($offset, $perPage);
-            $customers = new \Illuminate\Pagination\LengthAwarePaginator(
-                $itemsForCurrentPage,
-                $customers->count(),
-                $perPage,
-                $page,
-                ['path' => Paginator::resolveCurrentPath(), 'query' => request()->query()]
-            );
-        } else {
+      if (isset($show_limit) && $show_limit > 0) {
+    $limitedCustomers = $customers->take($show_limit)->get();
+    $perPage = config('default_pagination');
+    $page = $request && isset($request->page) ? $request->page : 1;
+    $offset = ($page - 1) * $perPage;
+    $total = $limitedCustomers->count();
+
+    $itemsForCurrentPage = $limitedCustomers->slice($offset, $perPage)->values();
+
+    $customers = new \Illuminate\Pagination\LengthAwarePaginator(
+        $itemsForCurrentPage,
+        $total,
+        $perPage,
+        $page,
+        ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath(), 'query' => request()->query()]
+    );
+}
+ else {
             $customers = $customers->paginate(config('default_pagination'));
         }
         $subscribers = $customers;
@@ -387,14 +408,14 @@ class CustomerController extends Controller
             $customers = $customers->get();
         }
 
-        $data = [
-            'customers' => $customers,
-            'subscription_date' => $request?->join_date,
-            'chose_first'=>  $show_limit ,
-            'search'=>  $request->search ,
-            'filter'=>  $request->filter ? translate('messages.Sort by').' '.$request->filter  : null ,
+      $data = [
+    'customers' => $customers,
+    'subscription_date' => isset($request) && isset($request->join_date) ? $request->join_date : null,
+    'chose_first' => $show_limit,
+    'search' => isset($request) && isset($request->search) ? $request->search : null,
+    'filter' => isset($request) && isset($request->filter) ? translate('messages.Sort by').' '.$request->filter : null,
+];
 
-        ];
 
         if ($request->type == 'excel') {
             return Excel::download(new SubscriberListExport($data), 'Subscribers.xlsx');
@@ -410,11 +431,12 @@ class CustomerController extends Controller
         $filter =  $request->filter ?? null;
         $join_date_start = null;
         $join_date_end = null;
-        if ($request?->join_date) {
-            list($join_date_start, $join_date_end) = explode(' - ', $request?->join_date);
-            $join_date_start = Carbon::createFromFormat('m/d/Y', $join_date_start)->startOfDay();
-            $join_date_end = Carbon::createFromFormat('m/d/Y', $join_date_end)->endOfDay();
-        }
+if (isset($request) && !empty($request->join_date)) {
+    list($join_date_start, $join_date_end) = explode(' - ', $request->join_date);
+    $join_date_start = Carbon::createFromFormat('m/d/Y', $join_date_start)->startOfDay();
+    $join_date_end = Carbon::createFromFormat('m/d/Y', $join_date_end)->endOfDay();
+}
+
         $key = explode(' ', $request['search']);
         $customers = Newsletter::when(isset($key), function ($query) use ($key) {
             $query->where(function ($q) use ($key) {

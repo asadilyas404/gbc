@@ -7,6 +7,7 @@ use App\Models\Zone;
 use App\Models\Admin;
 use App\Models\Vendor;
 use App\Models\Restaurant;
+use App\Models\VendorEmployee;
 use App\Models\Translation;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -17,6 +18,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use MatanYadaev\EloquentSpatial\Objects\Point;
+use Illuminate\Support\Facades\Auth;
 
 
 class VendorLoginController extends Controller
@@ -27,33 +29,33 @@ class VendorLoginController extends Controller
             'email' => 'required|email',
             'password' => 'required|min:6'
         ]);
-    
+
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
-    
+
         $data = [
             'email' => $request->email,
             'password' => $request->password
         ];
-    
+
         if (auth('vendor')->attempt($data)) {
             $token = $this->genarate_token($request['email']);
             $vendor = Vendor::where(['email' => $request['email']])->first();
-    
+
             // Ensure vendor and restaurants exist
             if ($vendor && isset($vendor->restaurants) && count($vendor->restaurants) > 0) {
                 $restaurant = $vendor->restaurants[0];  // Get the first restaurant if exists
                 $restaurantSubscriptionCheck = $this->restaurantSubscriptionCheck($restaurant, $vendor, $token);
-    
+
                 if (data_get($restaurantSubscriptionCheck, 'type') != null) {
                     return response()->json(data_get($restaurantSubscriptionCheck, 'data'), data_get($restaurantSubscriptionCheck, 'code'));
                 }
-    
+
                 // If subscription check is successful, store the token and save the vendor
                 $vendor->auth_token = $token;
                 $vendor->save();
-    
+
                 return response()->json([
                     'token' => $token,
                     'zone_wise_topic' => $restaurant->zone->restaurant_wise_topic ?? null,  // Ensure zone and topic are available
@@ -71,7 +73,7 @@ class VendorLoginController extends Controller
             ], 401);
         }
     }
-    
+
 
     private function genarate_token($email)
     {
@@ -208,7 +210,7 @@ class VendorLoginController extends Controller
         if ($restaurant && $restaurant->cuisine()) {
             $restaurant->cuisine()->sync($cuisine_ids);
         }
-                try {
+        try {
             $admin = Admin::where('role_id', 1)->first();
             $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_registration');
             if ($notification_status && $notification_status->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('registration_mail_status_restaurant') == '1') {
@@ -277,15 +279,15 @@ class VendorLoginController extends Controller
             if ($vendor) {
                 $vendor->save();
             }
-                        return [
+            return [
                 'type' => 'subscribed',
                 'code' => 200,
                 'data' => [
                     'subscribed' => [
-'restaurant_id' => $restaurant ? $restaurant->id : null,
+                        'restaurant_id' => $restaurant ? $restaurant->id : null,
                         'token' => $token,
-'package_id' => $restaurant ? $restaurant->package_id : null,
-'zone_wise_topic' => $restaurant && $restaurant->zone ? $restaurant->zone->restaurant_wise_topic : null,
+                        'package_id' => $restaurant ? $restaurant->package_id : null,
+                        'zone_wise_topic' => $restaurant && $restaurant->zone ? $restaurant->zone->restaurant_wise_topic : null,
                         'type' => 'new_join'
                     ]
                 ]
@@ -339,7 +341,7 @@ class VendorLoginController extends Controller
         if ($restaurant && $restaurant->restaurant_model == 'unsubscribed' && isset($restaurant->restaurant_sub_update_application)) {
             return null;
         }
-        
+
 
         if ($restaurant && $restaurant->restaurant_model == 'unsubscribed' && !isset($restaurant->restaurant_sub_update_application)) {
             $vendor->auth_token = $token;
@@ -359,48 +361,112 @@ class VendorLoginController extends Controller
                 ]
             ];
         }
-        
+
         return null;
     }
 
-    public function ApiLogin(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|min:6'
-        ]);
-    
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-    
-        $credentials = $request->only('email', 'password');
-    
-        // Attempt to authenticate the vendor
-        if (auth('vendor')->attempt($credentials)) {
-            $vendor = auth('vendor')->user(); // Get the authenticated vendor
-    
-            if ($vendor) {  // Check if vendor is found
-                $token = bin2hex(random_bytes(40)); // Generate token
-    
-                $vendor->auth_token = $token;
-                $vendor->save();                
-    
-                return response()->json([
-                    'status' => true,
-                    'token' => $token,
-                    'vendor' => $vendor,
-                ]);
-            }
-        }
-    
-        // If no vendor found or invalid credentials
+    // public function loginVendorEmployee(Request $request)
+    // {
+    //     $validator = Validator::make($request->all(), [
+    //         'email' => 'required|email',
+    //         'password' => 'required|min:8'
+    //     ]);
+
+    //     if ($validator->fails()) {
+    //         return response()->json(['errors' => $validator->errors()], 422);
+    //     }
+
+    //     $credentials = $request->only('email', 'password');
+
+    //     // Check if email exists in VendorEmployee table
+    //     $vendorEmployee = VendorEmployee::where('email', $request->email)->first();
+
+    //     if (!$vendorEmployee) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Email not found in the vendor employees list.'
+    //         ], 404);
+    //     }
+
+    //     // Try authenticating from vendor guard
+    //     if (auth('vendor')->attempt($credentials)) {
+    //         $vendor = auth('vendor')->user();
+
+    //         if ($vendor) {
+    //             $token = bin2hex(random_bytes(40));
+    //             $vendor->auth_token = $token;
+    //             $vendor->save();
+
+    //             return response()->json([
+    //                 'status' => true,
+    //                 'token' => $token,
+    //                 'vendor' => $vendor,
+    //             ]);
+    //         }
+    //     }
+
+    //     // If credentials are wrong
+    //     return response()->json([
+    //         'status' => false,
+    //         'message' => 'Invalid email or password.'
+    //     ], 401);
+    // }
+
+
+public function loginVendorEmployee(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'email' => 'required|email',
+        'password' => 'required|min:8',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json(['errors' => $validator->errors()], 422);
+    }
+
+    $credentials = $request->only('email', 'password');
+
+    // Check if vendor employee exists
+    $vendorEmployee = VendorEmployee::where('email', $request->email)->first();
+
+    if (!$vendorEmployee) {
         return response()->json([
             'status' => false,
-            'message' => 'Invalid email or password.'
-        ], 401);
+            'message' => 'Email not found in the vendor employees list.'
+        ], 404);
     }
-    
 
+    // Attempt login with vendor_api guard
+    if (Auth::guard('vendor_api')->attempt($credentials)) {
+        $user = Auth::guard('vendor_api')->user();
 
+        // Generate token manually (not using Passport)
+        $token = bin2hex(random_bytes(40));
+        $user->auth_token = $token;
+        $user->save();
+
+        return response()->json([
+            'success' => [
+                'token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'name' => $user->f_name,
+                    'surname' => $user->l_name,
+                    'email' => $user->email,
+                    'phone' => $user->phone,
+                    'image' => $user->image ? asset('storage/Vendor/' . $user->image) : '',
+                    'employee_role_id' => $user->employee_role_id,
+                    'vendor_id' => $user->vendor_id,
+                    'restaurant_id' => $user->restaurant_id,
+                    'status' => $user->status,
+                ]
+            ]
+        ]);
+    }
+
+    return response()->json([
+        'status' => false,
+        'message' => 'Invalid email or password.'
+    ], 401);
+}
 }

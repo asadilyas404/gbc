@@ -6507,4 +6507,11 @@
   'Setiing' => 'Setiing',
   'table' => 'Table',
   'Toggle navigation' => 'Toggle navigation',
+  'The given password has appeared in a data leak. Please choose a different password.' => 'The given password has appeared in a data leak. Please choose a different password.',
+  'The password must contain at least one uppercase and one lowercase letter.' => 'The password must contain at least one uppercase and one lowercase letter.',
+  'The password must contain at least one symbol.' => 'The password must contain at least one symbol.',
+  '
+                No_data_to_show ' => '
+                No data to show ',
+  'Food_not_found' => 'Food not found',
 );

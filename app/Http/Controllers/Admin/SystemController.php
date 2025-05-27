@@ -31,34 +31,43 @@ class SystemController extends Controller
         return view('admin-views.settings');
     }
 
-    public function settings_update(Request $request)
-    {
-        $admin = Admin::findOrFail(auth('admin')?->id());
-        $request->validate([
-            'f_name' => 'required',
-            'l_name' => 'required',
-            'email' => 'required|unique:admins,email,'.$admin->id,
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|unique:admins,phone,'.$admin->id,
-        ], [
-            'f_name.required' => translate('messages.first_name_is_required'),
-            'l_name.required' => translate('messages.Last name is required!'),
-        ]);
+public function settings_update(Request $request)
+{
+    $adminGuard = auth('admin');
 
-        if ($request->has('image')) {
-            $image_name =Helpers::update(dir:'admin/', old_image: $admin->image, format: 'png', image: $request->file('image'));
-        } else {
-            $image_name = $admin['image'];
-        }
-
-        $admin->f_name = $request->f_name;
-        $admin->l_name = $request->l_name;
-        $admin->email = $request->email;
-        $admin->phone = $request->phone;
-        $admin->image = $image_name;
-        $admin->save();
-        Toastr::success(translate('messages.admin_updated_successfully'));
-        return back();
+    if (!$adminGuard || !$adminGuard->check()) {
+        abort(403, 'Unauthorized');
     }
+
+    $admin = Admin::findOrFail($adminGuard->id());
+
+    $request->validate([
+        'f_name' => 'required',
+        'l_name' => 'required',
+        'email' => 'required|unique:admins,email,' . $admin->id,
+        'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|unique:admins,phone,' . $admin->id,
+    ], [
+        'f_name.required' => translate('messages.first_name_is_required'),
+        'l_name.required' => translate('messages.Last name is required!'),
+    ]);
+
+    if ($request->has('image')) {
+        $image_name = Helpers::update('admin/', $admin->image, 'png', $request->file('image'));
+    } else {
+        $image_name = $admin->image;
+    }
+
+    $admin->f_name = $request->f_name;
+    $admin->l_name = $request->l_name;
+    $admin->email = $request->email;
+    $admin->phone = $request->phone;
+    $admin->image = $image_name;
+    $admin->save();
+
+    Toastr::success(translate('messages.admin_updated_successfully'));
+    return back();
+}
+
 
     public function settings_password_update(Request $request)
     {
@@ -112,32 +121,34 @@ class SystemController extends Controller
 
         $maintenance_mode = BusinessSetting::firstOrNew(['key' => 'maintenance_mode']);
 
-        if($request?->maintenance_mode_off == 1){
-            $maintenance_mode->value= 0;
-            $maintenance_mode->save();
-            Cache::forget('maintenance');
+      if ($request && $request->maintenance_mode_off == 1) {
+    $maintenance_mode->value = 0;
+    $maintenance_mode->save();
+    Cache::forget('maintenance');
 
-            $notification=[
-                'title' => translate('We_are_back'),
-                'description' => translate('Maintenance mode is removed'),
-                'image' => '',
-                'order_id' => '',
-            ];
+    $notification = [
+        'title' => translate('We_are_back'),
+        'description' => translate('Maintenance mode is removed'),
+        'image' => '',
+        'order_id' => '',
+    ];
 
-            foreach ($systemTopicMap as $system => $topic) {
-                if (in_array($system, data_get($maintenance_mode_data,'maintenance_system_setup',[]))) {
-                    Helpers::send_push_notif_for_maintenance_mode($notification, $topic, 'maintenance');
-                }
-            }
-
-
-            Toastr::success(translate('messages.Maintenance_is_off'));
-            return back();
+    foreach ($systemTopicMap as $system => $topic) {
+        if (in_array($system, data_get($maintenance_mode_data, 'maintenance_system_setup', []))) {
+            Helpers::send_push_notif_for_maintenance_mode($notification, $topic, 'maintenance');
         }
+    }
+
+    Toastr::success(translate('messages.Maintenance_is_off'));
+    return back();
+}
+
 
 
         $systems = ['restaurant_panel', 'user_mobile_app', 'user_web_app', 'react_website' ,'deliveryman_app' ,'restaurant_app'];
-        $selectedSystems = array_filter($systems, fn($system) => $request?->$system );
+$selectedSystems = array_filter($systems, function($system) use ($request) {
+    return isset($request->$system) && $request->$system;
+});
         $selectedSystems = array_values($selectedSystems);
 
 
@@ -189,13 +200,14 @@ class SystemController extends Controller
         $selectedMaintenanceMessage->save();
 
 
-        $maintenance = [
-            'status' => $maintenance_mode?->value,
-            'start_date' => $request['start_date'] ?? null,
-            'end_date' => $request['end_date'] ?? null,
-            'restaurant_panel' => in_array('restaurant_panel',$selectedSystems),
-            'maintenance_duration' => $request['maintenance_duration'] ,
-        ];
+$maintenance = [
+    'status' => isset($maintenance_mode) ? $maintenance_mode->value : null,
+    'start_date' => isset($request['start_date']) ? $request['start_date'] : null,
+    'end_date' => isset($request['end_date']) ? $request['end_date'] : null,
+    'restaurant_panel' => in_array('restaurant_panel', $selectedSystems),
+    'maintenance_duration' => isset($request['maintenance_duration']) ? $request['maintenance_duration'] : null,
+];
+
 
         Cache::put('maintenance', $maintenance, now()->addYears(1));
 
@@ -234,26 +246,32 @@ class SystemController extends Controller
     return back();
     }
 
-    public function update_fcm_token(Request $request){
-        $admin = $request?->user();
+public function update_fcm_token(Request $request){
+    $admin = $request->user();
+
+    if ($admin) {
         $admin->firebase_token = $request->token;
-        $admin?->save();
-
-        return response()->json([]);
-
+        $admin->save();
     }
-    public function landing_page()
-    {
-        $landing_page = BusinessSetting::where('key', 'landing_page')->first();
-        Helpers::businessUpdateOrInsert(['key' => 'landing_page'], [
-                'value' =>$landing_page?->value == 1 ? 0 : 1,
-            ]);
 
-        if (isset($landing_page) && $landing_page->value) {
-            return response()->json(['message' => translate('landing_page_is_off.')]);
-        }
-        return response()->json(['message' => translate('landing_page_is_on.')]);
+    return response()->json([]);
+}
+
+public function landing_page()
+{
+    $landing_page = BusinessSetting::where('key', 'landing_page')->first();
+    $value = ($landing_page && $landing_page->value == 1) ? 0 : 1;
+
+    Helpers::businessUpdateOrInsert(['key' => 'landing_page'], [
+        'value' => $value,
+    ]);
+
+    if ($landing_page && $landing_page->value) {
+        return response()->json(['message' => translate('landing_page_is_off.')]);
     }
+    return response()->json(['message' => translate('landing_page_is_on.')]);
+}
+
     public function system_currency(Request $request)
     {
         $currency_check=Helpers::checkCurrency($request['currency']);

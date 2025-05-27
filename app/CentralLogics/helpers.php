@@ -1998,13 +1998,28 @@ class Helpers
         return 0;
     }
 
-    public static function get_restaurant_data()
-    {
-        if (auth('vendor_employee')->check()) {
-            return auth('vendor_employee')->user()->restaurant;
+// In your Helpers.php (or wherever you have the function)
+public static function get_restaurant_data()
+{
+    if (auth('vendor_employee')->check()) {
+        $user = auth('vendor_employee')->user();
+        if ($user && $user->restaurant) {
+            return $user->restaurant;
         }
-        return auth('vendor')->user()->restaurants[0];
+        return null;
     }
+
+    $user = auth('vendor')->user();
+
+    // Check if user is null or does not have restaurants
+    if (!$user || !isset($user->restaurants) || count($user->restaurants) === 0) {
+        return null;  // no user or no restaurants found
+    }
+
+    return $user->restaurants[0];
+}
+
+
 
     public static function getDisk()
     {

@@ -17,5 +17,15 @@ class PosOrderAdditionalDtl extends Model
     {
         return $this->order->restaurant();
     }
+    protected $casts = [
+    'invoice_amount' => 'float',
+    'cash_paid' => 'float',
+    'card_paid' => 'float',
+    'customer_name' => 'string',
+    'car_number' => 'string',
+    'phone' => 'string',
+    'bank_account' => 'string',
+];
+
 
 }

@@ -323,65 +323,72 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
         $restaurant = Restaurant::Where('id', $request->restaurant_id)->first(['id', 'vendor_id']);
         $package = SubscriptionPackage::withoutGlobalScope('translate')->find($request->package_id);
 
-        if (!in_array($request->payment, ['free_trial'])) {
-            $url = route('restaurant.final_step', ['restaurant_id' => $restaurant->id ?? null]);
-            
-            return redirect()->away(Helpers::subscriptionPayment(
-                restaurant_id: $restaurant->id ?? null,   // Ensure restaurant ID is provided or null
-                package_id: $package->id ?? null,         // Ensure package ID is provided or null
-                payment_gateway: $request->payment,       // Payment method from the request
-                payment_platform: 'web',                  // Always set to 'web' for web platform
-                url: $url,                                // The final step URL to redirect
-                type: 'new_join'                          // Set type to 'new_join'
-            ));
-        }
-        
-        }
-        
-        if ($request->payment == 'free_trial') {
-            $plan_data = Helpers::subscription_plan_chosen(
-                restaurant_id: $restaurant->id ?? null,
-                package_id: $package->id ?? null,
-                payment_method: 'free_trial',
-                discount: 0,
-                reference: 'free_trial',
-                type: 'new_join'
-            );
-        }
+if (!in_array($request->payment, ['free_trial'])) {
+    $url = route('restaurant.final_step', ['restaurant_id' => $restaurant->id ?? null]);
+
+    return redirect()->away(
+        Helpers::subscriptionPayment(
+            $restaurant->id ?? null,       // restaurant_id
+            $package->id ?? null,          // package_id
+            $request->payment,             // payment_gateway
+            'web',                         // payment_platform
+            $url,                          // url
+            'new_join'                     // type
+        )
+    );
+}
+
+if ($request->payment == 'free_trial') {
+    $plan_data = Helpers::subscription_plan_chosen(
+        $restaurant->id ?? null,           // restaurant_id
+        $package->id ?? null,              // package_id
+        'free_trial',                      // payment_method
+        0,                                 // discount
+        'free_trial',                      // reference
+        'new_join'                         // type
+    );
+}
+
         
         $plan_data != false ?  Toastr::success(translate('Successfully_Subscribed.')) : Toastr::error(translate('Something_went_wrong!.'));
         return to_route('restaurant.final_step');
     }
 
-    public function back(Request $request){
-        // $restaurant_id = $request->restaurant_id;
-        $restaurant_id = base64_decode($request->restaurant_id);
-        Restaurant::findOrFail($restaurant_id);
-        $admin_commission= BusinessSetting::where('key','admin_commission')->first();
-        $business_name= BusinessSetting::where('key','business_name')->first();
-        $packages= SubscriptionPackage::where('status',1)->latest()->get();
-        return view('vendor-views.auth.register-step-2',[
-            'admin_commission'=> $admin_commission?->value,
-            'business_name'=> $business_name?->value,
-            'packages'=> $packages,
-            'restaurant_id' => $restaurant_id
-            ]);
+public function back(Request $request)
+{
+    $restaurant_id = base64_decode($request->restaurant_id);
+    Restaurant::findOrFail($restaurant_id);
+
+    $admin_commission = BusinessSetting::where('key', 'admin_commission')->first();
+    $business_name = BusinessSetting::where('key', 'business_name')->first();
+    $packages = SubscriptionPackage::where('status', 1)->latest()->get();
+
+    return view('vendor-views.auth.register-step-2', [
+        'admin_commission' => $admin_commission ? $admin_commission->value : null,
+        'business_name'    => $business_name ? $business_name->value : null,
+        'packages'         => $packages,
+        'restaurant_id'    => $restaurant_id,
+    ]);
+}
+
+
+public function final_step(Request $request)
+{
+    $restaurant_id = null;
+    $payment_status = null;
+
+    if (isset($request->restaurant_id) && is_string($request->restaurant_id)) {
+        $data = explode('?', $request->restaurant_id);
+        $restaurant_id = $data[0];
+        $payment_status = (isset($data[1]) && $data[1] === 'flag=success') ? 'success' : 'fail';
     }
 
-    public function final_step(Request $request)
-    {
+    return view('vendor-views.auth.register-complete', [
+        'restaurant_id' => $restaurant_id,
+        'payment_status' => $payment_status
+    ]);
+}
 
-
-        $restaurant_id = null;
-        $payment_status = null;
-        if ($request?->restaurant_id && is_string($request?->restaurant_id)) {
-            $data = explode('?', $request?->restaurant_id);
-            $restaurant_id = $data[0];
-            $payment_status = $data[1]  != 'flag=success' ? 'fail' : 'success';
-        }
-
-        return view('vendor-views.auth.register-complete', ['restaurant_id' => $restaurant_id, 'payment_status' => $payment_status]);
-    }
 
     public function loginVendorEmployee(Request $request)
     {

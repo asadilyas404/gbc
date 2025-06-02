@@ -3,6 +3,13 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\SubscriptionController;
 use App\Http\Controllers\TableEmployeeController;
+// routes/web.php
+
+
+Route::post('/food-option/delete', [App\Http\Controllers\Vendor\FoodController::class, 'deleteOption'])->name('food.option.delete');
+
+
+
 Route::get('table_employees', 'TableEmployeeController@index')->name('table_employees.index');
 Route::get('table_employees/create', 'TableEmployeeController@create')->name('table_employees.create');
 Route::post('table_employees', 'TableEmployeeController@store')->name('table_employees.store');

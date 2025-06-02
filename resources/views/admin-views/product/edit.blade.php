@@ -385,7 +385,7 @@
                                             <i class="tio-info-outined"></i>
                                         </span>
                                         </label>
-                                        <input type="number" min="0" max="9999999999999999999999"
+                                        <input type="number" min="0" step="0.01" max="9999999999999999999999"
                                         value="{{ $product['discount'] }}"  name="discount" class="form-control"
                                             placeholder="{{ translate('messages.Ex:_100') }} ">
                                     </div>

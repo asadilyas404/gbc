@@ -32,77 +32,122 @@ return [
     | choice installed on your machine before you begin development.
     |
     */
-'connections' => [
+    'connections' => [
 
-    'sqlite' => [
-        'driver' => 'sqlite',
-        'url' => env('DATABASE_URL'),
-        'database' => env('DB_DATABASE', database_path('database.sqlite')),
-        'prefix' => '',
-        'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
-    ],
+        'sqlite' => [
+            'driver' => 'sqlite',
+            'url' => env('DATABASE_URL'),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+        ],
 
-    'mysql' => [
-        'driver' => 'mysql',
-        'url' => env('DATABASE_URL'),
-        'host' => env('DB_HOST', '127.0.0.1'),
-        'port' => env('DB_PORT', '3306'),
-        'database' => env('DB_DATABASE', 'forge'),
-        'username' => env('DB_USERNAME', 'forge'),
-        'password' => env('DB_PASSWORD', ''),
-        'unix_socket' => env('DB_SOCKET', ''),
-        'charset' => 'utf8mb4',
-        'collation' => 'utf8mb4_unicode_ci',
-        'prefix' => '',
-        'prefix_indexes' => true,
-        'strict' => true,
-        'engine' => null,
-        'options' => extension_loaded('pdo_mysql') ? array_filter([
-            PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
-        ]) : [],
-    ],
+        'mysql' => [
+            'driver' => 'mysql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'forge'),
+            'username' => env('DB_USERNAME', 'forge'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
 
-    'pgsql' => [
-        'driver' => 'pgsql',
-        'url' => env('DATABASE_URL'),
-        'host' => env('DB_HOST', '127.0.0.1'),
-        'port' => env('DB_PORT', '5432'),
-        'database' => env('DB_DATABASE', 'forge'),
-        'username' => env('DB_USERNAME', 'forge'),
-        'password' => env('DB_PASSWORD', ''),
-        'charset' => 'utf8',
-        'prefix' => '',
-        'prefix_indexes' => true,
-        'schema' => 'public',
-        'sslmode' => 'prefer',
-    ],
+        'pgsql' => [
+            'driver' => 'pgsql',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'forge'),
+            'username' => env('DB_USERNAME', 'forge'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'schema' => 'public',
+            'sslmode' => 'prefer',
+        ],
 
-    'sqlsrv' => [
-        'driver' => 'sqlsrv',
-        'url' => env('DATABASE_URL'),
-        'host' => env('DB_HOST', 'localhost'),
-        'port' => env('DB_PORT', '1433'),
-        'database' => env('DB_DATABASE', 'forge'),
-        'username' => env('DB_USERNAME', 'forge'),
-        'password' => env('DB_PASSWORD', ''),
-        'charset' => 'utf8',
-        'prefix' => '',
-        'prefix_indexes' => true,
-    ],
+        'sqlsrv' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DATABASE_URL'),
+            'host' => env('DB_HOST', 'localhost'),
+            'port' => env('DB_PORT', '1433'),
+            'database' => env('DB_DATABASE', 'forge'),
+            'username' => env('DB_USERNAME', 'forge'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => 'utf8',
+            'prefix' => '',
+            'prefix_indexes' => true,
+        ],
 
-   'oci8' => [
-    'driver'   => 'oracle',
-    'host'     => env('DB_HOST', '127.0.0.1'),
-    'port'     => env('DB_PORT', '1521'),
-    'database' => env('DB_DATABASE', 'XE'),
-    'username' => env('DB_USERNAME', 'system'),
-    'password' => env('DB_PASSWORD', ''),
-    'charset'  => 'AL32UTF8',
-    'prefix'   => '',
+        // Oracle connection using host, port, and service name
+  'oracle' => [
+    'driver'         => 'oracle',
+    'tns'            => '',
+    'host'           => env('DB_HOST', '192.168.10.51'),
+    'port'           => env('DB_PORT', '1521'),
+    'database'       => env('DB_DATABASE', 'ROYALERP'),
+    'username'       => env('DB_USERNAME', 'ROYAL_GBC'),
+    'password'       => env('DB_PASSWORD', 'RoYalgbc14t'),
+    'charset'        => 'AL32UTF8',
+    'prefix'         => '',
+    'prefix_schema'  => '',
+],
+// Source DB connection (ROYALERP)
+'oracle_source' => [
+    'driver' => 'oracle',
+    'host' => env('DB_HOST'),
+    'port' => env('DB_PORT'),
+    'database' => env('DB_DATABASE'),
+    'username' => env('DB_USERNAME'),
+    'password' => env('DB_PASSWORD'),
+    'charset' => 'AL32UTF8',
+    'prefix' => '',
+    'prefix_schema' => '',
+],
+
+'oracle_target' => [
+    'driver' => 'oracle',
+    'host' => env('DB_ORACLE_TARGET_HOST'),
+    'port' => env('DB_ORACLE_TARGET_PORT'),
+    'database' => env('DB_ORACLE_TARGET_SERVICE'),
+    'username' => env('DB_ORACLE_TARGET_USERNAME'),
+    'password' => env('DB_ORACLE_TARGET_PASSWORD'),
+    'charset' => 'AL32UTF8',
+    'prefix' => '',
+    'prefix_schema' => '',
 ],
 
 
-],
+
+
+
+
+
+        // Optional: Oracle connection using TNS name
+        // Uncomment if you want to use TNS connection
+        /*
+    'oracle_tns' => [
+        'driver'   => 'oracle',
+        'tns'      => env('DB_TNS', 'ROYALERP_TNS'), // TNS alias from tnsnames.ora
+        'username' => env('DB_USERNAME', 'ROYAL_GBC'),
+        'password' => env('DB_PASSWORD', 'RoYalgbc14t'),
+        'charset'  => 'AL32UTF8',
+        'prefix'   => '',
+    ],
+    */
+    ],
+
 
 
     /*

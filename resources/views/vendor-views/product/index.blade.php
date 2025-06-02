@@ -343,7 +343,7 @@
                                         </span>
                                         </label>
                                         <input type="number" min="0" max="9999999999999999999999"
-                                               value="0" name="discount" class="form-control"
+                                               value="0" step="0.01" name="discount" class="form-control"
                                                placeholder="{{ translate('messages.Ex :') }} 100">
                                     </div>
                                 </div>

@@ -479,10 +479,11 @@ class FoodController extends Controller
                     $variation->min = isset($option['min']) ?? 0;
                     $variation->max = isset($option['max']) ?? 0;
                     $variation->is_required = data_get($option, 'required') == 'on' ? true : false;
-                    $variation->save();
                     if($option['type'] == 'multi') {
                         dd($variation);
                     }
+                    $variation->save();
+
                 } else {
                     $variation = Variation::create([
                         'food_id' => $p->id,

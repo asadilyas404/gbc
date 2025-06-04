@@ -1,4 +1,3 @@
-@php dd($item, $key_choice_options); @endphp
 <div class="__bg-F8F9FC-card view_new_option mb-2">
     <div>
         <div class="d-flex align-items-center justify-content-between mb-3">

@@ -455,7 +455,6 @@ class FoodController extends Controller
         $p->variations = json_encode([]);
 
         if (isset($request->options)) {
-            dd($request->options);
             foreach (array_values($request->options) as $key => $option) {
                 if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
@@ -518,6 +517,7 @@ class FoodController extends Controller
                 }
             }
         }
+        dd($request->removedVariationOptionIDs, $request->removedVariationIDs);
         if ($request->removedVariationOptionIDs && is_string($request->removedVariationOptionIDs)) {
             VariationOption::whereIn('id', explode(',', $request->removedVariationOptionIDs))->delete();
         }

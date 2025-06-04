@@ -742,7 +742,10 @@
         let removedVariationOptionIDs = [];
 
         $(document).on('click', '.remove_variation', function() {
+            console.log(removedVariationIDs);
             removedVariationIDs.push($(this).data('id'));
+            console.log(removedVariationIDs);
+
             $('#removedVariationIDs').val(removedVariationIDs.join(','));
         });
         $(document).on('click', '.remove_variation_option', function() {

@@ -476,12 +476,12 @@ class FoodController extends Controller
                 if ($variation) {
                     $variation->name = $option['name'];
                     $variation->type = $option['type'];
-                    $variation->min = isset($option['min']) ?? 0;
-                    $variation->max = isset($option['max']) ?? 0;
+                    $variation->min = $option['min'] ?? 0;
+                    $variation->max = $option['max'] ?? 0;
                     $variation->is_required = data_get($option, 'required') == 'on' ? true : false;
-                    if($option['type'] == 'multi') {
-                        dd($variation);
-                    }
+                    // if($option['type'] == 'multi') {
+                    //     dd($variation);
+                    // }
                     $variation->save();
 
                 } else {

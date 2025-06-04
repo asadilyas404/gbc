@@ -342,7 +342,6 @@ class FoodController extends Controller
 
     public function update(Request $request, $id)
     {
-        dd($id,$request->all());
         if (!Helpers::get_restaurant_data()->food_section) {
             return response()->json([
                 'errors' => [
@@ -456,6 +455,7 @@ class FoodController extends Controller
         $p->variations = json_encode([]);
 
         if (isset($request->options)) {
+            dd($request->options);
             foreach (array_values($request->options) as $key => $option) {
                 if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));

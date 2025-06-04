@@ -433,7 +433,6 @@
                                                     @break
 
                                                 @else
-                                                    @php dd($item, $key_choice_options); @endphp
                                                     @include(
                                                         'vendor-views.product.partials._new_variations',
                                                         ['item' => $item, 'key' => $key_choice_options + 1]

@@ -1,3 +1,4 @@
+@php dd($item, $key_choice_options); @endphp
 <div class="__bg-F8F9FC-card view_new_option mb-2">
     <div>
         <div class="d-flex align-items-center justify-content-between mb-3">
@@ -167,7 +168,7 @@
                             this.closest('.row-or-container-class').remove();
                         } else {
                             alert('Delete failed: ' + (data.message ||
-                            'Unknown error'));
+                                'Unknown error'));
                         }
                     })
                     .catch(error => {

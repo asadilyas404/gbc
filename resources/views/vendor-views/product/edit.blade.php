@@ -444,6 +444,7 @@
                                 </div>
                             </div>
                         </div>
+                        <input type="hidden" name="removedVariationIDs[]">
                     </div>
                 </div>
                 <div class="col-lg-12">

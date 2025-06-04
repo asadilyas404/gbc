@@ -160,7 +160,7 @@
                     .then(async response => {
                         const data = await response.json();
                         if (response.ok && data.success) {
-                            alert('Option deleted successfully.');
+                            // alert('Option deleted successfully.');
                             this.closest('.row-or-container-class').remove();
                         } else {
                             alert('Delete failed: ' + (data.message ||

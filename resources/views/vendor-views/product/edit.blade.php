@@ -444,7 +444,7 @@
                                 </div>
                             </div>
                         </div>
-                        <input type="hidden" id="removedVariationIDs">
+                        <input type="hidden" name="removedVariationIDs" id="removedVariationIDs">
                     </div>
                 </div>
                 <div class="col-lg-12">

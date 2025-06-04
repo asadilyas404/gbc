@@ -342,7 +342,6 @@ class FoodController extends Controller
 
     public function update(Request $request, $id)
     {
-        dd($request->all());
         if (!Helpers::get_restaurant_data()->food_section) {
             return response()->json([
                 'errors' => [
@@ -518,7 +517,6 @@ class FoodController extends Controller
                 }
             }
         }
-        dd($request->removedVariationOptionIDs, $request->removedVariationIDs);
         if ($request->removedVariationOptionIDs && is_string($request->removedVariationOptionIDs)) {
             VariationOption::whereIn('id', explode(',', $request->removedVariationOptionIDs))->delete();
         }

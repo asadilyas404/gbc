@@ -342,7 +342,6 @@ class FoodController extends Controller
 
     public function update(Request $request, $id)
     {
-        dd($request->all());
         if (!Helpers::get_restaurant_data()->food_section) {
             return response()->json([
                 'errors' => [
@@ -477,6 +476,9 @@ class FoodController extends Controller
                 if ($variation) {
                     $variation->name = $option['name'];
                     $variation->type = $option['type'];
+                    if($option['type'] == 'multi') {
+                        dd($variation->min,$variation->max);
+                    }
                     $variation->min = isset($option['min']) ?: 0;
                     $variation->max = isset($option['max']) ?: 0;
                     $variation->is_required = data_get($option, 'required') == 'on' ? true : false;

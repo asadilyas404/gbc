@@ -743,7 +743,8 @@
 
         $(document).on('click', '.remove_variation', function() {
             removedVariationIDs.push($(this).data('id'));
-
+            console.log($(this).data('id'));
+            console.log(removedVariationIDs);
             $('#removedVariationIDs').val(removedVariationIDs.join(','));
         });
         $(document).on('click', '.remove_variation_option', function() {

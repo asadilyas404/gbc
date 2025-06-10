@@ -320,7 +320,7 @@
                                             @endif
                                         @else
                                             <label
-                                                class="badge badge-danger">{{ translate('messages.no_customer_data') }}</label>
+                                                class="badge badge-danger">{{ translate('messages.invalid_customer_data') }}</label>
                                         @endif
                                     @endif
                                 </td>

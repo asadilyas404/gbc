@@ -396,14 +396,14 @@
                     @endif
                     <!-- End Employee -->
 
-                    @if (\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
+                    {{-- @if (\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
                         <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/employee*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                                 title="{{ translate('messages.employees') }}">
                                 <i class="tio-user nav-icon"></i>
                                 <span
-                                    class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.Setiing') }}</span>
+                                    class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.Setting') }}</span>
                             </a>
                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
                                 style="display: {{ Request::is('restaurant-panel/employee*') ? 'block' : 'none' }}">
@@ -417,7 +417,7 @@
                                 </li>
                             </ul>
                         </li>
-                    @endif
+                    @endif --}}
                     <!-- End Employee -->
 
                     <!-- <li class="nav-item px-20 pb-5">

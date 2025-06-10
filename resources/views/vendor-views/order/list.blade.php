@@ -289,9 +289,6 @@
                                     </span>
                                 </td>
                                 <td>
-                                    @php
-                                        dd($order);
-                                    @endphp
                                     @if ($order->is_guest)
                                         <?php
                                         $customer_details = json_decode($order['delivery_address'], true);

@@ -79,7 +79,7 @@
                         </a>
                     </li>
 
-                    {{-- @if (\App\CentralLogics\Helpers::employee_module_permission_check('order')) --}}
+                    @if (\App\CentralLogics\Helpers::employee_module_permission_check('order'))
                         <li class="nav-item">
                             <small class="nav-subtitle"
                                 title="{{ translate('messages.order_section') }}">{{ translate('messages.order_management') }}</small>
@@ -329,7 +329,7 @@
                         {{-- @endif --}}
 
                         <!-- End Order -->
-                    {{-- @endif --}}
+                    @endif
 
 
                     <li class="nav-item">

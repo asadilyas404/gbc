@@ -306,7 +306,9 @@
                                             </span>
                                         </a>
                                     @else
-                                        @if ($order->pos_details)
+                                        @if (
+                                            $order->pos_details &&
+                                                ($order->pos_details->customer_name || $order->pos_details->car_number || $order->pos_details->phone))
                                             @if ($order->pos_details->customer_name)
                                                 <div>Name: {{ $order->pos_details->customer_name }}</div>
                                             @endif

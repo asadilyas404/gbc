@@ -320,6 +320,7 @@
                                             <label
                                                 class="badge badge-danger">{{ translate('messages.invalid_customer_data') }}</label>
                                         @endif
+                                    @endif
                                 </td>
                                 <td>
 

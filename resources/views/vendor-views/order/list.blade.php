@@ -289,6 +289,7 @@
                                     </span>
                                 </td>
                                 <td>
+                                    @php(dd($order));
                                     @if ($order->is_guest)
                                         <?php
                                         $customer_details = json_decode($order['delivery_address'], true);
@@ -362,7 +363,7 @@
                                             {{ translate('messages.delivered') }}
                                         </span>
                                     @else --}}
-                                    <span class="badge badge-soft-danger mb-1">
+                                    <span class="badge badge-soft-info mb-1">
                                         {{ translate(str_replace('_', ' ', $order['kitchen_status'])) }}
                                     </span>
                                     {{-- @endif --}}
@@ -372,6 +373,10 @@
                                         @if ($order['order_type'] == 'take_away')
                                             <span>
                                                 {{ translate('messages.take_away') }}
+                                            </span>
+                                        @elseif ($order['order_type'] == 'dine_in')
+                                            <span>
+                                                {{ translate('messages.dine_in') }}
                                             </span>
                                         @else
                                             <span>

@@ -118,7 +118,9 @@
                                         <span class="text-truncate sidebar--badge-container">
                                             {{ translate('messages.all') }}
                                             <span class="badge badge-soft-info badge-pill ml-1">
-                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->where(function ($query) use ($data) {
+                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->count() }}
+
+                                                {{-- ->where(function ($query) use ($data) {
                                                         return $query->whereNotIn(
                                                                 'order_status',
                                                                 config('order_confirmation_model') == 'restaurant' || $data
@@ -128,189 +130,12 @@
                                                                 return $query->where('order_status', 'pending');
                                                                 //->where('order_type', 'take_away')
                                                             });
-                                                    })->Notpos()->HasSubscriptionToday()->NotDigitalOrder()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/pending') ? 'active' : '' }} @yield('pending')">
-                                    <a class="nav-link " href="{{ route('vendor.order.list', ['pending']) }}"
-                                        title="{{ translate('messages.pending') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.pending') }}
-                                            {{ config('order_confirmation_model') == 'restaurant' || $data ? '' : translate('messages.take_away') }}
-                                            <span class="badge badge-soft-success badge-pill ml-1">
-                                                @if (config('order_confirmation_model') == 'restaurant' || $data)
-                                                    {{ \App\Models\Order::where(['order_status' => 'pending', 'restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->Notpos()->NotDigitalOrder()->HasSubscriptionToday()->OrderScheduledIn(30)->count() }}
-                                                @else
-                                                    {{ \App\Models\Order::where(['order_status' => 'pending', 'restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id(), 'order_type' => 'take_away'])->NotDigitalOrder()->Notpos()->HasSubscriptionToday()->OrderScheduledIn(30)->count() }}
-                                                @endif
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
+                                                    })->Notpos()->HasSubscriptionToday()->NotDigitalOrder()->count() --}}
 
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/confirmed') ? 'active' : '' }} @yield('confirmed') ">
-                                    <a class="nav-link " href="{{ route('vendor.order.list', ['confirmed']) }}"
-                                        title="{{ translate('messages.confirmed') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.confirmed') }}
-                                            <span class="badge badge-soft-success badge-pill ml-1">
-                                                {{ \App\Models\Order::whereIn('order_status', ['confirmed'])->NotDigitalOrder()->Notpos()->whereNotNull('confirmed')->where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->HasSubscriptionToday()->OrderScheduledIn(30)->count() }}
                                             </span>
                                         </span>
                                     </a>
                                 </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/accepted') ? 'active' : '' }} @yield('accepted')">
-                                    <a class="nav-link " href="{{ route('vendor.order.list', ['accepted']) }}"
-                                        title="{{ translate('accepted') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.accepted') }}
-                                            <span class="badge badge-soft-success badge-pill ml-1">
-                                                {{ \App\Models\Order::whereIn('order_status', ['accepted'])->NotDigitalOrder()->hasSubscriptionToday()->where(['restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/cooking') ? 'active' : '' }} @yield('processing')">
-                                    <a class="nav-link" href="{{ route('vendor.order.list', ['cooking']) }}"
-                                        title="{{ translate('messages.cooking') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.cooking') }}
-                                            <span class="badge badge-soft-info badge-pill ml-1">
-                                                {{ \App\Models\Order::where(['order_status' => 'processing', 'restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->NotDigitalOrder()->HasSubscriptionToday()->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/ready_for_delivery') ? 'active' : '' }} @yield('handover')">
-                                    <a class="nav-link" href="{{ route('vendor.order.list', ['ready_for_delivery']) }}"
-                                        title="{{ translate('Ready For Delivery') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.ready_for_delivery') }}
-                                            <span class="badge badge-soft-info badge-pill ml-1">
-                                                {{ \App\Models\Order::where(['order_status' => 'handover', 'restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->NotDigitalOrder()->HasSubscriptionToday()->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/food_on_the_way') ? 'active' : '' }} @yield('picked_up')">
-                                    <a class="nav-link" href="{{ route('vendor.order.list', ['food_on_the_way']) }}"
-                                        title="{{ translate('Food On The Way') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.food_on_the_way') }}
-                                            <span class="badge badge-soft-info badge-pill ml-1">
-                                                {{ \App\Models\Order::where(['order_status' => 'picked_up', 'restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->NotDigitalOrder()->HasSubscriptionToday()->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/delivered') ? 'active' : '' }} @yield('delivered')">
-                                    <a class="nav-link " href="{{ route('vendor.order.list', ['delivered']) }}"
-                                        title="{{ translate('Delivered') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.delivered') }}
-                                            <span class="badge badge-soft-success badge-pill ml-1">
-                                                {{ \App\Models\Order::where(['order_status' => 'delivered', 'restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->NotDigitalOrder()->HasSubscriptionToday()->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/refunded') ? 'active' : '' }} @yield('refunded')">
-                                    <a class="nav-link " href="{{ route('vendor.order.list', ['refunded']) }}"
-                                        title="{{ translate('Refunded') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.refunded') }}
-                                            <span class="badge badge-soft-danger bg-light badge-pill ml-1">
-                                                {{ \App\Models\Order::Refunded()->where(['restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->NotDigitalOrder()->HasSubscriptionToday()->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/refund_requested') ? 'active' : '' }} @yield('refund_requested')">
-                                    <a class="nav-link "
-                                        href="{{ route('vendor.order.list', ['refund_requested']) }}"
-                                        title="{{ translate('refund_requested') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.refund_requested') }}
-                                            <span class="badge badge-soft-danger bg-light badge-pill ml-1">
-                                                {{ \App\Models\Order::Refund_requested()->NotDigitalOrder()->where(['restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/scheduled') ? 'active' : '' }} @yield('scheduled')">
-                                    <a class="nav-link" href="{{ route('vendor.order.list', ['scheduled']) }}"
-                                        title="{{ translate('messages.scheduled') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.scheduled') }}
-                                            <span class="badge badge-soft-info badge-pill ml-1">
-                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->NotDigitalOrder()->Notpos()->HasSubscriptionToday()->Scheduled()->where(function ($q) use ($data) {
-                                                        if (config('order_confirmation_model') == 'restaurant' || $data) {
-                                                            $q->whereNotIn('order_status', ['failed', 'canceled', 'refund_requested', 'refunded']);
-                                                        } else {
-                                                            $q->whereNotIn('order_status', ['pending', 'failed', 'canceled', 'refund_requested', 'refunded'])->orWhere(
-                                                                function ($query) {
-                                                                    $query->where('order_status', 'pending')->where('order_type', 'take_away');
-                                                                },
-                                                            );
-                                                        }
-                                                    })->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-
-
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/payment_failed') ? 'active' : '' }} @yield('failed')">
-                                    <a class="nav-link " href="{{ route('vendor.order.list', ['payment_failed']) }}"
-                                        title="{{ translate('payment_failed') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.payment_failed') }}
-                                            <span class="badge badge-soft-success badge-pill ml-1">
-                                                {{ \App\Models\Order::where('order_status', 'failed')->NotDigitalOrder()->where(['restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-                                <li
-                                    class="nav-item {{ Request::is('restaurant-panel/order/list/canceled') ? 'active' : '' }} @yield('canceled')">
-                                    <a class="nav-link " href="{{ route('vendor.order.list', ['canceled']) }}"
-                                        title="{{ translate('canceled') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.canceled') }}
-                                            <span class="badge badge-soft-success badge-pill ml-1">
-                                                {{ \App\Models\Order::where('order_status', 'canceled')->NotDigitalOrder()->where(['restaurant_id' => \App\CentralLogics\Helpers::get_restaurant_id()])->Notpos()->count() }}
-                                            </span>
-                                        </span>
-                                    </a>
-                                </li>
-
-
 
                             </ul>
                         </li>

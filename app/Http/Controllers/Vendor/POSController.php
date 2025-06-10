@@ -77,7 +77,7 @@ class POSController extends Controller
         $category = $request->query('category_id', 0);
         $subcategory = $request->query('subcategory_id', 0);
         $keyword = $request->query('keyword', false);
-        $key = explode(' ', $keyword);
+        $key = explode(' ', strtolower($keyword));
 
         // Fetch main categories
         $categories = Category::active()->where('parent_id', 0)->get();
@@ -103,7 +103,7 @@ class POSController extends Controller
             ->when($keyword, function ($query) use ($key) {
                 return $query->where(function ($q) use ($key) {
                     foreach ($key as $value) {
-                        $q->orWhere('name', 'like', "%{$value}%");
+                        $q->orWhereRaw('LOWER(name) LIKE ?', ["%{$value}%"]);
                     }
                 });
             })

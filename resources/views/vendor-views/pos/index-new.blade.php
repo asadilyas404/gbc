@@ -220,7 +220,6 @@
                             color: black;
                         }
                     }
-
                 </style>
 
                 <div class="subcategory-scroll-container">
@@ -273,7 +272,8 @@
                             </form>
                         </div>
                     </div>
-                    <div class="card-body d-flex flex-column justify-content-center" id="items" style="padding-top: 8px;">
+                    <div class="card-body d-flex flex-column justify-content-center" id="items"
+                        style="padding-top: 8px;">
                         <div class="row g-2 mb-1">
                             {{-- <div class="col-sm-6">
                                 <div class="input-group">
@@ -335,7 +335,7 @@
                     </div>
 
                     <div class="card-footer">
-{{--                        {!! $products->withQueryString()->links() !!}--}}
+                        {{--                        {!! $products->withQueryString()->links() !!} --}}
                     </div>
                 </div>
             </div>
@@ -1454,7 +1454,7 @@
 
             function updateCalculations() {
                 const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
-                console.log('amount '+invoiceAmount);
+                console.log('amount ' + invoiceAmount);
                 const cashPaid = parseFloat($('#cash_paid').val()) || 0;
                 const cardPaid = parseFloat($('#card_paid').val()) || 0;
                 const totalPaid = cashPaid + cardPaid;
@@ -1482,86 +1482,86 @@
             }
 
             function attachEventListeners() {
-        $('#cash_paid, #card_paid').off('input').on('input', function () {
-            updateCalculations();
-        });
-    }
+                $('#cash_paid, #card_paid').off('input').on('input', function() {
+                    updateCalculations();
+                });
+            }
 
-        // Call updateCalculations when the modal is opened
-        $('#orderFinalModal').on('shown.bs.modal', function () {
-            updateCalculations(); // Recalculate on modal open
-            attachEventListeners(); // Ensure input listeners are attached
-        });
+            // Call updateCalculations when the modal is opened
+            $('#orderFinalModal').on('shown.bs.modal', function() {
+                updateCalculations(); // Recalculate on modal open
+                attachEventListeners(); // Ensure input listeners are attached
+            });
 
-        // Trigger calculations if the modal inputs are dynamically added
-        $(document).on('input', '#cash_paid, #card_paid', function () {
-            updateCalculations();
-        });
+            // Trigger calculations if the modal inputs are dynamically added
+            $(document).on('input', '#cash_paid, #card_paid', function() {
+                updateCalculations();
+            });
 
 
             // Numeric Keypad working
 
             let activeInput = null;
 
-$(document).on('focus', '#orderFinalModal input', function () {
-activeInput = $(this);
-});
+            $(document).on('focus', '#orderFinalModal input', function() {
+                activeInput = $(this);
+            });
 
-$(document).on('click', '.keypad-btn', function () {
-    const value = $(this).data('value');
-    if (activeInput) {
-        let currentVal = activeInput.val();
+            $(document).on('click', '.keypad-btn', function() {
+                const value = $(this).data('value');
+                if (activeInput) {
+                    let currentVal = activeInput.val();
 
-        if (value === '.') {
-            if (!currentVal.includes('.')) {
-                activeInput.val(currentVal + value);
-                activeInput.trigger('input');
-            }
-        } else {
-            const newValue = currentVal + value;
+                    if (value === '.') {
+                        if (!currentVal.includes('.')) {
+                            activeInput.val(currentVal + value);
+                            activeInput.trigger('input');
+                        }
+                    } else {
+                        const newValue = currentVal + value;
 
-            if (isValidNumber(newValue)) {
-                activeInput.val(newValue);
-                activeInput.trigger('input');
-            } else {
-                alert('Invalid input');
-            }
-        }
-    }
-});
+                        if (isValidNumber(newValue)) {
+                            activeInput.val(newValue);
+                            activeInput.trigger('input');
+                        } else {
+                            alert('Invalid input');
+                        }
+                    }
+                }
+            });
 
-// Clear the input field
-$(document).on('click', '.keypad-clear', function () {
-    if (activeInput) {
-        activeInput.val('');
-        activeInput.trigger('input');
-    }
-});
+            // Clear the input field
+            $(document).on('click', '.keypad-clear', function() {
+                if (activeInput) {
+                    activeInput.val('');
+                    activeInput.trigger('input');
+                }
+            });
 
-// Sanitize and validate input on blur
-$('#orderFinalModal').on('blur', '#cash_paid, #card_paid', function () {
-    const currentVal = this.value;
+            // Sanitize and validate input on blur
+            $('#orderFinalModal').on('blur', '#cash_paid, #card_paid', function() {
+                const currentVal = this.value;
 
-    // Check if the value is a valid number
-    if (!isValidNumber(currentVal)) {
-        alert('Please enter a valid number');
-        this.value = ''; // Clear the input if it's invalid
-        $(this).trigger('input');
-    }
+                // Check if the value is a valid number
+                if (!isValidNumber(currentVal)) {
+                    alert('Please enter a valid number');
+                    this.value = ''; // Clear the input if it's invalid
+                    $(this).trigger('input');
+                }
 
-    // Remove trailing decimal point on blur
-    if (currentVal.endsWith('.')) {
-        this.value = currentVal.slice(0, -1);
-        $(this).trigger('input');
-    }
-});
+                // Remove trailing decimal point on blur
+                if (currentVal.endsWith('.')) {
+                    this.value = currentVal.slice(0, -1);
+                    $(this).trigger('input');
+                }
+            });
 
-// Function to validate if the value is a valid number
-const isValidNumber = (value) => {
-    // Check if value is numeric and not empty
-    return !isNaN(value);
-    //  && value.trim() !== '';
-};
+            // Function to validate if the value is a valid number
+            const isValidNumber = (value) => {
+                // Check if value is numeric and not empty
+                return !isNaN(value);
+                //  && value.trim() !== '';
+            };
 
 
 

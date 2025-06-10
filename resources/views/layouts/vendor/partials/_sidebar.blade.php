@@ -80,11 +80,11 @@
                     </li>
 
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('order'))
-                        <li class="nav-item">
+                        {{-- <li class="nav-item">
                             <small class="nav-subtitle"
                                 title="{{ translate('messages.order_section') }}">{{ translate('messages.order_management') }}</small>
                             <small class="tio-more-horizontal nav-subtitle-replacer"></small>
-                        </li>
+                        </li> --}}
 
                         <!-- Order -->
                         <li
@@ -125,7 +125,8 @@
                                                                     ? ['failed', 'canceled', 'refund_requested', 'refunded']
                                                                     : ['pending', 'failed', 'canceled', 'refund_requested', 'refunded'],
                                                             )->orWhere(function ($query) {
-                                                                return $query->where('order_status', 'pending')->where('order_type', 'take_away');
+                                                                return $query->where('order_status', 'pending');
+                                                                //->where('order_type', 'take_away')
                                                             });
                                                     })->Notpos()->HasSubscriptionToday()->NotDigitalOrder()->count() }}
                                             </span>
@@ -315,7 +316,7 @@
                         </li>
 
                         {{-- @if ($restaurant->order_subscription_active == 1 || \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->whereNotNull('subscription_id')->count() > 0) --}}
-                        <li
+                        {{-- <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/order/subscription*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link"
                                 href="{{ route('vendor.order.subscription.index') }}"
@@ -325,7 +326,7 @@
                                     {{ translate('messages.order') }} {{ translate('messages.subscription') }}
                                 </span>
                             </a>
-                        </li>
+                        </li> --}}
                         {{-- @endif --}}
 
                         <!-- End Order -->

@@ -237,7 +237,9 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    Note | ملحوظة: {{ $detail['notes'] }}
+                                    <td>
+                                        Note | ملحوظة: {{ $detail['notes'] }}
+                                    </td>
                                 </tr>
                                 @php($sub_total += $amount)
                                 @php($total_tax += $detail['tax_amount'] * $detail['quantity'])
@@ -303,7 +305,9 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    Note | ملحوظة: {{ $detail['notes'] }}
+                                    <td>
+                                        Note | ملحوظة: {{ $detail['notes'] }}
+                                    </td>
                                 </tr>
                                 @php($sub_total += $amount)
                                 @php($total_tax += $detail['tax_amount'] * $detail['quantity'])

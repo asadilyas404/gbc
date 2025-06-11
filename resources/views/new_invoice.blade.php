@@ -181,6 +181,8 @@
                                     </td>
                                     <td class="text-break">
                                         {{ json_decode($detail->food_details, true)['name'] }} <br>
+                                        {{ json_decode($detail->food_details, true)['name']['ar'] ?? (json_decode($detail->food_details, true)['name']['en'] ?? '') }}
+                                        <br>
 
                                         @if (count(json_decode($detail['variation'], true)) > 0)
                                             <strong>{{ translate('messages.variation') }} | تفاوت : </strong>

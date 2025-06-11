@@ -327,6 +327,10 @@
                                                             <div>
                                                                 <strong>
                                                                     {{ Str::limit($detail->food['name'], 25, '...') }}</strong><br>
+                                                                <strong>
+                                                                    {{ Str::limit($detail->food->getTranslation('name', 'ar') ?? $detail->food['name'], 25, '...') }}
+                                                                </strong><br>
+
 
                                                                 @if (count(json_decode($detail['variation'], true)) > 0)
                                                                     @foreach (json_decode($detail['variation'], true) as $variation)

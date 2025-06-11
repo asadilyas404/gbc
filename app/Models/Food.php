@@ -84,6 +84,11 @@ class Food extends Model
         return $this->morphMany(Translation::class, 'translationable');
     }
 
+    public function getTranslation($key, $locale = 'ar')
+    {
+        return optional($this->translations->where('locale', $locale)->where('key', $key)->first())->value;
+    }
+
 
     // public function scopeActive($query)
     // {

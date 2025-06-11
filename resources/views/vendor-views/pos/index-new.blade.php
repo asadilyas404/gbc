@@ -895,6 +895,7 @@
 
         $(document).on('click', '.quick-View-Cart-Item', function() {
             $.get({
+                console.log('hello baby');
                 url: '{{ route('vendor.pos.quick-view-cart-item') }}',
                 dataType: 'json',
                 data: {

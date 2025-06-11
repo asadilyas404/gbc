@@ -328,56 +328,56 @@
                                                                 <strong>
                                                                     {{ Str::limit($detail->food['name'], 25, '...') }}</strong><br>
                                                                 <strong>
-                                                                    {{ Str::limit($detail->food->getTranslation('name', 'ar') ?? $detail->food['name'], 25, '...') }}
-                                                                </strong><br>
 
 
-                                                                @if (count(json_decode($detail['variation'], true)) > 0)
-                                                                    @foreach (json_decode($detail['variation'], true) as $variation)
-                                                                        @if (isset($variation['name']) && isset($variation['values']))
-                                                                            <span class="d-block text-capitalize">
-                                                                                <strong>
-                                                                                    {{ $variation['name'] }} -
-                                                                                </strong>
-                                                                            </span>
-                                                                            @foreach ($variation['values'] as $value)
+                                                                    @if (count(json_decode($detail['variation'], true)) > 0)
+                                                                        @foreach (json_decode($detail['variation'], true) as $variation)
+                                                                            @if (isset($variation['name']) && isset($variation['values']))
                                                                                 <span class="d-block text-capitalize">
-                                                                                    &nbsp; &nbsp; {{ $value['label'] }} :
-                                                                                    <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
+                                                                                    <strong>
+                                                                                        {{ $variation['name'] }} -
+                                                                                    </strong>
                                                                                 </span>
-                                                                            @endforeach
-                                                                        @else
-                                                                            @if (isset(json_decode($detail['variation'], true)[0]))
-                                                                                <strong><u>
-                                                                                        {{ translate('messages.Variation') }}
-                                                                                        : </u></strong>
-                                                                                @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
-                                                                                    <div class="font-size-sm text-body">
-                                                                                        <span>{{ $key1 }} : </span>
-                                                                                        <span
-                                                                                            class="font-weight-bold">{{ $variation }}</span>
-                                                                                    </div>
+                                                                                @foreach ($variation['values'] as $value)
+                                                                                    <span class="d-block text-capitalize">
+                                                                                        &nbsp; &nbsp; {{ $value['label'] }}
+                                                                                        :
+                                                                                        <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
+                                                                                    </span>
                                                                                 @endforeach
+                                                                            @else
+                                                                                @if (isset(json_decode($detail['variation'], true)[0]))
+                                                                                    <strong><u>
+                                                                                            {{ translate('messages.Variation') }}
+                                                                                            : </u></strong>
+                                                                                    @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
+                                                                                        <div class="font-size-sm text-body">
+                                                                                            <span>{{ $key1 }} :
+                                                                                            </span>
+                                                                                            <span
+                                                                                                class="font-weight-bold">{{ $variation }}</span>
+                                                                                        </div>
+                                                                                    @endforeach
+                                                                                @endif
+                                                                                @break
                                                                             @endif
-                                                                            @break
-                                                                        @endif
-                                                                    @endforeach
-                                                                @endif
+                                                                        @endforeach
+                                                                    @endif
 
-                                                                <div>
-                                                                    <strong>{{ translate('messages.Price') }} | سعر:
-                                                                    </strong>
-                                                                    {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}
-                                                                </div>
-                                                                <div>
-                                                                    <strong>{{ translate('messages.Qty') }} | كمية
-                                                                        :</strong>
-                                                                    {{ $detail['quantity'] }}
-                                                                </div>
-                                                                <div>
-                                                                    <strong>Note | ملحوظة :</strong>
-                                                                    {{ $detail['notes'] }}
-                                                                </div>
+                                                                    <div>
+                                                                        <strong>{{ translate('messages.Price') }} | سعر:
+                                                                        </strong>
+                                                                        {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}
+                                                                    </div>
+                                                                    <div>
+                                                                        <strong>{{ translate('messages.Qty') }} | كمية
+                                                                            :</strong>
+                                                                        {{ $detail['quantity'] }}
+                                                                    </div>
+                                                                    <div>
+                                                                        <strong>Note | ملحوظة :</strong>
+                                                                        {{ $detail['notes'] }}
+                                                                    </div>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -492,13 +492,13 @@
                             </table>
                         </div>
                         <?php
-                        
+
                         $coupon_discount_amount = $order['coupon_discount_amount'];
-                        
+
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
-                        
+
                         $total_tax_amount = $order['total_tax_amount'];
-                        
+
                         $restaurant_discount_amount = $order['restaurant_discount_amount'];
                         $tax_included = \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first() ? \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first()->value : 0;
                         ?>

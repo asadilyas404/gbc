@@ -94,12 +94,13 @@
                         <div class="form-group col-sm-4">
                             <select name="product_discount_type" class="form-control discount-type"
                                 id="product_discount_type" onchange="getVariantPrice()">
-                                <option value="amount" {{ $cart_item['discountType'] == 'amount' ? 'selected' : '' }}>
+                                <option value="amount"
+                                    {{ ($cart_item['discountType'] ?? '') == 'amount' ? 'selected' : '' }}>
                                     {{ translate('messages.amount') }}
                                     ({{ Helpers::currency_symbol() }})
                                 </option>
                                 <option value="percent"
-                                    {{ $cart_item['discountType'] == 'percent' ? 'selected' : '' }}>
+                                    {{ ($cart_item['discountType'] ?? '') == 'percent' ? 'selected' : '' }}>
                                     {{ translate('messages.percent') }}
                                     (%)
                                 </option>

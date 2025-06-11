@@ -237,7 +237,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
+                                    <td colspan="3">
                                         Note | ملحوظة: {{ $detail['notes'] }}
                                     </td>
                                 </tr>
@@ -305,7 +305,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td>
+                                    <td colspan="3">
                                         Note | ملحوظة: {{ $detail['notes'] }}
                                     </td>
                                 </tr>
@@ -351,7 +351,8 @@
                             </dd>
 
                             @if ($order['ref_bonus_amount'] > 0)
-                                <dt class="col-6  text-left text-muted">{{ translate('messages.Referral_Discount') }} |
+                                <dt class="col-6  text-left text-muted">{{ translate('messages.Referral_Discount') }}
+                                    |
                                     خصم الإحالة:
                                 </dt>
                                 <dd class="col-6">

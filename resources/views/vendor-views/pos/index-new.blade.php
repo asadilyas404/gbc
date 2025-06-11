@@ -903,12 +903,11 @@
                 },
                 beforeSend: function() {
                     $('#loading').show();
-                    console.log('hello baby');
-
                 },
                 success: function(data) {
                     console.log("success...")
                     $('#quick-view').modal('show');
+                    console.log(data);
                     $('#quick-view-modal').empty().html(data.view);
                 },
                 complete: function() {

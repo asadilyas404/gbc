@@ -299,7 +299,7 @@
                         <div class="col-10">
                             <div class="product-notes">
                                 <!-- Editable Textarea for Notes -->
-                                <textarea class="form-control" name="notes" id="notes" rows="3" placeholder="Enter any notes...">{{ old('notes', $product->notes ?? '') }}</textarea>
+                                <textarea class="form-control" name="notes" id="notes" rows="3" placeholder="Enter any notes...">{{ old('notes', $cart_item->details ?? '') }}</textarea>
                             </div>
                         </div>
                     </div>

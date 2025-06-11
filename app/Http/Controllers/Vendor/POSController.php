@@ -140,7 +140,6 @@ class POSController extends Controller
         $product = Food::findOrFail($request->product_id);
         $item_key = $request->item_key;
         $cart_item = session()->get('cart')[$item_key];
-        dd($cart_item);
         return response()->json([
             'success' => 1,
             'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key'))->render(),

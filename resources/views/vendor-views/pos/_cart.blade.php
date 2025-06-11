@@ -269,7 +269,8 @@ if (isset($cart['paid'])) {
                                 <div class="card-body text-center">
                                     <h5>{{ translate('Invoice Amount') }}</h5>
                                     <h4 id="invoice_amount" class="font-weight-bold">
-                                        <span>{{ Helpers::format_currency($paid) }}</span></h4>
+                                        <span>{{ Helpers::format_currency($paid) }}</span>
+                                    </h4>
                                 </div>
                             </div>
                         </div>
@@ -327,70 +328,85 @@ if (isset($cart['paid'])) {
                     <div class="row pl-2">
                         <div class="col-lg-8">
                             <div class="row">
-                            <div class="col-12 col-lg-6">
-                                <div class="form-group">
-                                    <label for="cash_paid" class="input-label">{{ translate('Cash Amount') }}</label>
-                                    <input id="cash_paid" type="text" name="cash_paid" class="form-control"
-                                        min="0" step="0.001"
-                                        placeholder="{{ translate('Enter cash amount') }}">
+                                <div class="col-12 col-lg-6">
+                                    <div class="form-group">
+                                        <label for="cash_paid"
+                                            class="input-label">{{ translate('Cash Amount') }}</label>
+                                        <input id="cash_paid" type="text" name="cash_paid" class="form-control"
+                                            min="0" step="0.001"
+                                            placeholder="{{ translate('Enter cash amount') }}">
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label for="delivery_type" class="input-label">Delivery Type</label>
+                                        <select id="delivery_type" name="delivery_type" class="form-control">
+                                            <option value="dine_in" selected>Dine In</option>
+                                            <option value="take_away">Take away</option>
+                                            <option value="delivery">Delivery</option>
+                                        </select>
+                                    </div>
                                 </div>
-                                <div class="form-group mt-3">
-                                    <label for="delivery_type" class="input-label">Delivery Type</label>
-                                    <select id="delivery_type" name="delivery_type" class="form-control">
-                                        <option value="dine_in" selected>Dine In</option>
-                                        <option value="take_away">Take away</option>
-                                        <option value="delivery">Delivery</option>
-                                    </select>
+                                <div class="col-12 col-lg-6">
+                                    <div class="form-group">
+                                        <label for="card_paid"
+                                            class="input-label">{{ translate('Card Amount') }}</label>
+                                        <input id="card_paid" type="text" name="card_paid" class="form-control"
+                                            min="0" step="0.001"
+                                            placeholder="{{ translate('Enter card amount') }}">
+                                    </div>
+                                    <div class="form-group mt-3">
+                                        <label for="bank_account"
+                                            class="input-label">{{ translate('Select Account') }}</label>
+                                        <select id="bank_account" name="bank_account" class="form-control" disabled>
+                                            <option value="">{{ translate('Select an option') }}</option>
+                                            <option value="1">{{ translate('Bank 1') }}</option>
+                                            <option value="2">{{ translate('Bank 2') }}</option>
+                                            <option value="3">{{ translate('Bank 3') }}</option>
+                                        </select>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-12 col-lg-6">
-                                <div class="form-group">
-                                    <label for="card_paid" class="input-label">{{ translate('Card Amount') }}</label>
-                                    <input id="card_paid" type="text" name="card_paid" class="form-control"
-                                        min="0" step="0.001"
-                                        placeholder="{{ translate('Enter card amount') }}">
-                                </div>
-                                <div class="form-group mt-3">
-                                    <label for="bank_account"
-                                        class="input-label">{{ translate('Select Account') }}</label>
-                                    <select id="bank_account" name="bank_account" class="form-control" disabled>
-                                        <option value="">{{ translate('Select an option') }}</option>
-                                        <option value="1">{{ translate('Bank 1') }}</option>
-                                        <option value="2">{{ translate('Bank 2') }}</option>
-                                        <option value="3">{{ translate('Bank 3') }}</option>
-                                    </select>
-                                </div>
-                            </div>
                             </div>
                             <div class="col-12">
                                 <!-- Submit Button -->
                                 <div class="btn--container justify-content-end mt-4">
                                     <button type="button" class="btn btn-secondary"
-                                            data-dismiss="modal">{{ translate('Close') }}</button>
-                                    <button type="submit" class="btn btn--primary">{{ translate('Place Order') }}</button>
+                                        data-dismiss="modal">{{ translate('Close') }}</button>
+                                    <button type="submit"
+                                        class="btn btn--primary">{{ translate('Place Order') }}</button>
                                 </div>
                             </div>
                         </div>
                         <!-- Compact Numeric Keypad -->
-    <div class="col-lg-4">
-        <div class="numeric-keypad-container p-2 border rounded bg-light">
-            <h6 class="text-center">{{ translate('Numeric Keypad') }}</h6>
-            <div class="keypad-buttons d-flex flex-wrap justify-content-center">
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="1">1</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="2">2</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="3">3</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="4">4</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="5">5</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="6">6</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="7">7</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="8">8</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="9">9</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value="0">0</button>
-                <button type="button" class="btn btn-outline-dark keypad-btn" data-value=".">.</button>
-                <button type="button" class="btn btn-outline-danger keypad-clear">{{ translate('C') }}</button>
-            </div>
-        </div>
-    </div>
+                        <div class="col-lg-4">
+                            <div class="numeric-keypad-container p-2 border rounded bg-light">
+                                <h6 class="text-center">{{ translate('Numeric Keypad') }}</h6>
+                                <div class="keypad-buttons d-flex flex-wrap justify-content-center">
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="1">1</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="2">2</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="3">3</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="4">4</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="5">5</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="6">6</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="7">7</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="8">8</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="9">9</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value="0">0</button>
+                                    <button type="button" class="btn btn-outline-dark keypad-btn"
+                                        data-value=".">.</button>
+                                    <button type="button"
+                                        class="btn btn-outline-danger keypad-clear">{{ translate('C') }}</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -612,4 +628,3 @@ if (isset($cart['paid'])) {
         </div>
     </div>
 </div>
-

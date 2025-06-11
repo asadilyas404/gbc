@@ -329,7 +329,6 @@
                                                                     {{ Str::limit($detail->food['name'], 25, '...') }}</strong><br>
                                                                 <strong>
 
-
                                                                     @if (count(json_decode($detail['variation'], true)) > 0)
                                                                         @foreach (json_decode($detail['variation'], true) as $variation)
                                                                             @if (isset($variation['name']) && isset($variation['values']))
@@ -492,13 +491,13 @@
                             </table>
                         </div>
                         <?php
-
+                        
                         $coupon_discount_amount = $order['coupon_discount_amount'];
-
+                        
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
-
+                        
                         $total_tax_amount = $order['total_tax_amount'];
-
+                        
                         $restaurant_discount_amount = $order['restaurant_discount_amount'];
                         $tax_included = \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first() ? \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first()->value : 0;
                         ?>

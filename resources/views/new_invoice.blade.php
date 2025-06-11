@@ -237,7 +237,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-
+                                    Note | ملحوظة: {{ $detail['notes'] }}
                                 </tr>
                                 @php($sub_total += $amount)
                                 @php($total_tax += $detail['tax_amount'] * $detail['quantity'])
@@ -301,6 +301,9 @@
                                         @php($amount = $detail['price'] * $detail['quantity'])
                                         {{ \App\CentralLogics\Helpers::format_currency($amount) }}
                                     </td>
+                                </tr>
+                                <tr>
+                                    Note | ملحوظة: {{ $detail['notes'] }}
                                 </tr>
                                 @php($sub_total += $amount)
                                 @php($total_tax += $detail['tax_amount'] * $detail['quantity'])

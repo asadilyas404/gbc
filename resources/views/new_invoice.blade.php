@@ -173,10 +173,11 @@
                         @php($total_dis_on_pro = 0)
                         @php($add_ons_cost = 0)
                         @foreach ($order->details as $detail)
+                            @php
+                                dd($detail);
+                            @endphp
                             @if ($detail->food_id || $detail->campaign == null)
-                                @php
-                                    dd($detail);
-                                @endphp
+
                                 <tr>
                                     <td class="">
                                         {{ $detail['quantity'] }}x

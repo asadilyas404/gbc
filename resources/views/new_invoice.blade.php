@@ -174,6 +174,9 @@
                         @php($add_ons_cost = 0)
                         @foreach ($order->details as $detail)
                             @if ($detail->food_id || $detail->campaign == null)
+                                @php
+                                    dd($detail);
+                                @endphp
                                 <tr>
                                     <td class="">
                                         {{ $detail['quantity'] }}x
@@ -234,6 +237,9 @@
                                         @php($amount = $detail['price'] * $detail['quantity'])
                                         {{ \App\CentralLogics\Helpers::format_currency($amount) }}
                                     </td>
+                                </tr>
+                                <tr>
+                                    {{ }}
                                 </tr>
                                 @php($sub_total += $amount)
                                 @php($total_tax += $detail['tax_amount'] * $detail['quantity'])

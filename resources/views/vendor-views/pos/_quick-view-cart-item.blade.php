@@ -292,7 +292,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="row no-gutters mt-2 text-dark" id="notes_div">
+                    {{-- <div class="row no-gutters mt-2 text-dark" id="notes_div">
                         <div class="col-2">
                             <div class="product-description-label">{{ translate('messages.Notes') }}:</div>
                         </div>
@@ -302,7 +302,7 @@
                                 <textarea class="form-control" name="notes" id="notes" rows="3" placeholder="Enter any notes...">{{ old('notes', $cart_item->details ?? '') }}</textarea>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
 
 
                     <div class="d-flex justify-content-center mt-2">

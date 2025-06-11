@@ -361,8 +361,8 @@
                                                                 @endif
 
                                                                 <div>
-                                                                    <strong>{{ translate('messages.Price') }} | سعر
-                                                                        :</strong>
+                                                                    <strong>{{ translate('messages.Price') }} | سعر:
+                                                                    </strong>
                                                                     {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}
                                                                 </div>
                                                                 <div>

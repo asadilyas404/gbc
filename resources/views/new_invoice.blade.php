@@ -239,7 +239,7 @@
                                     </td>
                                 </tr>
                                 <tr>
-                                    {{ }}
+
                                 </tr>
                                 @php($sub_total += $amount)
                                 @php($total_tax += $detail['tax_amount'] * $detail['quantity'])

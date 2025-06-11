@@ -172,10 +172,10 @@
                         @php($total_tax = 0)
                         @php($total_dis_on_pro = 0)
                         @php($add_ons_cost = 0)
+                        @php
+                            dd($order->details);
+                        @endphp
                         @foreach ($order->details as $detail)
-                            @php
-                                dd($detail);
-                            @endphp
                             @if ($detail->food_id || $detail->campaign == null)
 
                                 <tr>

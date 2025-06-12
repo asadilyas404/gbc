@@ -329,9 +329,16 @@
                                                                 <strong>
                                                                     {{ Str::limit($detail->food['name'], 25, '...') }}</strong><br>
                                                                 <strong>
-                                                                    <strong>
-                                                                        {{ Str::limit($food->getTranslation('name', 'ar') ?? $detail->food['name'], 25, '...') }}
-                                                                    </strong><br>
+                                                                    @php
+                                                                        $arabicName =
+                                                                            $food->translations
+                                                                                ->where('key', 'name')
+                                                                                ->where('locale', 'ar')
+                                                                                ->first()->value ??
+                                                                            $detail->food['name'];
+                                                                    @endphp
+
+                                                                    <strong>{{ Str::limit($arabicName, 25, '...') }}</strong><br>
 
                                                                     @if (count(json_decode($detail['variation'], true)) > 0)
                                                                         @foreach (json_decode($detail['variation'], true) as $variation)

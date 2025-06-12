@@ -86,8 +86,7 @@ class Food extends Model
 
     public function getTranslationValue($key, $locale = 'ar')
     {
-        return $this->translations
-            ->where('key', $key)
+        return Translation::where('key', $key)
             ->where('locale', $locale)
             ->first()
             ->value ?? $this->$key;

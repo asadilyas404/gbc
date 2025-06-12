@@ -313,7 +313,7 @@
                                         @if (isset($detail->food_id))
                                             @php($detail->food = json_decode($detail->food_details, true))
                                             @php($food = \App\Models\Food::where(['id' => $detail->food['id']])->first())
-                                            @php(dd($food->translations->pluck('key', 'locale')));
+                                            @php(dd(\App\Models\Translation::where('translationable_id', $detail->food['id'])->get()));
                                             <tr>
                                                 <td>
                                                     <div class="media">

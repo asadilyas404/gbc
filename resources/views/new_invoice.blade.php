@@ -174,14 +174,14 @@
                         @php($add_ons_cost = 0)
                         @foreach ($order->details as $detail)
                             @if ($detail->food_id || $detail->campaign == null)
-
+                                @php(dd($detail->food_details));
                                 <tr>
                                     <td class="">
                                         {{ $detail['quantity'] }}x
                                     </td>
                                     <td class="text-break">
                                         {{ json_decode($detail->food_details, true)['name'] }} <br>
-                                        {{-- {{ json_decode($detail->food_details, true)['name']['ar'] ?? (json_decode($detail->food_details, true)['name']['en'] ?? '') }} --}}
+                                        {{ $food->getTranslationValue('name', 'ar') }}
                                         <br>
 
                                         @if (count(json_decode($detail['variation'], true)) > 0)

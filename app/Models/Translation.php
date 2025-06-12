@@ -23,7 +23,7 @@ class Translation extends Model
         'translationable_id' => 'integer',
     ];
 
-    
+
     public function translationable()
     {
         return $this->morphTo();

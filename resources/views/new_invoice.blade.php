@@ -174,7 +174,7 @@
                         @php($add_ons_cost = 0)
                         @foreach ($order->details as $detail)
                             @if ($detail->food_id || $detail->campaign == null)
-                                @php(dd($detail->food_details));
+                                @php($food = \App\Models\Food::where(['id' => json_decode($detail->food_details, true)['id']])->first())
                                 <tr>
                                     <td class="">
                                         {{ $detail['quantity'] }}x

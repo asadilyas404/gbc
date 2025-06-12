@@ -86,10 +86,11 @@ class Food extends Model
 
     public function getTranslationValue($key, $locale = 'ar')
     {
-        return Translation::where('key', $key)
-            ->where('locale', $locale)
-            ->first()
-            ->value ?? $this->$key;
+        return Translation::where('translationable_type', self::class)
+        ->where('translationable_id', $this->id)
+        ->where('key', $key)
+        ->where('locale', $locale)
+        ->value('value') ?? $this->$key;
     }
 
     public function getTranslation($key, $locale = 'ar')

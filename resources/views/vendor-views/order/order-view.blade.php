@@ -329,15 +329,7 @@
                                                                 <strong>
                                                                     {{ Str::limit($detail->food['name'], 25, '...') }}</strong><br>
                                                                 <strong>
-                                                                    @php
-                                                                        $arabicName =
-                                                                            $food->translations
-                                                                                ->where('key', 'name')
-                                                                                ->where('locale', 'ar')
-                                                                                ->first()->value ??
-                                                                            $detail->food['name'];
-                                                                        dd($arabicName);
-                                                                    @endphp
+                                                                    @php($arabicName = $food->translations->where('key', 'name')->where('locale', 'ar')->first()->value ?? $detail->food['name'])
 
                                                                     <strong>{{ Str::limit($arabicName, 25, '...') }}</strong><br>
 

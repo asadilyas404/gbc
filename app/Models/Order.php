@@ -39,7 +39,7 @@ class Order extends Model
         'additional_charge' => 'float',
         'ref_bonus_amount' => 'float',
         'extra_packaging_amount' => 'float',
-'is_pushed' => 'in:Y,N'
+        'is_pushed' => 'in:Y,N'
     ];
     protected $appends = ['order_proof_full_url'];
 

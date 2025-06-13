@@ -35,7 +35,7 @@
 
         <div class="container mt-4">
             <!-- Tabs Navigation -->
-            {{-- <ul class="nav nav-tabs" id="orderTabs">
+            <ul class="nav nav-tabs" id="orderTabs">
                 <li class="nav-item">
                     <a class="nav-link active" id="pending-tab" data-toggle="tab" href="#pending">Pending</a>
                 </li>
@@ -45,12 +45,12 @@
                 <li class="nav-item">
                     <a class="nav-link" id="ready-tab" data-toggle="tab" href="#ready">Ready</a>
                 </li>
-            </ul> --}}
+            </ul>
 
             <!-- Tabs Content -->
-            <div class="mt-3">
+            <div class="tab-content mt-3">
                 <!-- Pending Tab -->
-                <div id="pending">
+                <div class="tab-pane fade show active" id="pending">
                     <div class="row">
                         @foreach ($data['pending'] as $order)
                             <div class="col-md-4 mb-2">
@@ -92,7 +92,7 @@
                 </div>
 
                 <!-- Cooking Tab -->
-                <div id="cooking">
+                <div class="tab-pane fade" id="cooking">
                     <div class="row">
                         @foreach ($data['cooking'] as $order)
                             <div class="col-md-4 mb-2">
@@ -134,7 +134,7 @@
                 </div>
 
                 <!-- Ready Tab -->
-                <div id="ready">
+                <div class="tab-pane fade" id="ready">
                     <div class="row">
                         @foreach ($data['ready'] as $order)
                             <div class="col-md-4 mb-2">

@@ -50,9 +50,8 @@
             <!-- Tabs Content -->
             <div class="mt-3">
                 <!-- Pending Tab -->
-                <div class="row">
-                    <div id="pending">
-
+                <div id="pending">
+                    <div class="row">
                         @foreach ($data['pending'] as $order)
                             <div class="col-md-4 mb-2">
                                 <div class="card">
@@ -90,10 +89,11 @@
                             </div>
                         @endforeach
                     </div>
+                </div>
 
-                    <!-- Cooking Tab -->
-                    <div id="cooking">
-                        {{-- <div class="row"> --}}
+                <!-- Cooking Tab -->
+                <div id="cooking">
+                    <div class="row">
                         @foreach ($data['cooking'] as $order)
                             <div class="col-md-4 mb-2">
                                 <div class="card">
@@ -130,12 +130,12 @@
                                 </div>
                             </div>
                         @endforeach
-                        {{-- </div> --}}
                     </div>
+                </div>
 
-                    <!-- Ready Tab -->
-                    <div id="ready">
-                        {{-- <div class="row"> --}}
+                <!-- Ready Tab -->
+                <div id="ready">
+                    <div class="row">
                         @foreach ($data['ready'] as $order)
                             <div class="col-md-4 mb-2">
                                 <div class="card">
@@ -173,10 +173,8 @@
                                 </div>
                             </div>
                         @endforeach
-                        {{-- </div> --}}
                     </div>
                 </div>
-
             </div>
         </div>
     </div>
@@ -223,7 +221,7 @@
                                     'startCooking');
                             });
 
-                            $('#pending').html(`${pendingCard}`);
+                            $('#pending').html(`<div class="row">${pendingCard}<div>`);
                         }
                         if (cookingList) {
                             let cookingCard = ``;
@@ -233,7 +231,7 @@
                                 cookingCard += funViewCard(customer, item, 'Ready', 'orderReady');
                             });
 
-                            $('#cooking').html(`${cookingCard}`);
+                            $('#cooking').html(`<div class="row">${cookingCard}<div>`);
                         }
                         if (readyList) {
                             let readyCard = ``;
@@ -243,7 +241,7 @@
                                 readyCard += funViewCard(customer, item, 'Completed', 'orderCompleted');
                             });
 
-                            $('#ready').html(`${readyCard}`);
+                            $('#ready').html(`<div class="row">${readyCard}<div>`);
                         }
 
                         updateTimers();

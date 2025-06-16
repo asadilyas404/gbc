@@ -52,14 +52,29 @@ class SyncOrdersJob implements ShouldQueue
                         );
                     }
 
+                    $orderAdditionalDetails = DB::connection('oracle')
+                        ->table('pos_order_additional_dtl')
+                        ->where('order_id', $order->id)
+                        ->get();
+
+                    foreach ($orderAdditionalDetails as $detail) {
+                        DB::connection('oracle_target')
+                        ->table('pos_order_additional_dtl')
+                        ->updateOrInsert(
+                            ['id' => $detail->id],
+                            (array) $detail
+                        );
+                    }
+
                     // Mark as pushed in source DB
 
-                    // DB::connection('oracle')
-                    //     ->table('orders')
-                    //     ->where('id', $order->id)
-                    //     ->update(['is_pushed' => 'Y']);
+                    DB::connection('oracle')
+                        ->table('orders')
+                        ->where('id', $order->id)
+                        ->update(['is_pushed' => 'Y']);
 
                     DB::connection('oracle_target')->commit();
+                    \Log::info('SyncOrdersJob completed');
                 } catch (\Exception $e) {
                     DB::connection('oracle_target')->rollBack();
                     Log::error("Failed syncing order ID {$order->id}: " . $e->getMessage());

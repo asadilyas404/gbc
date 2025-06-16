@@ -103,35 +103,19 @@ return [
     'prefix'         => '',
     'prefix_schema'  => '',
 ],
-// Source DB connection (ROYALERP)
-'oracle_source' => [
-    'driver' => 'oracle',
-    'host' => env('DB_HOST'),
-    'port' => env('DB_PORT'),
-    'database' => env('DB_DATABASE'),
-    'username' => env('DB_USERNAME'),
-    'password' => env('DB_PASSWORD'),
-    'charset' => 'AL32UTF8',
-    'prefix' => '',
-    'prefix_schema' => '',
-],
 
-'oracle_target' => [
-    'driver' => 'oracle',
-    'host' => env('DB_ORACLE_TARGET_HOST'),
-    'port' => env('DB_ORACLE_TARGET_PORT'),
-    'database' => env('DB_ORACLE_TARGET_SERVICE'),
-    'username' => env('DB_ORACLE_TARGET_USERNAME'),
-    'password' => env('DB_ORACLE_TARGET_PASSWORD'),
-    'charset' => 'AL32UTF8',
-    'prefix' => '',
-    'prefix_schema' => '',
-],
-
-
-
-
-
+    // target DB connection
+    'oracle_target' => [
+        'driver'         => env('ORACLE_TARGET_CONNECTION', 'oracle'),
+        'host'           => env('ORACLE_TARGET_HOST', '127.0.0.1'),
+        'port'           => env('ORACLE_TARGET_PORT', '1521'),
+        'database'       => env('ORACLE_TARGET_DATABASE', 'ROYALDB'),
+        'username'       => env('ORACLE_TARGET_USERNAME'),
+        'password'       => env('ORACLE_TARGET_PASSWORD'),
+        'charset'        => 'AL32UTF8',
+        'prefix'         => '',
+        'prefix_schema'  => '',
+    ],
 
 
         // Optional: Oracle connection using TNS name
@@ -146,6 +130,7 @@ return [
         'prefix'   => '',
     ],
     */
+
     ],
 
 

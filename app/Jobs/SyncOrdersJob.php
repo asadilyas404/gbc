@@ -2,32 +2,70 @@
 
 namespace App\Jobs;
 
-use App\Models\Order;
 use Illuminate\Bus\Queueable;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
 
 class SyncOrdersJob implements ShouldQueue
 {
-    use InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle()
+    public function handle(): void
     {
-        $orders = Order::where('is_pushed', 'N')->get();
+        try {
+            // Fetch orders that haven't been pushed
+            $orders = DB::connection('oracle')
+                ->table('orders')
+                ->where('is_pushed', '!=', 'Y')
+                ->orWhereNull('is_pushed')
+                ->get();
 
-        foreach ($orders as $order) {
-            try {
-                $response = Http::post('https://project-b.com/api/receive-data', $order->toArray());
+            foreach ($orders as $order) {
+                DB::connection('oracle_target')->beginTransaction();
 
-                if ($response->successful()) {
-                    $order->is_pushed = 'Y';
-                    $order->save();
+                try {
+                    DB::connection('oracle_target')
+                    ->table('orders')
+                    ->updateOrInsert(
+                        ['id' => $order->id],
+                        (array) $order
+                    );
+
+                    // Fetch order details for this order
+
+                    // $orderDetails = DB::connection('oracle')
+                    //     ->table('order_details')
+                    //     ->where('order_id', $order->id)
+                    //     ->get();
+
+                    // foreach ($orderDetails as $detail) {
+                    //     DB::connection('oracle_target')
+                    //     ->table('order_details')
+                    //     ->updateOrInsert(
+                    //         ['id' => $detail->id],
+                    //         (array) $detail
+                    //     );
+                    // }
+
+                    // Mark as pushed in source DB
+
+                    // DB::connection('oracle')
+                    //     ->table('orders')
+                    //     ->where('id', $order->id)
+                    //     ->update(['is_pushed' => 'Y']);
+
+                    DB::connection('oracle_target')->commit();
+                } catch (\Exception $e) {
+                    DB::connection('oracle_target')->rollBack();
+                    Log::error("Failed syncing order ID {$order->id}: " . $e->getMessage());
                 }
-            } catch (\Exception $e) {
-                \Log::error("Order sync failed: " . $e->getMessage());
             }
+        } catch (\Exception $e) {
+            Log::error("SyncOrdersJob job failed: " . $e->getMessage());
         }
     }
 }

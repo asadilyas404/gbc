@@ -16,6 +16,7 @@ class SyncOrdersJob implements ShouldQueue
 
     public function handle(): void
     {
+        \Log::info('SyncOrdersJob started');
         try {
             // Fetch orders that haven't been pushed
             $orders = DB::connection('oracle')

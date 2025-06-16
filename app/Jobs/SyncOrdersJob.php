@@ -38,19 +38,19 @@ class SyncOrdersJob implements ShouldQueue
 
                     // Fetch order details for this order
 
-                    // $orderDetails = DB::connection('oracle')
-                    //     ->table('order_details')
-                    //     ->where('order_id', $order->id)
-                    //     ->get();
+                    $orderDetails = DB::connection('oracle')
+                        ->table('order_details')
+                        ->where('order_id', $order->id)
+                        ->get();
 
-                    // foreach ($orderDetails as $detail) {
-                    //     DB::connection('oracle_target')
-                    //     ->table('order_details')
-                    //     ->updateOrInsert(
-                    //         ['id' => $detail->id],
-                    //         (array) $detail
-                    //     );
-                    // }
+                    foreach ($orderDetails as $detail) {
+                        DB::connection('oracle_target')
+                        ->table('order_details')
+                        ->updateOrInsert(
+                            ['id' => $detail->id],
+                            (array) $detail
+                        );
+                    }
 
                     // Mark as pushed in source DB
 

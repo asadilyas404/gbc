@@ -77,15 +77,15 @@ class KitchenController extends Controller{
 
             $order = Order::where('id', $request->id)->first();
             if($order) {
-                $order->kitchen_status = $request->type;
-                $order->is_pushed = 'N';
-                $order->save();
-
                 KitchenOrderStatusLog::create([
                     "status" => $request->type,
                     "order_id" => $order->id,
                     "global_id" => $order->global_id,
                 ]);
+
+                $order->kitchen_status = $request->type;
+                $order->is_pushed = 'N';
+                $order->save();
             }
         }
 

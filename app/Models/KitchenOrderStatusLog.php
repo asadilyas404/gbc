@@ -18,6 +18,7 @@ class KitchenOrderStatusLog extends Model
     ];
 
     public function order() {
-        return $this->belongsTo(Order::class,'order_id', 'id');
+        return $this->belongsTo(Order::class,'order_id', 'id')
+        ->where('global_id', $this->global_id);
     }
 }

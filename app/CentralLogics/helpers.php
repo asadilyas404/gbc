@@ -89,7 +89,15 @@ class Helpers
         return (bool)BusinessSetting::where(['key' => 'schedule_order'])->first()->value;
     }
 
+    public static function generateGlobalId($restaurantId)
+    {
+        do {
+            $randomPart = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
+            $globalId = $randomPart . $restaurantId;
+        } while (self::where('global_id', $globalId)->exists());
 
+        return $globalId;
+    }
 
     public static function variation_price($product, $variations)
     {

@@ -608,6 +608,7 @@ class POSController extends Controller
 
         $order->vehicle_id =  $vehicle_id ?? null;
         $order->restaurant_id = $restaurant->id;
+        $order->global_id = Helpers::generateGlobalId($restaurant->id);
         $order->user_id = $request->user_id;
         $order->zone_id = $restaurant->zone_id;
         $order->delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
@@ -712,15 +713,18 @@ class POSController extends Controller
 
             KitchenOrderStatusLog::create([
                 "status" => 'pending',
-                "order_id" => $order->id
+                "order_id" => $order->id,
+                "global_id" => $order->global_id,
             ]);
 
             foreach ($order_details as $key => $item) {
                 $order_details[$key]['order_id'] = $order->id;
+                $order_details[$key]['global_id'] = $order->global_id;
             }
             OrderDetail::insert($order_details);
             $posOrderDtl = new PosOrderAdditionalDtl();
             $posOrderDtl->order_id = $order->id;
+            $posOrderDtl->global_id = $order->global_id;
             $posOrderDtl->restaurant_id = $order->restaurant_id;
             $posOrderDtl->customer_name = $request->customer_name;
             $posOrderDtl->car_number = $request->car_number;

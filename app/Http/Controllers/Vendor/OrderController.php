@@ -373,7 +373,7 @@ class OrderController extends Controller
         $maxMakeTime = $order->details
         ->map(fn($detail) => $detail->food->est_make_time ?? 0)
         ->max();
-        return view('order_receipt', compact('order', 'maxMakeTime'));
+        return view('vendor-views.order.invoice', compact('order', 'maxMakeTime'));
     }
 
     public function add_payment_ref_code(Request $request, $id)

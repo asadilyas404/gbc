@@ -278,7 +278,7 @@
                                 </td>
                                 <td class="table-column-pl-0">
                                     <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
-                                        class="text-hover">{{ $order['id'] }}</a>
+                                        class="text-hover">{{ $order['order_serial'] }}</a>
                                 </td>
                                 <td>
                                     <span class="d-block">

@@ -65,7 +65,7 @@
                                                 </p>
                                             </div>
                                             <div class="text-right">
-                                                <p><strong>Order No:</strong> {{ $order->id }}</p>
+                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
                                                 <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
                                                 @if ($order->kitchen_time)
                                                     <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
@@ -107,7 +107,7 @@
                                                 </p>
                                             </div>
                                             <div class="text-right">
-                                                <p><strong>Order No:</strong> {{ $order->id }}</p>
+                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
                                                 <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
                                                 @if ($order->kitchen_time)
                                                     <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
@@ -149,7 +149,7 @@
                                                 </p>
                                             </div>
                                             <div class="text-right">
-                                                <p><strong>Order No:</strong> {{ $order->id }}</p>
+                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
                                                 <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
                                                 @if ($order->kitchen_time)
                                                     <p class="timer" data-time="{{ $order->kitchen_time }}">Time:

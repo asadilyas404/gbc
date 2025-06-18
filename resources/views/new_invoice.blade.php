@@ -52,7 +52,7 @@
                 <div class="border border-dashed border-secondary p-3 rounded">
                     <h5 class="d-flex justify-content-between gap-2">
                         <span class="text-muted"> {{ translate('Order_ID') }} | معرف الطلب</span>
-                        <span class="">{{ $order['id'] }}</span>
+                        <span class="">{{ $order['order_serial'] }}</span>
                     </h5>
 
                     @if ($order->delivery_address)

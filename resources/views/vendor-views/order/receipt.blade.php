@@ -1,7 +1,7 @@
 @extends('layouts.vendor.app')
 
-@section('title', translate('messages.Order_Receipt'))
+@section('title', 'Kitchen Receipt')
 
 @section('content')
-    @include('order_receipt')
+    @include('kitchen_receipt')
 @endsection

@@ -15,14 +15,15 @@
                         class="initial-38-2" alt="">
                 </div>
                 <div class="text-center pt-3 mb-3">
-                    <h5 class="initial-38-3">{{ $order->restaurant->name }}</h5>
-                    <h5 class="initial-38-3">مالك البيتزا </h5>
+                    <h5 class="initial-38-3">{{ $order->restaurant->name }} | مالك البيتزا </h5>
+                    {{-- <h5 class="initial-38-3">مالك البيتزا </h5> --}}
                     <h5 class="text-break initial-38-4">
-                        {{ $order->restaurant->address }}
+                        {{ $order->restaurant->address }} | المصنعة
                     </h5>
-                    <h5 class="text-break initial-38-4">
+                    {{-- <h5 class="text-break initial-38-4">
                         المصنعة
-                    </h5>
+                    </h5> --}}
+                    <h5 class="initial-38-3">Kitchen Receipt | إيصال المطبخ</h5>
                     <h5 class="text-muted">
                         {{ Carbon\Carbon::parse($order['created_at'])->locale(app()->getLocale())->translatedFormat('d/M/Y ' . config('timeformat')) }}
                     </h5>
@@ -152,13 +153,13 @@
                         @endif
                         @if ($maxMakeTime)
                             <h5 class="d-flex justify-content-between gap-2">
-                                Estimated Make Time :
+                                Processing Time :
                                 <span class="font-light">
                                     {{ $maxMakeTime }} minutes
                                 </span>
                             </h5>
                             <h5>
-                                الوقت المقدر للتصنيع
+                                وقت المعالجة
                             </h5>
                         @endif
                     @endif

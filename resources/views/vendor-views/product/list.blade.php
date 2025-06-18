@@ -69,9 +69,11 @@
                             <select name="category_id" data-url="{{ url()->full() }}" data-filter="type"
                                 data-placeholder="{{ translate('messages.all') }}"
                                 class="form-control w-100 max-sm-12 set-filter">
-                                <option value="all" {{ $type == 'all' ? 'selected' : '' }}>{{ translate('messages.all') }}
+                                <option value="all" {{ $type == 'all' ? 'selected' : '' }}>
+                                    {{ translate('messages.all') }}
                                 </option>
-                                <option value="veg" {{ $type == 'veg' ? 'selected' : '' }}>{{ translate('messages.veg') }}
+                                <option value="veg" {{ $type == 'veg' ? 'selected' : '' }}>
+                                    {{ translate('messages.veg') }}
                                 </option>
                                 <option value="non_veg" {{ $type == 'non_veg' ? 'selected' : '' }}>
                                     {{ translate('messages.non_veg') }}</option>
@@ -504,9 +506,9 @@
                 language: {
                     zeroRecords: '<div class="text-center p-4">' +
                         '<img class="mb-3 w-7rem" src="{{ dynamicAsset('
-                                        public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
+                                                                public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
                         '<p class="mb-0">{{ translate('
-                                        No_data_to_show ') }}</p>' +
+                                                                No_data_to_show ') }}</p>' +
                         '</div>'
                 }
             });
@@ -583,6 +585,7 @@
         $('#search-form').on('submit', function(e) {
             e.preventDefault();
             let formData = new FormData(this);
+            console.log(formData);
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

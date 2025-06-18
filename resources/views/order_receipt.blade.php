@@ -1,6 +1,3 @@
-@extends('layouts.vendor.app')
-@section('title', translate('messages.Order_Invoice'))
-
 <div class="content container-fluid initial-38 new-invoice ">
     <div class="row justify-content-center" id="printableArea">
         <div class="col-md-12">

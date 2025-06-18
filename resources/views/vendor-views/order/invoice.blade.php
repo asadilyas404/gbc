@@ -3,6 +3,5 @@
 @section('title', translate('messages.Order_Invoice'))
 
 @section('content')
-    {{-- @include('new_invoice') --}}
-    @include('order_receipt')
+    @include('new_invoice')
 @endsection

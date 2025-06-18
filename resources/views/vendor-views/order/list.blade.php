@@ -406,6 +406,10 @@
                                         <a class="btn action-btn btn--primary btn-outline-primary" target="_blank"
                                             href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
                                                 class="tio-print"></i></a>
+                                        <a class="btn action-btn btn--primary btn-outline-primary" target="_blank"
+                                            title="Order Receipt"
+                                            href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}"><i
+                                                class="tio-document"></i></a>
                                     </div>
                                 </td>
                             </tr>

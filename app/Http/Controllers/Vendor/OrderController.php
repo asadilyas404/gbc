@@ -367,6 +367,13 @@ class OrderController extends Controller
         return view('vendor-views.order.invoice', compact('order'));
     }
 
+    public function generate_order_receipt($id)
+    {
+        $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])->with(['payments'])->first();
+        dd($order);
+        return view('order_receipt', compact('order'));
+    }
+
     public function add_payment_ref_code(Request $request, $id)
     {
         Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])->update([

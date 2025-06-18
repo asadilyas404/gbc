@@ -278,7 +278,7 @@
                                         <p><strong>Order Type:</strong> ${orderType?.[item.order_type] ? orderType?.[item.order_type] : ""} </p>
                                     </div>
                                     <div class="text-right">
-                                        <p><strong>Order No:</strong> ${item.id}</p>
+                                        <p><strong>Order No:</strong> ${item.order_serial}</p>
                                         <p><strong>Amount:</strong> ${item.order_amount} </p>
                                         ${timeHtml}
                                     </div>

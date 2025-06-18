@@ -229,6 +229,21 @@
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label class="input-label"
+                                            for="exampleFormControlInput1">{{ translate('messages.Est. Make  Minutes') }}
+                                            <span class="input-label-secondary text--title" data-toggle="tooltip"
+                                                data-placement="right"
+                                                data-original-title="{{ translate('Estimated Time to make this food in minutes.') }}">
+                                                <i class="tio-info-outined"></i>
+                                            </span>
+                                        </label>
+                                        <input type="number" min="0" step="1" max="9999999999999999999999"
+                                            value="{{ $product['est_make_time'] }}" name="est_make_time"
+                                            class="form-control" placeholder="{{ translate('messages.Ex :') }} 10">
+                                    </div>
+                                </div>
                                 <div class="col-sm-6 col-lg-3" id="halal">
                                     <div class="form-check mb-0 p-4">
                                         <input class="form-check-input" name="is_halal" type="checkbox" value="1"

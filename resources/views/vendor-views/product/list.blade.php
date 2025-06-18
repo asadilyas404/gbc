@@ -490,44 +490,36 @@
 
 @push('script_2')
     <script>
-        $(document).ready(function() {
-            $('#search-form').on('submit', function(e) {
-                e.preventDefault();
-                alert("Form intercepted!");
-                return false;
-            });
-        });
-
         "use script";
         $(document).on('ready', function() {
 
-            // $('#search-form').on('submit', function(e) {
-            //     e.preventDefault();
-            //     let formData = new FormData(this);
-            //     console.log(formData);
-            //     $.ajaxSetup({
-            //         headers: {
-            //             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-            //         }
-            //     });
-            //     $.post({
-            //         url: '{{ route('vendor.food.search') }}',
-            //         data: formData,
-            //         cache: false,
-            //         contentType: false,
-            //         processData: false,
-            //         beforeSend: function() {
-            //             $('#loading').show();
-            //         },
-            //         success: function(data) {
-            //             $('#set-rows').html(data.view);
-            //             $('.page-area').hide();
-            //         },
-            //         complete: function() {
-            //             $('#loading').hide();
-            //         },
-            //     });
-            // });
+            $('#search-form').on('submit', function(e) {
+                e.preventDefault();
+                let formData = new FormData(this);
+                console.log(formData);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.post({
+                    url: '{{ route('vendor.food.search') }}',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    success: function(data) {
+                        $('#set-rows').html(data.view);
+                        $('.page-area').hide();
+                    },
+                    complete: function() {
+                        $('#loading').hide();
+                    },
+                });
+            });
 
             // INITIALIZATION OF DATATABLES
             // =======================================================
@@ -543,28 +535,28 @@
                 language: {
                     zeroRecords: '<div class="text-center p-4">' +
                         '<img class="mb-3 w-7rem" src="{{ dynamicAsset('
-                                                                                                                                                                                                                                                                                                                                                                                                                                        public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
+                                                                                                                                                                                                                                                                                                                                                                public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
                         '<p class="mb-0">{{ translate('
-                                                                                                                                                                                                                                                                                                                                                                                                                                        No_data_to_show ') }}</p>' +
+                                                                                                                                                                                                                                                                                                                                                                No_data_to_show ') }}</p>' +
                         '</div>'
                 }
             });
 
-            // $('#datatableSearch').on('mouseup', function(e) {
-            //     let $input = $(this),
-            //         oldValue = $input.val();
+            $('#datatableSearch').on('mouseup', function(e) {
+                let $input = $(this),
+                    oldValue = $input.val();
 
-            //     if (oldValue == "") return;
+                if (oldValue == "") return;
 
-            //     setTimeout(function() {
-            //         let newValue = $input.val();
+                setTimeout(function() {
+                    let newValue = $input.val();
 
-            //         if (newValue == "") {
-            //             // Gotcha
-            //             datatable.search('').draw();
-            //         }
-            //     }, 1);
-            // });
+                    if (newValue == "") {
+                        // Gotcha
+                        datatable.search('').draw();
+                    }
+                }, 1);
+            });
 
             $('#toggleColumn_index').change(function(e) {
                 datatable.columns(0).visible(e.target.checked)

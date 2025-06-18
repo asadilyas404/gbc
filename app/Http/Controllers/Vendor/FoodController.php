@@ -169,6 +169,7 @@ class FoodController extends Controller
         $food->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
         $food->restaurant_id = Helpers::get_restaurant_id();
         $food->maximum_cart_quantity = $request->maximum_cart_quantity;
+        $food->est_make_time =  $request->est_make_time ?? 0;
         $food->is_halal =  $request->is_halal ?? 0;
         $food->item_stock = $request->item_stock ?? 0;
         $food->stock_type = $request->stock_type;
@@ -543,6 +544,7 @@ class FoodController extends Controller
         $p->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
         $p->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
         $p->maximum_cart_quantity = $request->maximum_cart_quantity;
+        $p->est_make_time =  $request->est_make_time ?? 0;
         $p->is_halal =  $request->is_halal ?? 0;
         $p->sell_count = 0;
 
@@ -622,8 +624,6 @@ class FoodController extends Controller
 
     public function search(Request $request)
     {
-        dd($request);
-
         $key = explode(' ', $request['search']);
         $foods = Food::where(function ($q) use ($key) {
             foreach ($key as $value) {

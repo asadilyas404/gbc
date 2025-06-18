@@ -1,10 +1,10 @@
 @extends('layouts.vendor.app')
 
-@section('title',translate('messages.add_new_food'))
+@section('title', translate('messages.add_new_food'))
 
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <link href="{{dynamicAsset('public/assets/admin/css/tags-input.min.css')}}" rel="stylesheet">
+    <link href="{{ dynamicAsset('public/assets/admin/css/tags-input.min.css') }}" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -12,7 +12,7 @@
         <!-- Page Header -->
         <div class="page-header">
             <h1 class="page-header-title">
-                <i class="tio-add-circle-outlined"></i> {{translate('messages.add_new_food')}}
+                <i class="tio-add-circle-outlined"></i> {{ translate('messages.add_new_food') }}
             </h1>
         </div>
         <!-- End Page Header -->
@@ -23,19 +23,21 @@
                     <div class="card shadow--card-2 border-0">
                         <div class="card-body pb-0">
                             @php
-                            $language = \App\Models\BusinessSetting::where('key', 'language')->first();
-                            $language = $language->value ?? null;
-                            $default_lang = str_replace('_', '-', app()->getLocale());
+                                $language = \App\Models\BusinessSetting::where('key', 'language')->first();
+                                $language = $language->value ?? null;
+                                $default_lang = str_replace('_', '-', app()->getLocale());
                             @endphp
                             @if ($language)
                                 <div class="js-nav-scroller hs-nav-scroller-horizontal">
                                     <ul class="nav nav-tabs mb-4">
                                         <li class="nav-item">
-                                            <a class="nav-link lang_link active" href="javascript:;" id="default-link">{{ translate('Default') }}</a>
+                                            <a class="nav-link lang_link active" href="javascript:;"
+                                                id="default-link">{{ translate('Default') }}</a>
                                         </li>
                                         @foreach (json_decode($language) as $lang)
                                             <li class="nav-item">
-                                                <a class="nav-link lang_link " href="javascript:;" id="{{ $lang }}-link">
+                                                <a class="nav-link lang_link " href="javascript:;"
+                                                    id="{{ $lang }}-link">
                                                     {{ \App\CentralLogics\Helpers::get_language_name($lang) . '(' . strtoupper($lang) . ')' }}
                                                 </a>
                                             </li>
@@ -51,7 +53,8 @@
                                         <label class="input-label" for="default_name">
                                             {{ translate('messages.name') }} ({{ translate('Default') }})
                                         </label>
-                                        <input type="text" name="name[]" id="default_name" class="form-control" placeholder="{{ translate('messages.new_food') }}">
+                                        <input type="text" name="name[]" id="default_name" class="form-control"
+                                            placeholder="{{ translate('messages.new_food') }}">
                                     </div>
                                     <input type="hidden" name="lang[]" value="default">
                                     <div class="form-group mb-0">
@@ -65,18 +68,19 @@
                                 @foreach (json_decode($language) as $lang)
                                     <div class="d-none lang_form" id="{{ $lang }}-form">
                                         <div class="form-group">
-                                            <label class="input-label" for="{{ $lang }}_name">{{ translate('messages.name') }}
+                                            <label class="input-label"
+                                                for="{{ $lang }}_name">{{ translate('messages.name') }}
                                                 ({{ strtoupper($lang) }})
                                             </label>
-                                            <input type="text" name="name[]" id="{{ $lang }}_name" class="form-control" placeholder="{{ translate('messages.new_food') }}" >
+                                            <input type="text" name="name[]" id="{{ $lang }}_name"
+                                                class="form-control" placeholder="{{ translate('messages.new_food') }}">
                                         </div>
                                         <input type="hidden" name="lang[]" value="{{ $lang }}">
                                         <div class="form-group mb-0">
                                             <label class="input-label"
-                                                   for="exampleFormControlInput1">{{ translate('messages.short_description') }}
+                                                for="exampleFormControlInput1">{{ translate('messages.short_description') }}
                                                 ({{ strtoupper($lang) }})</label>
-                                            <textarea type="text" name="description[]"
-                                                      class="form-control ckeditor min-height-154px"></textarea>
+                                            <textarea type="text" name="description[]" class="form-control ckeditor min-height-154px"></textarea>
                                         </div>
                                     </div>
                                 @endforeach
@@ -86,17 +90,16 @@
                                 <div id="default-form">
                                     <div class="form-group">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.name') }}
+                                            for="exampleFormControlInput1">{{ translate('messages.name') }}
                                             ({{ translate('Default') }})</label>
                                         <input type="text" name="name[]" class="form-control"
-                                               placeholder="{{ translate('messages.new_food') }}">
+                                            placeholder="{{ translate('messages.new_food') }}">
                                     </div>
                                     <input type="hidden" name="lang[]" value="default">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.short_description') }}</label>
-                                        <textarea type="text" name="description[]"
-                                                  class="form-control ckeditor min-height-154px"></textarea>
+                                            for="exampleFormControlInput1">{{ translate('messages.short_description') }}</label>
+                                        <textarea type="text" name="description[]" class="form-control ckeditor min-height-154px"></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -110,15 +113,14 @@
                                 <span>{{ translate('Food_Image') }} <small
                                         class="text-danger">({{ translate('messages.Ratio_200x200') }})</small></span>
                             </h5>
-                            <div
-                                class="form-group mb-0 h-100 d-flex flex-column align-items-center justify-content-center">
+                            <div class="form-group mb-0 h-100 d-flex flex-column align-items-center justify-content-center">
                                 <label>
                                     <center id="image-viewer-section" class="my-auto">
                                         <img class="initial-52 object--cover border--dashed" id="viewer"
-                                             src="{{ dynamicAsset('/public/assets/admin/img/upload.png') }}"
-                                             alt="banner image"/>
+                                            src="{{ dynamicAsset('/public/assets/admin/img/upload.png') }}"
+                                            alt="banner image" />
                                         <input type="file" name="image" id="customFileEg1" class="d-none"
-                                               accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*">
+                                            accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*">
                                     </center>
                                 </label>
                             </div>
@@ -140,17 +142,17 @@
                                 <div class="col-sm-6 col-lg-4">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlSelect1">{{ translate('messages.category') }}<span
+                                            for="exampleFormControlSelect1">{{ translate('messages.category') }}<span
                                                 class="input-label-secondary">*</span></label>
                                         <select name="category_id" id="category_id"
-                                                class="form-control h--45px js-select2-custom get-request"
-                                                data-url="{{url('/')}}/restaurant-panel/food/get-categories?parent_id="
-                                                data-id="sub-categories">
+                                            class="form-control h--45px js-select2-custom get-request"
+                                            data-url="{{ url('/') }}/restaurant-panel/food/get-categories?parent_id="
+                                            data-id="sub-categories">
                                             <option value="" selected disabled>
-                                                ---{{translate('messages.Select Category')}}---
+                                                ---{{ translate('messages.Select Category') }}---
                                             </option>
-                                            @foreach($categories as $category)
-                                                <option value="{{$category['id']}}">{{$category['name']}}</option>
+                                            @foreach ($categories as $category)
+                                                <option value="{{ $category['id'] }}">{{ $category['name'] }}</option>
                                             @endforeach
                                         </select>
                                     </div>
@@ -158,19 +160,18 @@
                                 <div class="col-sm-6 col-lg-4">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlSelect1">{{ translate('messages.sub_category') }}
-                                            <span
-                                                class="input-label-secondary" data-toggle="tooltip"
+                                            for="exampleFormControlSelect1">{{ translate('messages.sub_category') }}
+                                            <span class="input-label-secondary" data-toggle="tooltip"
                                                 data-placement="right"
                                                 data-original-title="{{ translate('messages.category_required_warning') }}"><img
                                                     src="{{ dynamicAsset('/public/assets/admin/img/info-circle.svg') }}"
                                                     alt="{{ translate('messages.category_required_warning') }}"></span></label>
                                         <select name="sub_category_id" id="sub-categories"
-                                                class="form-control h--45px js-select2-custom get-request"
-                                                data-url="{{url('/')}}/restaurant-panel/food/get-categories?parent_id="
-                                                data-id="sub-sub-categories">
+                                            class="form-control h--45px js-select2-custom get-request"
+                                            data-url="{{ url('/') }}/restaurant-panel/food/get-categories?parent_id="
+                                            data-id="sub-sub-categories">
                                             <option value="" selected disabled>
-                                                ---{{translate('messages.Select Sub Category')}}---
+                                                ---{{ translate('messages.Select Sub Category') }}---
                                             </option>
                                         </select>
                                     </div>
@@ -178,9 +179,9 @@
                                 <div class="col-sm-6 col-lg-4">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.food_type') }}</label>
+                                            for="exampleFormControlInput1">{{ translate('messages.food_type') }}</label>
                                         <select required name="veg" id="veg"
-                                                class="form-control js-select2-custom">
+                                            class="form-control js-select2-custom">
                                             <option value="" selected disabled>
                                                 {{ translate('Select Preferences') }}</option>
                                             <option value="0">{{ translate('messages.non_veg') }}</option>
@@ -190,21 +191,21 @@
                                 </div>
                                 <div class="col-sm-6 col-lg-6" id="nutrition">
                                     <label class="input-label" for="sub-categories">
-                                        {{translate('Nutrition')}}
+                                        {{ translate('Nutrition') }}
                                         <span class="input-label-secondary"
-                                              title="{{ translate('Specify the necessary keywords relating to energy values for the item and type this content & press enter.') }}"
-                                              data-toggle="tooltip">
+                                            title="{{ translate('Specify the necessary keywords relating to energy values for the item and type this content & press enter.') }}"
+                                            data-toggle="tooltip">
                                             <i class="tio-info-outined"></i>
                                         </span>
                                     </label>
                                     <select name="nutritions[]"
-                                            data-placeholder="{{ translate('messages.Type your content and  press enter') }}"
-                                            class="form-control multiple-select2" multiple>
+                                        data-placeholder="{{ translate('messages.Type your content and  press enter') }}"
+                                        class="form-control multiple-select2" multiple>
                                         @php $nutritions=   \App\Models\Nutrition::select(['nutrition'])->get() ?? []; @endphp
 
                                         @foreach ($nutritions as $nutrition)
-                                            <option
-                                                value="{{ $nutrition->nutrition }}">{{ $nutrition->nutrition }}</option>
+                                            <option value="{{ $nutrition->nutrition }}">{{ $nutrition->nutrition }}
+                                            </option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -212,27 +213,42 @@
 
                                 <div class="col-sm-6 col-lg-6" id="allergy">
                                     <label class="input-label" for="sub-categories">
-                                        {{translate('Allegren Ingredients')}}
+                                        {{ translate('Allegren Ingredients') }}
                                         <span class="input-label-secondary"
-                                              title="{{ translate('Specify the ingredients of the item which can make a reaction as an allergen and type this content & press enter.') }}"
-                                              data-toggle="tooltip">
+                                            title="{{ translate('Specify the ingredients of the item which can make a reaction as an allergen and type this content & press enter.') }}"
+                                            data-toggle="tooltip">
                                             <i class="tio-info-outined"></i>
                                         </span>
                                     </label>
                                     <select name="allergies[]"
-                                            data-placeholder="{{ translate('messages.Type your content and  press enter') }}"
-                                            class="form-control multiple-select2" multiple>
+                                        data-placeholder="{{ translate('messages.Type your content and  press enter') }}"
+                                        class="form-control multiple-select2" multiple>
                                         @php $allergies=  \App\Models\Allergy::select(['allergy'])->get() ?? []; @endphp
 
-                                        @foreach ( $allergies as $allergy)
+                                        @foreach ($allergies as $allergy)
                                             <option value="{{ $allergy->allergy }}">{{ $allergy->allergy }}</option>
                                         @endforeach
                                     </select>
                                 </div>
+                                <div class="col-md-3">
+                                    <div class="form-group mb-0">
+                                        <label class="input-label"
+                                            for="exampleFormControlInput1">{{ translate('messages.Est. Make  Minutes') }}
+                                            <span class="input-label-secondary text--title" data-toggle="tooltip"
+                                                data-placement="right"
+                                                data-original-title="{{ translate('Estimated Time to make this food in minutes.') }}">
+                                                <i class="tio-info-outined"></i>
+                                            </span>
+                                        </label>
+                                        <input type="number" min="0" step="1" max="9999999999999999999999"
+                                            name="est_make_time" class="form-control"
+                                            placeholder="{{ translate('messages.Ex :') }} 10">
+                                    </div>
+                                </div>
                                 <div class="col-sm-6 col-lg-3" id="halal">
                                     <div class="form-check mb-0 p-4">
                                         <input class="form-check-input" name="is_halal" type="checkbox" value="1"
-                                               id="flexCheckDefault" checked>
+                                            id="flexCheckDefault" checked>
                                         <label class="form-check-label" for="flexCheckDefault">
                                             {{ translate('messages.Is_It_Halal') }}
                                         </label>
@@ -254,16 +270,15 @@
                         </div>
                         <div class="card-body">
                             <label class="input-label"
-                                   for="exampleFormControlSelect1">{{ translate('Select Add-on') }}<span
-                                    class="input-label-secondary" data-toggle="tooltip"
-                                    data-placement="right"
+                                for="exampleFormControlSelect1">{{ translate('Select Add-on') }}<span
+                                    class="input-label-secondary" data-toggle="tooltip" data-placement="right"
                                     data-original-title="{{ translate('messages.restaurant_required_warning') }}"><img
                                         src="{{ dynamicAsset('/public/assets/admin/img/info-circle.svg') }}"
                                         alt="{{ translate('messages.restaurant_required_warning') }}"></span></label>
-                            <select name="addon_ids[]" class="form-control border js-select2-custom"
-                                    multiple="multiple" id="add_on">
-                                @foreach(\App\Models\AddOn::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->orderBy('name')->get() as $addon)
-                                    <option value="{{$addon['id']}}">{{$addon['name']}}</option>
+                            <select name="addon_ids[]" class="form-control border js-select2-custom" multiple="multiple"
+                                id="add_on">
+                                @foreach (\App\Models\AddOn::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->orderBy('name')->get() as $addon)
+                                    <option value="{{ $addon['id'] }}">{{ $addon['name'] }}</option>
                                 @endforeach
                             </select>
                         </div>
@@ -282,18 +297,18 @@
                                 <div class="col-sm-6">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.available_time_starts') }}</label>
+                                            for="exampleFormControlInput1">{{ translate('messages.available_time_starts') }}</label>
                                         <input type="time" name="available_time_starts" class="form-control"
-                                               id="available_time_starts"
-                                               placeholder="{{ translate('messages.Ex :') }} 10:30 am" required>
+                                            id="available_time_starts"
+                                            placeholder="{{ translate('messages.Ex :') }} 10:30 am" required>
                                     </div>
                                 </div>
                                 <div class="col-sm-6">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.available_time_ends') }}</label>
+                                            for="exampleFormControlInput1">{{ translate('messages.available_time_ends') }}</label>
                                         <input type="time" name="available_time_ends" class="form-control"
-                                               id="available_time_ends" placeholder="5:45 pm" required>
+                                            id="available_time_ends" placeholder="5:45 pm" required>
                                     </div>
                                 </div>
                             </div>
@@ -313,54 +328,55 @@
                                 <div class="col-md-3">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.Unit_Price') }} {{ \App\CentralLogics\Helpers::currency_symbol() }}</label>
-                                        <input type="number" min="0" max="999999999999.99"
-                                               step="0.01" value="1" name="price" class="form-control"
-                                               placeholder="{{ translate('messages.Ex :') }} 100" required>
+                                            for="exampleFormControlInput1">{{ translate('messages.Unit_Price') }}
+                                            {{ \App\CentralLogics\Helpers::currency_symbol() }}</label>
+                                        <input type="number" min="0" max="999999999999.99" step="0.01"
+                                            value="1" name="price" class="form-control"
+                                            placeholder="{{ translate('messages.Ex :') }} 100" required>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.discount_type') }}
+                                            for="exampleFormControlInput1">{{ translate('messages.discount_type') }}
 
                                         </label>
                                         <select name="discount_type" class="form-control js-select2-custom">
-                                            <option value="percent">{{ translate('messages.percent').' (%)' }}</option>
-                                            <option
-                                                value="amount">{{ translate('messages.amount').' ('.\App\CentralLogics\Helpers::currency_symbol().')'  }}</option>
+                                            <option value="percent">{{ translate('messages.percent') . ' (%)' }}</option>
+                                            <option value="amount">
+                                                {{ translate('messages.amount') . ' (' . \App\CentralLogics\Helpers::currency_symbol() . ')' }}
+                                            </option>
                                         </select>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.discount') }}
+                                            for="exampleFormControlInput1">{{ translate('messages.discount') }}
                                             <span class="input-label-secondary text--title" data-toggle="tooltip"
-                                                  data-placement="right"
-                                                  data-original-title="{{ translate('Currently you need to manage discount with the Restaurant.') }}">
-                                            <i class="tio-info-outined"></i>
-                                        </span>
+                                                data-placement="right"
+                                                data-original-title="{{ translate('Currently you need to manage discount with the Restaurant.') }}">
+                                                <i class="tio-info-outined"></i>
+                                            </span>
                                         </label>
-                                        <input type="number" min="0" max="9999999999999999999999"
-                                               value="0" step="0.01" name="discount" class="form-control"
-                                               placeholder="{{ translate('messages.Ex :') }} 100">
+                                        <input type="number" min="0" max="9999999999999999999999" value="0"
+                                            step="0.01" name="discount" class="form-control"
+                                            placeholder="{{ translate('messages.Ex :') }} 100">
                                     </div>
                                 </div>
                                 <div class="col-md-3" id="maximum_cart_quantity">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="maximum_cart_quantity">{{ translate('messages.Maximum_Purchase_Quantity_Limit') }}
-                                            <span
-                                                class="input-label-secondary text--title" data-toggle="tooltip"
+                                            for="maximum_cart_quantity">{{ translate('messages.Maximum_Purchase_Quantity_Limit') }}
+                                            <span class="input-label-secondary text--title" data-toggle="tooltip"
                                                 data-placement="right"
                                                 data-original-title="{{ translate('If_this_limit_is_exceeded,_customers_can_not_buy_the_food_in_a_single_purchase.') }}">
-                                            <i class="tio-info-outined"></i>
-                                        </span>
+                                                <i class="tio-info-outined"></i>
+                                            </span>
                                         </label>
                                         <input type="number" placeholder="{{ translate('messages.Ex:_10') }}"
-                                               class="form-control" name="maximum_cart_quantity" min="0"
-                                               id="cart_quantity">
+                                            class="form-control" name="maximum_cart_quantity" min="0"
+                                            id="cart_quantity">
                                     </div>
                                 </div>
 
@@ -368,14 +384,12 @@
                                 <div class="col-md-3">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{ translate('messages.Stock_Type') }}
+                                            for="exampleFormControlInput1">{{ translate('messages.Stock_Type') }}
                                         </label>
-                                        <select name="stock_type" id="stock_type"
-                                                class="form-control js-select2-custom">
-                                            <option
-                                                value="unlimited">{{ translate('messages.Unlimited_Stock') }}</option>
-                                            <option value="limited">{{ translate('messages.Limited_Stock')  }}</option>
-                                            <option value="daily">{{ translate('messages.Daily_Stock')  }}</option>
+                                        <select name="stock_type" id="stock_type" class="form-control js-select2-custom">
+                                            <option value="unlimited">{{ translate('messages.Unlimited_Stock') }}</option>
+                                            <option value="limited">{{ translate('messages.Limited_Stock') }}</option>
+                                            <option value="daily">{{ translate('messages.Daily_Stock') }}</option>
                                         </select>
                                     </div>
                                 </div>
@@ -383,16 +397,16 @@
                                 <div class="col-md-3 hide_this" id="">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                               for="item_stock">{{ translate('messages.Item_Stock') }}
+                                            for="item_stock">{{ translate('messages.Item_Stock') }}
                                             <span class="input-label-secondary text--title" data-toggle="tooltip"
-                                                  data-placement="right"
-                                                  data-original-title="{{ translate('This_Stock_amount_will_be_counted_as_the_base_stock._But_if_you_want_to_manage_variation_wise_stock,_then_need__to_manage_it_below_with_food_variation_setup.') }}">
-                                            <i class="tio-info-outined"></i>
-                                        </span>
+                                                data-placement="right"
+                                                data-original-title="{{ translate('This_Stock_amount_will_be_counted_as_the_base_stock._But_if_you_want_to_manage_variation_wise_stock,_then_need__to_manage_it_below_with_food_variation_setup.') }}">
+                                                <i class="tio-info-outined"></i>
+                                            </span>
                                         </label>
                                         <input type="number" placeholder="{{ translate('messages.Ex:_10') }}"
-                                               class="form-control stock_disable" name="item_stock" min="0"
-                                               max="999999999" id="item_stock">
+                                            class="form-control stock_disable" name="item_stock" min="0"
+                                            max="999999999" id="item_stock">
                                     </div>
                                 </div>
 
@@ -433,19 +447,18 @@
                         </div>
                         <div class="card-body">
                             <input type="text" class="form-control" name="tags" placeholder="Enter tags"
-                                   data-role="tagsinput">
+                                data-role="tagsinput">
                         </div>
                     </div>
                 </div>
                 <div class="col-lg-12">
                     <div class="btn--container justify-content-end">
-                        @if(isset($_GET['type']) && $_GET['type'] == 'offer')
+                        @if (isset($_GET['type']) && $_GET['type'] == 'offer')
                             <input type="hidden" name="type" value="offer">
                         @endif
                         <button type="reset" id="reset_btn"
-                                class="btn btn--reset">{{ translate('messages.reset') }}</button>
-                        <button type="submit"
-                                class="btn btn--primary">{{ translate('messages.submit') }}</button>
+                            class="btn btn--reset">{{ translate('messages.reset') }}</button>
+                        <button type="submit" class="btn btn--primary">{{ translate('messages.submit') }}</button>
                     </div>
                 </div>
             </div>
@@ -455,20 +468,21 @@
 @endsection
 
 @push('script')
-
 @endpush
 
 @push('script_2')
-    <script src="{{dynamicAsset('public/assets/admin')}}/js/tags-input.min.js"></script>
-    <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/vendor/product-index.js"></script>
+    <script src="{{ dynamicAsset('public/assets/admin') }}/js/tags-input.min.js"></script>
+    <script src="{{ dynamicAsset('public/assets/admin') }}/js/view-pages/vendor/product-index.js"></script>
     <script>
         "use strict";
-        $('#stock_type').on('change', function () {
+        $('#stock_type').on('change', function() {
             if ($(this).val() == 'unlimited') {
-                $('.stock_disable').prop('readonly', true).prop('required', false).attr('placeholder', '{{ translate('Unlimited') }}').val('');
+                $('.stock_disable').prop('readonly', true).prop('required', false).attr('placeholder',
+                    '{{ translate('Unlimited') }}').val('');
                 $('.hide_this').addClass('d-none');
             } else {
-                $('.stock_disable').prop('readonly', false).prop('required', true).attr('placeholder', '{{ translate('messages.Ex:_100') }}');
+                $('.stock_disable').prop('readonly', false).prop('required', true).attr('placeholder',
+                    '{{ translate('messages.Ex:_100') }}');
                 $('.hide_this').removeClass('d-none');
             }
         });
@@ -477,15 +491,17 @@
 
         function updatestockCount() {
             if ($('#stock_type').val() == 'unlimited') {
-                $('.stock_disable').prop('readonly', true).prop('required', false).attr('placeholder', '{{ translate('Unlimited') }}').val('');
+                $('.stock_disable').prop('readonly', true).prop('required', false).attr('placeholder',
+                    '{{ translate('Unlimited') }}').val('');
                 $('.hide_this').addClass('d-none');
             } else {
-                $('.stock_disable').prop('readonly', false).prop('required', true).attr('placeholder', '{{ translate('messages.Ex:_100') }}');
+                $('.stock_disable').prop('readonly', false).prop('required', true).attr('placeholder',
+                    '{{ translate('messages.Ex:_100') }}');
                 $('.hide_this').removeClass('d-none');
             }
         }
 
-        $('#food_form').on('submit', function () {
+        $('#food_form').on('submit', function() {
             var formData = new FormData(this);
             $.ajaxSetup({
                 headers: {
@@ -493,16 +509,16 @@
                 }
             });
             $.post({
-                url: '{{route('vendor.food.store')}}',
+                url: '{{ route('vendor.food.store') }}',
                 data: $('#food_form').serialize(),
                 data: formData,
                 cache: false,
                 contentType: false,
                 processData: false,
-                beforeSend: function () {
+                beforeSend: function() {
                     $('#loading').show();
                 },
-                success: function (data) {
+                success: function(data) {
                     $('#loading').hide();
                     if (data.errors) {
                         for (var i = 0; i < data.errors.length; i++) {
@@ -512,12 +528,12 @@
                             });
                         }
                     } else {
-                        toastr.success('{{translate('messages.product_added_successfully')}}', {
+                        toastr.success('{{ translate('messages.product_added_successfully') }}', {
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function () {
-                            location.href = '{{route('vendor.food.list')}}';
+                        setTimeout(function() {
+                            location.href = '{{ route('vendor.food.list') }}';
                         }, 2000);
                     }
                 }
@@ -525,7 +541,7 @@
         });
 
 
-        $('#reset_btn').click(function () {
+        $('#reset_btn').click(function() {
             $('#restaurant_id').val(null).trigger('change');
             $('#category_id').val(null).trigger('change');
             $('#categories').val(null).trigger('change');
@@ -537,7 +553,7 @@
         })
     </script>
 
-    @if(isset($_GET['type']) && $_GET['type'] == 'offer')
+    @if (isset($_GET['type']) && $_GET['type'] == 'offer')
         @php
             $foods = \App\Models\Food::orderBy('name', 'asc')->select('id', 'name')->get();
             $foods = $foods->toArray();
@@ -549,8 +565,8 @@
             Object.entries(foodList).forEach(([id, item]) => {
                 foodListOptions += `<option value="${item.id}">${item.name}</option>`;
             });
-            $(document).ready(function () {
-                $("#add_new_option_button").click(function (e) {
+            $(document).ready(function() {
+                $("#add_new_option_button").click(function(e) {
                     $('#empty-variation').hide();
                     count++;
                     let add_option_view = `
@@ -570,9 +586,10 @@
                             <div class="row g-2">
                                 <div class="col-xl-4 col-lg-6">
                                     <label for="">{{ translate('name') }}&nbsp;
-                                        <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> * </span>
+                                        <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.') }}"> * </span>
                                     </label>
-                                    <input required name=options[` + count + `][name] class="form-control new_option_name" type="text" data-count="` + count + `">
+                                    <input required name=options[` + count +
+                        `][name] class="form-control new_option_name" type="text" data-count="` + count + `">
                                 </div>
                                 <div class="col-xl-4 col-lg-6">
                                     <div>
@@ -581,12 +598,14 @@
                                         </label>
                                         <div class="resturant-type-group px-0">
                                             <label class="form-check form--check mr-2 mr-md-4">
-                                                <input class="form-check-input show_min_max" data-count="` + count + `" type="radio" value="multi" name="options[` + count + `][type]" id="type` + count + `" checked >
+                                                <input class="form-check-input show_min_max" data-count="` + count +
+                        `" type="radio" value="multi" name="options[` + count + `][type]" id="type` + count + `" checked >
                                                 <span class="form-check-label"> {{ translate('Multiple Selection') }} </span>
                                             </label>
 
                                             <label class="form-check form--check mr-2 mr-md-4">
-                                                <input class="form-check-input hide_min_max" data-count="` + count + `" type="radio" value="single" name="options[` + count + `][type]" id="type` + count + `" >
+                                                <input class="form-check-input hide_min_max" data-count="` + count +
+                        `" type="radio" value="single" name="options[` + count + `][type]" id="type` + count + `" >
                                                 <span class="form-check-label"> {{ translate('Single Selection') }} </span>
                                             </label>
                                         </div>
@@ -612,7 +631,7 @@
                                         <div class="row g-3 add_new_view_row_class mb-3">
                                             <div class="col-md-3 col-sm-6">
                                                 <label for="">Food &nbsp;
-                                                    <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> * </span>
+                                                    <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.') }}"> * </span>
                                                 </label>
                                                 <select class="form-control all_food_list" id="" name="options[${count}][values][0][food]">
                                                     ${foodListOptions}
@@ -630,8 +649,10 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row mt-3 p-3 mr-1 d-flex "  id="add_new_button_` + count + `">
-                                        <button type="button" class="btn btn--primary btn-outline-primary add_new_row_button" data-count="` + count + `">{{ translate('Add_New_Option') }}</button>
+                                    <div class="row mt-3 p-3 mr-1 d-flex "  id="add_new_button_` + count +
+                        `">
+                                        <button type="button" class="btn btn--primary btn-outline-primary add_new_row_button" data-count="` +
+                        count + `">{{ translate('Add_New_Option') }}</button>
                                     </div>
                                 </div>
                             </div>
@@ -641,16 +662,18 @@
 
                     $("#add_new_option").append(add_option_view);
                     updatestockCount();
-                    $('#add_new_option>.__bg-F8F9FC-card:last').find('.add_new_view_row_class:first').find('.all_food_list').change();
+                    $('#add_new_option>.__bg-F8F9FC-card:last').find('.add_new_view_row_class:first').find(
+                        '.all_food_list').change();
                 });
             });
+
             function add_new_row_button(data) {
                 countRow = 0 + $('#option_price_view_' + data).children('.add_new_view_row_class').length;
                 let add_new_row_view = `
             <div class="row add_new_view_row_class mb-3 position-relative pt-3 pt-sm-0">
                 <div class="col-md-3 col-sm-5">
                     <label for="">Food &nbsp;
-                        <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.')}}"> * </span>
+                        <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.') }}"> * </span>
                     </label>
                     <select class="form-control all_food_list" id="" name="options[${data}][values][${countRow}][food]">
                         ${foodListOptions}
@@ -680,7 +703,7 @@
                 $('.add_new_view_row_class:last').find('.all_food_list').change()
             }
 
-            $(document).on('change','.all_food_list',function(){
+            $(document).on('change', '.all_food_list', function() {
                 const thix = $(this);
                 const val = thix.val();
                 const add_new_view_row_class = thix.closest('.add_new_view_row_class');
@@ -688,25 +711,26 @@
                 const variation_option = add_new_view_row_class.find('select.all_variation_option_list')
                 variations.html("");
                 variation_option.html("");
-                if(val) {
+                if (val) {
                     $.ajax({
-                        url: "/restaurant-panel/food/get-all-variations-by-food/"+val,
+                        url: "/restaurant-panel/food/get-all-variations-by-food/" + val,
                         type: "GET",
                         dataType: "json",
                         success: function(res) {
                             console.log("Success:", res);
-                            if(res.success){
+                            if (res.success) {
                                 let data = res.data;
-                                if(data){
+                                if (data) {
                                     let variationList = ``;
                                     Object.entries(data).forEach(([id, item]) => {
-                                        variationList += `<option value="${item.id}">${item.name}</option>`;
+                                        variationList +=
+                                            `<option value="${item.id}">${item.name}</option>`;
                                     });
                                     variations.html(variationList);
                                     variation_option.html("");
                                     variations.change();
                                 }
-                            }else{
+                            } else {
                                 alert(res.message);
                             }
                         },
@@ -716,30 +740,31 @@
                     });
                 }
             });
-            $(document).on('change','.all_variation_list',function(){
+            $(document).on('change', '.all_variation_list', function() {
                 const thix = $(this);
                 const val = thix.val();
                 const add_new_view_row_class = thix.closest('.add_new_view_row_class');
                 const food_id = add_new_view_row_class.find('select.all_food_list option:selected').val();
                 const variation_option = add_new_view_row_class.find('select.all_variation_option_list')
                 variation_option.html("");
-                if(food_id && val) {
+                if (food_id && val) {
                     $.ajax({
-                        url: "/restaurant-panel/food/get-all-options-by-variation/"+food_id+"/"+val,
+                        url: "/restaurant-panel/food/get-all-options-by-variation/" + food_id + "/" + val,
                         type: "GET",
                         dataType: "json",
                         success: function(res) {
                             console.log("Success:", res);
-                            if(res.success){
+                            if (res.success) {
                                 let data = res.data;
-                                if(data){
+                                if (data) {
                                     let variationList = ``;
                                     Object.entries(data).forEach(([id, item]) => {
-                                        variationList += `<option value="${item.id}">${item.name}</option>`;
+                                        variationList +=
+                                            `<option value="${item.id}">${item.name}</option>`;
                                     });
                                     variation_option.html(variationList);
                                 }
-                            }else{
+                            } else {
                                 alert(res.message);
                             }
                         },
@@ -752,8 +777,8 @@
         </script>
     @else
         <script>
-            $(document).ready(function () {
-                $("#add_new_option_button").click(function (e) {
+            $(document).ready(function() {
+                $("#add_new_option_button").click(function(e) {
                     $('#empty-variation').hide();
                     count++;
                     let add_option_view = `
@@ -775,7 +800,7 @@
                                     <div class="col-xl-4 col-lg-6">
                                         <label for="">{{ translate('name') }}&nbsp;<span class="form-label-secondary text-danger"
                                     data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.')}}"> *
+                                    data-original-title="{{ translate('messages.Required.') }}"> *
                                     </span></label>
                                         <input required name=options[` + count +
                         `][name] class="form-control new_option_name" type="text" data-count="` +
@@ -788,7 +813,8 @@
                                             </label>
                                             <div class="resturant-type-group px-0">
                                                 <label class="form-check form--check mr-2 mr-md-4">
-                                                    <input class="form-check-input show_min_max" data-count="` + count + `" type="radio" value="multi"
+                                                    <input class="form-check-input show_min_max" data-count="` +
+                        count + `" type="radio" value="multi"
                                                     name="options[` + count + `][type]" id="type` + count +
                         `" checked
                                                     >
@@ -830,7 +856,7 @@
                                                 <div class="col-md-3 col-sm-6">
                                                     <label for="">{{ translate('Option_name') }} &nbsp;<span class="form-label-secondary text-danger"
                                     data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.')}}"> *
+                                    data-original-title="{{ translate('messages.Required.') }}"> *
                                     </span></label>
                                                     <input class="form-control" required type="text" name="options[` +
                         count +
@@ -839,10 +865,11 @@
                                                 <div class="col-md-3 col-sm-6">
                                                     <label for="">{{ translate('Additional_price') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})&nbsp;<span class="form-label-secondary text-danger"
                                     data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.')}}"> *
+                                    data-original-title="{{ translate('messages.Required.') }}"> *
                                     </span></label>
                                                     <input class="form-control" required type="number" min="0" step="0.01" name="options[` +
-                        count + `][values][0][optionPrice]" id="">
+                        count +
+                        `][values][0][optionPrice]" id="">
                                                 </div>
                                                 <div class="col-md-3 col-sm-6 hide_this">
                                                     <label for="">{{ translate('Stock') }}</label>
@@ -865,6 +892,7 @@
                     updatestockCount();
                 });
             });
+
             function add_new_row_button(data) {
                 countRow = 1 + $('#option_price_view_' + data).children('.add_new_view_row_class').length;
                 let add_new_row_view = `
@@ -872,17 +900,19 @@
                     <div class="col-md-3 col-sm-5">
                             <label for="">{{ translate('Option_name') }} &nbsp;<span class="form-label-secondary text-danger"
                                     data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.')}}"> *
+                                    data-original-title="{{ translate('messages.Required.') }}"> *
                                     </span></label>
-                            <input class="form-control" required type="text" name="options[` + data + `][values][` + countRow + `][label]" id="">
+                            <input class="form-control" required type="text" name="options[` + data + `][values][` +
+                    countRow + `][label]" id="">
                         </div>
                         <div class="col-md-3 col-sm-5">
                             <label for="">{{ translate('Additional_price') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})&nbsp;<span class="form-label-secondary text-danger"
                                     data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.')}}"> *
+                                    data-original-title="{{ translate('messages.Required.') }}"> *
                                     </span></label>
                             <input class="form-control"  required type="number" min="0" step="0.01" name="options[` +
-                    data + `][values][` + countRow + `][optionPrice]" id="">
+                    data + `][values][` + countRow +
+                    `][optionPrice]" id="">
                         </div>
 
 
@@ -910,5 +940,3 @@
         </script>
     @endif
 @endpush
-
-

@@ -1,5 +1,5 @@
 @extends('layouts.vendor.app')
-@section('title', translate('messages.Order_Receipt'))
+@section('title', 'Order Receipt')
 
 <div class="content container-fluid initial-38 new-invoice ">
     <div class="row justify-content-center" id="printableArea">
@@ -155,7 +155,7 @@
                         @endif
                         @if ($maxMakeTime)
                             <h5 class="d-flex justify-content-between gap-2">
-                                {{ translate('messages.Estimated_Make_Time') }} :
+                                Estimated Make Time :
                                 <span class="font-light">
                                     {{ $maxMakeTime }} minutes
                                 </span>

@@ -153,6 +153,17 @@
                                 هاتف
                             </h5>
                         @endif
+                        @if ($maxMakeTime)
+                            <h5 class="d-flex justify-content-between gap-2">
+                                {{ translate('messages.Estimated Make Time') }} :
+                                <span class="font-light">
+                                    {{ $maxMakeTime }} minutes
+                                </span>
+                            </h5>
+                            <h5>
+                                الوقت المقدر للتصنيع
+                            </h5>
+                        @endif
                     @endif
                 </div>
 
@@ -427,7 +438,8 @@
                                                 ({{ translate('COD') }})
                                             </dt>
                                         @else
-                                            <dt class="col-6 text-left text-muted">{{ translate('messages.Paid_by') }}
+                                            <dt class="col-6 text-left text-muted">
+                                                {{ translate('messages.Paid_by') }}
                                                 | تدفع بواسطة
                                                 {{ translate($payment->payment_method) }} </dt>
                                         @endif

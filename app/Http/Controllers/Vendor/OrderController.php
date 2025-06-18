@@ -369,9 +369,11 @@ class OrderController extends Controller
 
     public function generate_order_receipt($id)
     {
-        $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])->with(['payments'])->first();
-        dd($order);
-        return view('order_receipt', compact('order'));
+        $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])->with(['payments', 'details.food'])->first();
+        $maxMakeTime = $order->details
+        ->map(fn($detail) => $detail->food->EST_MAKE_TIME ?? 0)
+        ->max();
+        return view('order_receipt', compact('order', 'maxMakeTime'));
     }
 
     public function add_payment_ref_code(Request $request, $id)

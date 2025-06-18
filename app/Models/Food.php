@@ -35,6 +35,7 @@ class Food extends Model
         'recommended' => 'integer',
         'order_count'=>'integer',
         'rating_count'=>'integer',
+        'est_make_time'=>'float',
         'is_halal'=>'integer',
     ];
 

@@ -40,7 +40,7 @@
                         <!-- Search -->
                         <div class="input-group input--group">
                             <input id="datatableSearch" type="search" name="search" class="form-control"
-                                placeholder="{{ translate('messages.Ex : Search Food Name') }}">
+                                placeholder="{{ translate('messages.Ex : Search Fooddddd') }}">
                             <button type="submit" class="btn btn--secondary">
                                 <i class="tio-search"></i>
                             </button>
@@ -506,9 +506,9 @@
                 language: {
                     zeroRecords: '<div class="text-center p-4">' +
                         '<img class="mb-3 w-7rem" src="{{ dynamicAsset('
-                                                                public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
+                                                                                        public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
                         '<p class="mb-0">{{ translate('
-                                                                No_data_to_show ') }}</p>' +
+                                                                                        No_data_to_show ') }}</p>' +
                         '</div>'
                 }
             });

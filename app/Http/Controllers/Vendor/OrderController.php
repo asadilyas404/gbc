@@ -373,6 +373,7 @@ class OrderController extends Controller
         $maxMakeTime = $order->details
         ->map(fn($detail) => $detail->food->EST_MAKE_TIME ?? 0)
         ->max();
+        dd($maxMakeTime);
         return view('order_receipt', compact('order', 'maxMakeTime'));
     }
 

@@ -1,5 +1,5 @@
 @extends('layouts.vendor.app')
-@section('title', 'Order Receipt')
+@section('title', translate('messages.Order_Receipt'))
 
 <div class="content container-fluid initial-38 new-invoice ">
     <div class="row justify-content-center" id="printableArea">

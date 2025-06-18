@@ -150,7 +150,7 @@
                                     <i class="tio-print mr-1"></i> {{ translate('messages.print_invoice') }}
                                 </a>
                                 <a class="btn btn--primary m-2 print--btn"
-                                    href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}">
+                                    href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}">
                                     <i class="tio-print mr-1"></i> Kitchen Receipt
                                 </a>
                             </div>

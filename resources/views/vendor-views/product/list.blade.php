@@ -40,7 +40,7 @@
                         <!-- Search -->
                         <div class="input-group input--group">
                             <input id="datatableSearch" type="search" name="search" class="form-control"
-                                placeholder="{{ translate('messages.Ex : Search Fooddddd') }}">
+                                placeholder="{{ translate('messages.Ex : Search Food Name') }}">
                             <button type="submit" class="btn btn--secondary">
                                 <i class="tio-search"></i>
                             </button>
@@ -506,9 +506,9 @@
                 language: {
                     zeroRecords: '<div class="text-center p-4">' +
                         '<img class="mb-3 w-7rem" src="{{ dynamicAsset('
-                                                                                        public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
+                                                                                                                                        public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
                         '<p class="mb-0">{{ translate('
-                                                                                        No_data_to_show ') }}</p>' +
+                                                                                                                                        No_data_to_show ') }}</p>' +
                         '</div>'
                 }
             });
@@ -554,6 +554,37 @@
             $('.js-select2-custom').each(function() {
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
             });
+
+
+            $('#search-form').on('submit', function(e) {
+                e.preventDefault();
+                let formData = new FormData(this);
+                console.log(formData);
+                $.ajaxSetup({
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    }
+                });
+                $.post({
+                    url: '{{ route('vendor.food.search') }}',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    beforeSend: function() {
+                        $('#loading').show();
+                    },
+                    success: function(data) {
+                        $('#set-rows').html(data.view);
+                        $('.page-area').hide();
+                    },
+                    complete: function() {
+                        $('#loading').hide();
+                    },
+                });
+            });
+
+
         });
 
         $('#category').select2({
@@ -580,34 +611,6 @@
                     return $request;
                 }
             }
-        });
-
-        $('#search-form').on('submit', function(e) {
-            e.preventDefault();
-            let formData = new FormData(this);
-            console.log(formData);
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                }
-            });
-            $.post({
-                url: '{{ route('vendor.food.search') }}',
-                data: formData,
-                cache: false,
-                contentType: false,
-                processData: false,
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                success: function(data) {
-                    $('#set-rows').html(data.view);
-                    $('.page-area').hide();
-                },
-                complete: function() {
-                    $('#loading').hide();
-                },
-            });
         });
     </script>
 @endpush

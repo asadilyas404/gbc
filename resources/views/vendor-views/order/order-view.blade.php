@@ -149,6 +149,10 @@
                                     href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}">
                                     <i class="tio-print mr-1"></i> {{ translate('messages.print_invoice') }}
                                 </a>
+                                <a class="btn btn--primary m-2 print--btn"
+                                    href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}">
+                                    <i class="tio-print mr-1"></i> Kitchen Receipt
+                                </a>
                             </div>
                             <div class="text-right mt-3 order-invoice-right-contents text-capitalize">
                                 @if (isset($order->subscription))
@@ -494,13 +498,13 @@
                             </table>
                         </div>
                         <?php
-                        
+
                         $coupon_discount_amount = $order['coupon_discount_amount'];
-                        
+
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
-                        
+
                         $total_tax_amount = $order['total_tax_amount'];
-                        
+
                         $restaurant_discount_amount = $order['restaurant_discount_amount'];
                         $tax_included = \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first() ? \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first()->value : 0;
                         ?>

@@ -80,7 +80,6 @@ class KitchenController extends Controller{
                 KitchenOrderStatusLog::create([
                     "status" => $request->type,
                     "order_id" => $order->id,
-                    "global_id" => $order->global_id,
                 ]);
 
                 $order->kitchen_status = $request->type;

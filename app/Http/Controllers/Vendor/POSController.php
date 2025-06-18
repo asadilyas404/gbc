@@ -572,9 +572,10 @@ class POSController extends Controller
 
         $order_details = [];
         $order = new Order();
-        $order->id = 100000 + Order::count() + 1;
-        if (Order::find($order->id)) {
-            $order->id = Order::latest()->first()->id + 1;
+        $order->id = Helpers::generateGlobalId($restaurant->id);
+        $order->order_serial = 100000 + Order::count() + 1;
+        if (Order::find($order->order_serial)) {
+            $order->order_serial = Order::latest()->first()->order_serial + 1;
         }
         $order->payment_status = isset($address) ? 'unpaid' : 'paid';
         if ($request->user_id) {
@@ -608,7 +609,6 @@ class POSController extends Controller
 
         $order->vehicle_id =  $vehicle_id ?? null;
         $order->restaurant_id = $restaurant->id;
-        $order->global_id = Helpers::generateGlobalId($restaurant->id);
         $order->user_id = $request->user_id;
         $order->zone_id = $restaurant->zone_id;
         $order->delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
@@ -713,18 +713,15 @@ class POSController extends Controller
 
             KitchenOrderStatusLog::create([
                 "status" => 'pending',
-                "order_id" => $order->id,
-                "global_id" => $order->global_id,
+                "order_id" => $order->id
             ]);
 
             foreach ($order_details as $key => $item) {
                 $order_details[$key]['order_id'] = $order->id;
-                $order_details[$key]['global_id'] = $order->global_id;
             }
             OrderDetail::insert($order_details);
             $posOrderDtl = new PosOrderAdditionalDtl();
             $posOrderDtl->order_id = $order->id;
-            $posOrderDtl->global_id = $order->global_id;
             $posOrderDtl->restaurant_id = $order->restaurant_id;
             $posOrderDtl->customer_name = $request->customer_name;
             $posOrderDtl->car_number = $request->car_number;

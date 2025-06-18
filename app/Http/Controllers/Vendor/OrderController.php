@@ -371,7 +371,7 @@ class OrderController extends Controller
     {
         $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])->with(['payments', 'details.food'])->first();
         $maxMakeTime = $order->details
-        ->map(fn($detail) => $detail->food->EST_MAKE_TIME ?? 0)
+        ->map(fn($detail) => $detail->food->est_make_time ?? 0)
         ->max();
         dd($maxMakeTime);
         return view('order_receipt', compact('order', 'maxMakeTime'));

@@ -45,7 +45,10 @@ class CustomRoleController extends Controller
             Toastr::error(translate('default_name_is_required'));
             return back();
             }
+
+        $maxId = EmployeeRole::max('id');
         $role = new EmployeeRole();
+        $role->id = $maxId ? $maxId + 1 : 1;
         $role->name=$request->name[array_search('default', $request->lang)];
         $role->modules=json_encode($request['modules']);
         $role->status=1;

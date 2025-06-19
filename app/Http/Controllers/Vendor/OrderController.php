@@ -15,6 +15,7 @@ use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
+use App\Jobs\SyncOrdersJob;
 
 class OrderController extends Controller
 {
@@ -691,5 +692,13 @@ class OrderController extends Controller
             return response()->json([], 200);
         }
         return response()->json(['message' => translate('Deliveryman not available!')], 400);
+    }
+
+    public function sync()
+    {
+        dd('hello');
+        SyncOrdersJob::dispatch();
+        Toastr::success('Sync completed!');
+        return back();
     }
 }

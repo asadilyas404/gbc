@@ -17,6 +17,8 @@ Route::get('table_employees/{id}/edit', 'TableEmployeeController@edit')->name('t
 Route::put('table_employees/{id}', 'TableEmployeeController@update')->name('table_employees.update');
 Route::delete('table_employees/{id}', 'TableEmployeeController@destroy')->name('table_employees.destroy');
 
+Route::post('/sync-orders', 'OrderController@sync')->name('sync.orders');
+
 
 Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
     Route::group(['middleware' => ['vendor' ,'maintenance']], function () {

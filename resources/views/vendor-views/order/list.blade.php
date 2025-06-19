@@ -241,10 +241,12 @@
                                 </div>
                             </div>
                         </div>
-                        <form method="POST" action="{{ route('sync.orders') }}">
-                            @csrf
-                            <button type="submit" class="btn btn-primary">Sync Orders</button>
-                        </form>
+                        <div class="hs-unfold mr-2">
+                            <form method="POST" action="{{ route('sync.orders') }}">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-white">Sync Orders</button>
+                            </form>
+                        </div>
                         <!-- End Unfold -->
                     </div>
                 </div>

@@ -9,10 +9,10 @@ class Translation extends Model
 {
     public $incrementing = false;
     protected $primaryKey = 'id';
-
     public $timestamps = false;
 
     protected $fillable = [
+        'id',
         'translationable_type',
         'translationable_id',
         'locale',

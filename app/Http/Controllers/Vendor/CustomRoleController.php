@@ -82,7 +82,11 @@ class CustomRoleController extends Controller
         }
 
         // Translation::insert($data);
+        $maxId = Translation::max('id') ?? 0;
+
         foreach ($data as $row) {
+            $maxId++;
+            $row['id'] = $maxId;
             Translation::create($row);
         }
 

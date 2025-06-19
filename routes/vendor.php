@@ -17,9 +17,6 @@ Route::get('table_employees/{id}/edit', 'TableEmployeeController@edit')->name('t
 Route::put('table_employees/{id}', 'TableEmployeeController@update')->name('table_employees.update');
 Route::delete('table_employees/{id}', 'TableEmployeeController@destroy')->name('table_employees.destroy');
 
-Route::post('/sync-orders', 'OrderController@sync')->name('sync.orders');
-
-
 Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
     Route::group(['middleware' => ['vendor' ,'maintenance']], function () {
         Route::get('lang/{locale}', 'LanguageController@lang')->name('lang');
@@ -207,6 +204,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         });
 
         Route::group(['prefix' => 'order', 'as' => 'order.' , 'middleware' => ['module:order']], function () {
+            Route::post('/sync-orders', 'OrderController@sync')->name('sync.orders');
             Route::get('list/{status}', 'OrderController@list')->name('list');
             Route::put('status-update/{id}', 'OrderController@status')->name('status-update');
             Route::post('search', 'OrderController@search')->name('search');

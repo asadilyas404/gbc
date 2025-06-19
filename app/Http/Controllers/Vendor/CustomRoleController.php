@@ -81,7 +81,10 @@ class CustomRoleController extends Controller
             }
         }
 
-        Translation::insert($data);
+        // Translation::insert($data);
+        foreach ($data as $row) {
+            Translation::create($row);
+        }
 
 
 

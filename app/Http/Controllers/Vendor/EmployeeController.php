@@ -53,7 +53,9 @@ class EmployeeController extends Controller
             'password.custom' => translate('The password cannot contain white spaces.'),
         ]);
 
+        $maxId = VendorEmployee::max('id');
         $vendor = new VendorEmployee();
+        $vendor->id = $maxId ? $maxId + 1 : 1;
         $vendor->f_name = $request->f_name;
         $vendor->l_name = $request->l_name;
         $vendor->phone = $request->phone;

@@ -11,12 +11,15 @@ class VendorEmployee extends Authenticatable
 {
     use Notifiable;
 
+    public $incrementing = false;
+    protected $primaryKey = 'id';
+
     protected $hidden = [
         'password',
         'auth_token',
         'remember_token',
     ];
-    protected $fillable = ['remember_token'];
+    protected $fillable = ['id','remember_token'];
 
     protected $appends = ['image_full_url'];
     public function getImageFullUrlAttribute(){

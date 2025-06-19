@@ -7,7 +7,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Translation extends Model
 {
-    use HasFactory;
+    public $incrementing = false;
+    protected $primaryKey = 'id';
 
     public $timestamps = false;
 

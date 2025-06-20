@@ -153,6 +153,17 @@
                                 هاتف
                             </h5>
                         @endif
+                        @if ($order->takenBy)
+                            <h5 class="d-flex justify-content-between gap-2">
+                                Order taken by :
+                                <span class="font-light">
+                                    {{ $order->takenBy->name }}
+                                </span>
+                            </h5>
+                            <h5>
+                                تم اتخاذ الطلب بواسطة
+                            </h5>
+                        @endif
                         @if ($maxMakeTime)
                             <h5 class="d-flex justify-content-between gap-2">
                                 Processing Time :

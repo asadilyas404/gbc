@@ -6515,4 +6515,5 @@
                 No data to show ',
   'Food_not_found' => 'Food not found',
   'please_add_options_for' => 'Please add options for',
+  'kitchen_orders' => 'Kitchen Orders',
 );

@@ -157,7 +157,7 @@
                             <h5 class="d-flex justify-content-between gap-2">
                                 Order taken by :
                                 <span class="font-light">
-                                    {{ $order->takenBy->name }}
+                                    {{ $order->takenBy->f_name ?? '' }} {{ $order->takenBy->l_name ?? '' }}
                                 </span>
                             </h5>
                             <h5>

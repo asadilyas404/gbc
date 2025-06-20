@@ -337,7 +337,8 @@
                                 </li>
                                 <li
                                     class="nav-item {{ Request::is('restaurant-panel/order/list/refund_requested') ? 'active' : '' }} @yield('refund_requested')">
-                                    <a class="nav-link " href="{{ route('vendor.order.list', ['refund_requested']) }}"
+                                    <a class="nav-link "
+                                        href="{{ route('vendor.order.list', ['refund_requested']) }}"
                                         title="{{ translate('refund_requested') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate sidebar--badge-container">
@@ -437,7 +438,8 @@
                             </a>
                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
                                 style="display: {{ Request::is('restaurant-panel/category*') ? 'block' : 'none' }}">
-                                <li class="nav-item {{ Request::is('restaurant-panel/category/list') ? 'active' : '' }}">
+                                <li
+                                    class="nav-item {{ Request::is('restaurant-panel/category/list') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.category.add') }}"
                                         title="{{ translate('messages.category') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
@@ -466,7 +468,8 @@
                             </a>
                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
                                 style="display:{{ Request::is('restaurant-panel/food*') ? 'block' : 'none' }}">
-                                <li class="nav-item {{ Request::is('restaurant-panel/food/add-new') ? 'active' : '' }}">
+                                <li
+                                    class="nav-item {{ Request::is('restaurant-panel/food/add-new') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.food.add-new') }}"
                                         title="{{ translate('Add New Food') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
@@ -793,7 +796,8 @@
                                             class="text-truncate">{{ translate('messages.add_new_employee') }}</span>
                                     </a>
                                 </li>
-                                <li class="nav-item {{ Request::is('restaurant-panel/employee/list') ? 'active' : '' }}">
+                                <li
+                                    class="nav-item {{ Request::is('restaurant-panel/employee/list') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.employee.list') }}"
                                         title="{{ translate('messages.Employee_list') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>

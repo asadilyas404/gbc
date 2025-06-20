@@ -119,7 +119,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('login', 'EmployeeController@login'); // Update here
         });
 
-        Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.'], function () {
+        Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.', 'middleware' => ['module:kitchen_orders','subscription:kitchen_orders']], function () {
             Route::get('list', 'KitchenController@index')->name('index');
             Route::get('get-all-orders', 'KitchenController@getAllOrders')->name('get_all_orders');
         });

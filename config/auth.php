@@ -91,7 +91,7 @@ return [
     //         'driver' => 'session',
     //         'provider' => 'vendors',
     //     ],
-        
+
     //     'vendor' => [
     //         'driver' => 'session',
     //         'provider' => 'vendor_employees',
@@ -194,7 +194,7 @@ return [
             'expire' => 60,
             'throttle' => 60,
         ],
-        
+
         'vendors' => [
             'provider' => 'vendors',
             'table' => 'password_resets',

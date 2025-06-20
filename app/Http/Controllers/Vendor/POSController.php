@@ -19,6 +19,7 @@ use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Models\KitchenOrderStatusLog;
+use Illuminate\Support\Facades\Auth;
 
 class POSController extends Controller
 {
@@ -610,6 +611,7 @@ class POSController extends Controller
         $order->vehicle_id =  $vehicle_id ?? null;
         $order->restaurant_id = $restaurant->id;
         $order->user_id = $request->user_id;
+        $order->order_taken_by = Auth::guard('vendor_employee')->user()->id;
         $order->zone_id = $restaurant->zone_id;
         $order->delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
         $order->original_delivery_charge = isset($address) ? $address['delivery_fee'] : 0;

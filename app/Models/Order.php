@@ -391,8 +391,13 @@ class Order extends Model
         return $query;
     }
     public function tableEmployee()
-{
-    return $this->belongsTo(TableEmployee::class, 'table_id');
-}
+    {
+        return $this->belongsTo(TableEmployee::class, 'table_id');
+    }
+
+    public function takenBy()
+    {
+        return $this->belongsTo(VendorEmployee::class, 'order_taken_by');
+    }
 
 }

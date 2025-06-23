@@ -143,6 +143,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('/add-to-session', 'FoodController@addToSession')->name('addToSession');
             Route::get('/get-all-variations-by-food/{id}', 'FoodController@getAllVariationsByFood')->name('getAllVariationsByFood');
             Route::get('/get-all-options-by-variation/{food_id}/{id}', 'FoodController@getAllOptionsByVariation')->name('getAllOptionsByVariation');
+            Route::post('/sync-foods', 'FoodController@sync')->name('sync.foods');
 
 
             //Import and export

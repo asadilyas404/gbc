@@ -1027,4 +1027,11 @@ class FoodController extends Controller
             ], 500);
         }
     }
+
+    public function sync()
+    {
+        SyncFoodJob::dispatch();
+        Toastr::success('Sync completed!');
+        return back();
+    }
 }

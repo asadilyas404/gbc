@@ -25,6 +25,10 @@
                         <a href="{{ route('vendor.food.add-new') }}" class="btn max-sm-12 btn--primary w-100"><i
                                 class="tio-add-circle"></i> {{ translate('messages.add_new_food') }}</a>
                     </div>
+                    <div class="col-auto">
+                        <a href="{{ route('vendor.food.sync.foods') }}" class="btn max-sm-12 btn--primary w-100"><i
+                                class="tio-add-refresh"></i>Sync Foods</a>
+                    </div>
 
                 </div>
             </div>
@@ -231,7 +235,7 @@
                                                             alt="public/img"></span>
                                                 @else
                                                     <?php
-
+                                                    
                                                     if (isset($food->variations)) {
                                                         foreach (json_decode($food->variations, true) as $item) {
                                                             if (isset($item['values']) && is_array($item['values'])) {
@@ -535,9 +539,9 @@
                 language: {
                     zeroRecords: '<div class="text-center p-4">' +
                         '<img class="mb-3 w-7rem" src="{{ dynamicAsset('
-                                                                                                                                                                                                                                                                                                                                                                public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
                         '<p class="mb-0">{{ translate('
-                                                                                                                                                                                                                                                                                                                                                                No_data_to_show ') }}</p>' +
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        No_data_to_show ') }}</p>' +
                         '</div>'
                 }
             });

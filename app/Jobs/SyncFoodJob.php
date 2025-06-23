@@ -19,18 +19,18 @@ class SyncFoodJob implements ShouldQueue
         \Log::info('SyncFoodJob started');
         try {
             // Sync FOOD
-            $foods = DB::connection('oracle')
+            $foods = DB::connection('oracle_live')
                 ->table('food')
                 ->where('is_pushed', '!=', 'Y')
                 ->orWhereNull('is_pushed')
                 ->get();
 
             foreach ($foods as $food) {
-                DB::connection('oracle_target')->beginTransaction();
+                DB::connection('oracle')->beginTransaction();
 
                 try {
                     // Sync food record
-                    DB::connection('oracle_target')
+                    DB::connection('oracle')
                         ->table('food')
                         ->updateOrInsert(
                             ['id' => $food->id],
@@ -38,13 +38,13 @@ class SyncFoodJob implements ShouldQueue
                         );
 
                     // Sync variations
-                    $variations = DB::connection('oracle')
+                    $variations = DB::connection('oracle_live')
                         ->table('variations')
                         ->where('food_id', $food->id)
                         ->get();
 
                     foreach ($variations as $variation) {
-                        DB::connection('oracle_target')
+                        DB::connection('oracle')
                             ->table('variations')
                             ->updateOrInsert(
                                 ['id' => $variation->id],
@@ -53,13 +53,13 @@ class SyncFoodJob implements ShouldQueue
                     }
 
                     // Sync variation options
-                    $variationOptions = DB::connection('oracle')
+                    $variationOptions = DB::connection('oracle_live')
                         ->table('variation_options')
                         ->where('food_id', $food->id)
                         ->get();
 
                     foreach ($variationOptions as $option) {
-                        DB::connection('oracle_target')
+                        DB::connection('oracle')
                             ->table('variation_options')
                             ->updateOrInsert(
                                 ['id' => $option->id],
@@ -68,21 +68,21 @@ class SyncFoodJob implements ShouldQueue
                     }
 
                     // Mark food as pushed
-                    DB::connection('oracle')
+                    DB::connection('oracle_live')
                         ->table('food')
                         ->where('id', $food->id)
                         ->update(['is_pushed' => 'Y']);
 
-                    DB::connection('oracle_target')->commit();
+                    DB::connection('oracle')->commit();
                     // Log::info("Food ID {$food->id} synced successfully.");
                 } catch (\Exception $e) {
-                    DB::connection('oracle_target')->rollBack();
+                    DB::connection('oracle')->rollBack();
                     Log::error("Failed syncing food ID {$food->id}: " . $e->getMessage());
                 }
             }
 
             // Sync ADD_ONS
-            $addons = DB::connection('oracle')
+            $addons = DB::connection('oracle_live')
                 ->table('add_ons')
                 ->where('is_pushed', '!=', 'Y')
                 ->orWhereNull('is_pushed')
@@ -90,14 +90,14 @@ class SyncFoodJob implements ShouldQueue
 
             foreach ($addons as $addon) {
                 try {
-                    DB::connection('oracle_target')
+                    DB::connection('oracle')
                         ->table('add_ons')
                         ->updateOrInsert(
                             ['id' => $addon->id],
                             (array) $addon
                         );
 
-                    DB::connection('oracle')
+                    DB::connection('oracle_live')
                         ->table('add_ons')
                         ->where('id', $addon->id)
                         ->update(['is_pushed' => 'Y']);
@@ -109,7 +109,7 @@ class SyncFoodJob implements ShouldQueue
             }
 
             // Sync CATEGORIES
-            $categories = DB::connection('oracle')
+            $categories = DB::connection('oracle_live')
                 ->table('categories')
                 ->where('is_pushed', '!=', 'Y')
                 ->orWhereNull('is_pushed')
@@ -117,14 +117,14 @@ class SyncFoodJob implements ShouldQueue
 
             foreach ($categories as $category) {
                 try {
-                    DB::connection('oracle_target')
+                    DB::connection('oracle')
                         ->table('categories')
                         ->updateOrInsert(
                             ['id' => $category->id],
                             (array) $category
                         );
 
-                    DB::connection('oracle')
+                    DB::connection('oracle_live')
                         ->table('categories')
                         ->where('id', $category->id)
                         ->update(['is_pushed' => 'Y']);

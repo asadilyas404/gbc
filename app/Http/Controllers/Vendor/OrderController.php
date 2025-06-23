@@ -697,7 +697,7 @@ class OrderController extends Controller
     public function sync()
     {
         SyncOrdersJob::dispatch();
-        Toastr::success('Sync completed!');
+        Toastr::success('Orders Sync completed!');
         return back();
     }
 }

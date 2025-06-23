@@ -143,7 +143,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('/add-to-session', 'FoodController@addToSession')->name('addToSession');
             Route::get('/get-all-variations-by-food/{id}', 'FoodController@getAllVariationsByFood')->name('getAllVariationsByFood');
             Route::get('/get-all-options-by-variation/{food_id}/{id}', 'FoodController@getAllOptionsByVariation')->name('getAllOptionsByVariation');
-            Route::post('/sync-foods', 'FoodController@sync')->name('sync.foods');
+            Route::get('/sync-foods', 'FoodController@sync')->name('sync.foods');
 
 
             //Import and export
@@ -205,7 +205,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         });
 
         Route::group(['prefix' => 'order', 'as' => 'order.' , 'middleware' => ['module:order']], function () {
-            Route::post('/sync-orders', 'OrderController@sync')->name('sync.orders');
+            Route::get('/sync-orders', 'OrderController@sync')->name('sync.orders');
             Route::get('list/{status}', 'OrderController@list')->name('list');
             Route::put('status-update/{id}', 'OrderController@status')->name('status-update');
             Route::post('search', 'OrderController@search')->name('search');

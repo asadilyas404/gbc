@@ -105,13 +105,13 @@ return [
 ],
 
     // target DB connection
-    'oracle_target' => [
-        'driver'         => env('ORACLE_TARGET_CONNECTION', 'oracle'),
-        'host'           => env('ORACLE_TARGET_HOST', '127.0.0.1'),
-        'port'           => env('ORACLE_TARGET_PORT', '1521'),
-        'database'       => env('ORACLE_TARGET_DATABASE', 'ROYALDB'),
-        'username'       => env('ORACLE_TARGET_USERNAME'),
-        'password'       => env('ORACLE_TARGET_PASSWORD'),
+    'oracle_live' => [
+        'driver'         => env('ORACLE_LIVE_CONNECTION', 'oracle'),
+        'host'           => env('ORACLE_LIVE_HOST', '127.0.0.1'),
+        'port'           => env('ORACLE_LIVE_PORT', '1521'),
+        'database'       => env('ORACLE_LIVE_DATABASE', 'ROYALDB'),
+        'username'       => env('ORACLE_LIVE_USERNAME'),
+        'password'       => env('ORACLE_LIVE_PASSWORD'),
         'charset'        => 'AL32UTF8',
         'prefix'         => '',
         'prefix_schema'  => '',

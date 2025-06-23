@@ -26,10 +26,10 @@ class SyncOrdersJob implements ShouldQueue
                 ->get();
 
             foreach ($orders as $order) {
-                DB::connection('oracle_target')->beginTransaction();
+                DB::connection('oracle_live')->beginTransaction();
 
                 try {
-                    DB::connection('oracle_target')
+                    DB::connection('oracle_live')
                     ->table('orders')
                     ->updateOrInsert(
                         ['id' => $order->id],
@@ -45,7 +45,7 @@ class SyncOrdersJob implements ShouldQueue
 
                     // $sourceDetailIds = $orderDetails->pluck('id')->toArray();
 
-                    // DB::connection('oracle_target')
+                    // DB::connection('oracle_live')
                     //     ->table('order_details')
                     //     ->where('order_id', $order->id)
                     //     ->where('global_id', $order->global_id)
@@ -53,7 +53,7 @@ class SyncOrdersJob implements ShouldQueue
                     //     ->delete();
 
                     foreach ($orderDetails as $detail) {
-                        DB::connection('oracle_target')
+                        DB::connection('oracle_live')
                         ->table('order_details')
                         ->updateOrInsert(
                             ['order_id' => $detail->order_id],
@@ -67,7 +67,7 @@ class SyncOrdersJob implements ShouldQueue
                         ->get();
 
                     foreach ($orderAdditionalDetails as $detail) {
-                        DB::connection('oracle_target')
+                        DB::connection('oracle_live')
                         ->table('pos_order_additional_dtl')
                         ->updateOrInsert(
                             ['order_id' => $detail->order_id],
@@ -81,7 +81,7 @@ class SyncOrdersJob implements ShouldQueue
                         ->get();
 
                     foreach ($kitchenStatus as $detail) {
-                        DB::connection('oracle_target')
+                        DB::connection('oracle_live')
                             ->table('kitchen_order_status_logs')
                             ->insert((array) $detail);
                     }
@@ -93,10 +93,10 @@ class SyncOrdersJob implements ShouldQueue
                         ->where('id', $order->id)
                         ->update(['is_pushed' => 'Y']);
 
-                    DB::connection('oracle_target')->commit();
+                    DB::connection('oracle_live')->commit();
                     \Log::info('SyncOrdersJob completed');
                 } catch (\Exception $e) {
-                    DB::connection('oracle_target')->rollBack();
+                    DB::connection('oracle_live')->rollBack();
                     Log::error("Failed syncing order ID {$order->id}: " . $e->getMessage());
                 }
             }

@@ -81,9 +81,16 @@ class SyncOrdersJob implements ShouldQueue
                         ->get();
 
                     foreach ($kitchenStatus as $detail) {
-                        DB::connection('oracle_live')
+                        $exists = DB::connection('oracle_live')
                             ->table('kitchen_order_status_logs')
-                            ->insert((array) $detail);
+                            ->where('id', $detail->id)
+                            ->exists();
+
+                        if (!$exists) {
+                            DB::connection('oracle_live')
+                                ->table('kitchen_order_status_logs')
+                                ->insert((array) $detail);
+                        }
                     }
 
                     // Mark as pushed in source DB

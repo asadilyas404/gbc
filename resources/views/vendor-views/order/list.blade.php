@@ -59,16 +59,18 @@
                     </span>
                 </h2>
             </div>
-            <div class="my-2">
-                <div class="row g-2 align-items-center justify-content-end">
+            @if (app()->environment('local'))
+                <div class="my-2">
+                    <div class="row g-2 align-items-center justify-content-end">
 
-                    <div class="col-auto">
-                        <a href="{{ route('vendor.order.sync.orders') }}" class="btn max-sm-12 btn--primary w-100">Sync
-                            Orders</a>
+                        <div class="col-auto">
+                            <a href="{{ route('vendor.order.sync.orders') }}" class="btn max-sm-12 btn--primary w-100">Sync
+                                Orders</a>
+                        </div>
+
                     </div>
-
                 </div>
-            </div>
+            @endif
         </div>
         <!-- End Page Header -->
 

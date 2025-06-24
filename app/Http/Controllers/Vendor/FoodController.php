@@ -24,6 +24,7 @@ use Rap2hpoutre\FastExcel\FastExcel;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use App\Jobs\SyncFoodJob;
 
 class FoodController extends Controller
 {

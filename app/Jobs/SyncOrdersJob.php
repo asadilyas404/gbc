@@ -16,6 +16,7 @@ class SyncOrdersJob implements ShouldQueue
 
     public function handle(): void
     {
+        set_time_limit(300);
         \Log::info('SyncOrdersJob started');
         try {
             // Fetch orders that haven't been pushed

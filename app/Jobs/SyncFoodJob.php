@@ -16,6 +16,7 @@ class SyncFoodJob implements ShouldQueue
 
     public function handle(): void
     {
+        set_time_limit(300);
         \Log::info('SyncFoodJob started');
         try {
             // Sync FOOD

@@ -41,7 +41,10 @@ class AddOnController extends Controller
             'name.required' => translate('messages.Name is required!'),
         ]);
 
+        $maxId = AddOn::max('id') ?? 0;
+        $newId = $maxId + 1;
         $addon = new AddOn();
+        $addon->id = $newId;
         $addon->name = $request->name[array_search('default', $request->lang)];
         $addon->price = $request->price;
         $addon->restaurant_id = \App\CentralLogics\Helpers::get_restaurant_id();

@@ -74,7 +74,10 @@ class CategoryController extends Controller
             'name.0.required' => translate('default_name_is_required'),
         ]);
 
+        $maxId = Category::max('id') ?? 0;
+        $newId = $maxId + 1;
         $category = new Category();
+        $category->id = $newId;
         $category->name = $request->name[array_search('default', $request->lang)];
         $category->image = $request->hasFile('image')
             ? Helpers::upload('category/', 'png', $request->file('image'))

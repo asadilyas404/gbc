@@ -13,6 +13,9 @@ class Category extends Model
 {
     use HasFactory;
 
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+
     protected $casts = [
         'parent_id' => 'integer',
         'position' => 'integer',
@@ -137,7 +140,7 @@ class Category extends Model
     {
         return $this->hasMany(\App\Models\Food::class, 'category_id');
     }
-    
+
     public function add_ons()
     {
         return $this->hasMany(\App\Models\AddOn::class, 'category_id');

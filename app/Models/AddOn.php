@@ -11,6 +11,10 @@ use Razorpay\Api\Addon as ApiAddon;
 
 class AddOn extends Model
 {
+
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+
     protected $casts = [
         'price' => 'float',
         'restaurant_id' => 'integer',
@@ -95,6 +99,6 @@ public function food()
     return $this->belongsTo(\App\Models\Food::class);
 }
 
-    
+
 
 }

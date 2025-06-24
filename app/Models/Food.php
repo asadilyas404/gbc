@@ -16,6 +16,10 @@ class Food extends Model
 {
     use HasFactory , ReportFilter;
 
+    protected $primaryKey = 'id';
+
+    public $incrementing = false;
+
     protected $casts = [
         'tax' => 'float',
         'price' => 'float',

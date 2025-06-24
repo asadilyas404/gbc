@@ -424,7 +424,6 @@ class FoodController extends Controller
         }
 
         $p = Food::find($id);
-
         $p->name = $request->name[array_search('default', $request->lang)];
 
         $slug = Str::slug($request->name[array_search('default', $request->lang)]);
@@ -548,6 +547,7 @@ class FoodController extends Controller
         $p->est_make_time =  $request->est_make_time ?? 0;
         $p->is_halal =  $request->is_halal ?? 0;
         $p->sell_count = 0;
+        $p->is_pushed = 'N';
 
         $p->save();
         $p->tags()->sync($tag_ids);

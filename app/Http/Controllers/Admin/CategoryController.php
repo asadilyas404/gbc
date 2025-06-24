@@ -162,6 +162,7 @@ class CategoryController extends Controller
             ? Helpers::update('category/', $category->image, 'png', $request->file('image'))
             : $category->image;
 
+        $category->is_pushed = 'N';
         $category->save();
 
         $default_lang = str_replace('_', '-', app()->getLocale());

@@ -88,6 +88,7 @@ class AddOnController extends Controller
         $addon->stock_type = $request->stock_type ?? 'unlimited' ;
         $addon->addon_stock = $request->stock_type != 'unlimited' ?  $request->addon_stock : 0;
         $addon->sell_count = 0;
+        $addon->is_pushed = 'N';
         $addon->save();
         Helpers::add_or_update_translations( $request,'name' ,'name' , 'AddOn' , $addon->id, $addon->name);
         Toastr::success(translate('messages.addon_updated_successfully'));

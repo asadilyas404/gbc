@@ -199,6 +199,7 @@ class FoodController extends Controller
                 ]
             ]);
         }
+dd($maxId);
 
         if (isset($request->options)) {
             foreach (array_values($request->options) as $key => $option) {
@@ -219,8 +220,6 @@ class FoodController extends Controller
             if (isset($request->type) && $request->type == "offer") {
                 $food->is_offer = 1;
             }
-dd($maxId);
-
             $food->save();
 
             if (isset($request->type) && $request->type == "offer") {

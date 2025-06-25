@@ -501,7 +501,6 @@
             $('#search-form').on('submit', function(e) {
                 e.preventDefault();
                 let formData = new FormData(this);
-                console.log(formData);
                 $.ajaxSetup({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

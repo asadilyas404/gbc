@@ -220,6 +220,7 @@ class FoodController extends Controller
                 $food->is_offer = 1;
             }
             $food->save();
+dd($maxId);
 
             if (isset($request->type) && $request->type == "offer") {
                 $foodList = Food::orderBy('name', 'asc')->select('id', 'name')->get();
@@ -286,7 +287,6 @@ class FoodController extends Controller
         $food->tags()->sync($tag_ids);
         $food->nutritions()->sync($nutrition_ids);
         $food->allergies()->sync($allergy_ids);
-dd($maxId);
 
         Helpers::add_or_update_translations($request, 'name', 'name',  'Food', $food->id, $food->name);
         Helpers::add_or_update_translations($request, 'description', 'description',  'Food', $food->id, $food->description);

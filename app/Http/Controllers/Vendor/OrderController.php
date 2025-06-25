@@ -184,23 +184,23 @@ class OrderController extends Controller
 
         $order = Order::where(['id' => $request->id, 'restaurant_id' => Helpers::get_restaurant_id()])->with(['subscription_logs','details'])->first();
 
-        if($order->delivered != null)
-        {
-            Toastr::warning(translate('messages.cannot_change_status_after_delivered'));
-            return back();
-        }
+        // if($order->delivered != null)
+        // {
+        //     Toastr::warning(translate('messages.cannot_change_status_after_delivered'));
+        //     return back();
+        // }
 
-        if($request['order_status']=='canceled' && !config('canceled_by_restaurant'))
-        {
-            Toastr::warning(translate('messages.you_can_not_cancel_a_order'));
-            return back();
-        }
+        // if($request['order_status']=='canceled' && !config('canceled_by_restaurant'))
+        // {
+        //     Toastr::warning(translate('messages.you_can_not_cancel_a_order'));
+        //     return back();
+        // }
 
-        if($request['order_status']=='canceled' && $order->confirmed)
-        {
-            Toastr::warning(translate('messages.you_can_not_cancel_after_confirm'));
-            return back();
-        }
+        // if($request['order_status']=='canceled' && $order->confirmed)
+        // {
+        //     Toastr::warning(translate('messages.you_can_not_cancel_after_confirm'));
+        //     return back();
+        // }
 
         $data =0;
         $restaurant =Helpers::get_restaurant_data();

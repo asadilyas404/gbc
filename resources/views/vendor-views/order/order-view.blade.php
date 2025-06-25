@@ -66,7 +66,7 @@
                         <div class="order-invoice-left">
                             <h1 class="page-header-title mt-2">
                                 <span>
-                                    {{ translate('messages.order') }} #{{ $order['id'] }}
+                                    {{ translate('messages.order') }} #{{ $order['order_serial'] }}
                                 </span>
 
                                 @if ($order->edited)

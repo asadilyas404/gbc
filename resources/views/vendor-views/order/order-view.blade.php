@@ -498,13 +498,13 @@
                             </table>
                         </div>
                         <?php
-
+                        
                         $coupon_discount_amount = $order['coupon_discount_amount'];
-
+                        
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
-
+                        
                         $total_tax_amount = $order['total_tax_amount'];
-
+                        
                         $restaurant_discount_amount = $order['restaurant_discount_amount'];
                         $tax_included = \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first() ? \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first()->value : 0;
                         ?>
@@ -640,34 +640,34 @@
             </div>
             <div class="col-lg-4 order-print-area-right">
                 <!-- Card -->
-                @if ($order['order_status'] != 'cancelled')
-                <div class="card mb-2">
-                    <!-- Header -->
-                    <div class="card-header border-0 py-0">
-                        <h4 class="card-header-title border-bottom py-3 m-0  w-100 text-center">
-                            {{ translate('Order Setup') }}</h4>
-                    </div>
-                    <!-- End Header -->
+                @if ($order['order_status'] != 'canceled')
+                    <div class="card mb-2">
+                        <!-- Header -->
+                        <div class="card-header border-0 py-0">
+                            <h4 class="card-header-title border-bottom py-3 m-0  w-100 text-center">
+                                {{ translate('Order Setup') }}</h4>
+                        </div>
+                        <!-- End Header -->
 
-                    <!-- Body -->
+                        <!-- Body -->
 
 
-                    <div class="card-body">
-                        <!-- Unfold -->
-                        @php($order_delivery_verification = (bool) \App\Models\BusinessSetting::where(['key' => 'order_delivery_verification'])->first()->value)
-                        <div class="order-btn-wraper">
-                            {{-- @if ($order['order_status'] == 'pending')
+                        <div class="card-body">
+                            <!-- Unfold -->
+                            @php($order_delivery_verification = (bool) \App\Models\BusinessSetting::where(['key' => 'order_delivery_verification'])->first()->value)
+                            <div class="order-btn-wraper">
+                                {{-- @if ($order['order_status'] == 'pending')
                                     <a class="btn w-100 mb-3 btn-sm btn--primary order-status-change-alert"
                                         data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'confirmed']) }}"
                                         data-message="{{ translate('Change status to confirmed ?') }}"
                                         href="javascript:">
                                         {{ translate('Confirm Order') }}
                                     </a> --}}
-                            @if (config('canceled_by_restaurant'))
-                                <a
-                                    class="btn w-100 mb-3 btn-sm btn-outline-danger btn--danger mt-3 cancelled-status">{{ translate('Cancel Order') }}</a>
-                            @endif
-                            {{-- @elseif ($order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted')
+                                @if (config('canceled_by_restaurant'))
+                                    <a
+                                        class="btn w-100 mb-3 btn-sm btn-outline-danger btn--danger mt-3 cancelled-status">{{ translate('Cancel Order') }}</a>
+                                @endif
+                                {{-- @elseif ($order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted')
                                     <a class="btn btn-sm btn--primary w-100 mb-3 order-status-change-alert"
                                         data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'processing']) }}"
                                         data-message="{{ translate('Change status to cooking ?') }}"
@@ -688,75 +688,75 @@
                                         data-message="{{ translate('Change status to delivered (payment status will be paid if not) ?') }}"
                                         data-verification="{{ $order_delivery_verification ? 'true' : 'false' }}"
                                         href="javascript:">{{ translate('messages.make_delivered') }}</a> --}}
-                            {{-- @endif --}}
-                        </div>
+                                {{-- @endif --}}
+                            </div>
 
-                        @if ($order->order_status == 'canceled')
-                            <ul class="delivery--information-single mt-3">
-                                <li>
-                                    <span class=" badge badge-soft-danger ">
-                                        {{ translate('messages.Cancel_Reason') }} :</span>
-                                    <span class="info"> {{ $order->cancellation_reason }} </span>
-                                </li>
+                            @if ($order->order_status == 'canceled')
+                                <ul class="delivery--information-single mt-3">
+                                    <li>
+                                        <span class=" badge badge-soft-danger ">
+                                            {{ translate('messages.Cancel_Reason') }} :</span>
+                                        <span class="info"> {{ $order->cancellation_reason }} </span>
+                                    </li>
 
-                                <li>
-                                    <span class="name">{{ translate('Cancel_Note') }} </span>
-                                    <span class="info">
-                                        {{ $order->cancellation_note ?? translate('messages.N/A') }} </span>
-                                </li>
-                                <li>
-                                    <span class="name">{{ translate('Canceled_By') }} </span>
-                                    <span class="info"> {{ translate($order->canceled_by) }} </span>
-                                </li>
-                                @if ($order->payment_status == 'paid' || $order->payment_status == 'partially_paid')
-                                    @if ($order->payments)
-                                        @php($pay_infos = $order->payments()->where('payment_status', 'paid')->get())
-                                        @foreach ($pay_infos as $pay_info)
+                                    <li>
+                                        <span class="name">{{ translate('Cancel_Note') }} </span>
+                                        <span class="info">
+                                            {{ $order->cancellation_note ?? translate('messages.N/A') }} </span>
+                                    </li>
+                                    <li>
+                                        <span class="name">{{ translate('Canceled_By') }} </span>
+                                        <span class="info"> {{ translate($order->canceled_by) }} </span>
+                                    </li>
+                                    @if ($order->payment_status == 'paid' || $order->payment_status == 'partially_paid')
+                                        @if ($order->payments)
+                                            @php($pay_infos = $order->payments()->where('payment_status', 'paid')->get())
+                                            @foreach ($pay_infos as $pay_info)
+                                                <li>
+                                                    <span class="name">{{ translate('Amount_paid_by') }}
+                                                        {{ translate($pay_info->payment_method) }} </span>
+                                                    <span class="info">
+                                                        {{ \App\CentralLogics\Helpers::format_currency($pay_info->amount) }}
+                                                    </span>
+                                                </li>
+                                            @endforeach
+                                        @else
                                             <li>
                                                 <span class="name">{{ translate('Amount_paid_by') }}
-                                                    {{ translate($pay_info->payment_method) }} </span>
-                                                <span class="info">
-                                                    {{ \App\CentralLogics\Helpers::format_currency($pay_info->amount) }}
+                                                    {{ translate($order->payment_method) }} </span>
+                                                <span class="info ">
+                                                    {{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}
                                                 </span>
                                             </li>
-                                        @endforeach
-                                    @else
-                                        <li>
-                                            <span class="name">{{ translate('Amount_paid_by') }}
-                                                {{ translate($order->payment_method) }} </span>
-                                            <span class="info ">
-                                                {{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}
-                                            </span>
-                                        </li>
+                                        @endif
                                     @endif
-                                @endif
 
-                                @if ($order->payment_status == 'paid' || $order->payment_status == 'partially_paid')
-                                    @if ($order->payments)
-                                        @php($amount = $order->payments()->where('payment_status', 'paid')->sum('amount'))
-                                        <li>
-                                            <span class="name">{{ translate('Amount_Returned_To_Wallet') }} </span>
-                                            <span class="info">
-                                                {{ \App\CentralLogics\Helpers::format_currency($amount) }} </span>
-                                        </li>
-                                    @else
-                                        <li>
-                                            <span class="name">{{ translate('Amount_Returned_To_Wallet') }} </span>
-                                            <span class="info">
-                                                {{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}
-                                            </span>
-                                        </li>
+                                    @if ($order->payment_status == 'paid' || $order->payment_status == 'partially_paid')
+                                        @if ($order->payments)
+                                            @php($amount = $order->payments()->where('payment_status', 'paid')->sum('amount'))
+                                            <li>
+                                                <span class="name">{{ translate('Amount_Returned_To_Wallet') }} </span>
+                                                <span class="info">
+                                                    {{ \App\CentralLogics\Helpers::format_currency($amount) }} </span>
+                                            </li>
+                                        @else
+                                            <li>
+                                                <span class="name">{{ translate('Amount_Returned_To_Wallet') }} </span>
+                                                <span class="info">
+                                                    {{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}
+                                                </span>
+                                            </li>
+                                        @endif
                                     @endif
-                                @endif
-                            </ul>
-                            <hr class="w-100">
-                        @endif
+                                </ul>
+                                <hr class="w-100">
+                            @endif
 
 
-                        <!-- End Unfold -->
+                            <!-- End Unfold -->
 
+                        </div>
                     </div>
-                </div>
                 @endif
 
                 {{-- @if ($order['order_type'] != 'take_away')
@@ -772,20 +772,7 @@
                                             {{ translate('Delivery Man Information') }}
                                         </span>
                                     </div>
-                                    @if (
-                                        !in_array($order['order_status'], [
-                                            'handover',
-                                            'delivered',
-                                            'refund_requested',
-                                            'canceled',
-                                            'refunded',
-                                            'refund_request_canceled',
-                                        ]) &&
-                                            ((isset($order->restaurant) &&
-                                                ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) ||
-                                                ($order->restaurant->restaurant_model == 'subscription' &&
-                                                    isset($order->restaurant->restaurant_sub) &&
-                                                    $order->restaurant->restaurant_sub->self_delivery == 1)))
+                                    @if (!in_array($order['order_status'], ['handover', 'delivered', 'refund_requested', 'canceled', 'refunded', 'refund_request_canceled']) && ((isset($order->restaurant) && ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) || ($order->restaurant->restaurant_model == 'subscription' && isset($order->restaurant->restaurant_sub) && $order->restaurant->restaurant_sub->self_delivery == 1)))
                                         <span class="ml-auto text--primary position-relative pl-2 cursor-pointer"
                                             data-toggle="modal" data-target="#myModal">
                                             {{ translate('messages.change') }}
@@ -849,22 +836,7 @@
                                 @endif
                             @endif
                         @else
-                            @if (
-                                !$order->delivery_man &&
-                                    !in_array($order['order_status'], [
-                                        'handover',
-                                        'delivered',
-                                        'take_away',
-                                        'refund_requested',
-                                        'canceled',
-                                        'refunded',
-                                        'refund_request_canceled',
-                                    ]) &&
-                                    ((isset($order->restaurant) &&
-                                        ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) ||
-                                        ($order->restaurant->restaurant_model == 'subscription' &&
-                                            isset($order->restaurant->restaurant_sub) &&
-                                            $order->restaurant->restaurant_sub->self_delivery == 1)))
+                            @if (!$order->delivery_man && !in_array($order['order_status'], ['handover', 'delivered', 'take_away', 'refund_requested', 'canceled', 'refunded', 'refund_request_canceled']) && ((isset($order->restaurant) && ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) || ($order->restaurant->restaurant_model == 'subscription' && isset($order->restaurant->restaurant_sub) && $order->restaurant->restaurant_sub->self_delivery == 1)))
                                 <div class="w-100 text-center mr-2 mt-4 mb-4">
                                     <button type="button" class="btn w-100 btn-primary font-regular" data-toggle="modal"
                                         data-target="#myModal" data-lat='21.03' data-lng='105.85'>

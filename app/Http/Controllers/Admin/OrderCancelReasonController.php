@@ -30,7 +30,9 @@ class OrderCancelReasonController extends Controller
         $cancelReason = new OrderCancelReason();
         $cancelReason->reason = $request->reason[array_search('default', $request->lang)];
         $cancelReason->user_type=$request->user_type;
-        $cancelReason->is_default= OrderCancelReason::where('user_type' , $request->user_type)->where('is_default' , 1)->doesntExist() ? 1 : 0;
+        $cancelReason->is_default = OrderCancelReason::where('user_type' , $request->user_type)
+        ->where('is_default' , 1)
+        ->exists() == false ? 1 : 0;
         $cancelReason->created_at = now();
         $cancelReason->updated_at = now();
         $cancelReason->save();
@@ -71,8 +73,10 @@ class OrderCancelReasonController extends Controller
             Toastr::warning(translate('messages.You_can_not_delete_the_default_Order_Cancel_Reason'));
             return back();
         }
-        $cancelReason?->translations()?->delete();
-        $cancelReason?->delete();
+        if ($cancelReason->translations()) {
+            $cancelReason->translations()->delete();
+        }
+        $cancelReason->delete();
         Toastr::success(translate('messages.order_cancellation_reason_deleted_successfully'));
         return back();
     }

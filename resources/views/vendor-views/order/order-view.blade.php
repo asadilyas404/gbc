@@ -656,18 +656,18 @@
                             <!-- Unfold -->
                             @php($order_delivery_verification = (bool) \App\Models\BusinessSetting::where(['key' => 'order_delivery_verification'])->first()->value)
                             <div class="order-btn-wraper">
-                                @if ($order['order_status'] == 'pending')
+                                {{-- @if ($order['order_status'] == 'pending')
                                     <a class="btn w-100 mb-3 btn-sm btn--primary order-status-change-alert"
                                         data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'confirmed']) }}"
                                         data-message="{{ translate('Change status to confirmed ?') }}"
                                         href="javascript:">
                                         {{ translate('Confirm Order') }}
-                                    </a>
+                                    </a> --}}
                                     @if (config('canceled_by_restaurant'))
                                         <a
                                             class="btn w-100 mb-3 btn-sm btn-outline-danger btn--danger mt-3 cancelled-status">{{ translate('Cancel Order') }}</a>
                                     @endif
-                                @elseif ($order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted')
+                                {{-- @elseif ($order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted')
                                     <a class="btn btn-sm btn--primary w-100 mb-3 order-status-change-alert"
                                         data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'processing']) }}"
                                         data-message="{{ translate('Change status to cooking ?') }}"
@@ -687,8 +687,8 @@
                                         data-url="{{ route('vendor.order.status', ['id' => $order['id'], 'order_status' => 'delivered']) }}"
                                         data-message="{{ translate('Change status to delivered (payment status will be paid if not) ?') }}"
                                         data-verification="{{ $order_delivery_verification ? 'true' : 'false' }}"
-                                        href="javascript:">{{ translate('messages.make_delivered') }}</a>
-                                @endif
+                                        href="javascript:">{{ translate('messages.make_delivered') }}</a> --}}
+                                {{-- @endif --}}
                             </div>
 
                             @if ($order->order_status == 'canceled')

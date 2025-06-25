@@ -219,8 +219,9 @@ class FoodController extends Controller
             if (isset($request->type) && $request->type == "offer") {
                 $food->is_offer = 1;
             }
-            $food->save();
 dd($maxId);
+
+            $food->save();
 
             if (isset($request->type) && $request->type == "offer") {
                 $foodList = Food::orderBy('name', 'asc')->select('id', 'name')->get();

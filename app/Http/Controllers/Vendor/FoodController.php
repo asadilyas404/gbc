@@ -629,7 +629,7 @@ class FoodController extends Controller
         $key = explode(' ', strtolower($request['search']));
         $foods = Food::where(function ($q) use ($key) {
             foreach ($key as $value) {
-                $q->where('LOWER(name) like ?', ["%{$value}%"]);
+                $q->whereRaw('LOWER(name) LIKE ?', ["%{$value}%"]);
             }
         })->limit(50)->get();
         return response()->json([

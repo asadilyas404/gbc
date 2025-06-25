@@ -122,9 +122,9 @@ class FoodController extends Controller
         }
 
         $maxId = Food::max('id');
-
+dd($maxId);
         $food = new Food;
-        $food->id = $maxId ? $maxId + 1 : 1; // Ensure the ID is unique
+        $food->id = $maxId ? $maxId + 1 : 1;
         $food->name = $request->name[array_search('default', $request->lang)];
 
         $category = [];

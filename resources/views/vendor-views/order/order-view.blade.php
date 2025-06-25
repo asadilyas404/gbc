@@ -498,13 +498,13 @@
                             </table>
                         </div>
                         <?php
-                        
+
                         $coupon_discount_amount = $order['coupon_discount_amount'];
-                        
+
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
-                        
+
                         $total_tax_amount = $order['total_tax_amount'];
-                        
+
                         $restaurant_discount_amount = $order['restaurant_discount_amount'];
                         $tax_included = \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first() ? \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first()->value : 0;
                         ?>
@@ -640,7 +640,7 @@
             </div>
             <div class="col-lg-4 order-print-area-right">
                 <!-- Card -->
-                {{-- @if ($order['order_status'] != 'delivered') --}}
+                @if ($order['order_status'] != 'cancelled')
                 <div class="card mb-2">
                     <!-- Header -->
                     <div class="card-header border-0 py-0">
@@ -757,9 +757,9 @@
 
                     </div>
                 </div>
-                {{-- @endif --}}
+                @endif
 
-                @if ($order['order_type'] != 'take_away')
+                {{-- @if ($order['order_type'] != 'take_away')
                     <div class="card mb-2 mt-2">
                         <div class="card-header border-0 text-center pb-0">
                             @if ($order->delivery_man)
@@ -872,7 +872,7 @@
                                     </button>
                                 </div>
                             @endif
-                @endif
+                @endif --}}
             </div>
         </div>
         @endif

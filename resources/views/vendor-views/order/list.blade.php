@@ -395,7 +395,7 @@
                                         </span>
                                     @else --}}
                                     <span class="badge badge-soft-info mb-1">
-                                        {{ translate(str_replace('_', ' ', $order['kitchen_status'])) }}
+                                        {{ translate(str_replace('_', ' ', $order['order_status'])) }}
                                     </span>
                                     {{-- @endif --}}
 

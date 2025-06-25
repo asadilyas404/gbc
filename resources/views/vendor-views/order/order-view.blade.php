@@ -699,11 +699,11 @@
                                     <span class="info"> {{ $order->cancellation_reason }} </span>
                                 </li>
 
-                                <li>
+                                {{-- <li>
                                     <span class="name">{{ translate('Cancel_Note') }} </span>
                                     <span class="info">
                                         {{ $order->cancellation_note ?? translate('messages.N/A') }} </span>
-                                </li>
+                                </li> --}}
                                 <li>
                                     <span class="name">{{ translate('Canceled_By') }} </span>
                                     <span class="info"> {{ translate($order->canceled_by) }} </span>

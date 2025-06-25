@@ -374,7 +374,7 @@
                                         @endphp
                                     @endif
                                     @if ($order['order_status'] == 'canceled')
-                                        <span class="badge badge-danger-info mb-1">
+                                        <span class="badge badge-soft-warning mb-1">
                                             {{ translate('messages.canceled') }}
                                         </span>
                                         {{-- @elseif($order['order_status'] == 'confirmed')

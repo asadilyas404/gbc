@@ -325,10 +325,10 @@ class OrderController extends Controller
         $order->save();
 
 
-        if(!Helpers::send_order_notification($order))
-        {
-            Toastr::warning(translate('messages.push_notification_faild'));
-        }
+        // if(!Helpers::send_order_notification($order))
+        // {
+        //     Toastr::warning(translate('messages.push_notification_faild'));
+        // }
         OrderLogic::update_subscription_log($order);
         Toastr::success(translate('messages.order_status_updated'));
         return back();

@@ -199,7 +199,6 @@ class FoodController extends Controller
                 ]
             ]);
         }
-dd($maxId);
 
         if (isset($request->options)) {
             foreach (array_values($request->options) as $key => $option) {
@@ -207,6 +206,9 @@ dd($maxId);
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
+
+dd($maxId);
+
                 if (!isset($option['values'])) {
                     $validator->getMessageBag()->add('name', translate('messages.please_add_options_for') . $option['name']);
                     return response()->json(['errors' => Helpers::error_processor($validator)]);

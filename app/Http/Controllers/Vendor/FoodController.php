@@ -222,6 +222,7 @@ class FoodController extends Controller
             }
             $food->save();
 
+            dd('hello');
             if (isset($request->type) && $request->type == "offer") {
                 $foodList = Food::orderBy('name', 'asc')->select('id', 'name')->get();
                 $VariationOptionList = VariationOption::select('id', 'option_name as name')->get();

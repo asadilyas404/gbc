@@ -122,7 +122,6 @@ class FoodController extends Controller
         }
 
         $maxId = Food::max('id');
-dd($maxId);
         $food = new Food;
         $food->id = $maxId ? $maxId + 1 : 1;
         $food->name = $request->name[array_search('default', $request->lang)];
@@ -287,6 +286,7 @@ dd($maxId);
         $food->tags()->sync($tag_ids);
         $food->nutritions()->sync($nutrition_ids);
         $food->allergies()->sync($allergy_ids);
+dd($maxId);
 
         Helpers::add_or_update_translations($request, 'name', 'name',  'Food', $food->id, $food->name);
         Helpers::add_or_update_translations($request, 'description', 'description',  'Food', $food->id, $food->description);

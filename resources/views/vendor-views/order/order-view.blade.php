@@ -759,7 +759,7 @@
                     </div>
                 @endif
 
-                {{-- @if ($order['order_type'] != 'take_away')
+                @if ($order['order_type'] != 'take_away')
                     <div class="card mb-2 mt-2">
                         <div class="card-header border-0 text-center pb-0">
                             @if ($order->delivery_man)
@@ -772,7 +772,20 @@
                                             {{ translate('Delivery Man Information') }}
                                         </span>
                                     </div>
-                                    @if (!in_array($order['order_status'], ['handover', 'delivered', 'refund_requested', 'canceled', 'refunded', 'refund_request_canceled']) && ((isset($order->restaurant) && ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) || ($order->restaurant->restaurant_model == 'subscription' && isset($order->restaurant->restaurant_sub) && $order->restaurant->restaurant_sub->self_delivery == 1)))
+                                    @if (
+                                        !in_array($order['order_status'], [
+                                            'handover',
+                                            'delivered',
+                                            'refund_requested',
+                                            'canceled',
+                                            'refunded',
+                                            'refund_request_canceled',
+                                        ]) &&
+                                            ((isset($order->restaurant) &&
+                                                ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) ||
+                                                ($order->restaurant->restaurant_model == 'subscription' &&
+                                                    isset($order->restaurant->restaurant_sub) &&
+                                                    $order->restaurant->restaurant_sub->self_delivery == 1)))
                                         <span class="ml-auto text--primary position-relative pl-2 cursor-pointer"
                                             data-toggle="modal" data-target="#myModal">
                                             {{ translate('messages.change') }}
@@ -836,7 +849,22 @@
                                 @endif
                             @endif
                         @else
-                            @if (!$order->delivery_man && !in_array($order['order_status'], ['handover', 'delivered', 'take_away', 'refund_requested', 'canceled', 'refunded', 'refund_request_canceled']) && ((isset($order->restaurant) && ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) || ($order->restaurant->restaurant_model == 'subscription' && isset($order->restaurant->restaurant_sub) && $order->restaurant->restaurant_sub->self_delivery == 1)))
+                            @if (
+                                !$order->delivery_man &&
+                                    !in_array($order['order_status'], [
+                                        'handover',
+                                        'delivered',
+                                        'take_away',
+                                        'refund_requested',
+                                        'canceled',
+                                        'refunded',
+                                        'refund_request_canceled',
+                                    ]) &&
+                                    ((isset($order->restaurant) &&
+                                        ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) ||
+                                        ($order->restaurant->restaurant_model == 'subscription' &&
+                                            isset($order->restaurant->restaurant_sub) &&
+                                            $order->restaurant->restaurant_sub->self_delivery == 1)))
                                 <div class="w-100 text-center mr-2 mt-4 mb-4">
                                     <button type="button" class="btn w-100 btn-primary font-regular" data-toggle="modal"
                                         data-target="#myModal" data-lat='21.03' data-lng='105.85'>
@@ -844,7 +872,7 @@
                                     </button>
                                 </div>
                             @endif
-                @endif --}}
+                @endif
             </div>
         </div>
         {{-- @endif --}}

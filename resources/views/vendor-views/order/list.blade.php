@@ -373,11 +373,11 @@
                                                 : $order->order_status;
                                         @endphp
                                     @endif
-                                    {{-- @if ($order['order_status'] == 'pending')
-                                        <span class="badge badge-soft-info mb-1">
-                                            {{ translate('messages.pending') }}
+                                    @if ($order['order_status'] == 'canceled')
+                                        <span class="badge badge-danger-info mb-1">
+                                            {{ translate('messages.canceled') }}
                                         </span>
-                                    @elseif($order['order_status'] == 'confirmed')
+                                        {{-- @elseif($order['order_status'] == 'confirmed')
                                         <span class="badge badge-soft-info mb-1">
                                             {{ translate('messages.confirmed') }}
                                         </span>
@@ -392,12 +392,12 @@
                                     @elseif($order['order_status'] == 'delivered')
                                         <span class="badge badge-soft-success mb-1">
                                             {{ translate('messages.delivered') }}
+                                        </span> --}}
+                                    @else
+                                        <span class="badge badge-soft-info mb-1">
+                                            {{ translate(str_replace('_', ' ', $order['order_status'])) }}
                                         </span>
-                                    @else --}}
-                                    <span class="badge badge-soft-info mb-1">
-                                        {{ translate(str_replace('_', ' ', $order['order_status'])) }}
-                                    </span>
-                                    {{-- @endif --}}
+                                    @endif
 
 
                                     <div class="text-capitalze opacity-7">

@@ -539,10 +539,8 @@
                 },
                 language: {
                     zeroRecords: '<div class="text-center p-4">' +
-                        '<img class="mb-3 w-7rem" src="{{ dynamicAsset('
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
-                        '<p class="mb-0">{{ translate('
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        No_data_to_show ') }}</p>' +
+                        '<img class="mb-3 w-7rem" src="{{ dynamicAsset('public / assets / admin / svg / illustrations / sorry.svg ') }}" alt="Image Description">' +
+                        '<p class="mb-0">{{ translate('No_data_to_show ') }}</p>' +
                         '</div>'
                 }
             });

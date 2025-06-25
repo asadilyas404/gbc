@@ -208,11 +208,11 @@ class OrderController extends Controller
         $data =1;
         }
 
-        if($request['order_status']=='delivered' && $order->order_type != 'take_away' && !$data)
-        {
-            Toastr::warning(translate('messages.you_can_not_delivered_delivery_order'));
-            return back();
-        }
+        // if($request['order_status']=='delivered' && $order->order_type != 'take_away' && !$data)
+        // {
+        //     Toastr::warning(translate('messages.you_can_not_delivered_delivery_order'));
+        //     return back();
+        // }
 
         if($request['order_status'] =="confirmed")
         {
@@ -223,74 +223,74 @@ class OrderController extends Controller
             }
         }
 
-        if ($request->order_status == 'delivered') {
-            $order_delivery_verification = (boolean)\App\Models\BusinessSetting::where(['key' => 'order_delivery_verification'])->first()->value;
-            if($order_delivery_verification)
-            {
-                if($request->otp)
-                {
-                    if($request->otp != $order->otp)
-                    {
-                        Toastr::warning(translate('messages.order_varification_code_not_matched'));
-                        return back();
-                    }
-                }
-                else
-                {
-                    Toastr::warning(translate('messages.order_varification_code_is_required'));
-                    return back();
-                }
-            }
-            if(isset($order->subscription_id) && count($order->subscription_logs) == 0 ){
-                Toastr::warning(translate('messages.You_Can_Not_Delivered_This_Subscription_order_Before_Schedule'));
-                return back();
-            }
+        // if ($request->order_status == 'delivered') {
+        //     $order_delivery_verification = (boolean)\App\Models\BusinessSetting::where(['key' => 'order_delivery_verification'])->first()->value;
+        //     if($order_delivery_verification)
+        //     {
+        //         if($request->otp)
+        //         {
+        //             if($request->otp != $order->otp)
+        //             {
+        //                 Toastr::warning(translate('messages.order_varification_code_not_matched'));
+        //                 return back();
+        //             }
+        //         }
+        //         else
+        //         {
+        //             Toastr::warning(translate('messages.order_varification_code_is_required'));
+        //             return back();
+        //         }
+        //     }
+        //     if(isset($order->subscription_id) && count($order->subscription_logs) == 0 ){
+        //         Toastr::warning(translate('messages.You_Can_Not_Delivered_This_Subscription_order_Before_Schedule'));
+        //         return back();
+        //     }
 
-            if($order->transaction  == null || isset($order->subscription_id))
-            {
-                $unpaid_payment = OrderPayment::where('payment_status','unpaid')->where('order_id',$order->id)->first()->payment_method;
-                $unpaid_pay_method = 'digital_payment';
-                if($unpaid_payment){
-                    $unpaid_pay_method = $unpaid_payment;
-                }
+        //     if($order->transaction  == null || isset($order->subscription_id))
+        //     {
+        //         $unpaid_payment = OrderPayment::where('payment_status','unpaid')->where('order_id',$order->id)->first()->payment_method;
+        //         $unpaid_pay_method = 'digital_payment';
+        //         if($unpaid_payment){
+        //             $unpaid_pay_method = $unpaid_payment;
+        //         }
 
-                if($order->payment_method == 'cash_on_delivery' || $unpaid_pay_method == 'cash_on_delivery')
-                {
-                    $ol = OrderLogic::create_transaction($order,'restaurant',  null);
-                }
-                else{
-                    $ol = OrderLogic::create_transaction($order,'admin',  null);
-                }
+        //         if($order->payment_method == 'cash_on_delivery' || $unpaid_pay_method == 'cash_on_delivery')
+        //         {
+        //             $ol = OrderLogic::create_transaction($order,'restaurant',  null);
+        //         }
+        //         else{
+        //             $ol = OrderLogic::create_transaction($order,'admin',  null);
+        //         }
 
 
-                if(!$ol)
-                {
-                    Toastr::warning(translate('messages.faield_to_create_order_transaction'));
-                    return back();
-                }
-            }
+        //         if(!$ol)
+        //         {
+        //             Toastr::warning(translate('messages.faield_to_create_order_transaction'));
+        //             return back();
+        //         }
+        //     }
 
-            $order->payment_status = 'paid';
+        //     $order->payment_status = 'paid';
 
-            OrderLogic::update_unpaid_order_payment($order->id, $order->payment_method);
+        //     OrderLogic::update_unpaid_order_payment($order->id, $order->payment_method);
 
-            $order->details->each(function($item, $key){
-                if($item->food)
-                {
-                    $item->food->increment('order_count');
-                }
-            });
-            $order->customer ?  $order->customer->increment('order_count') : '';
-        }
-        if($request->order_status == 'canceled' || $request->order_status == 'delivered')
-        {
-            if($order->delivery_man)
-            {
-                $dm = $order->delivery_man;
-                $dm->current_orders = $dm->current_orders>1?$dm->current_orders-1:0;
-                $dm->save();
-            }
-        }
+        //     $order->details->each(function($item, $key){
+        //         if($item->food)
+        //         {
+        //             $item->food->increment('order_count');
+        //         }
+        //     });
+        //     $order->customer ?  $order->customer->increment('order_count') : '';
+        // }
+        // if($request->order_status == 'canceled' || $request->order_status == 'delivered')
+        // {
+        //     if($order->delivery_man)
+        //     {
+        //         $dm = $order->delivery_man;
+        //         $dm->current_orders = $dm->current_orders>1?$dm->current_orders-1:0;
+        //         $dm->save();
+        //     }
+        // }
 
         if($request->order_status == 'canceled' )
         {
@@ -309,14 +309,14 @@ class OrderController extends Controller
             Helpers::decreaseSellCount($order->details);
 
         }
-        if($request->order_status == 'delivered')
-        {
-            $order->restaurant->increment('order_count');
-            if($order->delivery_man)
-            {
-                $order->delivery_man->increment('order_count');
-            }
-        }
+        // if($request->order_status == 'delivered')
+        // {
+        //     $order->restaurant->increment('order_count');
+        //     if($order->delivery_man)
+        //     {
+        //         $order->delivery_man->increment('order_count');
+        //     }
+        // }
         $order->order_status = $request->order_status;
         if ($request->order_status == "processing") {
             $order->processing_time = $request->processing_time;

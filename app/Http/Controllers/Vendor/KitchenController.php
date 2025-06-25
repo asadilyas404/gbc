@@ -83,6 +83,7 @@ class KitchenController extends Controller{
                 ]);
 
                 $order->kitchen_status = $request->type;
+                $order->order_status = $request->type;
                 $order->is_pushed = 'N';
                 $order->save();
             }

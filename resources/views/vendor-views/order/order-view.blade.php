@@ -208,7 +208,7 @@
                                             {{ translate('messages.delivered') }}
                                         </span>
                                     @else
-                                        <span class="badge badge-soft-danger ml-2 ml-sm-3">
+                                        <span class="badge badge-soft-info ml-2 ml-sm-3">
                                             {{ translate(str_replace('_', ' ', $order['order_status'])) }}
                                         </span>
                                     @endif

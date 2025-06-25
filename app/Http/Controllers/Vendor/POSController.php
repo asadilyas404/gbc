@@ -579,11 +579,12 @@ class POSController extends Controller
             $order->order_serial = Order::latest()->first()->order_serial + 1;
         }
         $order->payment_status = isset($address) ? 'unpaid' : 'paid';
+        $order->kitchen_status = 'pending';
         if ($request->user_id) {
-            $order->order_status = isset($address) ? 'confirmed' : 'delivered';
+            $order->order_status = $order->kitchen_status;
             $order->order_type = isset($address) ? 'delivery' : 'take_away';
         } else {
-            $order->order_status = 'delivered';
+            $order->order_status = $order->kitchen_status;
             $order->order_type = 'take_away';
         }
         $order->order_type =  $request->delivery_type ?? 'delivery';
@@ -621,7 +622,7 @@ class POSController extends Controller
         $order->schedule_at = now();
         $order->updated_at = now();
         $order->otp = rand(1000, 9999);
-        $order->kitchen_status = 'pending';
+
         DB::beginTransaction();
         foreach ($cart as $c) {
 

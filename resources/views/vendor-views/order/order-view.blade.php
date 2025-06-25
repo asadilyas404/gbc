@@ -498,13 +498,13 @@
                             </table>
                         </div>
                         <?php
-                        
+
                         $coupon_discount_amount = $order['coupon_discount_amount'];
-                        
+
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
-                        
+
                         $total_tax_amount = $order['total_tax_amount'];
-                        
+
                         $restaurant_discount_amount = $order['restaurant_discount_amount'];
                         $tax_included = \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first() ? \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first()->value : 0;
                         ?>
@@ -763,7 +763,7 @@
                     <div class="card mb-2 mt-2">
                         <div class="card-header border-0 text-center pb-0">
                             @if ($order->delivery_man)
-                                <h5 class="card-title mb-3 w-100 justify-content-between">
+                                {{-- <h5 class="card-title mb-3 w-100 justify-content-between">
                                     <div>
                                         <span class="card-header-icon">
                                             <i class="tio-user"></i>
@@ -791,11 +791,11 @@
                                             {{ translate('messages.change') }}
                                         </span>
                                     @endif
-                                </h5>
+                                </h5> --}}
                         </div>
 
                         <div class="card-body">
-                            <div class="media align-items-center deco-none customer--information-single ml-3 border-0 text-center pb-0"
+                            {{-- <div class="media align-items-center deco-none customer--information-single ml-3 border-0 text-center pb-0"
                                 href="javascript:">
                                 <div class="avatar avatar-circle">
                                     <img class="avatar-img  initial-81 onerror-image"
@@ -827,9 +827,9 @@
                                         {{ $order->delivery_man['phone'] }}
                                     </span>
                                 </div>
-                            </div>
+                            </div> --}}
 
-                            @if ($order['order_type'] != 'take_away')
+                            {{-- @if ($order['order_type'] != 'take_away')
                                 <hr>
                                 @php($address = $order->dm_last_location)
                                 <div class="d-flex justify-content-between align-items-center">
@@ -847,9 +847,9 @@
                                         {{ translate('messages.location_not_found') }}
                                     </span>
                                 @endif
-                            @endif
+                            @endif --}}
                         @else
-                            @if (
+                            {{-- @if (
                                 !$order->delivery_man &&
                                     !in_array($order['order_status'], [
                                         'handover',
@@ -871,7 +871,7 @@
                                         <i class="tio-bike"></i> {{ translate('messages.assign_delivery_man') }}
                                     </button>
                                 </div>
-                            @endif
+                            @endif --}}
                 @endif
             </div>
         </div>

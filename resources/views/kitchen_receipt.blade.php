@@ -15,9 +15,9 @@
                         class="initial-38-2" alt="">
                 </div>
                 <div class="text-center pt-3 mb-3">
-                    <h5 class="initial-38-3">{{ $order->restaurant->name }} | مالك البيتزا </h5>
+                    {{-- <h5 class="initial-38-3">{{ $order->restaurant->name }} | مالك البيتزا </h5> --}}
 
-                    {{-- <h5 class="initial-38-3">{{ $order->restaurant->name }} | الخليج بروستید تشیکن </h5> --}}
+                    <h5 class="initial-38-3">{{ $order->restaurant->name }} | الخليج بروستید تشیکن </h5>
                     <h5 class="text-break initial-38-4">
                         {{ $order->restaurant->address }} | المصنعة
                     </h5>
@@ -501,9 +501,9 @@
                 </h5>
                 <div class="text-center">{{ translate('for_ordering_food_from') }}
                     {{ \App\Models\BusinessSetting::where(['key' => 'business_name'])->first()->value }}</div>
-                <div class="text-center">لطلب الطعام من مالك البيتزا </div>
+                {{-- <div class="text-center">لطلب الطعام من مالك البيتزا </div> --}}
 
-                {{-- <div class="text-center"> الخليج بروستید تشیکن لطلب الطعام من</div> --}}
+                <div class="text-center"> الخليج بروستید تشیکن لطلب الطعام من</div>
 
                 <dd class="col-12 border-bottom-dashed my-2"></dd>
 

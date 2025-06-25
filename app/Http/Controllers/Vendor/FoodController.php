@@ -626,10 +626,10 @@ class FoodController extends Controller
 
     public function search(Request $request)
     {
-        $key = explode(' ', $request['search']);
+        $key = explode(' ', strtolower($request['search']));
         $foods = Food::where(function ($q) use ($key) {
             foreach ($key as $value) {
-                $q->where('name', 'like', "%{$value}%");
+                $q->where('LOWER(name) like ?', "%{$value}%");
             }
         })->limit(50)->get();
         return response()->json([

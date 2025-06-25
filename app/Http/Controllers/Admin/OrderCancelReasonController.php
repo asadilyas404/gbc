@@ -89,7 +89,7 @@ class OrderCancelReasonController extends Controller
             return back();
         }
         $cancelReason->status = $request->status;
-        $cancelReason?->save();
+        $cancelReason->save();
         Toastr::success(translate('messages.status_updated'));
         return back();
     }
@@ -103,7 +103,7 @@ class OrderCancelReasonController extends Controller
         OrderCancelReason::where('user_type' , $cancelReason->user_type)->where('is_default',1)->update(['is_default' => 0]);
         $cancelReason->is_default = $request->is_default;
         $cancelReason->status = 1;
-        $cancelReason?->save();
+        $cancelReason->save();
         Toastr::success(translate('messages.Dafault_status_updated'));
         return back();
     }
@@ -125,7 +125,7 @@ class OrderCancelReasonController extends Controller
         }
         $cancelReason->reason = $request->reason[array_search('default', $request->lang1)];
         $cancelReason->user_type=$request->user_type;
-        $cancelReason?->save();
+        $cancelReason->save();
 
         $default_lang = str_replace('_', '-', app()->getLocale());
         foreach ($request->lang1 as $index => $key) {

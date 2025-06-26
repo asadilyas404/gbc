@@ -14,6 +14,7 @@
             $subtotal = 0;
             $addon_price = 0;
             $tax = Helpers::get_restaurant_data()->tax;
+            $delivery_fee = 0;
             $discount = 0;
             $discount_type = 'amount';
             $discount_on_product = 0;
@@ -24,6 +25,9 @@
                 $cart = session()->get('cart');
                 if (isset($cart['tax'])) {
                     $tax = $cart['tax'];
+                }
+                if (isset($cart['delivery_fee'])) {
+                    $delivery_fee = $cart['delivery_fee'];
                 }
                 if (isset($cart['discount'])) {
                     $discount = $cart['discount'];
@@ -87,11 +91,7 @@
 $add = false;
 if (session()->has('address') && count(session()->get('address')) > 0) {
     $add = true;
-    $delivery_fee = session()->get('address')['delivery_fee'];
-} elseif (session()->has('delivery_fee')) {
-    $delivery_fee = session('cart')->delivery_fee;
-} else {
-    $delivery_fee = 0;
+    $delivery_fee += session()->get('address')['delivery_fee'];
 }
 $total = $subtotal + $addon_price;
 $discount_amount = $discount_type == 'percent' && $discount > 0 ? (($total - $discount_on_product) * $discount) / 100 : $discount;
@@ -507,7 +507,7 @@ if (isset($cart['paid'])) {
                 <form action="{{ route('vendor.pos.delivery-fee') }}" method="post" class="row">
                     @csrf
                     <div class="form-group col-sm-12">
-                        <label for="delivery_fee_input">{{ translate('messages.delivery_fee') }}</label>
+                        <label for="delivery_fee_input">{{ translate('messages.add_delivery_fee_amount') }}</label>
                         <input type="number" class="form-control" name="delivery_fee" min="0.0001"
                             id="delivery_fee_input" value="{{ $delivery_fee }}" max="{{ 1000000000 }}"
                             step="0.0001">

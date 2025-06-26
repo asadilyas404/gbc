@@ -370,11 +370,11 @@
                                 {{ \App\CentralLogics\Helpers::format_currency($order['restaurant_discount_amount']) }}
                             </dd>
 
-                            <dt class="col-6 text-left text-muted">{{ translate('messages.coupon_discount') }} | خصم
+                            {{-- <dt class="col-6 text-left text-muted">{{ translate('messages.coupon_discount') }} | خصم
                                 قسيمة</dt>
                             <dd class="col-6">
                                 - {{ \App\CentralLogics\Helpers::format_currency($order['coupon_discount_amount']) }}
-                            </dd>
+                            </dd> --}}
 
                             @if ($order['ref_bonus_amount'] > 0)
                                 <dt class="col-6  text-left text-muted">{{ translate('messages.Referral_Discount') }}
@@ -393,11 +393,11 @@
                                     {{ \App\CentralLogics\Helpers::format_currency($order['total_tax_amount']) }}
                                 </dd>
                             @endif
-                            <dt class="col-6 text-left text-muted">{{ translate('messages.delivery_man_tips') }}</dt>
+                            {{-- <dt class="col-6 text-left text-muted">{{ translate('messages.delivery_man_tips') }}</dt>
                             <dd class="col-6">
                                 @php($dm_tips = $order['dm_tips'])
                                 {{ \App\CentralLogics\Helpers::format_currency($dm_tips) }}
-                            </dd>
+                            </dd> --}}
                             <dt class="col-6 text-left text-muted">{{ translate('messages.delivery_charge') }} | رسوم
                                 التسليم</dt>
                             <dd class="col-6">

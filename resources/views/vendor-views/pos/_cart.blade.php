@@ -508,7 +508,7 @@ if (isset($cart['paid'])) {
                     @csrf
                     <div class="form-group col-sm-12">
                         <label for="delivery_fee_input">{{ translate('messages.add_delivery_fee_amount') }}</label>
-                        <input type="number" class="form-control" name="delivery_fee" min="0.0001"
+                        <input type="number" class="form-control" name="delivery_fee" min="0"
                             id="delivery_fee_input" value="{{ $delivery_fee }}" max="{{ 1000000000 }}"
                             step="0.0001">
                     </div>

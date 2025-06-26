@@ -85,9 +85,12 @@
 
 <?php
 $add = false;
+dd(session());
 if (session()->has('address') && count(session()->get('address')) > 0) {
     $add = true;
     $delivery_fee = session()->get('address')['delivery_fee'];
+} elseif (session()->has('delivery_fee')) {
+    $delivery_fee = session()->get('delivery_fee');
 } else {
     $delivery_fee = 0;
 }
@@ -138,7 +141,10 @@ if (isset($cart['paid'])) {
             <dd class="col-6 text-right">- {{ Helpers::format_currency(round($discount_on_product, 3)) }}</dd>
             <dt class="col-6 font-regular">{{ translate('messages.delivery_fee') }} :</dt>
             <dd class="col-6 text-right" id="delivery_price">
-                {{ Helpers::format_currency(round($delivery_fee, 3)) }}</dd>
+                <button class="btn btn-sm" type="button" data-toggle="modal" data-target="#add-delivery-fee"><i
+                        class="tio-edit"></i></button>
+                + {{ Helpers::format_currency(round($delivery_fee, 3)) }}
+            </dd>
 
             <dt class="col-6 font-regular">{{ translate('messages.extra_discount') }} :</dt>
             <dd class="col-6 text-right">
@@ -478,6 +484,34 @@ if (isset($cart['paid'])) {
                                 (%)
                             </option>
                         </select>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <button class="btn btn-sm btn--primary"
+                            type="submit">{{ translate('messages.submit') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add-delivery-fee" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ translate('messages.delivery_fee') }}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ route('vendor.pos.delivery-fee') }}" method="post" class="row">
+                    @csrf
+                    <div class="form-group col-sm-12">
+                        <label for="delivery_fee_input">{{ translate('messages.delivery_fee') }}</label>
+                        <input type="number" class="form-control" name="delivery_fee" min="0.0001"
+                            id="delivery_fee_input" value="{{ $delivery_fee }}" max="{{ 1000000000 }}"
+                            step="0.0001">
                     </div>
                     <div class="form-group col-sm-12">
                         <button class="btn btn-sm btn--primary"

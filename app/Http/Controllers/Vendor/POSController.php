@@ -468,6 +468,14 @@ class POSController extends Controller
         return back();
     }
 
+    public function update_delivery_fee(Request $request)
+    {
+        $cart = $request->session()->get('cart', collect([]));
+        $cart['delivery_fee'] = $request->delivery_fee;
+        $request->session()->put('cart', $cart);
+        return back();
+    }
+
     public function update_paid(Request $request)
     {
         $cart = $request->session()->get('cart', collect([]));

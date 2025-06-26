@@ -44,6 +44,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
                 Route::post('tax', 'POSController@update_tax')->name('tax');
                 Route::post('paid', 'POSController@update_paid')->name('paid');
                 Route::post('discount', 'POSController@update_discount')->name('discount');
+                Route::post('delivery-fee', 'POSController@update_delivery_fee')->name('delivery-fee');
                 Route::get('customers', 'POSController@get_customers')->name('customers');
                 Route::post('order', 'POSController@place_order')->name('order');
                 Route::get('orders', 'POSController@order_list')->name('orders');

@@ -85,13 +85,11 @@
 
 <?php
 $add = false;
-dd(session('cart'));
-
 if (session()->has('address') && count(session()->get('address')) > 0) {
     $add = true;
     $delivery_fee = session()->get('address')['delivery_fee'];
 } elseif (session()->has('delivery_fee')) {
-    $delivery_fee = session()->get('delivery_fee');
+    $delivery_fee = session('cart')->delivery_fee;
 } else {
     $delivery_fee = 0;
 }

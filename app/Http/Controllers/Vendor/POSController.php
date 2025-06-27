@@ -522,20 +522,17 @@ class POSController extends Controller
         //     Toastr::error(translate('No payment method selected'));
         //     return back();
         // }
-        // if (($request->cash_paid === null || $request->cash_paid <= 0) &&
-        //     ($request->card_paid === null || $request->card_paid <= 0)
-        // ) {
-        //     Toastr::error(translate('No payment amount added'));
-        //     return back();
-        // }
 
         // Determine payment type
-        if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
-            $payment_type = 'cash';
-        } elseif ($request->card_paid > 0 && ($request->cash_paid === null || $request->cash_paid <= 0)) {
-            $payment_type = 'card';
-        } elseif ($request->cash_paid > 0 && $request->card_paid > 0) {
-            $payment_type = 'cash_card';
+            $payment_type = '';
+        if ($request->order_draft == 'final') {
+            if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
+                $payment_type = 'cash';
+            } elseif ($request->card_paid > 0 && ($request->cash_paid === null || $request->cash_paid <= 0)) {
+                $payment_type = 'card';
+            } elseif ($request->cash_paid > 0 && $request->card_paid > 0) {
+                $payment_type = 'cash_card';
+            }
         }
 
         if ($request->session()->has('cart')) {

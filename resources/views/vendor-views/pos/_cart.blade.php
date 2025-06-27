@@ -378,9 +378,9 @@ if (isset($cart['paid'])) {
                                         data-dismiss="modal">{{ translate('Close') }}</button>
                                     <button type="submit"
                                         class="btn btn--primary">{{ translate('Place Order') }}</button>
-                                    <button type="submit" class="btn btn-warning"
+                                    <button type="submit" class="btn btn--warning"
                                         onclick="document.getElementById('order_draft').value='draft'">
-                                        {{ translate('Save as Draft') }}
+                                        {{ translate('Draft') }}
                                     </button>
                                 </div>
                             </div>

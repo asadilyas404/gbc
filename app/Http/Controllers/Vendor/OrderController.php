@@ -95,7 +95,7 @@ class OrderController extends Controller
         })
         ->when($status == 'all', function($query) use($data){
             return $query->where(function($q1) use($data) {
-                $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['pending','failed', 'refund_requested', 'refunded'])
+                $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['failed', 'refund_requested', 'refunded'])
                 ->orWhere(function($q2){
                     return $q2->where('order_status','pending')->where('order_type', 'take_away');
                 })->orWhere(function($q3){

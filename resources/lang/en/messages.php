@@ -6517,4 +6517,5 @@
   'please_add_options_for' => 'Please add options for',
   'kitchen_orders' => 'Kitchen Orders',
   'add_delivery_fee_amount' => 'Add Delivery Fee Amount',
+  'Draft' => 'Draft',
 );

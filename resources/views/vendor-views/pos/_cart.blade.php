@@ -380,7 +380,7 @@ if (isset($cart['paid'])) {
                                         class="btn btn--primary">{{ translate('Place Order') }}</button>
                                     <button type="submit" class="btn btn--warning"
                                         onclick="document.getElementById('order_draft').value='draft'">
-                                        {{ translate('draft') }}
+                                        {{ translate('Draft') }}
                                     </button>
                                 </div>
                             </div>

@@ -370,6 +370,7 @@ if (isset($cart['paid'])) {
                                     </div>
                                 </div>
                             </div>
+                            <input type="hidden" name="order_draft" id="order_draft" value="final">
                             <div class="col-12">
                                 <!-- Submit Button -->
                                 <div class="btn--container justify-content-end mt-4">
@@ -377,6 +378,10 @@ if (isset($cart['paid'])) {
                                         data-dismiss="modal">{{ translate('Close') }}</button>
                                     <button type="submit"
                                         class="btn btn--primary">{{ translate('Place Order') }}</button>
+                                    <button type="submit" class="btn btn-warning"
+                                        onclick="document.getElementById('order_draft').value='draft'">
+                                        {{ translate('Save as Draft') }}
+                                    </button>
                                 </div>
                             </div>
                         </div>

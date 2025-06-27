@@ -518,9 +518,6 @@ class POSController extends Controller
         }
         // dd($allNotes); // Now 'details' should be correctly pushed
 
-
-
-
         // if(!$request->type){
         //     Toastr::error(translate('No payment method selected'));
         //     return back();
@@ -586,7 +583,8 @@ class POSController extends Controller
         if (Order::find($order->order_serial)) {
             $order->order_serial = Order::latest()->first()->order_serial + 1;
         }
-        $order->payment_status = isset($address) ? 'unpaid' : 'paid';
+        // $order->payment_status = isset($address) ? 'unpaid' : 'paid';
+        $order->payment_status = $request->order_draft == 'draft' ? 'unpaid' : 'paid';
         $order->kitchen_status = 'pending';
         if ($request->user_id) {
             $order->order_status = $order->kitchen_status;

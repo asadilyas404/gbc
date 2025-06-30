@@ -120,6 +120,15 @@ class POSController extends Controller
             ]);
         }
 
+        $editingOrderId = session('editing_order_id');
+        $draftDetails = null;
+        $editingOrder = null;
+
+        if ($editingOrderId) {
+            $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
+            $editingOrder = Order::find($editingOrderId);
+        }
+
         // Standard request
         return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword'));
     }
@@ -834,8 +843,6 @@ class POSController extends Controller
         ];
     }
 
-    $draftDetails = PosOrderAdditionalDtl::where('order_id', $order->id)->first();
-dd($draftDetails);
     session()->put('cart', collect($cart));
     session()->put('editing_order_id', $order->id);
 

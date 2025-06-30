@@ -348,13 +348,13 @@ if (isset($cart['paid'])) {
                                         <label for="delivery_type" class="input-label">Delivery Type</label>
                                         <select id="delivery_type" name="delivery_type" class="form-control">
                                             <option value="dine_in"
-                                                {{ old('delivery_type', $order->order_type ?? '') == 'dine_in' ? 'selected' : '' }}>
+                                                {{ old('delivery_type', $editingOrder->order_type ?? '') == 'dine_in' ? 'selected' : '' }}>
                                                 Dine In</option>
                                             <option value="take_away"
-                                                {{ old('delivery_type', $order->order_type ?? '') == 'take_away' ? 'selected' : '' }}>
+                                                {{ old('delivery_type', $editingOrder->order_type ?? '') == 'take_away' ? 'selected' : '' }}>
                                                 Take away</option>
                                             <option value="delivery"
-                                                {{ old('delivery_type', $order->order_type ?? '') == 'delivery' ? 'selected' : '' }}>
+                                                {{ old('delivery_type', $editingOrder->order_type ?? '') == 'delivery' ? 'selected' : '' }}>
                                                 Delivery</option>
                                         </select>
                                     </div>

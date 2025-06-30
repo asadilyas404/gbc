@@ -834,11 +834,13 @@ class POSController extends Controller
         ];
     }
 
+    $draftDetails = PosOrderAdditionalDtl::where('order_id', $order->id)->first();
+
     session()->put('cart', collect($cart));
     session()->put('editing_order_id', $order->id);
 
     Toastr::success('Draft order loaded to cart.');
-    return redirect()->route('vendor.pos.index.new');
+    return redirect()->route('vendor.pos.index.new', compact('draftDetails'));
 }
 
 

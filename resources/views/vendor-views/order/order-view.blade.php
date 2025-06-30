@@ -663,14 +663,14 @@
                                         href="javascript:">
                                         {{ translate('Confirm Order') }}
                                     </a> --}}
-                            @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')
-                                    <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}" class="btn w-100 mb-1 btn-sm btn-outline-danger btn--danger mt-2 btn btn--warning">
+                            @if ($order['payment_status'] == 'unpaid')
+                                    <a target="_blank" href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}" class="btn w-100 mb-1 btn-sm btn-outline-warning mt-2 btn--warning">
                                         Load Draft to POS
                                     </a>
                             @endif
                             @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')
                                 <a
-                                    class="btn w-100 mb-2 btn-sm btn-outline-danger btn--danger mt-1 cancelled-status">{{ translate('Cancel Order') }}</a>
+                                    class="btn w-100 mb-1 btn-sm btn-outline-danger btn--danger mt-2 cancelled-status">{{ translate('Cancel Order') }}</a>
                             @endif
                             {{-- @elseif ($order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted')
                                     <a class="btn btn-sm btn--primary w-100 mb-3 order-status-change-alert"

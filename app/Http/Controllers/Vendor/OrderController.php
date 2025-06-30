@@ -155,7 +155,7 @@ class OrderController extends Controller
         }])->where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])
 
         ->Notpos()
-        ->NotDigitalOrder()
+        // ->NotDigitalOrder()
         // ->hasSubscriptionToday()
         ->first();
 

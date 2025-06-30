@@ -6518,4 +6518,5 @@
   'kitchen_orders' => 'Kitchen Orders',
   'add_delivery_fee_amount' => 'Add Delivery Fee Amount',
   'Draft' => 'Draft',
+  'draft' => 'Draft',
 );

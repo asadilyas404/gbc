@@ -274,7 +274,7 @@
                                         class="text--title">{{ translate(str_replace('_', ' ', $order['order_type'])) }}</strong>
                                 </h6>
 
-                                @if ($order->cutlery)
+                                {{-- @if ($order->cutlery)
                                     <h6>
                                         <span>{{ translate('cutlery') }}</span> <span>:</span>
                                         <strong class="text-success">
@@ -288,7 +288,7 @@
                                             {{ translate('messages.No') }}
                                         </strong>
                                     </h6>
-                                @endif
+                                @endif --}}
                             </div>
                         </div>
                     </div>
@@ -663,6 +663,11 @@
                                         href="javascript:">
                                         {{ translate('Confirm Order') }}
                                     </a> --}}
+                            @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')
+                                    <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}" class="btn w-100 mb-3 btn-sm btn-outline-danger btn--danger mt-3 btn btn-warning">
+                                        Load to POS
+                                    </a>
+                            @endif
                             @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')
                                 <a
                                     class="btn w-100 mb-3 btn-sm btn-outline-danger btn--danger mt-3 cancelled-status">{{ translate('Cancel Order') }}</a>

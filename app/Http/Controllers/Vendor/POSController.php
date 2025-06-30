@@ -774,6 +774,40 @@ class POSController extends Controller
         return back();
     }
 
+    public function loadDraftOrderToCart($order_id)
+    {
+        $order = Order::with('details')->find($order_id);
+
+        if (!$order || $order->payment_status != 'unpaid') {
+            Toastr::error('Only unpaid (draft) orders can be edited.');
+            return back();
+        }
+
+        $cart = [];
+
+        foreach ($order->details as $item) {
+            $food = json_decode($item->food_details, true);
+
+            $cart[] = [
+                'id' => $item->food_id,
+                'name' => $food['name'],
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+                'add_ons' => json_decode($item->add_ons, true),
+                'add_on_qtys' => [], // optional if stored
+                'discount' => $item->discount_on_food,
+                'variations' => json_decode($item->variation, true),
+                'variation_option_ids' => '', // optional if you use it
+                'details' => $item->notes,
+            ];
+        }
+
+        session()->put('cart', $cart);
+        session()->put('editing_order_id', $order->id);
+
+        Toastr::success('Draft order loaded to cart.');
+        return redirect()->route('vendor.pos.index');
+    }
 
     public function customer_store(Request $request)
     {

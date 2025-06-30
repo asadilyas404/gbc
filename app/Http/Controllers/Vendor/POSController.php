@@ -823,7 +823,6 @@ class POSController extends Controller
             $variation_price = 0;
             $variations = json_decode($item->variation, true) ?? [];
 
-            // Calculate variation price (simplified; adjust based on your actual pricing logic)
             foreach ($variations as $variation) {
                 $variation_price += $variation['optionPrice'] ?? 0;
             }

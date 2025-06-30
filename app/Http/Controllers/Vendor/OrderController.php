@@ -103,6 +103,9 @@ class OrderController extends Controller
                 });
             });
         })
+        ->when($status == 'draft', function($query){
+            return $query->where('payment_status','unpaid');
+        })
         ->when(in_array($status, ['pending','confirmed']), function($query){
             return $query->OrderScheduledIn(30);
         })

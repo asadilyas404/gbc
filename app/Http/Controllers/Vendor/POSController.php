@@ -835,7 +835,7 @@ class POSController extends Controller
     }
 
     $draftDetails = PosOrderAdditionalDtl::where('order_id', $order->id)->first();
-
+dd($draftDetails);
     session()->put('cart', collect($cart));
     session()->put('editing_order_id', $order->id);
 

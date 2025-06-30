@@ -574,11 +574,24 @@ class POSController extends Controller
         $restaurant_discount_amount = 0;
 
         $order_details = [];
-        $order = new Order();
-        $order->id = Helpers::generateGlobalId($restaurant->id);
-        $order->order_serial = 100000 + Order::count() + 1;
-        if (Order::find($order->order_serial)) {
-            $order->order_serial = Order::latest()->first()->order_serial + 1;
+
+        $editing_order_id = session('editing_order_id');
+        if ($editing_order_id) {
+            $order = Order::find($editing_order_id);
+            if (!$order || $order->payment_status != 'unpaid') {
+                Toastr::error('Invalid or already paid order.');
+                return back();
+            }
+
+            // Delete old order details
+            OrderDetail::where('order_id', $order->id)->delete();
+        } else {
+            $order = new Order();
+            $order->id = Helpers::generateGlobalId($restaurant->id);
+            $order->order_serial = 100000 + Order::count() + 1;
+                if (Order::find($order->order_serial)) {
+                    $order->order_serial = Order::latest()->first()->order_serial + 1;
+                }
         }
         // $order->payment_status = isset($address) ? 'unpaid' : 'paid';
         $order->payment_status = $request->order_draft == 'draft' ? 'unpaid' : 'paid';
@@ -718,17 +731,18 @@ class POSController extends Controller
 
             $order->save();
 
-            KitchenOrderStatusLog::create([
-                "status" => 'pending',
-                "order_id" => $order->id
-            ]);
+            if (!$editing_order_id) {
+                KitchenOrderStatusLog::create([
+                    "status" => 'pending',
+                    "order_id" => $order->id
+                ]);
+            }
 
             foreach ($order_details as $key => $item) {
                 $order_details[$key]['order_id'] = $order->id;
             }
             OrderDetail::insert($order_details);
-            $posOrderDtl = new PosOrderAdditionalDtl();
-            $posOrderDtl->order_id = $order->id;
+            $posOrderDtl = PosOrderAdditionalDtl::firstOrNew(['order_id' => $order->id]);
             $posOrderDtl->restaurant_id = $order->restaurant_id;
             $posOrderDtl->customer_name = $request->customer_name;
             $posOrderDtl->car_number = $request->car_number;
@@ -740,6 +754,7 @@ class POSController extends Controller
             $posOrderDtl->save();
 
             session()->forget('cart');
+            session()->forget('editing_order_id');
             session()->forget('address');
             session(['last_order' => $order->id]);
 

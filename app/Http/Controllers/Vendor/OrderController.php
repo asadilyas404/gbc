@@ -97,9 +97,9 @@ class OrderController extends Controller
             return $query->where(function($q1) use($data) {
                 $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['failed', 'refund_requested', 'refunded'])
                 ->orWhere(function($q2){
-                    return $q2->where('order_status','pending')->where('order_type', 'take_away');
+                    return $q2->where('order_status','pending');
                 })->orWhere(function($q3){
-                    return $q3->where('order_status','pending')->whereNotNull('subscription_id');
+                    return $q3->where('order_status','pending');
                 });
             });
         })

@@ -7,7 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 
 class PosOrderAdditionalDtl extends Model
 {
+    use HasFactory;
     protected $table = 'pos_order_additional_dtl';
+
+    protected $fillable = [
+        'order_id',
+        'restaurant_id',
+        'customer_name',
+        'car_number',
+        'phone',
+        'invoice_amount',
+        'cash_paid',
+        'card_paid',
+        'bank_account'
+    ];
 
     public function order()
     {

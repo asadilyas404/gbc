@@ -775,39 +775,57 @@ class POSController extends Controller
     }
 
     public function loadDraftOrderToCart($order_id)
-    {
-        $order = Order::with('details')->find($order_id);
+{
+    $order = Order::with('details')->find($order_id);
 
-        if (!$order || $order->payment_status != 'unpaid') {
-            Toastr::error('Only unpaid (draft) orders can be edited.');
-            return back();
-        }
-
-        $cart = [];
-
-        foreach ($order->details as $item) {
-            $food = json_decode($item->food_details, true);
-
-            $cart[] = [
-                'id' => $item->food_id,
-                'name' => $food['name'],
-                'quantity' => $item->quantity,
-                'price' => $item->price,
-                'add_ons' => json_decode($item->add_ons, true),
-                'add_on_qtys' => [], // optional if stored
-                'discount' => $item->discount_on_food,
-                'variations' => json_decode($item->variation, true),
-                'variation_option_ids' => '', // optional if you use it
-                'details' => $item->notes,
-            ];
-        }
-
-        session()->put('cart', $cart);
-        session()->put('editing_order_id', $order->id);
-
-        Toastr::success('Draft order loaded to cart.');
-        return redirect()->route('vendor.pos.index.new');
+    if (!$order || $order->payment_status != 'unpaid') {
+        Toastr::error('Only unpaid (draft) orders can be edited.');
+        return back();
     }
+
+    $cart = [];
+
+    foreach ($order->details as $item) {
+        $food = json_decode($item->food_details, true);
+
+        // Safe defaults
+        $variation_price = 0;
+        $variations = json_decode($item->variation, true) ?? [];
+
+        // Calculate variation price (simplified; adjust based on your actual pricing logic)
+        foreach ($variations as $variation) {
+            $variation_price += $variation['optionPrice'] ?? 0;
+        }
+
+        $cart[] = [
+            'id' => $item->food_id,
+            'name' => $food['name'] ?? '',
+            'quantity' => $item->quantity,
+            'price' => $item->price + $variation_price,
+            'variation_price' => $variation_price,
+            'variant' => '', // Set if needed by UI
+            'variations' => $variations,
+            'variation_option_ids' => '', // Optional: adjust if needed
+            'add_ons' => json_decode($item->add_ons, true),
+            'add_on_qtys' => [], // Optional: add qtys if stored
+            'addon_price' => $item->total_add_on_price,
+            'discount' => $item->discount_on_food,
+            'discountAmount' => $item->discount_on_food, // same as discount
+            'discountType' => 'amount', // adjust based on how it was saved
+            'details' => $item->notes,
+            'image' => $food['image'] ?? null,
+            'image_full_url' => $food['image_full_url'] ?? null,
+            'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000, // or any default
+        ];
+    }
+
+    session()->put('cart', collect($cart));
+    session()->put('editing_order_id', $order->id);
+
+    Toastr::success('Draft order loaded to cart.');
+    return redirect()->route('vendor.pos.index');
+}
+
 
     public function customer_store(Request $request)
     {

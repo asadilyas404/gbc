@@ -823,7 +823,7 @@ class POSController extends Controller
     session()->put('editing_order_id', $order->id);
 
     Toastr::success('Draft order loaded to cart.');
-    return redirect()->route('vendor.pos.index');
+    return redirect()->route('vendor.pos.index.new');
 }
 
 

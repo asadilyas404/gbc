@@ -759,6 +759,7 @@ class POSController extends Controller
                 $order_details[$key]['order_id'] = $order->id;
             }
             OrderDetail::insert($order_details);
+            dd('hello');
             $posOrderDtl = PosOrderAdditionalDtl::firstOrNew(['order_id' => $order->id]);
             $posOrderDtl->restaurant_id = $order->restaurant_id;
             $posOrderDtl->customer_name = $request->customer_name;

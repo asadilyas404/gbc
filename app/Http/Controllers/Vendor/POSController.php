@@ -409,7 +409,15 @@ class POSController extends Controller
 
     public function cart_items()
     {
-        return view('vendor-views.pos._cart');
+        $editingOrderId = session('editing_order_id');
+        $draftDetails = null;
+        $editingOrder = null;
+
+        if ($editingOrderId) {
+            $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
+            $editingOrder = Order::find($editingOrderId);
+        }
+        return view('vendor-views.pos._cart',compact('draftDetails','editingOrder'));
     }
 
     //removes from Cart

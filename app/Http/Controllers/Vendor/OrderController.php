@@ -93,19 +93,16 @@ class OrderController extends Controller
                 }
             });
         })
-        // ->when($status == 'all', function($query) use($data){
-        //     return $query->where(function($q1) use($data) {
-        //         $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['pending','failed', 'refund_requested', 'refunded'])
-        //         ->orWhere(function($q2){
-        //             return $q2->where('order_status','pending')->where('order_type', 'take_away');
-        //         })->orWhere(function($q3){
-        //             return $q3->where('order_status','pending')->whereNotNull('subscription_id');
-        //         });
-        //     });
-        // })
-        ->when($status == 'all', function($query) {
-    return $query; // do nothing, apply no filter
-})
+        ->when($status == 'all', function($query) use($data){
+            return $query->where(function($q1) use($data) {
+                $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['pending','failed', 'refund_requested', 'refunded'])
+                ->orWhere(function($q2){
+                    return $q2->where('order_status','pending')->where('order_type', 'take_away');
+                })->orWhere(function($q3){
+                    return $q3->where('order_status','pending')->whereNotNull('subscription_id');
+                });
+            });
+        })
         ->when(in_array($status, ['pending','confirmed']), function($query){
             return $query->OrderScheduledIn(30);
         })
@@ -118,8 +115,8 @@ class OrderController extends Controller
                 }
             });
         })
-        ->Notpos()
-        ->NotDigitalOrder()
+        // ->Notpos()
+        // ->NotDigitalOrder()
         ->hasSubscriptionToday()
         ->where('restaurant_id',\App\CentralLogics\Helpers::get_restaurant_id())
         ->orderBy('schedule_at', 'desc')

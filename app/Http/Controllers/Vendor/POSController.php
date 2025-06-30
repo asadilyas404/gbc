@@ -130,7 +130,7 @@ class POSController extends Controller
         }
 
         // Standard request
-        return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword'));
+        return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword','draftDetails','editingOrder'));
     }
 
 

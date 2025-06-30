@@ -599,7 +599,7 @@ class POSController extends Controller
                 Toastr::error('Invalid or already paid order.');
                 return back();
             }
-
+dd($order);
             // Delete old order details
             OrderDetail::where('order_id', $order->id)->delete();
         } else {

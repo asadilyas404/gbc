@@ -465,6 +465,7 @@ class POSController extends Controller
     {
         session()->forget('cart');
         session()->forget('address');
+        session()->forget('editing_order_id');
         return response()->json([], 200);
     }
 

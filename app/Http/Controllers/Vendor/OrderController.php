@@ -116,7 +116,7 @@ class OrderController extends Controller
             });
         })
         // ->Notpos()
-        // ->NotDigitalOrder()
+        ->NotDigitalOrder()
         ->hasSubscriptionToday()
         ->where('restaurant_id',\App\CentralLogics\Helpers::get_restaurant_id())
         ->orderBy('schedule_at', 'desc')

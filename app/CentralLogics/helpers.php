@@ -2718,7 +2718,7 @@ class Helpers
                     $result[$k] = $product_variation;
                     $result[$k]['values'] = [];
                     foreach ($product_variation['values'] as $key => $option) {
-                        dd($option , $variation);
+                        // dd($option, $variation);
                         if (in_array($option['label'], $variation['values']['label'])) {
                             $result[$k]['values'][] = $option;
                             $variation_price += $option['optionPrice'];
@@ -2732,16 +2732,16 @@ class Helpers
     }
 
     public static function simplifyVariationsToLabels(array $variations): array
-{
-    foreach ($variations as &$variation) {
-        if (isset($variation['values'][0]['label'])) {
-            // Extract labels and store them inside a 'label' key
-            $labels = array_column($variation['values'], 'label');
-            $variation['values'] = ['label' => $labels];
+    {
+        foreach ($variations as &$variation) {
+            if (isset($variation['values'][0]['label'])) {
+                // Extract labels and store them inside a 'label' key
+                $labels = array_column($variation['values'], 'label');
+                $variation['values'] = ['label' => $labels];
+            }
         }
+        return $variations;
     }
-    return $variations;
-}
 
 
     public static function subscription_check()

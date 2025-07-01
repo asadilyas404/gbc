@@ -600,8 +600,6 @@ class POSController extends Controller
                 Toastr::error('Invalid or already paid order.');
                 return back();
             }
-            // Delete old order details
-            OrderDetail::where('order_id', $order->id)->delete();
         } else {
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
@@ -680,6 +678,7 @@ class POSController extends Controller
                         $product->increment('sell_count', $c['quantity']);
                     }
 
+                    dd($c['variations']);
                     $cart_variations = $c['variations'] ?? [];
                     if (is_string($cart_variations)) {
                         $cart_variations = json_decode($cart_variations, true);
@@ -796,17 +795,18 @@ class POSController extends Controller
 
             DB::commit();
             //PlaceOrderMail
-            try {
-                $notification_status = Helpers::getNotificationStatusData('customer', 'customer_order_notification');
+            // try {
+            //     $notification_status = Helpers::getNotificationStatusData('customer', 'customer_order_notification');
 
-                if ($notification_status->mail_status == 'active' && $order->order_status == 'pending' && config('mail.status') && Helpers::get_mail_status('place_order_mail_status_user') == '1' && $order->customer->email) {
-                    Mail::to($order->customer->email)->send(new PlaceOrder($order->id));
-                }
-            } catch (\Exception $exception) {
-                info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
-            }
+            //     if ($notification_status->mail_status == 'active' && $order->order_status == 'pending' && config('mail.status') && Helpers::get_mail_status('place_order_mail_status_user') == '1' && $order->customer->email) {
+            //         Mail::to($order->customer->email)->send(new PlaceOrder($order->id));
+            //     }
+            // } catch (\Exception $exception) {
+            //     info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
+            // }
 
             //PlaceOrderMail end
+
             if ($editing_order_id) {
                 Toastr::success(translate('messages.order_drafted_successfully'));
             } else {

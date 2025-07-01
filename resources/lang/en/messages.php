@@ -6521,4 +6521,5 @@
   'Draft' => 'Draft',
   'draft' => 'Draft',
   'Drafted Orders' => 'Drafted Orders',
+  'Load Draft to POS' => 'Load Draft to POS',
 );

@@ -425,7 +425,7 @@
                                             <a class="btn action-btn btn--warning btn-outline-warning"
                                                 href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
                                                 title="{{ translate('Load Draft to POS') }}">
-                                                <i class="tio-download-to"></i>
+                                                <i class="tio-refresh-horizontal"></i>
                                             </a>
                                         @endif
                                         <a class="btn action-btn btn--primary btn-outline-primary" target="_blank"

@@ -678,7 +678,7 @@ class POSController extends Controller
                         $product->increment('sell_count', $c['quantity']);
                     }
 
-                    // dd($c['variations']);
+                    dd($c['variations']);
                     $cart_variations = $c['variations'] ?? [];
                     if (is_string($cart_variations)) {
                         $cart_variations = json_decode($cart_variations, true);

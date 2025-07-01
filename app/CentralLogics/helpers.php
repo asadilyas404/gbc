@@ -2732,14 +2732,16 @@ class Helpers
     }
 
     public static function simplifyVariationsToLabels(array $variations): array
-    {
-        foreach ($variations as &$variation) {
-            if (isset($variation['values'][0]['label'])) {
-                $variation['values'] = array_column($variation['values'], 'label');
-            }
+{
+    foreach ($variations as &$variation) {
+        if (isset($variation['values'][0]['label'])) {
+            // Extract labels and store them inside a 'label' key
+            $labels = array_column($variation['values'], 'label');
+            $variation['values'] = ['label' => $labels];
         }
-        return $variations;
     }
+    return $variations;
+}
 
 
     public static function subscription_check()

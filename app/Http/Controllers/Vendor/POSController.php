@@ -845,25 +845,28 @@ class POSController extends Controller
                 $variation_price += $variation['optionPrice'] ?? 0;
             }
 
+            // Simplify variations
+            $simplified_variations = Helpers::simplifyVariationsToLabels($variations);
+
             $cart[] = [
                 'id' => $item->food_id,
                 'name' => $food['name'] ?? '',
                 'quantity' => $item->quantity,
                 'price' => $item->price + $variation_price,
                 'variation_price' => $variation_price,
-                'variant' => '', // Set if needed by UI
-                'variations' => $variations,
-                'variation_option_ids' => '', // Optional: adjust if needed
+                'variant' => '',
+                'variations' => $simplified_variations,
+                'variation_option_ids' => '',
                 'add_ons' => json_decode($item->add_ons, true),
-                'add_on_qtys' => [], // Optional: add qtys if stored
+                'add_on_qtys' => [],
                 'addon_price' => $item->total_add_on_price,
                 'discount' => $item->discount_on_food,
-                'discountAmount' => $item->discount_on_food, // same as discount
-                'discountType' => 'amount', // adjust based on how it was saved
+                'discountAmount' => $item->discount_on_food,
+                'discountType' => 'amount',
                 'details' => $item->notes,
                 'image' => $food['image'] ?? null,
                 'image_full_url' => $food['image_full_url'] ?? null,
-                'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000, // or any default
+                'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
             ];
         }
 

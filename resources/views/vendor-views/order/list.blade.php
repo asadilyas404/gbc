@@ -422,7 +422,7 @@
                                             href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
                                                 class="tio-visible-outlined"></i></a>
                                         @if ($order['payment_status'] == 'unpaid')
-                                            <a target="_blank" class="btn action-btn btn--warning btn-outline-warning"
+                                            <a class="btn action-btn btn--warning btn-outline-warning"
                                                 href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
                                                 title="{{ translate('Load Draft to POS') }}">
                                                 <i class="tio-refresh"></i>

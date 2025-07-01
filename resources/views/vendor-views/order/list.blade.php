@@ -421,6 +421,13 @@
                                         <a class="btn action-btn btn--warning btn-outline-warning"
                                             href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
                                                 class="tio-visible-outlined"></i></a>
+                                        @if ($order['payment_status'] == 'unpaid')
+                                            <a class="btn action-btn btn--warning btn-outline-warning"
+                                                href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
+                                                title="{{ translate('Load Draft to POS') }}">
+                                                <i class="tio-download-to"></i>
+                                            </a>
+                                        @endif
                                         <a class="btn action-btn btn--primary btn-outline-primary" target="_blank"
                                             href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
                                                 class="tio-print"></i></a>

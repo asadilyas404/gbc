@@ -1502,6 +1502,7 @@
   'Product' => 'Product',
   'item_price' => 'Item price',
   'order_placed_successfully' => 'Order placed successfully',
+  'order_drafted_successfully' => 'Order drafted successfully',
   'order_push_title' => 'Order Notification',
   'new_order_push_description' => 'New order push description',
   'Review' => 'Review',

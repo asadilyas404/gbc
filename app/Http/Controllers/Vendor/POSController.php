@@ -680,6 +680,15 @@ class POSController extends Controller
                         $product->increment('sell_count', $c['quantity']);
                     }
 
+                    $cart_variations = $c['variations'] ?? [];
+                    if (is_string($cart_variations)) {
+                        $cart_variations = json_decode($cart_variations, true);
+                    }
+                    // Ensure it's an array
+                    if (!is_array($cart_variations)) {
+                        Toastr::error('Invalid variation data');
+                        return back()->withInput();
+                    }
 
                     $variation_data = Helpers::get_varient($product->variations, $c['variations']);
                     $variations = $variation_data['variations'];
@@ -754,6 +763,10 @@ class POSController extends Controller
                     "order_id" => $order->id
                 ]);
             }
+            if ($editing_order_id) {
+                // Delete old order details
+                OrderDetail::where('order_id', $order->id)->delete();
+            }
 
             foreach ($order_details as $key => $item) {
                 $order_details[$key]['order_id'] = $order->id;
@@ -794,8 +807,12 @@ class POSController extends Controller
             }
 
             //PlaceOrderMail end
+            if ($editing_order_id) {
+                Toastr::success(translate('messages.order_drafted_successfully'));
+            } else {
+                Toastr::success(translate('messages.order_placed_successfully'));
+            }
 
-            Toastr::success(translate('messages.order_placed_successfully'));
             return back();
         } catch (\Exception $exception) {
             DB::rollBack();

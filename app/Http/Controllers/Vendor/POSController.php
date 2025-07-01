@@ -678,17 +678,6 @@ class POSController extends Controller
                         $product->increment('sell_count', $c['quantity']);
                     }
 
-                    dd($c['variations']);
-                    $cart_variations = $c['variations'] ?? [];
-                    if (is_string($cart_variations)) {
-                        $cart_variations = json_decode($cart_variations, true);
-                    }
-                    // Ensure it's an array
-                    if (!is_array($cart_variations)) {
-                        Toastr::error('Invalid variation data');
-                        return back()->withInput();
-                    }
-
                     $variation_data = Helpers::get_varient($product->variations, $c['variations']);
                     $variations = $variation_data['variations'];
 

@@ -2722,13 +2722,6 @@ class Helpers
                             $result[$k]['values'][] = $option;
                             $variation_price += $option['optionPrice'];
                         }
-                        // if (is_array($variation['values'])) {
-                        //     $labels = array_column($variation['values'], 'label'); // extract labels if it's array of objects
-                        //     if (in_array($option['label'], $labels)) {
-                        //         $result[$k]['values'][] = $option;
-                        //         $variation_price += $option['optionPrice'];
-                        //     }
-                        // }
                     }
                 }
             }

@@ -2718,7 +2718,7 @@ class Helpers
                     $result[$k] = $product_variation;
                     $result[$k]['values'] = [];
                     foreach ($product_variation['values'] as $key => $option) {
-                        // dd($option, $variation);
+                        dd($option, $variation);
                         if (in_array($option['label'], $variation['values']['label'])) {
                             $result[$k]['values'][] = $option;
                             $variation_price += $option['optionPrice'];

@@ -341,12 +341,17 @@
             </div>
             <div class="order--pos-right">
                 <div class="card">
-                    <div class="card-header bg-light border-0 m-1">
-                        <h5 class="card-title">
+                    <div class="card-header bg-light border-0 m-1 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">
                             <span>
                                 {{ translate('Billing Section') }}
                             </span>
                         </h5>
+                        <a class="btn btn-sm btn-outline-primary"
+       href="{{ route('vendor.order.list', ['draft']) }}"
+       title="{{ translate('messages.Draft') }}">
+        {{ translate('messages.Draft Orders') }}
+    </a>
                     </div>
                     <div class="w-100">
                         <div class="d-flex flex-wrap flex-row p-2 add--customer-btn">

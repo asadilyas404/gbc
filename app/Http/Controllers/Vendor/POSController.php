@@ -607,6 +607,9 @@ class POSController extends Controller
             if (Order::find($order->order_serial)) {
                 $order->order_serial = Order::latest()->first()->order_serial + 1;
             }
+
+            $order->created_at = now();
+            $order->schedule_at = now();
         }
         // $order->payment_status = isset($address) ? 'unpaid' : 'paid';
         $order->payment_status = $request->order_draft == 'draft' ? 'unpaid' : 'paid';
@@ -650,8 +653,6 @@ class POSController extends Controller
         $order->original_delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
         $order->delivery_address = isset($address) ? json_encode($address) : null;
         $order->checked = 1;
-        $order->created_at = now();
-        $order->schedule_at = now();
         $order->updated_at = now();
         $order->otp = rand(1000, 9999);
 
@@ -796,7 +797,7 @@ class POSController extends Controller
 
             //PlaceOrderMail end
 
-            if ($editing_order_id) {
+            if ($request->order_draft == 'draft') {
                 Toastr::success(translate('messages.order_drafted_successfully'));
             } else {
                 Toastr::success(translate('messages.order_placed_successfully'));

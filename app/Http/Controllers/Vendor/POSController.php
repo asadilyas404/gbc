@@ -775,6 +775,7 @@ class POSController extends Controller
             session()->forget('cart');
             session()->forget('editing_order_id');
             session()->forget('address');
+            session(['last_order' => $order->id]);
 
             if ($restaurant->restaurant_model == 'subscription' && isset($rest_sub)) {
                 if ($rest_sub->max_order != "unlimited" && $rest_sub->max_order > 0) {
@@ -799,7 +800,6 @@ class POSController extends Controller
             if ($request->order_draft == 'draft') {
                 Toastr::success(translate('messages.order_drafted_successfully'));
             } else {
-                session(['last_order' => $order->id]);
                 Toastr::success(translate('messages.order_placed_successfully'));
             }
 

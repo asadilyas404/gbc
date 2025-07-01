@@ -846,6 +846,9 @@ class POSController extends Controller
                 $variation_price += $variation['optionPrice'] ?? 0;
             }
 
+            // Simplify variations
+            $simplified_variations = Helpers::simplifyVariationsToLabels($variations);
+
             $cart[] = [
                 'id' => $item->food_id,
                 'name' => $food['name'] ?? '',
@@ -853,7 +856,7 @@ class POSController extends Controller
                 'price' => $item->price + $variation_price,
                 'variation_price' => $variation_price,
                 'variant' => '',
-                'variations' => $variations,
+                'variations' => $simplified_variations,
                 'variation_option_ids' => '',
                 'add_ons' => json_decode($item->add_ons, true),
                 'add_on_qtys' => [],

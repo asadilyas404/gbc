@@ -612,8 +612,6 @@ class FoodController extends Controller
     {
         $category_id = $request->query('category_id', 'all');
         $type = $request->query('type', 'all');
-        $foods = Food::all();
-        dd($foods);
         $foods = Food::when(is_numeric($category_id), function ($query) use ($category_id) {
                 return $query->whereHas('category', function ($q) use ($category_id) {
                     return $q->whereId($category_id)->orWhere('parent_id', $category_id);

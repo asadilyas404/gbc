@@ -665,7 +665,7 @@
                                     </a> --}}
                             @if ($order['payment_status'] == 'unpaid')
                                     <a target="_blank" href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}" class="btn w-100 mb-1 btn-sm btn-outline-warning mt-2 btn--warning">
-                                        Load Draft to POS
+                                        Load Unpaid to POS
                                     </a>
                             @endif
                             @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')

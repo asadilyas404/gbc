@@ -6521,5 +6521,8 @@
   'Draft' => 'Draft',
   'draft' => 'Draft',
   'Drafted Orders' => 'Drafted Orders',
-  'Load Draft to POS' => 'Load Draft to POS',
+  'Load Unpaid to POS' => 'Load Unpaid to POS',
+  'Unpaid' => 'Unpaid',
+  'Unpaid Orders' => 'Unpaid Orders',
+  'Unpaid Order' => 'Unpaid Order',
 );

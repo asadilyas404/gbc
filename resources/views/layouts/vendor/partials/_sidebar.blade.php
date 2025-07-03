@@ -142,10 +142,10 @@
                                                                 <li
                                     class="nav-item {{ Request::is('restaurant-panel/order/list/draft') ? 'active' : '' }} @yield('all_order') ">
                                     <a class="nav-link" href="{{ route('vendor.order.list', ['draft']) }}"
-                                        title="{{ translate('messages.Draft') }}">
+                                        title="{{ translate('messages.Unpaid') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate sidebar--badge-container">
-                                            {{ translate('messages.Draft') }}
+                                            {{ translate('messages.Unpaid') }}
                                             <span class="badge badge-soft-info badge-pill ml-1">
                                                 {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->where('payment_status','unpaid')->count() }}
                                             </span>

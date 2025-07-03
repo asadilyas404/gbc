@@ -424,7 +424,7 @@
                                         @if ($order['payment_status'] == 'unpaid')
                                             <a class="btn action-btn btn--warning btn-outline-warning"
                                                 href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
-                                                title="{{ translate('Load Draft to POS') }}">
+                                                title="{{ translate('Load Unpaid to POS') }}">
                                                 <i class="tio-refresh"></i>
                                             </a>
                                         @endif

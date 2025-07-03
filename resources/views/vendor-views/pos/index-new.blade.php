@@ -348,8 +348,8 @@
                             </span>
                         </h5>
                         <a class="btn btn--primary" href="{{ route('vendor.order.list', ['draft']) }}"
-                            title="{{ translate('messages.Draft') }}">
-                            {{ translate('messages.Drafted Orders') }}
+                            title="{{ translate('messages.Unpaid Orders') }}">
+                            {{ translate('messages.Unpaid Orders') }}
                         </a>
                     </div>
                     <div class="w-100">

@@ -115,18 +115,18 @@ class Food extends Model
 
     public function scopeActive($query)
     {
-        return $query->where('status', 1)
-        ->whereHas('restaurant', function($query) {
-            $query->where('status', 1)
-                    ->where(function($query) {
-                        $query->where('restaurant_model', 'commission')
-                                ->orWhereHas('restaurant_sub', function($query) {
-                                    $query->where(function($query) {
-                                        $query->where('max_order', 'unlimited')->orWhere('max_order', '>', 0);
-                                    });
-                                });
-                    });
-            });
+        return $query->where('status', 1);
+        // ->whereHas('restaurant', function($query) {
+        //     $query->where('status', 1)
+        //             ->where(function($query) {
+        //                 $query->where('restaurant_model', 'commission')
+        //                         ->orWhereHas('restaurant_sub', function($query) {
+        //                             $query->where(function($query) {
+        //                                 $query->where('max_order', 'unlimited')->orWhere('max_order', '>', 0);
+        //                             });
+        //                         });
+        //             });
+        //     });
     }
 
 

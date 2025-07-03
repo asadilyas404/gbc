@@ -179,7 +179,7 @@ class Food extends Model
     {
         // dd( app()->getLocale());
         if (auth('vendor')->check() || auth('vendor_employee')->check()) {
-            // static::addGlobalScope(new RestaurantScope);
+            static::addGlobalScope(new RestaurantScope);
         }
 
         static::addGlobalScope(new ZoneScope);

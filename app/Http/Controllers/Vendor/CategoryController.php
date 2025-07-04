@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use App\Models\Translation;
+use App\CentralLogics\Helpers;
+
 
 class CategoryController extends Controller
 {

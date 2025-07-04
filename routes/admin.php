@@ -6,6 +6,32 @@ use App\Http\Controllers\Admin\CashBackController;
 
 Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
+
+    Route::group(['prefix' => 'category', 'as' => 'category.'], function () {
+            Route::get('get-all', 'CategoryController@get_all')->name('get-all');
+            Route::group(['middleware' => ['module:category']], function () {
+                Route::get('add', 'CategoryController@index')->name('add');
+                Route::get('add-sub-category', 'CategoryController@sub_index')->name('add-sub-category');
+                Route::get('add-sub-sub-category', 'CategoryController@sub_sub_index')->name('add-sub-sub-category');
+                Route::post('store', 'CategoryController@store')->name('store');
+                Route::get('edit/{id}', 'CategoryController@edit')->name('edit');
+                Route::post('update/{id}', 'CategoryController@update')->name('update');
+                Route::get('update-priority/{category}', 'CategoryController@update_priority')->name('priority');
+                Route::post('store', 'CategoryController@store')->name('store');
+                Route::get('status/{id}/{status}', 'CategoryController@status')->name('status');
+                Route::delete('delete/{id}', 'CategoryController@delete')->name('delete');
+                // Route::post('search', 'CategoryController@search')->name('search');
+                Route::get('export-categories', 'CategoryController@export_categories')->name('export-categories');
+
+                //Import and export
+                Route::get('bulk-import', 'CategoryController@bulk_import_index')->name('bulk-import');
+                Route::post('bulk-import', 'CategoryController@bulk_import_data');
+                Route::get('bulk-export', 'CategoryController@bulk_export_index')->name('bulk-export-index');
+                Route::post('bulk-export', 'CategoryController@bulk_export_data')->name('bulk-export');
+            });
+        });
+
+
     Route::group(['middleware' => ['admin']], function () {
         // Route::get("/new-page", function(){
         //     return view("admin-views.create-advertisement");
@@ -278,29 +304,6 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('bulk-export', 'AddOnController@bulk_export_data')->name('bulk-export');
         });
 
-        Route::group(['prefix' => 'category', 'as' => 'category.'], function () {
-            Route::get('get-all', 'CategoryController@get_all')->name('get-all');
-            Route::group(['middleware' => ['module:category']], function () {
-                Route::get('add', 'CategoryController@index')->name('add');
-                Route::get('add-sub-category', 'CategoryController@sub_index')->name('add-sub-category');
-                Route::get('add-sub-sub-category', 'CategoryController@sub_sub_index')->name('add-sub-sub-category');
-                Route::post('store', 'CategoryController@store')->name('store');
-                Route::get('edit/{id}', 'CategoryController@edit')->name('edit');
-                Route::post('update/{id}', 'CategoryController@update')->name('update');
-                Route::get('update-priority/{category}', 'CategoryController@update_priority')->name('priority');
-                Route::post('store', 'CategoryController@store')->name('store');
-                Route::get('status/{id}/{status}', 'CategoryController@status')->name('status');
-                Route::delete('delete/{id}', 'CategoryController@delete')->name('delete');
-                // Route::post('search', 'CategoryController@search')->name('search');
-                Route::get('export-categories', 'CategoryController@export_categories')->name('export-categories');
-
-                //Import and export
-                Route::get('bulk-import', 'CategoryController@bulk_import_index')->name('bulk-import');
-                Route::post('bulk-import', 'CategoryController@bulk_import_data');
-                Route::get('bulk-export', 'CategoryController@bulk_export_index')->name('bulk-export-index');
-                Route::post('bulk-export', 'CategoryController@bulk_export_data')->name('bulk-export');
-            });
-        });
 
         Route::group(['prefix' => 'cuisine', 'as' => 'cuisine.'], function () {
             Route::group(['middleware' => ['module:category']], function () {

@@ -41,7 +41,7 @@ $order = \App\Models\Order::Notpos()
             <div class="navbar__brand-wrapper navbar-brand-wrapper justify-content-between">
                 <!-- Logo -->
                 @php($restaurant_logo = \App\Models\BusinessSetting::where(['key' => 'logo'])->first())
-                
+
                 <a class="navbar-brand d-block p-0" href="{{ route('admin.dashboard') }}" aria-label="Front">
                     <img class="navbar-brand-logo sidebar--logo-design"
                         src="{{ Helpers::get_full_url('business', $restaurant_logo->value, $restaurant_logo->storage[0]->value ?? 'public', 'favicon') }}"

@@ -181,35 +181,6 @@
 
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('food'))
                         <li
-                            class="navbar-vertical-aside-has-menu {{ Request::is('admin/category*') ? 'active' : '' }}">
-                            <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
-                                title="{{ translate('messages.categories') }}">
-                                <i class="tio-category nav-icon"></i>
-                                <span
-                                    class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.categories') }}</span>
-                            </a>
-                            <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
-                                style="display: {{ Request::is('admin/category*') ? 'block' : 'none' }}">
-                                <li
-                                    class="nav-item {{ Request::is('admin/category/add') || Request::is('admin/category/edit/*') ? 'active' : '' }}">
-                                    <a class="nav-link " href="{{ route('admin.category.add') }}"
-                                        title="{{ translate('messages.category') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate">{{ translate('messages.category') }}</span>
-                                    </a>
-                                </li>
-
-                                <li
-                                    class="nav-item {{ Request::is('admin/category/add-sub-category') ? 'active' : '' }}">
-                                    <a class="nav-link " href="{{ route('admin.category.add-sub-category') }}"
-                                        title="{{ translate('messages.sub_category') }}">
-                                        <span class="tio-circle nav-indicator-icon"></span>
-                                        <span class="text-truncate">{{ translate('messages.sub_category') }}</span>
-                                    </a>
-                                </li>
-                            </ul>
-                        </li>
-                        {{-- <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/category*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:"
                                 title="{{ translate('messages.categories') }}">
@@ -237,7 +208,7 @@
                                     </a>
                                 </li>
                             </ul>
-                        </li> --}}
+                        </li>
                         <!-- Food -->
                         <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/food*') ? 'active' : '' }}">

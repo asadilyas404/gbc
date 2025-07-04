@@ -82,6 +82,12 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('get-all', 'CategoryController@get_all')->name('get-all');
             Route::get('list', 'CategoryController@index')->name('add');
             Route::get('sub-category-list', 'CategoryController@sub_index')->name('add-sub-category');
+            Route::post('store', 'CategoryController@store')->name('store');
+            Route::get('edit/{id}', 'CategoryController@edit')->name('edit');
+            Route::post('update/{id}', 'CategoryController@update')->name('update');
+            Route::get('update-priority/{category}', 'CategoryController@update_priority')->name('priority');
+            Route::get('status/{id}/{status}', 'CategoryController@status')->name('status');
+            Route::delete('delete/{id}', 'CategoryController@delete')->name('delete');
         });
 
         Route::group(['prefix' => 'custom-role', 'as' => 'custom-role.', 'middleware' => ['module:custom_role','subscription:custom_role']], function () {

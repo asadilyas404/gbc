@@ -116,7 +116,7 @@ class CategoryController extends Controller
     public function edit($id)
     {
         $category = Category::withoutGlobalScope('translate')->findOrFail($id);
-        return view('admin-views.category.edit', compact('category'));
+        return view('vendor-views.category.edit', compact('category'));
     }
 
     public function status(Request $request)

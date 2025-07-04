@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use App\Models\Translation;
 use App\CentralLogics\Helpers;
-
+use Brian2694\Toastr\Facades\Toastr;
 
 class CategoryController extends Controller
 {

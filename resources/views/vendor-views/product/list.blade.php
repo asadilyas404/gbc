@@ -236,7 +236,7 @@
                                                             alt="public/img"></span>
                                                 @else
                                                     <?php
-                                                    
+
                                                     if (isset($food->variations)) {
                                                         foreach (json_decode($food->variations, true) as $item) {
                                                             if (isset($item['values']) && is_array($item['values'])) {

@@ -28,6 +28,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->job(new SyncOrdersJob)->everyFiveMinutes();
         $schedule->job(new SyncFoodJob)->everyFiveMinutes();
+        $schedule->job(new SyncEmployeesJob)->everyFiveMinutes();
     }
 
     /**

@@ -15,6 +15,7 @@ use Illuminate\Validation\Rules\Password;
 use App\Exports\RestaurantEmployeeListExport;
 use Validator;
 use Illuminate\Support\Facades\Hash;
+use App\Jobs\SyncEmployeesJob;
 
 
 class EmployeeController extends Controller
@@ -239,5 +240,12 @@ class EmployeeController extends Controller
             'token' => $token,
             'employee' => $employee,
         ]);
+    }
+
+    public function sync()
+    {
+        SyncEmployeesJob::dispatch();
+        Toastr::success('Employees Sync completed!');
+        return back();
     }
 }

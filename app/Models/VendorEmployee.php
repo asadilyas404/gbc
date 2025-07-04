@@ -19,7 +19,7 @@ class VendorEmployee extends Authenticatable
         'auth_token',
         'remember_token',
     ];
-    protected $fillable = ['id','remember_token'];
+    protected $fillable = ['id','f_name','l_name','phone','email','image','employee_role_id','vendor_id','restaurant_id','password','status','remember_token','created_at','updated_at','is_pushed'];
 
     protected $appends = ['image_full_url'];
     public function getImageFullUrlAttribute(){

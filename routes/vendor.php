@@ -125,6 +125,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::delete('delete/{id}', 'EmployeeController@distroy')->name('delete');
             Route::post('search', 'EmployeeController@search')->name('search');
             Route::post('login', 'EmployeeController@login'); // Update here
+            Route::get('/sync-employees', 'EmployeeController@sync')->name('sync.employees');
         });
 
         Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.', 'middleware' => ['module:kitchen_orders','subscription:kitchen_orders']], function () {

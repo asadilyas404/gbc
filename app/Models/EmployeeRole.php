@@ -10,6 +10,12 @@ use Illuminate\Database\Eloquent\Builder;
 class EmployeeRole extends Model
 {
     use HasFactory;
+
+    protected $primaryKey = 'id';
+    public $incrementing = false;
+
+    protected $fillable = ['id','name','modules','status','restaurant_id','created_at','updated_at','is_pushed'];
+
     public function translations()
     {
         return $this->morphMany(Translation::class, 'translationable');

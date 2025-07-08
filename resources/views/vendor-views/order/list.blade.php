@@ -6,6 +6,38 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 @endpush
 
+          <style>
+    .order-card {
+        transition: all 0.2s ease-in-out;
+        border-radius: 0.5rem;
+    }
+
+    .order-card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+        border-color: #0d6efd;
+    }
+
+    .order-card .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.6em;
+    }
+
+    .order-card .order-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .order-card small,
+    .order-card .text-muted {
+        font-size: 0.85rem;
+    }
+
+    .order-card .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+</style>
+
 @section('content')
     <?php
     use Illuminate\Support\Str;
@@ -446,37 +478,6 @@
                     </table>
                 </div>
             @else
-               <style>
-    .order-card {
-        transition: all 0.2s ease-in-out;
-        border-radius: 0.5rem;
-    }
-
-    .order-card:hover {
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
-        border-color: #0d6efd;
-    }
-
-    .order-card .badge {
-        font-size: 0.75rem;
-        padding: 0.35em 0.6em;
-    }
-
-    .order-card .order-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-    }
-
-    .order-card small,
-    .order-card .text-muted {
-        font-size: 0.85rem;
-    }
-
-    .order-card .btn {
-        padding: 0.25rem 0.5rem;
-        font-size: 0.75rem;
-    }
-</style>
 
 <div class="row">
     @foreach ($orders as $order)

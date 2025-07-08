@@ -33,7 +33,7 @@
 
         .order-card .btn {
             padding: 0.25rem 0.5rem;
-            font-size: 0.75rem;
+            font-size: 0.95rem;
         }
     </style>
 @endpush
@@ -513,6 +513,7 @@
                                         @elseif($order->pos_details)
                                             {{ $order->pos_details->customer_name ?? '-' }}<br>
                                             {{ $order->pos_details->phone ?? '-' }}
+                                            {{ $order->pos_details->car_number ?? '-' }}
                                         @endif
                                     </div>
 
@@ -537,7 +538,7 @@
                                     </div>
 
                                     <!-- Action Buttons -->
-                                    <div class="d-flex justify-content-end flex-wrap gap-1 mt-2">
+                                    <div class="d-flex justify-content-between flex-wrap gap-1 mt-2">
                                         <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
                                             class="btn btn-sm btn-outline-primary" title="{{ translate('View') }}">
                                             <i class="tio-visible-outlined"></i>

@@ -518,24 +518,26 @@
                                     </div>
 
                                     <!-- Amount -->
-                                    <div class="text-muted mb-1">
-                                        <strong>{{ translate('messages.total_amount') }}:</strong>
-                                        {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="text-muted">
+                                            <strong>{{ translate('messages.total_amount') }}:</strong>
+                                            {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
+                                        </div>
+
+                                        <div>
+                                            @if ($order->payment_status === 'paid')
+                                                <span
+                                                    class="badge bg-success text-white small">{{ translate('messages.paid') }}</span>
+                                            @elseif($order->payment_status === 'partially_paid')
+                                                <span
+                                                    class="badge bg-warning text-white small">{{ translate('messages.partially_paid') }}</span>
+                                            @else
+                                                <span
+                                                    class="badge bg-danger text-white small">{{ translate('messages.unpaid') }}</span>
+                                            @endif
+                                        </div>
                                     </div>
 
-                                    <!-- Payment Status -->
-                                    <div class="mb-2">
-                                        @if ($order->payment_status === 'paid')
-                                            <span
-                                                class="badge bg-success text-white small">{{ translate('messages.paid') }}</span>
-                                        @elseif($order->payment_status === 'partially_paid')
-                                            <span
-                                                class="badge bg-warning text-white small">{{ translate('messages.partially_paid') }}</span>
-                                        @else
-                                            <span
-                                                class="badge bg-danger text-white small">{{ translate('messages.unpaid') }}</span>
-                                        @endif
-                                    </div>
 
                                     <!-- Action Buttons -->
                                     <div class="d-flex justify-content-center flex-wrap gap-2 mt-2">

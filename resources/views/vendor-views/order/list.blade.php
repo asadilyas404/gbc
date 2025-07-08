@@ -449,28 +449,26 @@
                 <div class="row">
     @foreach ($orders as $order)
         <div class="col-md-6 col-xl-4 mb-4">
-            <div class="card shadow-sm h-100 border-0">
-                <div class="card-body p-3">
-                    <!-- Header: Order # and Status -->
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body p-3 pb-2">
+                    <!-- Order # and Status -->
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="mb-0 fw-semibold text-dark">
-                            #{{ $order['order_serial'] }}
-                        </h5>
-                        <span class="badge px-3 py-1 fs-6 bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'info' }}">
+                        <h6 class="mb-0 text-dark fw-bold" style="font-size: 1.15rem;">
+                            Order #{{ $order['order_serial'] }}
+                        </h6>
+                        <span class="badge bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'info' }} text-capitalize" style="font-size: 0.85rem;">
                             {{ translate(str_replace('_', ' ', $order['order_status'])) }}
                         </span>
                     </div>
 
-                    <hr class="my-2">
-
-                    <!-- Order Date -->
-                    <div class="small mb-2 text-muted">
-                        <strong>{{ translate('messages.order_date') }}:</strong><br>
+                    <!-- Date -->
+                    <div class="mb-1 text-muted small">
+                        <strong>{{ translate('messages.order_date') }}:</strong>
                         {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y - h:i A') }}
                     </div>
 
                     <!-- Customer Info -->
-                    <div class="small mb-2 text-muted">
+                    <div class="mb-1 small text-muted">
                         <strong>{{ translate('messages.customer_information') }}:</strong><br>
                         @if ($order->is_guest)
                             @php $cust = json_decode($order['delivery_address'], true); @endphp
@@ -485,29 +483,45 @@
                         @endif
                     </div>
 
-                    <!-- Total Amount -->
-                    <div class="small mb-2 text-muted">
+                    <!-- Amount -->
+                    <div class="mb-1 text-muted small">
                         <strong>{{ translate('messages.total_amount') }}:</strong>
                         {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div class="d-flex justify-content-end flex-wrap gap-2 mt-2">
+                    <!-- Payment Status -->
+                    <div class="mb-2">
+                        @if ($order->payment_status === 'paid')
+                            <span class="badge bg-success small">{{ translate('messages.paid') }}</span>
+                        @elseif($order->payment_status === 'partially_paid')
+                            <span class="badge bg-warning text-dark small">{{ translate('messages.partially_paid') }}</span>
+                        @else
+                            <span class="badge bg-danger small">{{ translate('messages.unpaid') }}</span>
+                        @endif
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="d-flex justify-content-end flex-wrap gap-1 mt-2">
                         <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
-                            class="btn btn-xs btn-outline-primary" title="{{ translate('View') }}">
+                            class="btn btn-sm btn-outline-primary px-2 py-1" title="{{ translate('View') }}">
                             <i class="tio-visible-outlined"></i>
                         </a>
 
                         @if ($order['payment_status'] === 'unpaid')
                             <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
-                                class="btn btn-xs btn-outline-warning" title="{{ translate('Load to POS') }}">
+                                class="btn btn-sm btn-outline-warning px-2 py-1" title="{{ translate('Load to POS') }}">
                                 <i class="tio-refresh"></i>
                             </a>
                         @endif
 
                         <a href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"
-                            class="btn btn-xs btn-outline-success" title="{{ translate('Print Invoice') }}" target="_blank">
+                            class="btn btn-sm btn-outline-success px-2 py-1" target="_blank" title="{{ translate('Invoice') }}">
                             <i class="tio-print"></i>
+                        </a>
+
+                        <a href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}"
+                            class="btn btn-sm btn-outline-dark px-2 py-1" target="_blank" title="{{ translate('Receipt') }}">
+                            <i class="tio-document"></i>
                         </a>
                     </div>
                 </div>

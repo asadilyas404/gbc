@@ -614,10 +614,17 @@ class POSController extends Controller
         } else {
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
-            $order->order_serial = 100000 + Order::count() + 1;
-            if (Order::find($order->order_serial)) {
-                $order->order_serial = Order::latest()->first()->order_serial + 1;
-            }
+            // $order->order_serial = 100000 + Order::count() + 1;
+            // if (Order::find($order->order_serial)) {
+            //     $order->order_serial = Order::latest()->first()->order_serial + 1;
+            // }
+
+            $today = Carbon::today();
+            $todayOrderCount = Order::whereDate('created_at', $today)->count();
+
+            $dayPart = $today->format('d');
+            $sequencePart = str_pad($todayOrderCount + 1, 3, '0', STR_PAD_LEFT);
+            $order->order_serial = "{$dayPart}-{$sequencePart}";
 
             $order->created_at = now();
             $order->schedule_at = now();

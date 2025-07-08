@@ -108,17 +108,6 @@
                             @endif
                         </div>
                     @else --}}
-                    @if ($order->order_taken_by)
-                        <h5 class="d-flex justify-content-between gap-2">
-                            {{ translate('Order_By') }} :
-                            <span class="font-light">
-                                {{ ($order->takenBy->f_name ?? '') . ' ' . ($order->takenBy->l_name ?? '') }}
-                            </span>
-                        </h5>
-                        <h5>
-                            اطلب بواسطة
-                        </h5>
-                    @endif
                     <h5 class="d-flex justify-content-between gap-2">
                         {{ translate('Customer_Name') }} :
                         <span class="font-light">
@@ -152,6 +141,17 @@
                         </h5>
                         <h5>
                             هاتف
+                        </h5>
+                    @endif
+                    @if ($order->order_taken_by)
+                        <h5 class="d-flex justify-content-between gap-2">
+                            {{ translate('Order_By') }} :
+                            <span class="font-light">
+                                {{ ($order->takenBy->f_name ?? '') . ' ' . ($order->takenBy->l_name ?? '') }}
+                            </span>
+                        </h5>
+                        <h5>
+                            اطلب بواسطة
                         </h5>
                     @endif
                     {{-- @endif --}}

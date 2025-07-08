@@ -5,7 +5,7 @@
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <style>
+    {{-- <style>
         .order-card {
             transition: all 0.2s ease-in-out;
             border-radius: 0.5rem;
@@ -35,7 +35,7 @@
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
-    </style>
+    </style> --}}
 @endpush
 
 @section('content')

@@ -480,7 +480,7 @@
             @else
                 <div class="row">
                     @foreach ($orders as $order)
-                        <div class="col-md-6 col-xl-4 p-3">
+                        <div class="col-md-6 col-xl-4 p-2">
                             <div class="card border order-card h-100 shadow-sm">
                                 <div class="card-body p-3 pb-2">
                                     <!-- Header: Order # and Status -->

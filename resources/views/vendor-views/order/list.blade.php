@@ -538,7 +538,7 @@
                                     </div>
 
                                     <!-- Action Buttons -->
-                                    <div class="d-flex justify-content-between flex-wrap gap-1 mt-2">
+                                    <div class="d-flex justify-content-center flex-wrap gap-2 mt-2">
                                         <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
                                             class="btn btn-sm btn-outline-primary" title="{{ translate('View') }}">
                                             <i class="tio-visible-outlined"></i>

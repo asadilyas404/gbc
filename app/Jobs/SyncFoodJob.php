@@ -38,6 +38,11 @@ class SyncFoodJob implements ShouldQueue
                             (array) $food
                         );
 
+                    // SYNC FOOD IMAGES
+                    $this->copyImageFromStorage($food->image, 'product/');
+                    // SYNC FOOD TRANSLATIONS
+                    $this->syncTranslations('oracle_live', 'App\\Models\\Food', $food->id);
+
                     // Sync variations
                     $variations = DB::connection('oracle_live')
                         ->table('variations')
@@ -98,6 +103,9 @@ class SyncFoodJob implements ShouldQueue
                             (array) $addon
                         );
 
+                    // SYNC ADDON TRANSLATIONS
+                    $this->syncTranslations('oracle_live', 'App\\Models\\AddOn', $addon->id);
+
                     DB::connection('oracle_live')
                         ->table('add_ons')
                         ->where('id', $addon->id)
@@ -125,6 +133,11 @@ class SyncFoodJob implements ShouldQueue
                             (array) $category
                         );
 
+                    // SYNC CATEGORY IMAGES
+                    $this->copyImageFromStorage($category->image, 'category/');
+                    // SYNC CATEGORY TRANSLATIONS
+                    $this->syncTranslations('oracle_live', 'App\\Models\\Category', $category->id);
+
                     DB::connection('oracle_live')
                         ->table('categories')
                         ->where('id', $category->id)
@@ -141,4 +154,59 @@ class SyncFoodJob implements ShouldQueue
             Log::error("SyncFoodJob failed: " . $e->getMessage());
         }
     }
+
+
+    /**
+     * Sync translations for a specific model.
+     *
+     * @param string $sourceConnection
+     * @param string $modelType (e.g., App\Models\Food)
+     * @param int $modelId
+     * @return void
+     */
+    private function syncTranslations(string $sourceConnection, string $modelType, int $modelId): void
+    {
+        try {
+            $translations = DB::connection($sourceConnection)
+                ->table('translations')
+                ->where('translationable_id', $modelId)
+                ->where('translationable_type', $modelType)
+                ->get();
+
+            foreach ($translations as $translation) {
+                DB::connection('oracle')
+                    ->table('translations')
+                    ->updateOrInsert(
+                        ['id' => $translation->id],
+                        (array) $translation
+                    );
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed syncing translations for {$modelType} ID {$modelId}: " . $e->getMessage());
+        }
+    }
+
+    private function copyImageFromStorage(string $filename, string $folder = 'product/'): void
+    {
+        $imageSourceBase = env('image_source_base');
+
+        $relativePath = $folder . $filename;
+        $source = $imageSourceBase . $relativePath;
+        $destination = public_path('storage/' . $relativePath);
+
+        try {
+            Log::info("Looking for source image at: " . $source);
+            if (file_exists($source)) {
+                if (!file_exists(dirname($destination))) {
+                    mkdir(dirname($destination), 0755, true);
+                }
+                copy($source, $destination);
+            } else {
+                Log::warning("Image not found: {$relativePath}");
+            }
+        } catch (\Exception $e) {
+            Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
+        }
+    }
+
 }

@@ -22,21 +22,27 @@
                         </span>
                     </h2>
                 </div>
-                <div class="col-sm align-items-center justify-content-end">
+                <div class="col-sm">
                     <a href="{{ route('vendor.employee.add-new') }}" class="btn btn--primary  float-right">
                         <i class="tio-add-circle"></i>
                         <span class="text">
                             {{ translate('Add New Employee') }}
                         </span>
                     </a>
-                    @if (app()->environment('local'))
-                        <div class="col-auto">
-                            <a href="{{ route('vendor.food.sync.employees') }}"
-                                class="btn max-sm-12 btn--primary w-100">Sync
-                                Employees</a>
-                        </div>
-                    @endif
                 </div>
+                @if (app()->environment('local'))
+                    <div class="my-2">
+                        <div class="row g-2 align-items-center justify-content-end">
+
+                            <div class="col-auto">
+                                <a href="{{ route('vendor.employee.sync.employees') }}"
+                                    class="btn max-sm-12 btn--primary w-100">Sync
+                                    Employees</a>
+                            </div>
+
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
         <!-- End Page Header -->

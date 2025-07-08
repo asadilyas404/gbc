@@ -104,7 +104,7 @@ return [
     'prefix_schema'  => '',
 ],
 
-    // target DB connection
+    // live DB connection
     'oracle_live' => [
         'driver'         => env('ORACLE_LIVE_CONNECTION', 'oracle'),
         'host'           => env('ORACLE_LIVE_HOST'),

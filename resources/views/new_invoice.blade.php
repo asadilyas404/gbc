@@ -50,12 +50,12 @@
                 </h5>
 
                 <div class="border border-dashed border-secondary p-3 rounded">
-                    <h5 class="d-flex justify-content-between gap-2">
+                    <h3 class="d-flex justify-content-between gap-2">
                         <span class="text-muted"> {{ translate('Order_ID') }} | معرف الطلب</span>
                         <span class="">{{ $order['order_serial'] }}</span>
-                    </h5>
+                    </h3>
 
-                    @if ($order->delivery_address)
+                    {{-- @if ($order->delivery_address)
                         <h5 class="d-flex justify-content-between gap-2">
                             <span class="text-muted">{{ translate('Customer_Name') }}</span>
                             <span>
@@ -107,50 +107,54 @@
                                 </div>
                             @endif
                         </div>
-                    @else
+                    @else --}}
+                     @if ($order->order_taken_by)
                         <h5 class="d-flex justify-content-between gap-2">
-                            {{ translate('Customer_Name') }} :
+                            {{ translate('Order_By') }} :
                             <span class="font-light">
-                                {{ translate('messages.walk_in_customer') }}
+                                {{ $order->order_taken_by }}
                             </span>
                         </h5>
                         <h5>
-                            اسم العميل
+                            اطلب بواسطة
                         </h5>
-                        @if ($order->pos_details->customer_name)
-                            <h5 class="d-flex justify-content-between gap-2">
-                                {{ translate('Order_By') }} :
-                                <span class="font-light">
-                                    {{ $order->pos_details->customer_name }}
-                                </span>
-                            </h5>
-                            <h5>
-                                اطلب بواسطة
-                            </h5>
-                        @endif
-                        @if ($order->pos_details->car_number)
-                            <h5 class="d-flex justify-content-between gap-2">
-                                {{ translate('Car_No') }} :
-                                <span class="font-light">
-                                    {{ $order->pos_details->car_number }}
-                                </span>
-                            </h5>
-                            <h5>
-                                رقم السيارة
-                            </h5>
-                        @endif
-                        @if ($order->pos_details->phone)
-                            <h5 class="d-flex justify-content-between gap-2">
-                                {{ translate('messages.phone') }} :
-                                <span class="font-light">
-                                    {{ $order->pos_details->phone }}
-                                </span>
-                            </h5>
-                            <h5>
-                                هاتف
-                            </h5>
-                        @endif
                     @endif
+                    <h5 class="d-flex justify-content-between gap-2">
+                        {{ translate('Customer_Name') }} :
+                        <span class="font-light">
+                            @if ($order->pos_details->customer_name)
+                                {{ $order->pos_details->customer_name }}
+                            @else
+                                {{ translate('messages.walk_in_customer') }}
+                            @endif
+                        </span>
+                    </h5>
+                    <h5>
+                        اسم العميل
+                    </h5>
+                    @if ($order->pos_details->car_number)
+                        <h5 class="d-flex justify-content-between gap-2">
+                            {{ translate('Car_No') }} :
+                            <span class="font-light">
+                                {{ $order->pos_details->car_number }}
+                            </span>
+                        </h5>
+                        <h5>
+                            رقم السيارة
+                        </h5>
+                    @endif
+                    @if ($order->pos_details->phone)
+                        <h5 class="d-flex justify-content-between gap-2">
+                            {{ translate('messages.phone') }} :
+                            <span class="font-light">
+                                {{ $order->pos_details->phone }}
+                            </span>
+                        </h5>
+                        <h5>
+                            هاتف
+                        </h5>
+                    @endif
+                    {{-- @endif --}}
                 </div>
 
                 <table class="table table-borderless table-align-middle mt-1 mb-1">

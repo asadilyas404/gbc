@@ -482,7 +482,7 @@
                     @foreach ($orders as $order)
                         <div class="col-md-6 col-xl-4 mb-3">
                             <div class="card border order-card h-100 shadow-sm">
-                                <div class="card-body p-3 pb-2">
+                                <div class="card-body p-3 pb-2 pt-2">
                                     <!-- Header: Order # and Status -->
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="order-title text-dark">

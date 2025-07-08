@@ -123,17 +123,6 @@
                     <h5>
                         اسم العميل
                     </h5>
-                    @if ($order->pos_details->customer_name)
-                        <h5 class="d-flex justify-content-between gap-2">
-                            {{ translate('Order_By') }} :
-                            <span class="font-light">
-                                {{ $order->pos_details->customer_name }}
-                            </span>
-                        </h5>
-                        <h5>
-                            اطلب بواسطة
-                        </h5>
-                    @endif
                     @if ($order->pos_details->car_number)
                         <h5 class="d-flex justify-content-between gap-2">
                             {{ translate('Car_No') }} :

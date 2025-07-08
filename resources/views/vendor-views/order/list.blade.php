@@ -446,29 +446,61 @@
                     </table>
                 </div>
             @else
-                <div class="row">
+               <style>
+    .order-card {
+        transition: all 0.2s ease-in-out;
+        border-radius: 0.5rem;
+    }
+
+    .order-card:hover {
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.07);
+        border-color: #0d6efd;
+    }
+
+    .order-card .badge {
+        font-size: 0.75rem;
+        padding: 0.35em 0.6em;
+    }
+
+    .order-card .order-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .order-card small,
+    .order-card .text-muted {
+        font-size: 0.85rem;
+    }
+
+    .order-card .btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+</style>
+
+<div class="row">
     @foreach ($orders as $order)
-        <div class="col-md-6 col-xl-4 mb-4">
-            <div class="card shadow-sm border-0 h-100">
+        <div class="col-md-6 col-xl-4 mb-3">
+            <div class="card border order-card h-100 shadow-sm">
                 <div class="card-body p-3 pb-2">
-                    <!-- Order # and Status -->
+                    <!-- Header: Order # and Status -->
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="mb-0 text-dark fw-bold" style="font-size: 1.15rem;">
+                        <div class="order-title text-dark">
                             Order #{{ $order['order_serial'] }}
-                        </h6>
-                        <span class="badge bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'info' }} text-capitalize" style="font-size: 0.85rem;">
+                        </div>
+                        <span class="badge bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'primary' }} text-white text-capitalize">
                             {{ translate(str_replace('_', ' ', $order['order_status'])) }}
                         </span>
                     </div>
 
                     <!-- Date -->
-                    <div class="mb-1 text-muted small">
-                        <strong>{{ translate('messages.order_date') }}:</strong>
+                    <div class="text-muted mb-1">
+                        <strong>{{ translate('messages.order_date') }}:</strong><br>
                         {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y - h:i A') }}
                     </div>
 
                     <!-- Customer Info -->
-                    <div class="mb-1 small text-muted">
+                    <div class="text-muted mb-1">
                         <strong>{{ translate('messages.customer_information') }}:</strong><br>
                         @if ($order->is_guest)
                             @php $cust = json_decode($order['delivery_address'], true); @endphp
@@ -484,7 +516,7 @@
                     </div>
 
                     <!-- Amount -->
-                    <div class="mb-1 text-muted small">
+                    <div class="text-muted mb-1">
                         <strong>{{ translate('messages.total_amount') }}:</strong>
                         {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
                     </div>
@@ -492,35 +524,35 @@
                     <!-- Payment Status -->
                     <div class="mb-2">
                         @if ($order->payment_status === 'paid')
-                            <span class="badge bg-success small">{{ translate('messages.paid') }}</span>
+                            <span class="badge bg-success text-white small">{{ translate('messages.paid') }}</span>
                         @elseif($order->payment_status === 'partially_paid')
-                            <span class="badge bg-warning text-dark small">{{ translate('messages.partially_paid') }}</span>
+                            <span class="badge bg-warning text-white small">{{ translate('messages.partially_paid') }}</span>
                         @else
-                            <span class="badge bg-danger small">{{ translate('messages.unpaid') }}</span>
+                            <span class="badge bg-danger text-white small">{{ translate('messages.unpaid') }}</span>
                         @endif
                     </div>
 
-                    <!-- Actions -->
+                    <!-- Action Buttons -->
                     <div class="d-flex justify-content-end flex-wrap gap-1 mt-2">
                         <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
-                            class="btn btn-sm btn-outline-primary px-2 py-1" title="{{ translate('View') }}">
+                            class="btn btn-sm btn-outline-primary" title="{{ translate('View') }}">
                             <i class="tio-visible-outlined"></i>
                         </a>
 
                         @if ($order['payment_status'] === 'unpaid')
                             <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
-                                class="btn btn-sm btn-outline-warning px-2 py-1" title="{{ translate('Load to POS') }}">
+                                class="btn btn-sm btn-outline-warning" title="{{ translate('Load to POS') }}">
                                 <i class="tio-refresh"></i>
                             </a>
                         @endif
 
                         <a href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"
-                            class="btn btn-sm btn-outline-success px-2 py-1" target="_blank" title="{{ translate('Invoice') }}">
+                            class="btn btn-sm btn-outline-success" target="_blank" title="{{ translate('Invoice') }}">
                             <i class="tio-print"></i>
                         </a>
 
                         <a href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}"
-                            class="btn btn-sm btn-outline-dark px-2 py-1" target="_blank" title="{{ translate('Receipt') }}">
+                            class="btn btn-sm btn-outline-dark" target="_blank" title="{{ translate('Receipt') }}">
                             <i class="tio-document"></i>
                         </a>
                     </div>
@@ -529,6 +561,7 @@
         </div>
     @endforeach
 </div>
+
 
             @endif
             @if (count($orders) === 0)

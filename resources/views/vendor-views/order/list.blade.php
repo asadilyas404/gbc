@@ -489,7 +489,7 @@
                                             Order #{{ $order['order_serial'] }}
                                         </div>
                                         <span
-                                            class="badge badge-soft-{{ $order['order_status'] === 'canceled' ? 'danger' : 'primary' }} text-white text-capitalize">
+                                            class="badge bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'primary' }} text-white text-capitalize">
                                             {{ translate(str_replace('_', ' ', $order['order_status'])) }}
                                         </span>
                                     </div>
@@ -526,13 +526,13 @@
                                     <div class="mb-2">
                                         @if ($order->payment_status === 'paid')
                                             <span
-                                                class="badge badge-soft-success text-white small">{{ translate('messages.paid') }}</span>
+                                                class="badge bg-success text-white small">{{ translate('messages.paid') }}</span>
                                         @elseif($order->payment_status === 'partially_paid')
                                             <span
                                                 class="badge bg-warning text-white small">{{ translate('messages.partially_paid') }}</span>
                                         @else
                                             <span
-                                                class="badge badge-soft-danger text-white small">{{ translate('messages.unpaid') }}</span>
+                                                class="badge bg-danger text-white small">{{ translate('messages.unpaid') }}</span>
                                         @endif
                                     </div>
 

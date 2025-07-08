@@ -480,9 +480,9 @@
             @else
                 <div class="row">
                     @foreach ($orders as $order)
-                        <div class="col-md-6 col-xl-4 mb-3">
+                        <div class="col-md-6 col-xl-4 mb-3 p-3">
                             <div class="card border order-card h-100 shadow-sm">
-                                <div class="card-body p-3 pb-2 pt-2">
+                                <div class="card-body p-3 pb-2">
                                     <!-- Header: Order # and Status -->
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="order-title text-dark">
@@ -512,8 +512,8 @@
                                             {{ $order->customer['phone'] }}
                                         @elseif($order->pos_details)
                                             {{ $order->pos_details->customer_name ?? '-' }}<br>
-                                            {{ $order->pos_details->phone ?? '-' }}
-                                            {{ $order->pos_details->car_number ?? '-' }}
+                                            Phone: {{ $order->pos_details->phone ?? '-' }} &nbsp;
+                                            Car No. {{ $order->pos_details->car_number ?? '-' }}
                                         @endif
                                     </div>
 

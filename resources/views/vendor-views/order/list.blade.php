@@ -5,7 +5,7 @@
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    {{-- <style>
+    <style>
         .order-card {
             transition: all 0.2s ease-in-out;
             border-radius: 0.5rem;
@@ -17,25 +17,25 @@
         }
 
         .order-card .badge {
-            font-size: 0.75rem;
+            font-size: 1rem;
             padding: 0.35em 0.6em;
         }
 
         .order-card .order-title {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
         }
 
         .order-card small,
         .order-card .text-muted {
-            font-size: 0.85rem;
+            font-size: 0.95rem;
         }
 
         .order-card .btn {
             padding: 0.25rem 0.5rem;
             font-size: 0.75rem;
         }
-    </style> --}}
+    </style>
 @endpush
 
 @section('content')
@@ -489,7 +489,7 @@
                                             Order #{{ $order['order_serial'] }}
                                         </div>
                                         <span
-                                            class="badge bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'primary' }} text-white text-capitalize">
+                                            class="badge badge-soft-{{ $order['order_status'] === 'canceled' ? 'danger' : 'primary' }} text-white text-capitalize">
                                             {{ translate(str_replace('_', ' ', $order['order_status'])) }}
                                         </span>
                                     </div>
@@ -526,13 +526,13 @@
                                     <div class="mb-2">
                                         @if ($order->payment_status === 'paid')
                                             <span
-                                                class="badge bg-success text-white small">{{ translate('messages.paid') }}</span>
+                                                class="badge badge-soft-success text-white small">{{ translate('messages.paid') }}</span>
                                         @elseif($order->payment_status === 'partially_paid')
                                             <span
                                                 class="badge bg-warning text-white small">{{ translate('messages.partially_paid') }}</span>
                                         @else
                                             <span
-                                                class="badge bg-danger text-white small">{{ translate('messages.unpaid') }}</span>
+                                                class="badge badge-soft-danger text-white small">{{ translate('messages.unpaid') }}</span>
                                         @endif
                                     </div>
 

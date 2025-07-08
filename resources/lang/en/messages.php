@@ -6525,4 +6525,5 @@
   'Unpaid' => 'Unpaid',
   'Unpaid Orders' => 'Unpaid Orders',
   'Unpaid Order' => 'Unpaid Order',
+  'Total Order Amount' => 'Total Order Amount',
 );

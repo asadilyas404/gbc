@@ -119,12 +119,12 @@
                 <div class="row w-100 align-items-center">
                     <!-- Left: Total Amount -->
                     <div class="col-md-6 col-sm-12 mb-2 mb-md-0">
-                        <h6 class="mb-0 text-dark">
+                        <h3 class="mb-0 text-dark">
                             {{ translate('Total Order Amount') }}:
                             <span class="text-primary">
                                 {{ \App\CentralLogics\Helpers::format_currency($totalAmount) }}
                             </span>
-                        </h6>
+                        </h3>
                     </div>
 
                     <!-- Right: Search Bar -->

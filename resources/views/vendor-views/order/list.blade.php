@@ -480,7 +480,7 @@
             @else
                 <div class="row">
                     @foreach ($orders as $order)
-                        <div class="col-md-6 col-xl-4 mb-3 p-3">
+                        <div class="col-md-6 col-xl-4 p-3">
                             <div class="card border order-card h-100 shadow-sm">
                                 <div class="card-body p-3 pb-2">
                                     <!-- Header: Order # and Status -->
@@ -540,7 +540,7 @@
 
 
                                     <!-- Action Buttons -->
-                                    <div class="d-flex justify-content-center flex-wrap gap-2 mt-2">
+                                    <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
                                         <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
                                             class="btn btn-sm btn-outline-primary" title="{{ translate('View') }}">
                                             <i class="tio-visible-outlined"></i>

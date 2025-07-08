@@ -50,9 +50,9 @@
                 </h5>
 
                 <div class="border border-dashed border-secondary p-3 rounded">
-                    <h5 class="d-flex justify-content-between gap-2">
-                        <span class="text-muted"> {{ translate('Order_ID') }} | معرف الطلب</span>
-                        <span style="font-size: larger" class="font-weight-bold">{{ $order['order_serial'] }}</span>
+                    <h5 class="d-flex justify-content-between align-items-center gap-2">
+                        <span class="text-muted">{{ translate('Order_ID') }} | معرف الطلب</span>
+                        <span class="fw-bold" style="font-size: 1.5rem;">{{ $order['order_serial'] }}</span>
                     </h5>
 
                     {{-- @if ($order->delivery_address)
@@ -108,11 +108,11 @@
                             @endif
                         </div>
                     @else --}}
-                     @if ($order->order_taken_by)
+                    @if ($order->order_taken_by)
                         <h5 class="d-flex justify-content-between gap-2">
                             {{ translate('Order_By') }} :
                             <span class="font-light">
-                                {{ $order->takenBy }}
+                                {{ ($order->takenBy->f_name ?? '') . ' ' . ($order->takenBy->l_name ?? '') }}
                             </span>
                         </h5>
                         <h5>

@@ -399,7 +399,7 @@
         </div>
         @php($order = Order::find(session('last_order')))
         @if ($order)
-            {{-- @php(session(['last_order' => false])) --}}
+            @php(session(['last_order' => false]))
             <div class="modal fade" id="print-invoice" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">

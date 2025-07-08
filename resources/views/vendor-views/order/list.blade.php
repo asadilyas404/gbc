@@ -447,67 +447,75 @@
                 </div>
             @else
                 <div class="row">
-                    @foreach ($orders as $order)
-                        <div class="col-md-6 col-xl-4 mb-4">
-                            <div class="card shadow-sm h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <h6 class="mb-0">Order #{{ $order['order_serial'] }}</h6>
-                                        <span
-                                            class="badge bg-{{ $order['order_status'] == 'canceled' ? 'danger' : 'info' }}">
-                                            {{ translate(str_replace('_', ' ', $order['order_status'])) }}
-                                        </span>
-                                    </div>
+    @foreach ($orders as $order)
+        <div class="col-md-6 col-xl-4 mb-4">
+            <div class="card shadow-sm h-100 border-0">
+                <div class="card-body p-3">
+                    <!-- Header: Order # and Status -->
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0 fw-semibold text-dark">
+                            #{{ $order['order_serial'] }}
+                        </h5>
+                        <span class="badge px-3 py-1 fs-6 bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'info' }}">
+                            {{ translate(str_replace('_', ' ', $order['order_status'])) }}
+                        </span>
+                    </div>
 
-                                    <p class="mb-1">
-                                        <strong>{{ translate('messages.order_date') }}:</strong><br>
-                                        {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y - h:i A') }}
-                                    </p>
+                    <hr class="my-2">
 
-                                    <p class="mb-1">
-                                        <strong>{{ translate('messages.customer_information') }}:</strong><br>
-                                        @if ($order->is_guest)
-                                            @php $cust = json_decode($order['delivery_address'], true); @endphp
-                                            {{ $cust['contact_person_name'] ?? '-' }}<br>
-                                            {{ $cust['contact_person_number'] ?? '-' }}
-                                        @elseif($order->customer)
-                                            {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}<br>
-                                            {{ $order->customer['phone'] }}
-                                        @elseif($order->pos_details)
-                                            {{ $order->pos_details->customer_name ?? '' }}<br>
-                                            {{ $order->pos_details->phone ?? '' }}
-                                        @endif
-                                    </p>
+                    <!-- Order Date -->
+                    <div class="small mb-2 text-muted">
+                        <strong>{{ translate('messages.order_date') }}:</strong><br>
+                        {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y - h:i A') }}
+                    </div>
 
-                                    <p class="mb-1">
-                                        <strong>{{ translate('messages.total_amount') }}:</strong>
-                                        {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
-                                    </p>
+                    <!-- Customer Info -->
+                    <div class="small mb-2 text-muted">
+                        <strong>{{ translate('messages.customer_information') }}:</strong><br>
+                        @if ($order->is_guest)
+                            @php $cust = json_decode($order['delivery_address'], true); @endphp
+                            {{ $cust['contact_person_name'] ?? '-' }}<br>
+                            {{ $cust['contact_person_number'] ?? '-' }}
+                        @elseif($order->customer)
+                            {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}<br>
+                            {{ $order->customer['phone'] }}
+                        @elseif($order->pos_details)
+                            {{ $order->pos_details->customer_name ?? '-' }}<br>
+                            {{ $order->pos_details->phone ?? '-' }}
+                        @endif
+                    </div>
 
-                                    <div class="d-flex justify-content-end gap-2 mt-3">
-                                        <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
-                                            class="btn btn-sm btn-outline-primary">
-                                            <i class="tio-visible-outlined"></i> {{ translate('View') }}
-                                        </a>
+                    <!-- Total Amount -->
+                    <div class="small mb-2 text-muted">
+                        <strong>{{ translate('messages.total_amount') }}:</strong>
+                        {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
+                    </div>
 
-                                        @if ($order['payment_status'] == 'unpaid')
-                                            <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
-                                                class="btn btn-sm btn-outline-warning"
-                                                title="{{ translate('Load Unpaid to POS') }}">
-                                                <i class="tio-refresh"></i>
-                                            </a>
-                                        @endif
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-end flex-wrap gap-2 mt-2">
+                        <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
+                            class="btn btn-xs btn-outline-primary" title="{{ translate('View') }}">
+                            <i class="tio-visible-outlined"></i>
+                        </a>
 
-                                        <a href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"
-                                            class="btn btn-sm btn-outline-success" target="_blank">
-                                            <i class="tio-print"></i>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+                        @if ($order['payment_status'] === 'unpaid')
+                            <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
+                                class="btn btn-xs btn-outline-warning" title="{{ translate('Load to POS') }}">
+                                <i class="tio-refresh"></i>
+                            </a>
+                        @endif
+
+                        <a href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"
+                            class="btn btn-xs btn-outline-success" title="{{ translate('Print Invoice') }}" target="_blank">
+                            <i class="tio-print"></i>
+                        </a>
+                    </div>
                 </div>
+            </div>
+        </div>
+    @endforeach
+</div>
+
             @endif
             @if (count($orders) === 0)
                 <div class="empty--data">

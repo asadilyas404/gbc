@@ -13,7 +13,6 @@ qz.websocket.connect().then(() => {
 let printers = {};
 
 qz.printers.find().then(foundPrinters => {
-    console.log(printers);exit;
     foundPrinters.forEach(p => {
         if (p.toLowerCase().includes("invoice")) printers.invoice = p;
         if (p.toLowerCase().includes("kitchen")) printers.kitchen = p;
@@ -72,7 +71,7 @@ function generateReceipt(type) {
             <div class="text-center">
                 <input type="button" class="btn text-white btn--primary non-printable print-Div"
                     value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}"/>
-                    <button onclick="printReceipt('Invoice')" class="btn btn-primary">Direct Print Invoice</button>
+                    <button onclick="printReceipt('Invoice')" class="btn btn--info">Direct Print</button>
                 <a href="{{ url()->previous() }}"
                     class="btn btn-danger non-printable">{{ translate('messages.back') }}</a>
             </div>

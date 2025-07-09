@@ -507,13 +507,21 @@
 
 
 <script>
+
+    let printerName = null;
 document.addEventListener("DOMContentLoaded", function () {
     if (!qz.websocket.isActive()) {
         qz.websocket.connect().then(() => {
             console.log("QZ Tray Connected");
+
+            // Search for specific printer
             qz.printers.find("HP LaserJet P2035n").then(function(found) {
-   alert("Printer: " + found);
-});
+                printerName = found;
+                alert("Printer Found: " + printerName);
+            }).catch(err => {
+                console.error("Printer not found:", err);
+                alert("Could not find printer.");
+            });
         }).catch(err => {
             alert("Failed to connect to QZ Tray: " + err);
         });
@@ -526,19 +534,32 @@ function directPrint() {
         return;
     }
 
+    if (!printerName) {
+        alert("Printer not yet loaded or found.");
+        return;
+    }
+
+    const invoiceHtml = document.querySelector('.initial-38-1')?.innerHTML;
+
+    if (!invoiceHtml) {
+        alert("Invoice HTML not found.");
+        return;
+    }
+
     const printData = [
-        { type: 'html', format: 'plain', data: "<h1>Test Print</h1><p>Order #1234</p>" }
+        { type: 'html', format: 'plain', data: invoiceHtml }
     ];
 
-    qz.printers.getDefault().then(defaultPrinter => {
-        const config = qz.configs.create(defaultPrinter); // ✅ CORRECT QZ v2 WAY
-        return qz.print(config, printData);
-    }).then(() => {
-        console.log("Printed successfully");
-    }).catch(err => {
-        console.error("Print failed:", err);
-        alert("Print failed: " + err);
-    });
+    const config = qz.configs.create(printerName);
+
+    qz.print(config, printData)
+        .then(() => {
+            console.log("Printed successfully");
+        })
+        .catch(err => {
+            console.error("Print failed:", err);
+            alert("Print failed: " + err);
+        });
 }
 </script>
 

@@ -522,8 +522,10 @@
 <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
 <script>
-    const printerName = @json($printer);
     document.addEventListener("DOMContentLoaded", function() {
+        var printerName = @json($printer);
+        // console.log(printerName);
+
         if (!qz.websocket.isActive()) {
             qz.websocket.connect().then(() => {
                 // console.log("QZ Tray Connected");

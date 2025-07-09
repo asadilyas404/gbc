@@ -509,8 +509,8 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-var printerName = @json($printer);
-    console.log(printerName);
+        var printerName = @json($printer);
+        // console.log(printerName);
 
         if (!qz.websocket.isActive()) {
             qz.websocket.connect().then(() => {
@@ -519,7 +519,7 @@ var printerName = @json($printer);
                 // Search for specific printer
                 qz.printers.find(printerName).then(function(found) {
                     printerName = found;
-                    alert("Printer Found: " + printerName);
+                    // alert("Printer Found: " + printerName);
                 }).catch(err => {
                     console.error("Printer not found:", err);
                     alert("Could not find printer.");

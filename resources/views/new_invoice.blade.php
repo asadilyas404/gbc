@@ -1,4 +1,4 @@
-@push('script_2')
+{{-- @push('script_2') --}}
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
 
@@ -63,7 +63,7 @@ function generateReceipt(type) {
 }
 </script>
 
-@endpush
+{{-- @endpush --}}
 
 <div class="content container-fluid initial-38 new-invoice ">
     <div class="row justify-content-center" id="printableArea">

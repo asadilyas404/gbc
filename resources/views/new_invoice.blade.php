@@ -549,23 +549,19 @@ function directPrint() {
     const clone = printableDiv.cloneNode(true);
     clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-    // Wrap in basic HTML structure
-    // const invoiceHtml = `
-    //     <html>
-    //     <head>
-    //         <style>
-    //             body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 10px; }
-    //         </style>
-    //     </head>
-    //     <body>
-    //         ${clone.innerHTML}
-    //     </body>
-    //     </html>
-    // `;
+    // Get full current HTML document
+    let fullHtml = document.documentElement.outerHTML;
+
+    // Replace body content with only cleaned printable area
+    fullHtml = fullHtml.replace(
+        /<body[^>]*>[\s\S]*<\/body>/i,
+        `<body>${clone.innerHTML}</body>`
+    );
+
     const invoiceHtml = `${clone.innerHTML}`;
 
     const printData = [
-        { type: 'html', format: 'plain', data: invoiceHtml }
+        { type: 'html', format: 'plain', data: fullHtml }
     ];
 
     const config = qz.configs.create(printerName);

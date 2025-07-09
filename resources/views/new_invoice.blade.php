@@ -509,7 +509,7 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-const printerName = @json($printer);
+var printerName = @json($printer);
     console.log(printerName);
 
         if (!qz.websocket.isActive()) {

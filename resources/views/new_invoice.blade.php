@@ -1,9 +1,78 @@
+@push('css_or_js')
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
+
+
+<script>
+// Connect to QZ Tray
+qz.websocket.connect().then(() => {
+    console.log("Connected to QZ Tray");
+}).catch(console.error);
+
+// Load printers and store for use
+let printers = {};
+
+qz.printers.find().then(foundPrinters => {
+    console.log(printers);exit;
+    foundPrinters.forEach(p => {
+        if (p.toLowerCase().includes("invoice")) printers.invoice = p;
+        if (p.toLowerCase().includes("kitchen")) printers.kitchen = p;
+    });
+}).catch(console.error);
+
+// Function to print based on type
+function printReceipt(type) {
+    const content = [
+        { type: 'raw', format: 'plain', data: generateReceipt(type) }
+    ];
+
+    const printerName = type === 'Invoice' ? printers.invoice : printers.kitchen;
+
+    if (!printerName) {
+        alert("No printer found for: " + type);
+        return;
+    }
+
+    qz.print({
+        printer: printerName,
+        options: { copies: 1 }
+    }, content).then(() => {
+        console.log(`${type} printed successfully`);
+    }).catch(err => {
+        console.error(err);
+        alert("Print failed. Make sure QZ Tray is running.");
+    });
+}
+
+// Simulated receipt content (raw ESC/POS text, adjust as needed)
+function generateReceipt(type) {
+    if (type === 'Invoice') {
+        return `
+        *** Invoice Receipt ***
+        Order #: 12345
+        Total: Rs. 1500
+        Thank you!
+        \n\n\n\n`;
+    } else {
+        return `
+        *** Kitchen Copy ***
+        Order #: 12345
+        Item 1 x 2
+        Item 2 x 1
+        \n\n\n\n`;
+    }
+}
+</script>
+
+@endpush
+
 <div class="content container-fluid initial-38 new-invoice ">
     <div class="row justify-content-center" id="printableArea">
         <div class="col-md-12">
             <div class="text-center">
                 <input type="button" class="btn text-white btn--primary non-printable print-Div"
-                    value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}" onclick="window.print();"/>
+                    value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}"/>
+                    <button onclick="printReceipt('Invoice')" class="btn btn-primary">Direct Print Invoice</button>
                 <a href="{{ url()->previous() }}"
                     class="btn btn-danger non-printable">{{ translate('messages.back') }}</a>
             </div>

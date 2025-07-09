@@ -6,6 +6,7 @@
         $printers = json_decode($setting->value, true);
         $printer = $printers['bill_print'] ?? null;
     }
+    dd($printer);
 @endphp
 
 <div class="content container-fluid initial-38 new-invoice ">
@@ -517,7 +518,7 @@
                 // Search for specific printer
                 qz.printers.find(printerName).then(function(found) {
                     printerName = found;
-                    // alert("Printer Found: " + printerName);
+                    alert("Printer Found: " + printerName);
                 }).catch(err => {
                     console.error("Printer not found:", err);
                     alert("Could not find printer.");

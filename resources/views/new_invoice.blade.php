@@ -527,7 +527,7 @@ function directPrint() {
     }
 
     const printData = [
-        { type: 'raw', format: 'plain', data: "<h1>Test Print</h1><p>Order #1234</p>" }
+        { type: 'html', format: 'plain', data: "<h1>Test Print</h1><p>Order #1234</p>" }
     ];
 
     qz.printers.getDefault().then(defaultPrinter => {

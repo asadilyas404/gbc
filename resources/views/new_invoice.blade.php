@@ -534,7 +534,7 @@ function generateReceipt(type) {
 // Function to print (uses default printer)
 function printReceipt(type) {
     const content = [
-        { type: 'raw', format: 'plain', data: generateReceipt(type) }
+        { type: 'raw', format: 'plain', data: "Hello from QZ!\n\n\n" }
     ];
 
     console.log(content);

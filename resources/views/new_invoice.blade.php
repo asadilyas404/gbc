@@ -1,16 +1,20 @@
-{{-- @push('script_2') --}}
+@php
+    $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+    $printer = null;
 
-
-
-{{-- @endpush --}}
+    if ($setting) {
+        $printers = json_decode($setting->value, true);
+        $printer = $printers['bill_print'] ?? null;
+    }
+@endphp
 
 <div class="content container-fluid initial-38 new-invoice ">
     <div class="row justify-content-center" id="printableArea">
         <div class="col-md-12">
             <div class="text-center">
                 <input type="button" class="btn text-white btn--primary non-printable print-Div"
-                    value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}"/>
-                    <button onclick="directPrint()" class="btn btn--warning text-white non-printable">Direct Print</button>
+                    value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}" />
+                <button onclick="directPrint()" class="btn btn--warning text-white non-printable">Direct Print</button>
                 <a href="{{ url()->previous() }}"
                     class="btn btn-danger non-printable">{{ translate('messages.back') }}</a>
             </div>
@@ -503,123 +507,73 @@
 
 <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
-{{-- <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.1.0/qz-tray.js"></script> --}}
-
-
 <script>
+    const printerName = @json($printer);
+    document.addEventListener("DOMContentLoaded", function() {
+        if (!qz.websocket.isActive()) {
+            qz.websocket.connect().then(() => {
+                // console.log("QZ Tray Connected");
 
-    let printerName = null;
-document.addEventListener("DOMContentLoaded", function () {
-    if (!qz.websocket.isActive()) {
-        qz.websocket.connect().then(() => {
-            console.log("QZ Tray Connected");
-
-            // Search for specific printer
-            qz.printers.find("HP LaserJet P2035n").then(function(found) {
-                printerName = found;
-                alert("Printer Found: " + printerName);
+                // Search for specific printer
+                qz.printers.find(printerName).then(function(found) {
+                    printerName = found;
+                    // alert("Printer Found: " + printerName);
+                }).catch(err => {
+                    console.error("Printer not found:", err);
+                    alert("Could not find printer.");
+                });
             }).catch(err => {
-                console.error("Printer not found:", err);
-                alert("Could not find printer.");
+                alert("Failed to connect to QZ Tray: " + err);
             });
-        }).catch(err => {
-            alert("Failed to connect to QZ Tray: " + err);
-        });
-    }
-});
-
-function directPrint() {
-    if (!qz.websocket.isActive()) {
-        alert("QZ Tray not connected.");
-        return;
-    }
-
-    if (!printerName) {
-        alert("Printer not yet loaded or found.");
-        return;
-    }
-
-    const printableDiv = document.querySelector('#printableArea');
-
-    if (!printableDiv) {
-        alert("Printable content not found.");
-        return;
-    }
-
-    const clone = printableDiv.cloneNode(true);
-    clone.querySelectorAll('.non-printable').forEach(el => el.remove());
-
-    // Get full current HTML document
-    let fullHtml = document.documentElement.outerHTML;
-
-    // Replace body content with only cleaned printable area
-    fullHtml = fullHtml.replace(
-        /<body[^>]*>[\s\S]*<\/body>/i,
-        `<body>${clone.innerHTML}</body>`
-    );
-
-    const invoiceHtml = `${clone.innerHTML}`;
-
-    const printData = [
-        { type: 'html', format: 'plain', data: fullHtml }
-    ];
-
-    const config = qz.configs.create(printerName);
-
-    qz.print(config, printData)
-        .then(() => {
-            console.log("Printed successfully");
-        })
-        .catch(err => {
-            console.error("Print failed:", err);
-            alert("Print failed: " + err);
-        });
-}
-</script>
-
-
-
-{{-- <script>
-qz.websocket.connect().then(() => {
-    console.log("Connected to QZ Tray");
-}).catch(err => {
-    console.error("QZ Tray connection failed:", err);
-    alert("Make sure QZ Tray is installed and running.");
-});
-
-function generateReceipt(type) {
-    if (type === 'Invoice') {
-        return `
-        *** Invoice Receipt ***
-        Order #: 12345
-        Total: Rs. 1500
-        Thank you!
-        \n\n\n\n`;
-    } else {
-        return `
-        *** Kitchen Copy ***
-        Order #: 12345
-        Item 1 x 2
-        Item 2 x 1
-        \n\n\n\n`;
-    }
-}
-
-function printReceipt(type) {
-    const content = [
-        { type: 'raw', format: 'plain', data: "Hello from QZ!\n\n\n" }
-    ];
-
-    console.log(content);
-    qz.print({
-        printer: {},
-        options: { copies: 1 }
-    }, content).then(() => {
-        console.log(`${type} printed successfully`);
-    }).catch(err => {
-        console.error("Print failed:", err);
-        alert("Printing failed. Check QZ Tray and printer settings.");
+        }
     });
-}
 
-</script> --}}
+    function directPrint() {
+        if (!qz.websocket.isActive()) {
+            alert("QZ Tray not connected.");
+            return;
+        }
+
+        if (!printerName) {
+            alert("Printer not yet loaded or found.");
+            return;
+        }
+
+        const printableDiv = document.querySelector('#printableArea');
+
+        if (!printableDiv) {
+            alert("Printable content not found.");
+            return;
+        }
+
+        const clone = printableDiv.cloneNode(true);
+        clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+
+        let fullHtml = document.documentElement.outerHTML;
+
+        fullHtml = fullHtml.replace(
+            /<body[^>]*>[\s\S]*<\/body>/i,
+            `<body>${clone.innerHTML}</body>`
+        );
+
+        // const invoiceHtml = `${clone.innerHTML}`;
+
+        const printData = [{
+            type: 'html',
+            format: 'plain',
+            data: fullHtml
+        }];
+
+        const config = qz.configs.create(printerName);
+
+        qz.print(config, printData)
+            .then(() => {
+                // console.log("Printed successfully");
+                alert("Printed successfully");
+            })
+            .catch(err => {
+                console.error("Print failed:", err);
+                alert("Print failed: " + err);
+            });
+    }
+</script>

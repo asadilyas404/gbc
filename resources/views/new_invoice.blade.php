@@ -539,7 +539,7 @@ function directPrint() {
         return;
     }
 
-    const printableDiv = document.querySelector('.printableArea');
+    const printableDiv = document.querySelector('#printableArea');
 
     if (!printableDiv) {
         alert("Printable content not found.");

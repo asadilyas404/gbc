@@ -6,7 +6,6 @@
         $printers = json_decode($setting->value, true);
         $printer = $printers['bill_print'] ?? null;
     }
-    dd($printer);
 @endphp
 
 <div class="content container-fluid initial-38 new-invoice ">
@@ -509,8 +508,10 @@
 <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
 <script>
-    const printerName = @json($printer);
     document.addEventListener("DOMContentLoaded", function() {
+const printerName = @json($printer);
+    console.log(printerName);
+
         if (!qz.websocket.isActive()) {
             qz.websocket.connect().then(() => {
                 // console.log("QZ Tray Connected");

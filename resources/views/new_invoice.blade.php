@@ -537,7 +537,9 @@ function printReceipt(type) {
         { type: 'raw', format: 'plain', data: generateReceipt(type) }
     ];
 
+    console.log(content);
     qz.print({
+        printer: {},
         options: { copies: 1 }
     }, content).then(() => {
         console.log(`${type} printed successfully`);

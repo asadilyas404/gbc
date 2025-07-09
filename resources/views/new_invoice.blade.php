@@ -501,7 +501,9 @@
     </div>
 </div>
 
-    <script src="{{ dynamicAsset('resources/js/qz-tray.js') }}"></script>
+    <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
+
+{{-- <script type="text/javascript" src="js/qz-tray.js"></script> --}}
 
 
 <script>

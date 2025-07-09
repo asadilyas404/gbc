@@ -1,4 +1,4 @@
-@push('css_or_js')
+@push('script_2')
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
 

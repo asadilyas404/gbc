@@ -511,6 +511,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!qz.websocket.isActive()) {
         qz.websocket.connect().then(() => {
             console.log("QZ Tray Connected");
+            qz.printers.find("HP LaserJet P2035n").then(function(found) {
+   alert("Printer: " + found);
+});
         }).catch(err => {
             alert("Failed to connect to QZ Tray: " + err);
         });
@@ -524,7 +527,7 @@ function directPrint() {
     }
 
     const printData = [
-        { type: 'raw', format: 'plain', data: "Test Print\nOrder #1234\n\n\n" }
+        { type: 'raw', format: 'plain', data: "<h1>Test Print</h1><p>Order #1234</p>" }
     ];
 
     qz.printers.getDefault().then(defaultPrinter => {

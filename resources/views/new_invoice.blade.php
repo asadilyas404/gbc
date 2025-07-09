@@ -501,9 +501,9 @@
     </div>
 </div>
 
-{{-- <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script> --}}
+<script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.1.0/qz-tray.js"></script>
+{{-- <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.1.0/qz-tray.js"></script> --}}
 
 
 <script>

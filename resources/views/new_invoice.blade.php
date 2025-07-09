@@ -10,7 +10,7 @@
             <div class="text-center">
                 <input type="button" class="btn text-white btn--primary non-printable print-Div"
                     value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}"/>
-                    <button onclick="printReceipt('Invoice')" class="btn btn--info">Direct Print</button>
+                    <button onclick="directPrint()" class="btn btn--warning">Direct Print</button>
                 <a href="{{ url()->previous() }}"
                     class="btn btn-danger non-printable">{{ translate('messages.back') }}</a>
             </div>
@@ -501,10 +501,47 @@
     </div>
 </div>
 
-<script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
+{{-- <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script> --}}
+
+<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.1.0/qz-tray.js"></script>
+
 
 <script>
-// Connect to QZ Tray
+document.addEventListener("DOMContentLoaded", function () {
+    if (!qz.websocket.isActive()) {
+        qz.websocket.connect().then(() => {
+            console.log("QZ Tray Connected");
+        }).catch(err => {
+            alert("Failed to connect to QZ Tray: " + err);
+        });
+    }
+});
+
+function directPrint() {
+    if (!qz.websocket.isActive()) {
+        alert("QZ Tray not connected.");
+        return;
+    }
+
+    const printData = [
+        { type: 'raw', format: 'plain', data: "Test Print\nOrder #1234\n\n\n" }
+    ];
+
+    qz.printers.getDefault().then(defaultPrinter => {
+        const config = qz.configs.create(defaultPrinter); // ✅ CORRECT QZ v2 WAY
+        return qz.print(config, printData);
+    }).then(() => {
+        console.log("Printed successfully");
+    }).catch(err => {
+        console.error("Print failed:", err);
+        alert("Print failed: " + err);
+    });
+}
+</script>
+
+
+
+{{-- <script>
 qz.websocket.connect().then(() => {
     console.log("Connected to QZ Tray");
 }).catch(err => {
@@ -512,7 +549,6 @@ qz.websocket.connect().then(() => {
     alert("Make sure QZ Tray is installed and running.");
 });
 
-// Function to generate receipt content
 function generateReceipt(type) {
     if (type === 'Invoice') {
         return `
@@ -531,7 +567,6 @@ function generateReceipt(type) {
     }
 }
 
-// Function to print (uses default printer)
 function printReceipt(type) {
     const content = [
         { type: 'raw', format: 'plain', data: "Hello from QZ!\n\n\n" }
@@ -549,4 +584,4 @@ function printReceipt(type) {
     });
 }
 
-</script>
+</script> --}}

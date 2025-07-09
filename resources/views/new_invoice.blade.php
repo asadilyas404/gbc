@@ -501,11 +501,9 @@
     </div>
 </div>
 
-    <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
-
+<script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
 <script>
-
 // Connect to QZ Tray
 qz.websocket.connect().then(() => {
     console.log("Connected to QZ Tray");
@@ -514,23 +512,7 @@ qz.websocket.connect().then(() => {
     alert("Make sure QZ Tray is installed and running.");
 });
 
-// Function to print (uses default printer)
-function printReceipt(type) {
-    const content = [
-        { type: 'raw', format: 'plain', data: generateReceipt(type) }
-    ];
-
-    qz.print({
-        options: { copies: 1 }
-    }, content).then(() => {
-        console.log(`${type} printed successfully`);
-    }).catch(err => {
-        console.error("Print failed:", err);
-        alert("Printing failed. Check QZ Tray and printer settings.");
-    });
-}
-
-// Simulated receipt content (raw ESC/POS text, adjust as needed)
+// Function to generate receipt content
 function generateReceipt(type) {
     if (type === 'Invoice') {
         return `
@@ -547,6 +529,22 @@ function generateReceipt(type) {
         Item 2 x 1
         \n\n\n\n`;
     }
+}
+
+// Function to print (uses default printer)
+function printReceipt(type) {
+    const content = [
+        { type: 'raw', format: 'plain', data: generateReceipt(type) }
+    ];
+
+    qz.print({
+        options: { copies: 1 }
+    }, content).then(() => {
+        console.log(`${type} printed successfully`);
+    }).catch(err => {
+        console.error("Print failed:", err);
+        alert("Printing failed. Check QZ Tray and printer settings.");
+    });
 }
 
 </script>

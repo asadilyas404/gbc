@@ -503,8 +503,6 @@
 
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
-{{-- <script type="text/javascript" src="js/qz-tray.js"></script> --}}
-
 
 <script>
 // Connect to QZ Tray
@@ -516,6 +514,7 @@ qz.websocket.connect().then(() => {
 let printers = {};
 
 qz.printers.find().then(foundPrinters => {
+    console.log(foundPrinters);exit;
     foundPrinters.forEach(p => {
         if (p.toLowerCase().includes("invoice")) printers.invoice = p;
         if (p.toLowerCase().includes("kitchen")) printers.kitchen = p;

@@ -508,8 +508,9 @@
 <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function() {
         var printerName = @json($printer);
+    document.addEventListener("DOMContentLoaded", function() {
+        // var printerName = @json($printer);
         // console.log(printerName);
 
         if (!qz.websocket.isActive()) {

@@ -3,7 +3,7 @@
         <div class="col-md-12">
             <div class="text-center">
                 <input type="button" class="btn text-white btn--primary non-printable print-Div"
-                    value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}" />
+                    value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}" onclick="window.print();"/>
                 <a href="{{ url()->previous() }}"
                     class="btn btn-danger non-printable">{{ translate('messages.back') }}</a>
             </div>

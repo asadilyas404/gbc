@@ -505,43 +505,28 @@
 
 
 <script>
+
 // Connect to QZ Tray
 qz.websocket.connect().then(() => {
     console.log("Connected to QZ Tray");
-}).catch(console.error);
+}).catch(err => {
+    console.error("QZ Tray connection failed:", err);
+    alert("Make sure QZ Tray is installed and running.");
+});
 
-// Load printers and store for use
-let printers = {};
-
-qz.printers.find().then(foundPrinters => {
-    console.log(foundPrinters);exit;
-    foundPrinters.forEach(p => {
-        if (p.toLowerCase().includes("invoice")) printers.invoice = p;
-        if (p.toLowerCase().includes("kitchen")) printers.kitchen = p;
-    });
-}).catch(console.error);
-
-// Function to print based on type
+// Function to print (uses default printer)
 function printReceipt(type) {
     const content = [
         { type: 'raw', format: 'plain', data: generateReceipt(type) }
     ];
 
-    const printerName = type === 'Invoice' ? printers.invoice : printers.kitchen;
-
-    if (!printerName) {
-        alert("No printer found for: " + type);
-        return;
-    }
-
     qz.print({
-        printer: printerName,
         options: { copies: 1 }
     }, content).then(() => {
         console.log(`${type} printed successfully`);
     }).catch(err => {
-        console.error(err);
-        alert("Print failed. Make sure QZ Tray is running.");
+        console.error("Print failed:", err);
+        alert("Printing failed. Check QZ Tray and printer settings.");
     });
 }
 
@@ -563,4 +548,5 @@ function generateReceipt(type) {
         \n\n\n\n`;
     }
 }
+
 </script>

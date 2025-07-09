@@ -501,8 +501,7 @@
     </div>
 </div>
 
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qz-tray/2.1.0/qz-tray.js"></script>
+    <script src="{{ dynamicAsset('resources/js/qz-tray.js') }}"></script>
 
 
 <script>

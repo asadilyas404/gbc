@@ -10,7 +10,7 @@
             <div class="text-center">
                 <input type="button" class="btn text-white btn--primary non-printable print-Div"
                     value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}"/>
-                    <button onclick="directPrint()" class="btn btn--warning">Direct Print</button>
+                    <button onclick="directPrint()" class="btn btn--warning text-white non-printable">Direct Print</button>
                 <a href="{{ url()->previous() }}"
                     class="btn btn-danger non-printable">{{ translate('messages.back') }}</a>
             </div>
@@ -539,12 +539,30 @@ function directPrint() {
         return;
     }
 
-    const invoiceHtml = document.querySelector('.initial-38-1')?.innerHTML;
+    const printableDiv = document.querySelector('.printableArea');
 
-    if (!invoiceHtml) {
-        alert("Invoice HTML not found.");
+    if (!printableDiv) {
+        alert("Printable content not found.");
         return;
     }
+
+    const clone = printableDiv.cloneNode(true);
+    clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+
+    // Wrap in basic HTML structure
+    // const invoiceHtml = `
+    //     <html>
+    //     <head>
+    //         <style>
+    //             body { font-family: Arial, sans-serif; font-size: 12px; margin: 0; padding: 10px; }
+    //         </style>
+    //     </head>
+    //     <body>
+    //         ${clone.innerHTML}
+    //     </body>
+    //     </html>
+    // `;
+    const invoiceHtml = `${clone.innerHTML}`;
 
     const printData = [
         { type: 'html', format: 'plain', data: invoiceHtml }

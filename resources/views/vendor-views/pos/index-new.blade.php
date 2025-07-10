@@ -1614,7 +1614,9 @@
             qz.printers.find(billPrinterName).then(function(printer) {
                 const config = qz.configs.create(printer);
                 const html = document.getElementById('bill-print-content').innerHTML;
-
+                if (!html) {
+                    return;
+                }
                 const data = [{
                     type: 'html',
                     format: 'plain',

@@ -508,26 +508,26 @@
 <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
 <script>
-        var printerName = @json($printer);
-    document.addEventListener("DOMContentLoaded", function() {
+    //     var printerName = @json($printer);
+    // document.addEventListener("DOMContentLoaded", function() {
 
-        if (!qz.websocket.isActive()) {
-            qz.websocket.connect().then(() => {
-                // console.log("QZ Tray Connected");
+    //     if (!qz.websocket.isActive()) {
+    //         qz.websocket.connect().then(() => {
+    //             // console.log("QZ Tray Connected");
 
-                // Search for specific printer
-                qz.printers.find(printerName).then(function(found) {
-                    printerName = found;
-                    // alert("Printer Found: " + printerName);
-                }).catch(err => {
-                    console.error("Printer not found:", err);
-                    alert("Could not find printer.");
-                });
-            }).catch(err => {
-                alert("Failed to connect to QZ Tray: " + err);
-            });
-        }
-    });
+    //             // Search for specific printer
+    //             qz.printers.find(printerName).then(function(found) {
+    //                 printerName = found;
+    //                 // alert("Printer Found: " + printerName);
+    //             }).catch(err => {
+    //                 console.error("Printer not found:", err);
+    //                 alert("Could not find printer.");
+    //             });
+    //         }).catch(err => {
+    //             alert("Failed to connect to QZ Tray: " + err);
+    //         });
+    //     }
+    // });
 
     function directPrint() {
         if (!qz.websocket.isActive()) {

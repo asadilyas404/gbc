@@ -411,14 +411,14 @@
             @php(session(['last_order' => false]))
 
             {{-- Load Bill Print --}}
-            <div id="bill-print-content" class="d-none">
+            {{-- <div id="bill-print-content" class="d-none">
                 @include('new_invoice', ['order' => $order])
-            </div>
+            </div> --}}
 
             {{-- Load Kitchen Print --}}
-            <div id="kitchen-print-content" class="d-none">
+            {{-- <div id="kitchen-print-content" class="d-none">
                 @include('kitchen_receipt', ['order' => $order])
-            </div>
+            </div> --}}
 
             <div class="modal fade" id="print-invoice" tabindex="-1">
                 <div class="modal-dialog">

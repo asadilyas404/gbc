@@ -510,8 +510,6 @@
 <script>
         var printerName = @json($printer);
     document.addEventListener("DOMContentLoaded", function() {
-        // var printerName = @json($printer);
-        // console.log(printerName);
 
         if (!qz.websocket.isActive()) {
             qz.websocket.connect().then(() => {
@@ -558,8 +556,6 @@
             /<body[^>]*>[\s\S]*<\/body>/i,
             `<body>${clone.innerHTML}</body>`
         );
-
-        // const invoiceHtml = `${clone.innerHTML}`;
 
         const printData = [{
             type: 'html',

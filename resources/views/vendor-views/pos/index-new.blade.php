@@ -2,6 +2,15 @@
     use App\CentralLogics\Helpers;
     use App\Models\BusinessSetting;
     use App\Models\Order;
+
+    $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+    $billPrinter = $kitchenPrinter = null;
+
+    if ($setting) {
+        $printers = json_decode($setting->value, true);
+        $billPrinter = $printers['bill_print'] ?? null;
+        $kitchenPrinter = $printers['kitchen_print'] ?? null;
+    }
 @endphp
 @extends('layouts.vendor.app')
 
@@ -400,6 +409,17 @@
         @php($order = Order::find(session('last_order')))
         @if ($order)
             @php(session(['last_order' => false]))
+
+            {{-- Load Bill Print --}}
+            <div id="bill-print-content" class="d-none">
+                @include('new_invoice', ['order' => $order])
+            </div>
+
+            {{-- Load Kitchen Print --}}
+            <div id="kitchen-print-content" class="d-none">
+                @include('kitchen_receipt', ['order' => $order])
+            </div>
+
             <div class="modal fade" id="print-invoice" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
@@ -560,6 +580,7 @@
         src="https://maps.googleapis.com/maps/api/js?key={{ BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&callback=initMap&v=3.49">
     </script>
     <script src="{{ dynamicAsset('public/assets/admin/js/view-pages/pos.js') }}"></script>
+    <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
     <script>
         "use strict";
 
@@ -1570,5 +1591,60 @@
 
 
         });
+
+        const billPrinterName = @json($billPrinter);
+        const kitchenPrinterName = @json($kitchenPrinter);
+
+        document.addEventListener("DOMContentLoaded", function() {
+            if (!qz.websocket.isActive()) {
+                qz.websocket.connect().then(() => {
+                    initializePrinters();
+                }).catch(err => {
+                    alert("QZ Tray connection failed: " + err);
+                });
+            } else {
+                initializePrinters();
+            }
+        });
+
+        function initializePrinters() {
+            let printersFound = 0;
+
+            // Find and print for Bill Printer
+            qz.printers.find(billPrinterName).then(function(printer) {
+                const config = qz.configs.create(printer);
+                const html = document.getElementById('bill-print-content').innerHTML;
+
+                const data = [{
+                    type: 'html',
+                    format: 'plain',
+                    data: html
+                }];
+
+                return qz.print(config, data);
+            }).then(() => {
+                console.log("Bill print done");
+            }).catch(err => {
+                alert("Bill print failed: " + err);
+            });
+
+            // Find and print for Kitchen Printer
+            qz.printers.find(kitchenPrinterName).then(function(printer) {
+                const config = qz.configs.create(printer);
+                const html = document.getElementById('kitchen-print-content').innerHTML;
+
+                const data = [{
+                    type: 'html',
+                    format: 'plain',
+                    data: html
+                }];
+
+                return qz.print(config, data);
+            }).then(() => {
+                console.log("Kitchen print done");
+            }).catch(err => {
+                alert("Kitchen print failed: " + err);
+            });
+        }
     </script>
 @endpush

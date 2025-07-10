@@ -633,7 +633,7 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-light py-3">
-                    <h4 class="modal-title">{{ translate('Order Items') }} for <span id="modal-order-number">--</span></h4>
+                    <h4 class="modal-title">{{ translate('Order Items') }} for <span id="modal-order-number" style="font-size: 1.5rem">--</span></h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -652,6 +652,17 @@
                         </tbody>
                     </table>
                 </div>
+                <div class="modal-footer justify-content-center">
+    <button type="button"
+        class="btn btn--primary"
+        id="quickViewProceedBtn"
+        data-order-id=""
+        data-dismiss="modal"
+        data-toggle="modal"
+        data-target="#orderFinalModal">
+        {{ translate('Proceed') }}
+    </button>
+</div>
             </div>
         </div>
     </div>
@@ -767,6 +778,7 @@
             const orderId = $(this).data('order-id');
             const orderNumber = $(this).data('order-number');
             $('#modal-order-number').text(orderNumber);
+
             const modalBody = $('#quick-view-items-body');
             modalBody.html('<tr><td colspan="3" class="text-center">Loading...</td></tr>');
 
@@ -774,6 +786,8 @@
 
             console.log('Fetching:', url); // Debug
             $('#quickViewModal').modal('show');
+
+            $('#quickViewProceedBtn').data('order-id', orderId);
 
             $.get(url, function(response) {
                 modalBody.html(response);

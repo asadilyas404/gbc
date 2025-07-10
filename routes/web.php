@@ -243,3 +243,22 @@ Route::group(['prefix' => 'deliveryman', 'as' => 'deliveryman.'], function () {
     Route::get('apply', 'DeliveryManController@create')->name('create');
     Route::post('apply', 'DeliveryManController@store')->name('store');
 });
+
+
+Route::post('/qz/sign', function (\Illuminate\Http\Request $request) {
+    $data = $request->input('data');
+
+    $privateKeyPath = storage_path('app/keys/key.pem');
+    if (!file_exists($privateKeyPath)) {
+        return response()->json(['error' => 'Private key not found'], 500);
+    }
+
+    $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyPath));
+
+    $signature = '';
+    if (!openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA1)) {
+        return response()->json(['error' => 'Signing failed'], 500);
+    }
+
+    return response()->json(['signature' => base64_encode($signature)]);
+});

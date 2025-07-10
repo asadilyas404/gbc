@@ -567,6 +567,11 @@
                                             <i class="tio-visible-outlined"></i>
                                         </a>
 
+                                        <a href="javascript:void(0);" class="btn btn-sm btn-outline-info quick-view-btn"
+                                            data-order-id="{{ $order['id'] }}" title="{{ translate('Quick View') }}">
+                                            <i class="tio-info-outined"></i>
+                                        </a>
+
                                         @if ($order['payment_status'] === 'unpaid')
                                             <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
                                                 class="btn btn-sm btn-outline-warning"
@@ -622,6 +627,32 @@
         </div>
         <!-- End Card -->
     </div>
+
+    <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">{{ translate('Order Items') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ translate('Close') }}"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-hover table-bordered mb-0">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>{{ translate('Item') }}</th>
+                            <th class="text-center">{{ translate('Qty') }}</th>
+                            <th>{{ translate('Price') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody id="quick-view-items-body">
+                        {{-- Dynamically filled --}}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 @endsection
 
 @push('script_2')
@@ -727,5 +758,21 @@
                 let tagify = $.HSCore.components.HSTagify.init($(this));
             });
         });
+
+
+    $(document).on('click', '.quick-view-btn', function () {
+        const orderId = $(this).data('order-id');
+        const modalBody = $('#quick-view-items-body');
+        modalBody.html('<tr><td colspan="3" class="text-center">Loading...</td></tr>');
+
+        $('#quickViewModal').modal('show');
+
+        $.get("{{ url('/vendor/order/quick-view') }}/" + orderId, function (response) {
+            modalBody.html(response);
+        }).fail(function () {
+            modalBody.html('<tr><td colspan="3" class="text-danger text-center">Failed to load data.</td></tr>');
+        });
+    });
+
     </script>
 @endpush

@@ -175,6 +175,41 @@ class OrderController extends Controller
         }
     }
 
+    public function quickView($id)
+{
+    $order = Order::with('details')->findOrFail($id);
+
+    $html = '';
+
+    foreach ($order->details as $detail) {
+        if (isset($detail->food_id)) {
+            $foodData = json_decode($detail->food_details, true);
+            $food = \App\Models\Food::find($foodData['id']);
+            $image = $food->image_full_url ?? asset('public/assets/admin/img/100x100/food-default-image.png');
+            $name = Str::limit($foodData['name'], 25, '...');
+            $nameAr = Str::limit($food->getTranslationValue('name', 'ar'), 25, '...');
+            $price = \App\CentralLogics\Helpers::format_currency($detail['price']);
+            $qty = $detail['quantity'];
+
+            $html .= '<tr>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img src="' . $image . '" alt="food" class="rounded" style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
+                                <div>
+                                    <div><strong>' . $name . '</strong></div>
+                                    <div><small>' . $nameAr . '</small></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">' . $qty . '</td>
+                        <td>' . $price . '</td>
+                    </tr>';
+        }
+    }
+
+    return $html ?: '<tr><td colspan="3" class="text-center">No items found.</td></tr>';
+}
+
     public function status(Request $request)
     {
         $request->validate([

@@ -1632,14 +1632,15 @@ bwQAIE2603u1WyFe6XdUm2apzVVmbwk34OM58yNWgqmyWKojQqx4QTpA9gtGTkfG
         .then(res => res.json())
         .then(data => {
             if (data.signature) {
-                resolve(data.signature);
+                resolve(data.signature); // ✅ correct resolver
             } else {
                 reject("Invalid signature response");
             }
         })
-        .catch(err => reject(err));
+        .catch(err => reject(err)); // ✅ error handler
     });
 });
+
 
             if (!qz.websocket.isActive()) {
                 qz.websocket.connect().then(() => {

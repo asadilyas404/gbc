@@ -248,7 +248,7 @@ Route::group(['prefix' => 'deliveryman', 'as' => 'deliveryman.'], function () {
 });
 
 
-Route::post('/qz/sign', function (Request $request) {
+Route::get('/qz/sign', function (Request $request) {
     $data = $request->input('data');
 
     // Validate
@@ -271,6 +271,9 @@ Route::post('/qz/sign', function (Request $request) {
     $signature = '';
     $success = openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA1);
     openssl_free_key($privateKey);
+
+    Log::info('QZ Data:', ['data' => $data]);
+Log::info('Private key exists:', [file_exists($keyPath)]);
 
     if (!$success) {
         return Response::json(['error' => 'Signing failed'], 500);

@@ -806,7 +806,7 @@
 
             // Make AJAX call to get order payment data
             $.get(urlPayment, function(data) {
-                // Fill modal fields (example only; adjust field names as needed)
+                console.log(data);
                 $('#invoice_amount span').text(data.total_amount_formatted);
                 $('#customer_name').val(data.customer_name);
                 $('#car_number').val(data.car_number);

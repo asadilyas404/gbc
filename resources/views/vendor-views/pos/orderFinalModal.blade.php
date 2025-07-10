@@ -210,7 +210,7 @@ $(document).ready(function() {
 
             function updateCalculations() {
                 const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
-                console.log('amount ' + invoiceAmount);
+                // console.log('amount ' + invoiceAmount);
                 const cashPaid = parseFloat($('#cash_paid').val()) || 0;
                 const cardPaid = parseFloat($('#card_paid').val()) || 0;
                 const totalPaid = cashPaid + cardPaid;

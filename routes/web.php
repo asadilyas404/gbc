@@ -245,7 +245,7 @@ Route::group(['prefix' => 'deliveryman', 'as' => 'deliveryman.'], function () {
 });
 
 
-Route::post('/qz/sign', function (\Illuminate\Http\Request $request) {
+Route::get('/qz/sign', function (\Illuminate\Http\Request $request) {
     $data = $request->input('data');
 
     $privateKeyPath = storage_path('app/keys/key.pem');

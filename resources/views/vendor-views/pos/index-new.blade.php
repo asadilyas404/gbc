@@ -12,8 +12,6 @@
         $kitchenPrinter = $printers['kitchen_print'] ?? null;
     }
 @endphp
-
-<meta name="csrf-token" content="{{ csrf_token() }}">
 @extends('layouts.vendor.app')
 
 @section('title', translate('messages.pos'))

@@ -2,6 +2,25 @@
     use App\CentralLogics\Helpers;
     @endphp
 
+<style>
+    .numeric-keypad-container {
+            max-width: 200px;
+            text-align: center;
+        }
+
+        .keypad-buttons .btn {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            font-size: 18px;
+        }
+
+        .keypad-container h6 {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+</style>
+
 <div class="modal fade" id="orderFinalModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">

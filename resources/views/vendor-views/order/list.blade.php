@@ -785,7 +785,6 @@
 
             const url = "{{ route('vendor.order.quickView', ['id' => '__id__']) }}".replace('__id__', orderId);
 
-            console.log('Fetching:', url); // Debug
             $('#quickViewModal').modal('show');
 
             $('#quickViewProceedBtn').data('order-id', orderId);
@@ -803,8 +802,10 @@
             const orderId = $('#quickViewProceedBtn').data('order-id');
             if (!orderId) return;
 
+            const urlPayment = "{{ route('vendor.order.paymentData', ['id' => '__id__']) }}".replace('__id__', orderId);
+
             // Make AJAX call to get order payment data
-            $.get("{{ url('/vendor/order/payment-data') }}/" + orderId, function(data) {
+            $.get(urlPayment, function(data) {
                 // Fill modal fields (example only; adjust field names as needed)
                 $('#invoice_amount span').text(data.total_amount_formatted);
                 $('#customer_name').val(data.customer_name);

@@ -20,9 +20,6 @@ use App\Http\Controllers\FirebaseController;
 use App\Http\Controllers\InitDataController;
 use App\Http\Controllers\TableEmployeeController;
 use App\Http\Controllers\VariationController;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Response;
-use Illuminate\Http\Request;
 
 Route::post('/variation-delete', [VariationController::class, 'variationDelete'])->name('variation.delete');
 
@@ -248,36 +245,20 @@ Route::group(['prefix' => 'deliveryman', 'as' => 'deliveryman.'], function () {
 });
 
 
-Route::get('/qz/sign', function (Request $request) {
+Route::get('/qz/sign', function (\Illuminate\Http\Request $request) {
     $data = $request->input('data');
 
-    // Validate
-    if (!$data) {
-        return Response::json(['error' => 'No data provided'], 400);
+    $privateKeyPath = storage_path('app/keys/key.pem');
+    if (!file_exists($privateKeyPath)) {
+        return response()->json(['error' => 'Private key not found'], 500);
     }
 
-    // Load private key
-    $keyPath = storage_path('app/keys/key.pem');
-    if (!file_exists($keyPath)) {
-        return Response::json(['error' => 'Private key not found'], 500);
-    }
+    $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyPath));
 
-    $privateKey = openssl_pkey_get_private(file_get_contents($keyPath));
-    if (!$privateKey) {
-        return Response::json(['error' => 'Invalid private key'], 500);
-    }
-
-    // Sign
     $signature = '';
-    $success = openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA1);
-    openssl_free_key($privateKey);
-
-    Log::info('QZ Data:', ['data' => $data]);
-Log::info('Private key exists:', [file_exists($keyPath)]);
-
-    if (!$success) {
-        return Response::json(['error' => 'Signing failed'], 500);
+    if (!openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA1)) {
+        return response()->json(['error' => 'Signing failed'], 500);
     }
 
-    return Response::json(['signature' => base64_encode($signature)]);
+    return response()->json(['signature' => base64_encode($signature)]);
 });

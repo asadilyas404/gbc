@@ -1,11 +1,11 @@
 @php
-    $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+    // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
     $printer = null;
 
-    if ($setting) {
-        $printers = json_decode($setting->value, true);
-        $printer = $printers['kitchen_print'] ?? null;
-    }
+    // if ($setting) {
+    //     $printers = json_decode($setting->value, true);
+    //     $printer = $printers['kitchen_print'] ?? null;
+    // }
 @endphp
 
 <div class="content container-fluid initial-38 new-invoice ">
@@ -523,7 +523,7 @@
 
 <script>
     // document.addEventListener("DOMContentLoaded", function() {
-    //     var printerName = @json($printer);
+        var printerName = @json($printer);
     //     // console.log(printerName);
 
     //     if (!qz.websocket.isActive()) {
@@ -544,52 +544,52 @@
     //     }
     // });
 
-    function directPrint() {
-        if (!qz.websocket.isActive()) {
-            alert("QZ Tray not connected.");
-            return;
-        }
+    // function directPrint() {
+    //     if (!qz.websocket.isActive()) {
+    //         alert("QZ Tray not connected.");
+    //         return;
+    //     }
 
-        if (!printerName) {
-            alert("Printer not yet loaded or found.");
-            return;
-        }
+    //     if (!printerName) {
+    //         alert("Printer not yet loaded or found.");
+    //         return;
+    //     }
 
-        const printableDiv = document.querySelector('#printableArea');
+    //     const printableDiv = document.querySelector('#printableArea');
 
-        if (!printableDiv) {
-            alert("Printable content not found.");
-            return;
-        }
+    //     if (!printableDiv) {
+    //         alert("Printable content not found.");
+    //         return;
+    //     }
 
-        const clone = printableDiv.cloneNode(true);
-        clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+    //     const clone = printableDiv.cloneNode(true);
+    //     clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-        let fullHtml = document.documentElement.outerHTML;
+    //     let fullHtml = document.documentElement.outerHTML;
 
-        fullHtml = fullHtml.replace(
-            /<body[^>]*>[\s\S]*<\/body>/i,
-            `<body>${clone.innerHTML}</body>`
-        );
+    //     fullHtml = fullHtml.replace(
+    //         /<body[^>]*>[\s\S]*<\/body>/i,
+    //         `<body>${clone.innerHTML}</body>`
+    //     );
 
-        // const invoiceHtml = `${clone.innerHTML}`;
+    //     // const invoiceHtml = `${clone.innerHTML}`;
 
-        const printData = [{
-            type: 'html',
-            format: 'plain',
-            data: fullHtml
-        }];
+    //     const printData = [{
+    //         type: 'html',
+    //         format: 'plain',
+    //         data: fullHtml
+    //     }];
 
-        const config = qz.configs.create(printerName);
+    //     const config = qz.configs.create(printerName);
 
-        qz.print(config, printData)
-            .then(() => {
-                // console.log("Printed successfully");
-                alert("Printed successfully");
-            })
-            .catch(err => {
-                console.error("Print failed:", err);
-                alert("Print failed: " + err);
-            });
-    }
+    //     qz.print(config, printData)
+    //         .then(() => {
+    //             // console.log("Printed successfully");
+    //             alert("Printed successfully");
+    //         })
+    //         .catch(err => {
+    //             console.error("Print failed:", err);
+    //             alert("Print failed: " + err);
+    //         });
+    // }
 </script>

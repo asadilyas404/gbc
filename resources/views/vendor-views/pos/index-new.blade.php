@@ -4,7 +4,7 @@
     use App\Models\Order;
 
     // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
-    // $billPrinter = $kitchenPrinter = null;
+    $billPrinter = $kitchenPrinter = null;
 
     // if ($setting) {
     //     $printers = json_decode($setting->value, true);
@@ -1592,8 +1592,8 @@
 
         });
 
-//         const billPrinterName = @json($billPrinter);
-//         const kitchenPrinterName = @json($kitchenPrinter);
+        const billPrinterName = @json($billPrinter);
+        const kitchenPrinterName = @json($kitchenPrinter);
 
 //         document.addEventListener("DOMContentLoaded", function() {
 

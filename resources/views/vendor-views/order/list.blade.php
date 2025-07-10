@@ -568,7 +568,9 @@
                                         </a>
 
                                         <a href="javascript:void(0);" class="btn btn-sm btn-outline-info quick-view-btn"
-                                            data-order-id="{{ $order['id'] }}" data-order-number="{{ $order['order_serial'] }}" title="{{ translate('Quick View') }}">
+                                            data-order-id="{{ $order['id'] }}"
+                                            data-order-number="{{ $order['order_serial'] }}"
+                                            title="{{ translate('Quick View') }}">
                                             <i class="tio-info-outined"></i>
                                         </a>
 
@@ -633,7 +635,8 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header bg-light py-3">
-                    <h4 class="modal-title">{{ translate('Order Items') }} for <span id="modal-order-number" style="font-size: 1.5rem">--</span></h4>
+                    <h4 class="modal-title">{{ translate('Order Items') }} for <span id="modal-order-number"
+                            style="font-size: 1.5rem">--</span></h4>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                         <span aria-hidden="true">&times;</span>
                     </button>
@@ -653,19 +656,17 @@
                     </table>
                 </div>
                 <div class="modal-footer justify-content-center">
-    <button type="button"
-        class="btn btn--primary"
-        id="quickViewProceedBtn"
-        data-order-id=""
-        data-dismiss="modal"
-        data-toggle="modal"
-        data-target="#orderFinalModal">
-        {{ translate('Proceed') }}
-    </button>
-</div>
+                    <button type="button" class="btn btn--primary" id="quickViewProceedBtn" data-order-id=""
+                        data-dismiss="modal" data-toggle="modal" data-target="#orderFinalModal">
+                        {{ translate('Proceed') }}
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    @include('vendor-views.pos.orderFinalModal')
+
 
 @endsection
 
@@ -794,8 +795,31 @@
             }).fail(function() {
                 modalBody.html(
                     '<tr><td colspan="3" class="text-danger text-center">Failed to load data.</td></tr>'
-                    );
+                );
             });
+        });
+
+        $('#orderFinalModal').on('show.bs.modal', function() {
+            const orderId = $('#quickViewProceedBtn').data('order-id');
+            if (!orderId) return;
+
+            // Make AJAX call to get order payment data
+            $.get("{{ url('/vendor/order/payment-data') }}/" + orderId, function(data) {
+                // Fill modal fields (example only; adjust field names as needed)
+                $('#invoice_amount span').text(data.total_amount_formatted);
+                $('#customer_name').val(data.customer_name);
+                $('#car_number').val(data.car_number);
+                $('#phone').val(data.phone);
+                $('#cash_paid').val(data.cash_paid);
+                $('#card_paid').val(data.card_paid);
+                $('#bank_account').val(data.bank_account).prop('disabled', !data.bank_account);
+            });
+        });
+
+        $('#orderFinalModal').on('hidden.bs.modal', function() {
+            $('#customer_name, #car_number, #phone, #cash_paid, #card_paid').val('');
+            $('#bank_account').val('').prop('disabled', true);
+            $('#invoice_amount span').text('{{ Helpers::format_currency(0.0) }}');
         });
     </script>
 @endpush

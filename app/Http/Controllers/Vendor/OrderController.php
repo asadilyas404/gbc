@@ -177,39 +177,56 @@ class OrderController extends Controller
     }
 
     public function quickView($id)
-{
-    $order = Order::with('details')->findOrFail($id);
+    {
+        $order = Order::with('details')->findOrFail($id);
 
-    $html = '';
+        $html = '';
 
-    foreach ($order->details as $detail) {
-        if (isset($detail->food_id)) {
-            $foodData = json_decode($detail->food_details, true);
-            $food = \App\Models\Food::find($foodData['id']);
-            $image = $food->image_full_url ?? asset('public/assets/admin/img/100x100/food-default-image.png');
-            $name = Str::limit($foodData['name'], 25, '...');
-            $nameAr = Str::limit($food->getTranslationValue('name', 'ar'), 25, '...');
-            $price = \App\CentralLogics\Helpers::format_currency($detail['price']);
-            $qty = $detail['quantity'];
+        foreach ($order->details as $detail) {
+            if (isset($detail->food_id)) {
+                $foodData = json_decode($detail->food_details, true);
+                $food = \App\Models\Food::find($foodData['id']);
+                $image = $food->image_full_url ?? asset('public/assets/admin/img/100x100/food-default-image.png');
+                $name = Str::limit($foodData['name'], 25, '...');
+                $nameAr = Str::limit($food->getTranslationValue('name', 'ar'), 25, '...');
+                $discoPrice = $detail['price'] - $detail['discount_on_food'];
+                $price = \App\CentralLogics\Helpers::format_currency($discoPrice) ;
+                $qty = $detail['quantity'];
 
-            $html .= '<tr>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <img src="' . $image . '" alt="food" class="rounded" style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
-                                <div>
-                                    <div><strong>' . $name . '</strong></div>
-                                    <div><small>' . $nameAr . '</small></div>
+                $html .= '<tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="' . $image . '" alt="food" class="rounded" style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
+                                    <div>
+                                        <div><strong>' . $name . '</strong></div>
+                                        <div><small>' . $nameAr . '</small></div>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="text-center">' . $qty . '</td>
-                        <td>' . $price . '</td>
-                    </tr>';
+                            </td>
+                            <td class="text-center">' . $qty . '</td>
+                            <td>' . $price . '</td>
+                        </tr>';
+            }
         }
+
+        return $html ?: '<tr><td colspan="3" class="text-center">No items found.</td></tr>';
     }
 
-    return $html ?: '<tr><td colspan="3" class="text-center">No items found.</td></tr>';
-}
+
+    public function getPaymentData($id)
+    {
+        $order = Order::with('pos_details')->findOrFail($id);
+
+        return response()->json([
+            'total_amount_formatted' => Helpers::format_currency($order->pos_details->invoice_amount),
+            'customer_name' => $order->pos_details->customer_name,
+            'car_number' => $order->pos_details->car_number,
+            'phone' => $order->pos_details->phone,
+            'cash_paid' => $order->pos_details->cash_paid,
+            'card_paid' => $order->pos_details->card_paid,
+            'bank_account' => $order->pos_details->bank_account,
+        ]);
+    }
 
     public function status(Request $request)
     {

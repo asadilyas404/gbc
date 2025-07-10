@@ -16,6 +16,7 @@ use Brian2694\Toastr\Facades\Toastr;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use App\Jobs\SyncOrdersJob;
+use Illuminate\Support\Str;
 
 class OrderController extends Controller
 {

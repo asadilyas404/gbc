@@ -765,9 +765,12 @@
         const modalBody = $('#quick-view-items-body');
         modalBody.html('<tr><td colspan="3" class="text-center">Loading...</td></tr>');
 
+        const url = "{{ route('vendor.order.quickView', ['id' => '__id__']) }}".replace('__id__', orderId);
+
+        console.log('Fetching:', url); // Debug
         $('#quickViewModal').modal('show');
 
-        $.get("{{ url('/order/quick-view') }}/" + orderId, function (response) {
+        $.get(url, function (response) {
             modalBody.html(response);
         }).fail(function () {
             modalBody.html('<tr><td colspan="3" class="text-danger text-center">Failed to load data.</td></tr>');

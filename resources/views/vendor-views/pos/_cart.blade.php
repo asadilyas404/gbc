@@ -258,8 +258,7 @@ if (isset($cart['paid'])) {
     </div>
 
 
-    @include('vendor-views.pos.orderFinalModal')
-    {{-- <div class="modal fade" id="orderFinalModal" tabindex="-1">
+    <div class="modal fade" id="orderFinalModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-light py-3">
@@ -440,7 +439,7 @@ if (isset($cart['paid'])) {
                 </div>
             </div>
         </div>
-    </div> --}}
+    </div>
 
 </form>
 

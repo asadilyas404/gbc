@@ -812,6 +812,7 @@
                 $('#phone').val(data.phone);
                 $('#cash_paid').val(data.cash_paid);
                 $('#card_paid').val(data.card_paid);
+                $('#delivery_type').val(data.delivery_type);
                 $('#bank_account').val(data.bank_account).prop('disabled', !data.bank_account);
             });
         });

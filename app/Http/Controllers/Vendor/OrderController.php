@@ -224,6 +224,7 @@ class OrderController extends Controller
             'phone' => $order->pos_details->phone,
             'cash_paid' => $order->pos_details->cash_paid,
             'card_paid' => $order->pos_details->card_paid,
+            'delivery_type' => $order->delivery_type,
             'bank_account' => $order->pos_details->bank_account,
         ]);
     }

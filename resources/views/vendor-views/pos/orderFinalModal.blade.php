@@ -19,7 +19,7 @@
                                 <div class="card-body text-center">
                                     <h5>{{ translate('Invoice Amount') }}</h5>
                                     <h4 id="invoice_amount" class="font-weight-bold">
-                                        <span>{{ Helpers::format_currency($paid) }}</span>
+                                        <span></span>
                                     </h4>
                                 </div>
                             </div>
@@ -52,7 +52,7 @@
                                     {{ translate('Customer Name') }}
                                 </label>
                                 <input id="customer_name" type="text" name="customer_name" class="form-control"
-                                    value="{{ old('customer_name', $draftDetails->customer_name ?? '') }}"
+                                    value=""
                                     placeholder="{{ translate('Customer Name') }}">
                             </div>
                         </div>
@@ -60,7 +60,7 @@
                             <div class="form-group">
                                 <label for="car_number" class="input-label">{{ translate('Car Number') }}</label>
                                 <input id="car_number" type="text" name="car_number" class="form-control"
-                                    value="{{ old('car_number', $draftDetails->car_number ?? '') }}"
+                                    value=""
                                     placeholder="{{ translate('Car Number') }}">
                             </div>
                         </div>
@@ -70,7 +70,7 @@
                                     {{ translate('Phone') }} ({{ translate('with_country_code') }})
                                 </label>
                                 <input id="phone" type="tel" name="phone" class="form-control"
-                                    value="{{ old('phone', $draftDetails->phone ?? '') }}"
+                                    value=""
                                     placeholder="{{ translate('Phone') }}">
                             </div>
                         </div>
@@ -87,19 +87,16 @@
                                         <input id="cash_paid" type="text" name="cash_paid" class="form-control"
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter cash amount') }}"
-                                            value="{{ old('cash_paid', $draftDetails->cash_paid ?? '') }}">
+                                            value="">
                                     </div>
                                     <div class="form-group mt-3">
                                         <label for="delivery_type" class="input-label">Delivery Type</label>
                                         <select id="delivery_type" name="delivery_type" class="form-control">
-                                            <option value="dine_in"
-                                                {{ old('delivery_type', $editingOrder->order_type ?? '') == 'dine_in' ? 'selected' : '' }}>
+                                            <option value="dine_in">
                                                 Dine In</option>
-                                            <option value="take_away"
-                                                {{ old('delivery_type', $editingOrder->order_type ?? '') == 'take_away' ? 'selected' : '' }}>
+                                            <option value="take_away">
                                                 Take away</option>
-                                            <option value="delivery"
-                                                {{ old('delivery_type', $editingOrder->order_type ?? '') == 'delivery' ? 'selected' : '' }}>
+                                            <option value="delivery">
                                                 Delivery</option>
                                         </select>
                                     </div>
@@ -111,22 +108,18 @@
                                         <input id="card_paid" type="text" name="card_paid" class="form-control"
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter card amount') }}"
-                                            value="{{ old('card_paid', $draftDetails->card_paid ?? '') }}">
+                                            value="">
                                     </div>
                                     <div class="form-group mt-3">
                                         <label for="bank_account"
                                             class="input-label">{{ translate('Select Account') }}</label>
-                                        <select id="bank_account" name="bank_account" class="form-control"
-                                            {{ old('bank_account', $draftDetails->bank_account ?? '') != '' ? '' : 'disabled' }}>
+                                        <select id="bank_account" name="bank_account" class="form-control">
                                             <option value="">{{ translate('Select an option') }}</option>
-                                            <option value="1"
-                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == '1' ? 'selected' : '' }}>
+                                            <option value="1">
                                                 {{ translate('Bank 1') }}</option>
-                                            <option value="2"
-                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == '2' ? 'selected' : '' }}>
+                                            <option value="2">
                                                 {{ translate('Bank 2') }}</option>
-                                            <option value="3"
-                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == '3' ? 'selected' : '' }}>
+                                            <option value="3">
                                                 {{ translate('Bank 3') }}</option>
                                         </select>
                                     </div>

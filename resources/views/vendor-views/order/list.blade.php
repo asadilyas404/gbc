@@ -767,7 +767,7 @@
 
         $('#quickViewModal').modal('show');
 
-        $.get("{{ url('/vendor/order/quick-view') }}/" + orderId, function (response) {
+        $.get("{{ url('/order/quick-view') }}/" + orderId, function (response) {
             modalBody.html(response);
         }).fail(function () {
             modalBody.html('<tr><td colspan="3" class="text-danger text-center">Failed to load data.</td></tr>');

@@ -1622,7 +1622,7 @@ bwQAIE2603u1WyFe6XdUm2apzVVmbwk34OM58yNWgqmyWKojQqx4QTpA9gtGTkfG
             qz.security.setSignaturePromise(function(toSign) {
     return new Promise(function(resolve, reject) {
         fetch("/qz/sign", {
-            method: "POST",
+            method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')

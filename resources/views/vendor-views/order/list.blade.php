@@ -820,7 +820,7 @@
         $('#orderFinalModal').on('hidden.bs.modal', function() {
             $('#customer_name, #car_number, #phone, #cash_paid, #card_paid').val('');
             $('#bank_account').val('').prop('disabled', true);
-            $('#invoice_amount span').text('{{ Helpers::format_currency(0.0) }}');
+            $('#invoice_amount span').text('0.0');
         });
     </script>
 @endpush

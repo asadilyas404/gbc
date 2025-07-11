@@ -1,5 +1,7 @@
 @extends('layouts.vendor.app')
-
+@php
+    use App\CentralLogics\Helpers;
+    @endphp
 @section('title', translate('messages.Order List'))
 
 @push('css_or_js')

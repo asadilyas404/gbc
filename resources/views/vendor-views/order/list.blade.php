@@ -1,7 +1,7 @@
 @extends('layouts.vendor.app')
 @php
     use App\CentralLogics\Helpers;
-    @endphp
+@endphp
 @section('title', translate('messages.Order List'))
 
 @push('css_or_js')
@@ -925,24 +925,59 @@
         });
 
         $('#orderFinalModal').on('show.bs.modal', function() {
+            $('#loading').show();
+
             const orderId = $('#quickViewProceedBtn').data('order-id');
-            if (!orderId) return;
+            if (!orderId) {
+                $('#loading').hide();
+                toastr.error('Order ID not found. Please try again.');
+                return;
+            }
 
-            const urlPayment = "{{ route('vendor.order.paymentData', ['id' => '__id__']) }}".replace('__id__', orderId);
+            const urlPayment = "{{ route('vendor.order.paymentData', ['id' => '__id__']) }}".replace('__id__',
+                orderId);
 
-            // Make AJAX call to get order payment data
-            $.get(urlPayment, function(data) {
-                console.log(data);
-                $('#invoice_amount span').text(data.total_amount_formatted);
-                $('#customer_name').val(data.customer_name);
-                $('#car_number').val(data.car_number);
-                $('#phone').val(data.phone);
-                $('#cash_paid').val(data.cash_paid);
-                $('#card_paid').val(data.card_paid);
-                $('#delivery_type').val(data.delivery_type);
-                $('#bank_account').val(data.bank_account).prop('disabled', !data.bank_account);
+            $.ajax({
+                url: urlPayment,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data.error) {
+                        toastr.error(data.error);
+                        $('#loading').hide();
+                        return;
+                    }
+
+                    $('#invoice_amount span').text(data.total_amount_formatted ??
+                        '{{ translate('N/A') }}');
+                    $('#customer_name').val(data.customer_name ?? '');
+                    $('#car_number').val(data.car_number ?? '');
+                    $('#phone').val(data.phone ?? '');
+                    $('#cash_paid').val(data.cash_paid ?? '');
+                    $('#card_paid').val(data.card_paid ?? '');
+                    $('#delivery_type').val(data.delivery_type ?? '');
+                    $('#bank_account').val(data.bank_account ?? '').prop('disabled', !data
+                    .bank_account);
+
+                    $('#loading').hide();
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', error, xhr.responseText);
+
+                    let message = 'Something went wrong. Please try again.';
+
+                    if (xhr.status === 404) {
+                        message = 'Order not found.';
+                    } else if (xhr.status === 500) {
+                        message = 'Server error while loading order details.';
+                    }
+
+                    toastr.error(message);
+                    $('#loading').hide();
+                }
             });
         });
+
 
         $('#orderFinalModal').on('hidden.bs.modal', function() {
             $('#customer_name, #car_number, #phone, #cash_paid, #card_paid').val('');

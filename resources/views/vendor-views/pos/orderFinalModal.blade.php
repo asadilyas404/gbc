@@ -1,68 +1,71 @@
 @php
     use App\CentralLogics\Helpers;
-    @endphp
+@endphp
 
 <style>
     .numeric-keypad-container {
-            max-width: 200px;
-            text-align: center;
-        }
+        max-width: 200px;
+        text-align: center;
+    }
 
-        .keypad-buttons .btn {
-            width: 40px;
-            height: 40px;
-            margin: 5px;
-            font-size: 18px;
-        }
+    .keypad-buttons .btn {
+        width: 40px;
+        height: 40px;
+        margin: 5px;
+        font-size: 18px;
+    }
 
-        .keypad-container h6 {
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+    .keypad-container h6 {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
 </style>
 
 <div class="modal fade" id="orderFinalModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header bg-light py-3">
-                    <h4 class="modal-title">{{ translate('Payment Details') }}</h4>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" style="padding-top: 20px;">
-                    <!-- Top Cards Section -->
-                    <div class="row mb-4">
-                        <div class="col-4">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body text-center">
-                                    <h5>{{ translate('Invoice Amount') }}</h5>
-                                    <h4 id="invoice_amount" class="font-weight-bold">
-                                        <span></span>
-                                    </h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="card bg-success text-white">
-                                <div class="card-body text-center">
-                                    <h5>{{ translate('Cash Paid') }}</h5>
-                                    <h4 id="cash_paid_display" class="font-weight-bold">
-                                        {{ Helpers::format_currency(0.0) }}</h4>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="card bg-danger text-white">
-                                <div class="card-body text-center">
-                                    <h5>{{ translate('Cash Return') }}</h5>
-                                    <h4 id="cash_return" class="font-weight-bold">
-                                        {{ Helpers::format_currency(0.0) }}</h4>
-                                </div>
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light py-3">
+                <h4 class="modal-title">{{ translate('Payment Details') }}</h4>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="padding-top: 20px;">
+                <!-- Top Cards Section -->
+                <div class="row mb-4">
+                    <div class="col-4">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ translate('Invoice Amount') }}</h5>
+                                <h4 id="invoice_amount" class="font-weight-bold">
+                                    <span></span>
+                                </h4>
                             </div>
                         </div>
                     </div>
+                    <div class="col-4">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ translate('Cash Paid') }}</h5>
+                                <h4 id="cash_paid_display" class="font-weight-bold">
+                                    {{ Helpers::format_currency(0.0) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body text-center">
+                                <h5>{{ translate('Cash Return') }}</h5>
+                                <h4 id="cash_return" class="font-weight-bold">
+                                    {{ Helpers::format_currency(0.0) }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
+                <form action="{{ route('vendor.pos.order') }}" id='order_place' method="post">
+                    @csrf
+                    <input type="hidden" name="user_id" id="customer_id">
                     <!-- Customer Details Section -->
                     <div class="row pl-2 mt-3">
                         <div class="col-12 col-lg-4">
@@ -71,16 +74,14 @@
                                     {{ translate('Customer Name') }}
                                 </label>
                                 <input id="customer_name" type="text" name="customer_name" class="form-control"
-                                    value=""
-                                    placeholder="{{ translate('Customer Name') }}">
+                                    value="" placeholder="{{ translate('Customer Name') }}">
                             </div>
                         </div>
                         <div class="col-12 col-lg-4">
                             <div class="form-group">
                                 <label for="car_number" class="input-label">{{ translate('Car Number') }}</label>
                                 <input id="car_number" type="text" name="car_number" class="form-control"
-                                    value=""
-                                    placeholder="{{ translate('Car Number') }}">
+                                    value="" placeholder="{{ translate('Car Number') }}">
                             </div>
                         </div>
                         <div class="col-12 col-lg-4">
@@ -88,8 +89,7 @@
                                 <label for="phone" class="input-label">
                                     {{ translate('Phone') }} ({{ translate('with_country_code') }})
                                 </label>
-                                <input id="phone" type="tel" name="phone" class="form-control"
-                                    value=""
+                                <input id="phone" type="tel" name="phone" class="form-control" value=""
                                     placeholder="{{ translate('Phone') }}">
                             </div>
                         </div>
@@ -105,8 +105,7 @@
                                             class="input-label">{{ translate('Cash Amount') }}</label>
                                         <input id="cash_paid" type="text" name="cash_paid" class="form-control"
                                             min="0" step="0.001"
-                                            placeholder="{{ translate('Enter cash amount') }}"
-                                            value="">
+                                            placeholder="{{ translate('Enter cash amount') }}" value="">
                                     </div>
                                     <div class="form-group mt-3">
                                         <label for="delivery_type" class="input-label">Delivery Type</label>
@@ -126,8 +125,7 @@
                                             class="input-label">{{ translate('Card Amount') }}</label>
                                         <input id="card_paid" type="text" name="card_paid" class="form-control"
                                             min="0" step="0.001"
-                                            placeholder="{{ translate('Enter card amount') }}"
-                                            value="">
+                                            placeholder="{{ translate('Enter card amount') }}" value="">
                                     </div>
                                     <div class="form-group mt-3">
                                         <label for="bank_account"
@@ -192,18 +190,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>
-
-
-    {{-- <script>
-
-$(document).ready(function() {
-
-
-
-});
-
-    </script> --}}
+</div>

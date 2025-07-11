@@ -214,20 +214,84 @@ class OrderController extends Controller
 
 
     public function getPaymentData($id)
-    {
-        $order = Order::with('pos_details')->findOrFail($id);
+{
+    try {
+        // Load order with relationships
+        $order = Order::with('details', 'pos_details')->findOrFail($id);
 
+        if (!$order->pos_details) {
+            return response()->json(['error' => 'POS details not found for this order.'], 404);
+        }
+
+        $cart = [];
+
+        foreach ($order->details as $item) {
+            $food = json_decode($item->food_details, true) ?? [];
+
+            // Safe defaults
+            $variation_price = 0;
+            $variations = json_decode($item->variation, true) ?? [];
+
+            foreach ($variations as $variation) {
+                $variation_price += $variation['optionPrice'] ?? 0;
+            }
+
+            // Simplify variations (wrap in try-catch if needed)
+            $simplified_variations = method_exists(Helpers::class, 'simplifyVariationsToLabels')
+                ? Helpers::simplifyVariationsToLabels($variations)
+                : [];
+
+            $cart[] = [
+                'id' => $item->food_id,
+                'name' => $food['name'] ?? '',
+                'quantity' => $item->quantity,
+                'price' => $item->price + $variation_price,
+                'variation_price' => $variation_price,
+                'variant' => '',
+                'variations' => $simplified_variations,
+                'variation_option_ids' => '',
+                'add_ons' => json_decode($item->add_ons, true) ?? [],
+                'add_on_qtys' => [],
+                'addon_price' => $item->total_add_on_price,
+                'discount' => $item->discount_on_food,
+                'discountAmount' => $item->discount_on_food,
+                'discountType' => 'amount',
+                'details' => $item->notes,
+                'image' => $food['image'] ?? null,
+                'image_full_url' => $food['image_full_url'] ?? null,
+                'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
+            ];
+        }
+
+        // Store in session
+        session()->put('cart', collect($cart));
+        session()->put('editing_order_id', $order->id);
+
+        Toastr::success('Unpaid order loaded to cart.');
+
+        // Return payment data
         return response()->json([
-            'total_amount_formatted' => Helpers::format_currency($order->pos_details->invoice_amount),
-            'customer_name' => $order->pos_details->customer_name,
-            'car_number' => $order->pos_details->car_number,
-            'phone' => $order->pos_details->phone,
-            'cash_paid' => $order->pos_details->cash_paid,
-            'card_paid' => $order->pos_details->card_paid,
-            'delivery_type' => $order->order_type,
-            'bank_account' => $order->pos_details->bank_account,
+            'total_amount_formatted' => Helpers::format_currency($order->pos_details->invoice_amount ?? 0),
+            'customer_name' => $order->pos_details->customer_name ?? '',
+            'car_number' => $order->pos_details->car_number ?? '',
+            'phone' => $order->pos_details->phone ?? '',
+            'cash_paid' => $order->pos_details->cash_paid ?? 0,
+            'card_paid' => $order->pos_details->card_paid ?? 0,
+            'delivery_type' => $order->order_type ?? '',
+            'bank_account' => $order->pos_details->bank_account ?? '',
         ]);
+
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+        return response()->json(['error' => 'Order not found.'], 404);
+    } catch (\Throwable $e) {
+        \Log::error('Error in getPaymentData: ' . $e->getMessage(), [
+            'order_id' => $id,
+            'trace' => $e->getTraceAsString()
+        ]);
+        return response()->json(['error' => 'Something went wrong while loading payment data.'], 500);
     }
+}
+
 
     public function status(Request $request)
     {

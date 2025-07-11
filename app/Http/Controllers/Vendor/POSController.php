@@ -527,7 +527,6 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
-        dd($request->all());
         $cart = $request->session()->get('cart');
 
         $allNotes = [];

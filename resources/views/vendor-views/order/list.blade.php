@@ -958,6 +958,7 @@
                     $('#delivery_type').val(data.delivery_type ?? '');
                     $('#bank_account').val(data.bank_account ?? '').prop('disabled', !data
                     .bank_account);
+                    updateCalculations();
 
                     $('#loading').hide();
                 },

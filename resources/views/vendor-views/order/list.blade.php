@@ -675,6 +675,39 @@
 @push('script_2')
     <script>
         "use strict";
+
+
+        function updateCalculations() {
+                const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                // console.log('amount ' + invoiceAmount);
+                const cashPaid = parseFloat($('#cash_paid').val()) || 0;
+                const cardPaid = parseFloat($('#card_paid').val()) || 0;
+                const totalPaid = cashPaid + cardPaid;
+                const cashReturn = Math.max(totalPaid - invoiceAmount, 0);
+
+                $('#cash_paid_display').text(formatCurrency(cashPaid));
+                $('#cash_return').text(formatCurrency(cashReturn));
+                const bankAccountSelect = $('#bank_account');
+
+                // Validate card_paid amount
+                if (cardPaid > invoiceAmount) {
+                    alert('{{ translate('Card amount cannot be greater than the invoice amount.') }}');
+                    $('#card_paid').val('');
+                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                    return;
+                }
+
+                // Enable/disable bank account selection
+                if (cardPaid > 0) {
+                    bankAccountSelect.prop('required', true).prop('disabled', false);
+                } else {
+                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                }
+
+            }
+
+
+
         $(document).on('ready', function() {
             // INITIALIZATION OF NAV SCROLLER
             // =======================================================
@@ -781,35 +814,6 @@
 
             function formatCurrency(amount) {
                 return `{{ Helpers::currency_symbol() }} ${amount.toFixed(3)}`;
-            }
-
-            function updateCalculations() {
-                const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
-                // console.log('amount ' + invoiceAmount);
-                const cashPaid = parseFloat($('#cash_paid').val()) || 0;
-                const cardPaid = parseFloat($('#card_paid').val()) || 0;
-                const totalPaid = cashPaid + cardPaid;
-                const cashReturn = Math.max(totalPaid - invoiceAmount, 0);
-
-                $('#cash_paid_display').text(formatCurrency(cashPaid));
-                $('#cash_return').text(formatCurrency(cashReturn));
-                const bankAccountSelect = $('#bank_account');
-
-                // Validate card_paid amount
-                if (cardPaid > invoiceAmount) {
-                    alert('{{ translate('Card amount cannot be greater than the invoice amount.') }}');
-                    $('#card_paid').val('');
-                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
-                    return;
-                }
-
-                // Enable/disable bank account selection
-                if (cardPaid > 0) {
-                    bankAccountSelect.prop('required', true).prop('disabled', false);
-                } else {
-                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
-                }
-
             }
 
             function attachEventListeners() {

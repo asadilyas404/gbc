@@ -267,7 +267,7 @@ class OrderController extends Controller
         session()->put('cart', collect($cart));
         session()->put('editing_order_id', $order->id);
 
-        Toastr::success('Unpaid order loaded to cart.');
+        // Toastr::success('Unpaid order loaded to cart.');
 
         // Return payment data
         return response()->json([

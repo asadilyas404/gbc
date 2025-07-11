@@ -772,6 +772,130 @@
             $('.js-tagify').each(function() {
                 let tagify = $.HSCore.components.HSTagify.init($(this));
             });
+
+
+
+            //Order final Model Calculations
+
+            function formatCurrency(amount) {
+                return `{{ Helpers::currency_symbol() }} ${amount.toFixed(3)}`;
+            }
+
+            function updateCalculations() {
+                const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                // console.log('amount ' + invoiceAmount);
+                const cashPaid = parseFloat($('#cash_paid').val()) || 0;
+                const cardPaid = parseFloat($('#card_paid').val()) || 0;
+                const totalPaid = cashPaid + cardPaid;
+                const cashReturn = Math.max(totalPaid - invoiceAmount, 0);
+
+                $('#cash_paid_display').text(formatCurrency(cashPaid));
+                $('#cash_return').text(formatCurrency(cashReturn));
+                const bankAccountSelect = $('#bank_account');
+
+                // Validate card_paid amount
+                if (cardPaid > invoiceAmount) {
+                    alert('{{ translate('Card amount cannot be greater than the invoice amount.') }}');
+                    $('#card_paid').val('');
+                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                    return;
+                }
+
+                // Enable/disable bank account selection
+                if (cardPaid > 0) {
+                    bankAccountSelect.prop('required', true).prop('disabled', false);
+                } else {
+                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                }
+
+            }
+
+            function attachEventListeners() {
+                $('#cash_paid, #card_paid').off('input').on('input', function() {
+                    updateCalculations();
+                });
+            }
+
+            // Call updateCalculations when the modal is opened
+            $('#orderFinalModal').on('shown.bs.modal', function() {
+                updateCalculations(); // Recalculate on modal open
+                attachEventListeners(); // Ensure input listeners are attached
+            });
+
+            // Trigger calculations if the modal inputs are dynamically added
+            $(document).on('input', '#cash_paid, #card_paid', function() {
+                updateCalculations();
+            });
+
+
+            // Numeric Keypad working
+
+            let activeInput = null;
+
+            $(document).on('focus', '#orderFinalModal input', function() {
+                activeInput = $(this);
+            });
+
+            $(document).on('click', '.keypad-btn', function() {
+                const value = $(this).data('value');
+                if (activeInput) {
+                    let currentVal = activeInput.val();
+
+                    if (value === '.') {
+                        if (!currentVal.includes('.')) {
+                            activeInput.val(currentVal + value);
+                            activeInput.trigger('input');
+                        }
+                    } else {
+                        const newValue = currentVal + value;
+
+                        if (isValidNumber(newValue)) {
+                            activeInput.val(newValue);
+                            activeInput.trigger('input');
+                        } else {
+                            alert('Invalid input');
+                        }
+                    }
+                }
+            });
+
+            // Clear the input field
+            $(document).on('click', '.keypad-clear', function() {
+                if (activeInput) {
+                    activeInput.val('');
+                    activeInput.trigger('input');
+                }
+            });
+
+            // Sanitize and validate input on blur
+            $('#orderFinalModal').on('blur', '#cash_paid, #card_paid', function() {
+                const currentVal = this.value;
+
+                // Check if the value is a valid number
+                if (!isValidNumber(currentVal)) {
+                    alert('Please enter a valid number');
+                    this.value = ''; // Clear the input if it's invalid
+                    $(this).trigger('input');
+                }
+
+                // Remove trailing decimal point on blur
+                if (currentVal.endsWith('.')) {
+                    this.value = currentVal.slice(0, -1);
+                    $(this).trigger('input');
+                }
+            });
+
+            // Function to validate if the value is a valid number
+            const isValidNumber = (value) => {
+                // Check if value is numeric and not empty
+                return !isNaN(value);
+                //  && value.trim() !== '';
+            };
+
+
+
+
+
         });
 
 

@@ -675,39 +675,6 @@
 @push('script_2')
     <script>
         "use strict";
-
-
-        function updateCalculations() {
-                const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
-                // console.log('amount ' + invoiceAmount);
-                const cashPaid = parseFloat($('#cash_paid').val()) || 0;
-                const cardPaid = parseFloat($('#card_paid').val()) || 0;
-                const totalPaid = cashPaid + cardPaid;
-                const cashReturn = Math.max(totalPaid - invoiceAmount, 0);
-
-                $('#cash_paid_display').text(formatCurrency(cashPaid));
-                $('#cash_return').text(formatCurrency(cashReturn));
-                const bankAccountSelect = $('#bank_account');
-
-                // Validate card_paid amount
-                if (cardPaid > invoiceAmount) {
-                    alert('{{ translate('Card amount cannot be greater than the invoice amount.') }}');
-                    $('#card_paid').val('');
-                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
-                    return;
-                }
-
-                // Enable/disable bank account selection
-                if (cardPaid > 0) {
-                    bankAccountSelect.prop('required', true).prop('disabled', false);
-                } else {
-                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
-                }
-
-            }
-
-
-
         $(document).on('ready', function() {
             // INITIALIZATION OF NAV SCROLLER
             // =======================================================
@@ -816,6 +783,35 @@
                 return `{{ Helpers::currency_symbol() }} ${amount.toFixed(3)}`;
             }
 
+            function updateCalculations() {
+                const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                // console.log('amount ' + invoiceAmount);
+                const cashPaid = parseFloat($('#cash_paid').val()) || 0;
+                const cardPaid = parseFloat($('#card_paid').val()) || 0;
+                const totalPaid = cashPaid + cardPaid;
+                const cashReturn = Math.max(totalPaid - invoiceAmount, 0);
+
+                $('#cash_paid_display').text(formatCurrency(cashPaid));
+                $('#cash_return').text(formatCurrency(cashReturn));
+                const bankAccountSelect = $('#bank_account');
+
+                // Validate card_paid amount
+                if (cardPaid > invoiceAmount) {
+                    alert('{{ translate('Card amount cannot be greater than the invoice amount.') }}');
+                    $('#card_paid').val('');
+                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                    return;
+                }
+
+                // Enable/disable bank account selection
+                if (cardPaid > 0) {
+                    bankAccountSelect.prop('required', true).prop('disabled', false);
+                } else {
+                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                }
+
+            }
+
             function attachEventListeners() {
                 $('#cash_paid, #card_paid').off('input').on('input', function() {
                     updateCalculations();
@@ -900,94 +896,95 @@
 
 
 
+            $(document).on('click', '.quick-view-btn', function() {
+                const orderId = $(this).data('order-id');
+                const orderNumber = $(this).data('order-number');
+                $('#modal-order-number').text(orderNumber);
 
+                const modalBody = $('#quick-view-items-body');
+                modalBody.html('<tr><td colspan="3" class="text-center">Loading...</td></tr>');
 
-        });
+                const url = "{{ route('vendor.order.quickView', ['id' => '__id__']) }}".replace('__id__',
+                    orderId);
 
+                $('#quickViewModal').modal('show');
 
-        $(document).on('click', '.quick-view-btn', function() {
-            const orderId = $(this).data('order-id');
-            const orderNumber = $(this).data('order-number');
-            $('#modal-order-number').text(orderNumber);
+                $('#quickViewProceedBtn').data('order-id', orderId);
 
-            const modalBody = $('#quick-view-items-body');
-            modalBody.html('<tr><td colspan="3" class="text-center">Loading...</td></tr>');
-
-            const url = "{{ route('vendor.order.quickView', ['id' => '__id__']) }}".replace('__id__', orderId);
-
-            $('#quickViewModal').modal('show');
-
-            $('#quickViewProceedBtn').data('order-id', orderId);
-
-            $.get(url, function(response) {
-                modalBody.html(response);
-            }).fail(function() {
-                modalBody.html(
-                    '<tr><td colspan="3" class="text-danger text-center">Failed to load data.</td></tr>'
-                );
+                $.get(url, function(response) {
+                    modalBody.html(response);
+                }).fail(function() {
+                    modalBody.html(
+                        '<tr><td colspan="3" class="text-danger text-center">Failed to load data.</td></tr>'
+                    );
+                });
             });
-        });
 
-        $('#orderFinalModal').on('show.bs.modal', function() {
-            $('#loading').show();
+            $('#orderFinalModal').on('show.bs.modal', function() {
+                $('#loading').show();
 
-            const orderId = $('#quickViewProceedBtn').data('order-id');
-            if (!orderId) {
-                $('#loading').hide();
-                toastr.error('Order ID not found. Please try again.');
-                return;
-            }
-
-            const urlPayment = "{{ route('vendor.order.paymentData', ['id' => '__id__']) }}".replace('__id__',
-                orderId);
-
-            $.ajax({
-                url: urlPayment,
-                method: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data.error) {
-                        toastr.error(data.error);
-                        $('#loading').hide();
-                        return;
-                    }
-
-                    $('#invoice_amount span').text(data.total_amount_formatted ??
-                        '{{ translate('N/A') }}');
-                    $('#customer_name').val(data.customer_name ?? '');
-                    $('#car_number').val(data.car_number ?? '');
-                    $('#phone').val(data.phone ?? '');
-                    $('#cash_paid').val(data.cash_paid ?? '');
-                    $('#card_paid').val(data.card_paid ?? '');
-                    $('#delivery_type').val(data.delivery_type ?? '');
-                    $('#bank_account').val(data.bank_account ?? '').prop('disabled', !data
-                    .bank_account);
-                    updateCalculations();
-
+                const orderId = $('#quickViewProceedBtn').data('order-id');
+                if (!orderId) {
                     $('#loading').hide();
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', error, xhr.responseText);
-
-                    let message = 'Something went wrong. Please try again.';
-
-                    if (xhr.status === 404) {
-                        message = 'Order not found.';
-                    } else if (xhr.status === 500) {
-                        message = 'Server error while loading order details.';
-                    }
-
-                    toastr.error(message);
-                    $('#loading').hide();
+                    toastr.error('Order ID not found. Please try again.');
+                    return;
                 }
+
+                const urlPayment = "{{ route('vendor.order.paymentData', ['id' => '__id__']) }}".replace(
+                    '__id__',
+                    orderId);
+
+                $.ajax({
+                    url: urlPayment,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.error) {
+                            toastr.error(data.error);
+                            $('#loading').hide();
+                            return;
+                        }
+
+                        $('#invoice_amount span').text(data.total_amount_formatted ??
+                            '{{ translate('N/A') }}');
+                        $('#customer_name').val(data.customer_name ?? '');
+                        $('#car_number').val(data.car_number ?? '');
+                        $('#phone').val(data.phone ?? '');
+                        $('#cash_paid').val(data.cash_paid ?? '');
+                        $('#card_paid').val(data.card_paid ?? '');
+                        $('#delivery_type').val(data.delivery_type ?? '');
+                        $('#bank_account').val(data.bank_account ?? '').prop('disabled', !data
+                            .bank_account);
+                        updateCalculations();
+
+                        $('#loading').hide();
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', error, xhr.responseText);
+
+                        let message = 'Something went wrong. Please try again.';
+
+                        if (xhr.status === 404) {
+                            message = 'Order not found.';
+                        } else if (xhr.status === 500) {
+                            message = 'Server error while loading order details.';
+                        }
+
+                        toastr.error(message);
+                        $('#loading').hide();
+                    }
+                });
             });
-        });
 
 
-        $('#orderFinalModal').on('hidden.bs.modal', function() {
-            $('#customer_name, #car_number, #phone, #cash_paid, #card_paid').val('');
-            $('#bank_account').val('').prop('disabled', true);
-            $('#invoice_amount span').text('0.0');
+            $('#orderFinalModal').on('hidden.bs.modal', function() {
+                $('#customer_name, #car_number, #phone, #cash_paid, #card_paid').val('');
+                $('#bank_account').val('').prop('disabled', true);
+                $('#invoice_amount span').text('0.0');
+            });
+
+
+
         });
     </script>
 @endpush

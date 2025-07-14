@@ -529,6 +529,7 @@ class POSController extends Controller
     {
         $cart = $request->session()->get('cart');
 
+        dd($request->all(), $cart);
         $allNotes = [];
         foreach ($cart as $item) {
             $notes = $item['details'] ?? null; // Change 'notes' to 'details'

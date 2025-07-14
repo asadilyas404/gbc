@@ -255,7 +255,7 @@
         'values' => $cart_item['add_on_qtys'],
         'count_keys' => count($cart_item['add_ons']),
         'count_values' => count($cart_item['add_on_qtys']),
-    ]);
+    ])
     )
 
                             @php($selected_addons = array_combine($cart_item['add_ons'], $cart_item['add_on_qtys']))

@@ -248,6 +248,16 @@
                         <div class="h3 p-0 pt-2">{{ translate('messages.addon') }}
                         </div>
                         <div class="d-flex justify-content-left flex-wrap">
+
+                            @php
+    dd([
+        'keys' => $cart_item['add_ons'],
+        'values' => $cart_item['add_on_qtys'],
+        'count_keys' => count($cart_item['add_ons']),
+        'count_values' => count($cart_item['add_on_qtys']),
+    ]);
+@endphp
+
                             @php($selected_addons = array_combine($cart_item['add_ons'], $cart_item['add_on_qtys']))
                             @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $key => $add_on)
                                 <div class="flex-column pb-2">

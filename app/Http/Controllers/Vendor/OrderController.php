@@ -240,6 +240,9 @@ class OrderController extends Controller
             $simplified_variations = method_exists(Helpers::class, 'simplifyVariationsToLabels')
                 ? Helpers::simplifyVariationsToLabels($variations)
                 : [];
+                $rawAddOns = json_decode($item->add_ons, true) ?? [];
+            $addon_ids = collect($rawAddOns)->pluck('id')->toArray();
+            $addon_qtys = collect($rawAddOns)->pluck('quantity')->toArray();
 
             $cart[] = [
                 'id' => $item->food_id,
@@ -250,8 +253,8 @@ class OrderController extends Controller
                 'variant' => '',
                 'variations' => $simplified_variations,
                 'variation_option_ids' => '',
-                'add_ons' => json_decode($item->add_ons, true) ?? [],
-                'add_on_qtys' => [],
+                'add_ons' => $addon_ids,
+                'add_on_qtys' => $addon_qtys,
                 'addon_price' => $item->total_add_on_price,
                 'discount' => $item->discount_on_food,
                 'discountAmount' => $item->discount_on_food,

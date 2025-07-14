@@ -258,7 +258,6 @@
     ])) --}}
 
                             @php($selected_addons = array_combine($cart_item['add_ons'], $cart_item['add_on_qtys']))
-                            @php(dd(AddOn::whereIn('id', $add_ons)->active()))
                             @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $key => $add_on)
                                 <div class="flex-column pb-2">
                                     <input type="hidden" name="addon-price{{ $add_on->id }}"

@@ -529,7 +529,7 @@ class POSController extends Controller
     {
         $cart = $request->session()->get('cart');
 
-        dd($cart);
+        // dd($cart);
         $allNotes = [];
         foreach ($cart as $item) {
             $notes = $item['details'] ?? null; // Change 'notes' to 'details'

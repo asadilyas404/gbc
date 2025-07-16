@@ -139,7 +139,7 @@
                                     </a>
                                 </li>
 
-                                                                <li
+                                <li
                                     class="nav-item {{ Request::is('restaurant-panel/order/list/draft') ? 'active' : '' }} @yield('all_order') ">
                                     <a class="nav-link" href="{{ route('vendor.order.list', ['draft']) }}"
                                         title="{{ translate('messages.Unpaid') }}">
@@ -147,7 +147,7 @@
                                         <span class="text-truncate sidebar--badge-container">
                                             {{ translate('messages.Unpaid') }}
                                             <span class="badge badge-soft-info badge-pill ml-1">
-                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->where('payment_status','unpaid')->count() }}
+                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->where('payment_status', 'unpaid')->count() }}
                                             </span>
                                         </span>
                                     </a>
@@ -413,15 +413,15 @@
                     <!-- End Employee -->
 
                     <li
-                            class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/printer/selection*') ? 'active' : '' }}">
-                            <a class="js-navbar-vertical-aside-menu-link nav-link"
-                                href="{{ route('vendor.printer.selection') }}"
-                                title="{{ translate('messages.printer_selection') }}">
-                                <i class="tio-incognito nav-icon"></i>
-                                <span
-                                    class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.printer_selection') }}</span>
-                            </a>
-                        </li>
+                        class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/printer/selection*') ? 'active' : '' }}">
+                        <a class="js-navbar-vertical-aside-menu-link nav-link"
+                            href="{{ route('vendor.printer.selection') }}"
+                            title="{{ translate('messages.printer_selection') }}">
+                            <i class="tio-incognito nav-icon"></i>
+                            <span
+                                class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.printer_selection') }}</span>
+                        </a>
+                    </li>
 
                     {{-- @if (\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
                         <li

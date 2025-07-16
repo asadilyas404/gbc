@@ -130,7 +130,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
         Route::get('/printer/selection', function () {
             return view('vendor-views.printer-select.index');
-        })->name('printer.settings');
+        })->name('printer.selection');
 
         Route::get('/printer/settings', function () {
             $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();

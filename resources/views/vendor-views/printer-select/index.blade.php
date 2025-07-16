@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             // Load already saved printer values via AJAX
-            fetch("{{ route('printer.settings') }}")
+            fetch("{{ route('vendor.printer.settings') }}")
                 .then(res => res.json())
                 .then(data => {
                     if (data.bill_print) {

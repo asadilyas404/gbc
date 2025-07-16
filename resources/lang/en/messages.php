@@ -6528,4 +6528,5 @@
   'Total Order Amount' => 'Total Order Amount',
   'Quick View' => 'Quick View',
   'Order Items' => 'Order Items',
+  'printer_selection' => 'Printer Selection',
 );

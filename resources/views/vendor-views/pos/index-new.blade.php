@@ -1627,6 +1627,7 @@
         `);
                         });
 
+                        qz.security.setSignatureAlgorithm("SHA512");
                         qz.security.setSignaturePromise(function(toSign) {
                             return new Promise(function(resolve, reject) {
                                 fetch("/qz/sign", {

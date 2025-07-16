@@ -248,7 +248,7 @@ Route::group(['prefix' => 'deliveryman', 'as' => 'deliveryman.'], function () {
 Route::post('/qz/sign', function (\Illuminate\Http\Request $request) {
     $data = $request->input('data');
 
-    $privateKeyPath = storage_path('app/keys/key.pem');
+    $privateKeyPath = storage_path('app/keys/private-key.pem');
     if (!file_exists($privateKeyPath)) {
         return response()->json(['error' => 'Private key not found'], 500);
     }

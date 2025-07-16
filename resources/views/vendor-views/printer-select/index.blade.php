@@ -24,14 +24,14 @@
             <form id="printer-settings-form">
                 @csrf
                 <div class="row">
-                    <div class="col-md-6">
+                    <div class="col-md-7">
                         <label for="billPrinter">Bill Printer</label>
                         <select id="billPrinter" name="billPrinter" class="form-control">
                             <option value="">-- Select Bill Printer --</option>
                         </select>
                     </div>
 
-                    <div class="col-md-6">
+                    <div class="col-md-7">
                         <label for="kitchenPrinter">Kitchen Printer</label>
                         <select id="kitchenPrinter" name="kitchenPrinter" class="form-control">
                             <option value="">-- Select Kitchen Printer --</option>
@@ -39,7 +39,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary mt-3">Save Printers</button>
+                <button type="submit" class="btn btn-primary mt-5">Save Printers</button>
             </form>
 
         </div>

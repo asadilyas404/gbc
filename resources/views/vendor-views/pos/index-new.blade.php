@@ -1674,6 +1674,7 @@ bwQAIE2603u1WyFe6XdUm2apzVVmbwk34OM58yNWgqmyWKojQqx4QTpA9gtGTkfG
                     return;
                 }
                 const html = printableDiv.innerHTML;
+                console.log(html);
                 if (!html) {
                     return;
                 }

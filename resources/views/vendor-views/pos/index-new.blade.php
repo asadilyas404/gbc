@@ -1669,16 +1669,18 @@
 
             qz.printers.find(billPrinterName).then(function(printer) {
                 const config = qz.configs.create(printer);
-                const printableDiv = document.getElementById('bill-print-content');
-                if (!printableDiv) {
+                const printableWrapper = document.getElementById('bill-print-content');
+                if (!printableWrapper) {
+                    alert("Printable wrapper not found.");
                     return;
                 }
-                const html = printableDiv.innerHTML;
-                if (!html) {
+                const printableDiv = printableWrapper.querySelector('#printableArea');
+                if (!printableDiv) {
+                    alert("Printable content (#printableArea) not found inside #bill-print-content.");
                     return;
                 }
 
-                const clone = html.cloneNode(true);
+                const clone = printableDiv.cloneNode(true);
                 clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
                 let fullHtml = document.documentElement.outerHTML;
@@ -1691,7 +1693,7 @@
                 const data = [{
                     type: 'html',
                     format: 'plain',
-                    fullHtml: html
+                    html: fullHtml
                 }];
 
                 return qz.print(config, data);

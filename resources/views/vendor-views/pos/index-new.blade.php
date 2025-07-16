@@ -1690,26 +1690,26 @@
                 alert("Bill print failed: " + err);
             });
 
-            qz.printers.find(kitchenPrinterName).then(function(printer) {
-                const config = qz.configs.create(printer);
-                const printableDiv = document.getElementById('kitchen-print-content');
-                if (!printableDiv) {
-                    return;
-                }
-                const html = printableDiv.innerHTML;
+            // qz.printers.find(kitchenPrinterName).then(function(printer) {
+            //     const config = qz.configs.create(printer);
+            //     const printableDiv = document.getElementById('kitchen-print-content');
+            //     if (!printableDiv) {
+            //         return;
+            //     }
+            //     const html = printableDiv.innerHTML;
 
-                const data = [{
-                    type: 'html',
-                    format: 'plain',
-                    data: html
-                }];
+            //     const data = [{
+            //         type: 'html',
+            //         format: 'plain',
+            //         data: html
+            //     }];
 
-                return qz.print(config, data);
-            }).then(() => {
-                console.log("Kitchen print done");
-            }).catch(err => {
-                alert("Kitchen print failed: " + err);
-            });
+            //     return qz.print(config, data);
+            // }).then(() => {
+            //     console.log("Kitchen print done");
+            // }).catch(err => {
+            //     alert("Kitchen print failed: " + err);
+            // });
         }
     </script>
 @endpush

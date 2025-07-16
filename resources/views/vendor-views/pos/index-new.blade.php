@@ -4,6 +4,7 @@
     use App\Models\Order;
 
     $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+    dd($setting);
     $billPrinter = $kitchenPrinter = null;
 
     if ($setting) {

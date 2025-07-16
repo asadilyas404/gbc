@@ -256,7 +256,7 @@ Route::post('/qz/sign', function (\Illuminate\Http\Request $request) {
     $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyPath));
 
     $signature = '';
-    if (!openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA1)) {
+    if (!openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA512)) {
         return response()->json(['error' => 'Signing failed'], 500);
     }
 

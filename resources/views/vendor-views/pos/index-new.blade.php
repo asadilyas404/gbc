@@ -1671,12 +1671,12 @@
                 const config = qz.configs.create(printer);
                 const printableWrapper = document.getElementById('bill-print-content');
                 if (!printableWrapper) {
-                    alert("Printable wrapper not found.");
+                    // alert("Printable wrapper not found.");
                     return;
                 }
                 const printableDiv = printableWrapper.querySelector('#printableArea');
                 if (!printableDiv) {
-                    alert("Printable content (#printableArea) not found inside #bill-print-content.");
+                    // alert("Printable content (#printableArea) not found inside #bill-print-content.");
                     return;
                 }
 
@@ -1705,21 +1705,14 @@
 
             qz.printers.find(kitchenPrinterName).then(function(printer) {
                 const config = qz.configs.create(printer);
-                // const printableDiv = document.getElementById('kitchen-print-content');
-                // if (!printableDiv) {
-                //     return;
-                // }
-                // const html = printableDiv.innerHTML;
-
-
                 const printableWrapper = document.getElementById('kitchen-print-content');
                 if (!printableWrapper) {
-                    alert("Printable wrapper not found.");
+                    // alert("Printable wrapper not found.");
                     return;
                 }
                 const printableDiv = printableWrapper.querySelector('#printableArea');
                 if (!printableDiv) {
-                    alert("Printable content (#printableArea) not found inside #bill-print-content.");
+                    // alert("Printable content (#printableArea) not found inside #bill-print-content.");
                     return;
                 }
 

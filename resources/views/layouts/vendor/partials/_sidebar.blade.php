@@ -412,6 +412,17 @@
                     @endif
                     <!-- End Employee -->
 
+                    <li
+                            class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/printer/selection*') ? 'active' : '' }}">
+                            <a class="js-navbar-vertical-aside-menu-link nav-link"
+                                href="{{ route('vendor.printer.selection') }}"
+                                title="{{ translate('messages.printer_selection') }}">
+                                <i class="tio-incognito nav-icon"></i>
+                                <span
+                                    class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.printer_selection') }}</span>
+                            </a>
+                        </li>
+
                     {{-- @if (\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
                         <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/employee*') ? 'active' : '' }}">

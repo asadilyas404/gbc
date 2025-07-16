@@ -18,19 +18,19 @@ Route::put('table_employees/{id}', 'TableEmployeeController@update')->name('tabl
 Route::delete('table_employees/{id}', 'TableEmployeeController@destroy')->name('table_employees.destroy');
 
 Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
-    Route::group(['middleware' => ['vendor' ,'maintenance']], function () {
+    Route::group(['middleware' => ['vendor', 'maintenance']], function () {
         Route::get('lang/{locale}', 'LanguageController@lang')->name('lang');
 
         Route::get('/', 'DashboardController@dashboard')->name('dashboard');
         Route::get('/get-restaurant-data', 'DashboardController@restaurant_data')->name('get-restaurant-data');
         Route::post('/store-token', 'DashboardController@updateDeviceToken')->name('store.token');
-        Route::get('/reviews', 'ReviewController@index')->name('reviews')->middleware(['module:reviews' ,'subscription:reviews']);
-        Route::post('/store-reply/{id}', 'ReviewController@update_reply')->name('review-reply')->middleware(['module:reviews' ,'subscription:reviews']);
+        Route::get('/reviews', 'ReviewController@index')->name('reviews')->middleware(['module:reviews', 'subscription:reviews']);
+        Route::post('/store-reply/{id}', 'ReviewController@update_reply')->name('review-reply')->middleware(['module:reviews', 'subscription:reviews']);
 
 
         Route::group(['prefix' => 'pos', 'as' => 'pos.'], function () {
             Route::post('variant_price', 'POSController@variant_price')->name('variant_price');
-            Route::group(['middleware' => ['module:pos','subscription:pos']], function () {
+            Route::group(['middleware' => ['module:pos', 'subscription:pos']], function () {
                 Route::get('/', 'POSController@index')->name('index');
                 Route::get('/new', 'POSController@indexNew')->name('index.new');
                 Route::get('load-draft/{order_id}', 'POSController@loadDraftOrderToCart')->name('load-draft');
@@ -58,7 +58,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             });
         });
 
-        Route::group([ 'prefix' => 'advertisement', 'as' => 'advertisement.' ,'middleware' => ['module:advertisement','subscription:advertisement' ]], function () {
+        Route::group(['prefix' => 'advertisement', 'as' => 'advertisement.', 'middleware' => ['module:advertisement', 'subscription:advertisement']], function () {
 
             Route::get('/', 'AdvertisementController@index')->name('index');
             Route::get('create/', 'AdvertisementController@create')->name('create');
@@ -78,7 +78,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('order-stats', 'DashboardController@order_stats')->name('order-stats');
         });
 
-        Route::group(['prefix' => 'category', 'as' => 'category.', 'middleware' => ['module:food','subscription:food']], function () {
+        Route::group(['prefix' => 'category', 'as' => 'category.', 'middleware' => ['module:food', 'subscription:food']], function () {
             Route::get('get-all', 'CategoryController@get_all')->name('get-all');
             Route::get('list', 'CategoryController@index')->name('add');
             Route::get('sub-category-list', 'CategoryController@sub_index')->name('add-sub-category');
@@ -90,7 +90,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::delete('delete/{id}', 'CategoryController@delete')->name('delete');
         });
 
-        Route::group(['prefix' => 'custom-role', 'as' => 'custom-role.', 'middleware' => ['module:custom_role','subscription:custom_role']], function () {
+        Route::group(['prefix' => 'custom-role', 'as' => 'custom-role.', 'middleware' => ['module:custom_role', 'subscription:custom_role']], function () {
             Route::get('create', 'CustomRoleController@create')->name('create');
             Route::post('create', 'CustomRoleController@store')->name('store');
             Route::get('edit/{id}', 'CustomRoleController@edit')->name('edit');
@@ -98,7 +98,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::delete('delete/{id}', 'CustomRoleController@distroy')->name('delete');
         });
 
-        Route::group(['prefix' => 'delivery-man', 'as' => 'delivery-man.', 'middleware' => ['module:deliveryman','subscription:deliveryman']], function () {
+        Route::group(['prefix' => 'delivery-man', 'as' => 'delivery-man.', 'middleware' => ['module:deliveryman', 'subscription:deliveryman']], function () {
             Route::get('add', 'DeliveryManController@index')->name('add');
             Route::post('store', 'DeliveryManController@store')->name('store');
             Route::get('list', 'DeliveryManController@list')->name('list');
@@ -115,7 +115,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             });
         });
 
-        Route::group(['prefix' => 'employee', 'as' => 'employee.', 'middleware' => ['module:employee','subscription:employee']], function () {
+        Route::group(['prefix' => 'employee', 'as' => 'employee.', 'middleware' => ['module:employee', 'subscription:employee']], function () {
             Route::get('add-new', 'EmployeeController@add_new')->name('add-new');
             Route::post('add-new', 'EmployeeController@store');
             Route::get('list', 'EmployeeController@list')->name('list');
@@ -128,13 +128,48 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('/sync-employees', 'EmployeeController@sync')->name('sync.employees');
         });
 
-        Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.', 'middleware' => ['module:kitchen_orders','subscription:kitchen_orders']], function () {
+        Route::get('/printer/selection', function () {
+            return view('vendor-views.printer-select.index');
+        })->name('printer.settings');
+
+        Route::get('/printer/settings', function () {
+            $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+
+            $printers = ['bill_print' => null, 'kitchen_print' => null];
+            if ($setting) {
+                $saved = json_decode($setting->value, true);
+                $printers['bill_print'] = $saved['bill_print'] ?? null;
+                $printers['kitchen_print'] = $saved['kitchen_print'] ?? null;
+            }
+
+            return response()->json($printers);
+        })->name('printer.settings');
+
+        Route::post('/printer/settings/save', function (\Illuminate\Http\Request $request) {
+            $bill = $request->input('billPrinter');
+            $kitchen = $request->input('kitchenPrinter');
+
+            $value = json_encode([
+                'bill_print' => $bill,
+                'kitchen_print' => $kitchen,
+            ]);
+
+            \DB::table('business_settings')->updateOrInsert(
+                ['key' => 'print_keys'],
+                ['value' => $value, 'updated_at' => now()]
+            );
+
+            return response()->json(['success' => true]);
+        })->name('printer.settings.save');
+
+
+        Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.', 'middleware' => ['module:kitchen_orders', 'subscription:kitchen_orders']], function () {
             Route::get('list', 'KitchenController@index')->name('index');
             Route::get('get-all-orders', 'KitchenController@getAllOrders')->name('get_all_orders');
         });
 
         Route::post('food/food-variation-generate', 'FoodController@food_variation_generator')->name('food.food-variation-generate');
-        Route::group(['prefix' => 'food', 'as' => 'food.', 'middleware' => ['module:food','subscription:food']], function () {
+        Route::group(['prefix' => 'food', 'as' => 'food.', 'middleware' => ['module:food', 'subscription:food']], function () {
             Route::get('add-new', 'FoodController@index')->name('add-new');
             Route::post('variant-combination', 'FoodController@variant_combination')->name('variant-combination');
             Route::post('store', 'FoodController@store')->name('store');
@@ -162,19 +197,19 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('bulk-export', 'FoodController@bulk_export_data')->name('bulk-export');
         });
 
-        Route::group(['prefix' => 'banner', 'as' => 'banner.', 'middleware' => ['module:banner','subscription:banner']], function () {
+        Route::group(['prefix' => 'banner', 'as' => 'banner.', 'middleware' => ['module:banner', 'subscription:banner']], function () {
             Route::get('list', 'BannerController@list')->name('list');
             Route::get('join_campaign/{id}/{status}', 'BannerController@status')->name('status');
         });
 
-        Route::group(['prefix' => 'campaign', 'as' => 'campaign.', 'middleware' => ['module:campaign','subscription:campaign']], function () {
+        Route::group(['prefix' => 'campaign', 'as' => 'campaign.', 'middleware' => ['module:campaign', 'subscription:campaign']], function () {
             Route::get('list', 'CampaignController@list')->name('list');
             Route::get('item/list', 'CampaignController@itemlist')->name('itemlist');
             Route::get('remove-restaurant/{campaign}/{restaurant}', 'CampaignController@remove_restaurant')->name('remove-restaurant');
             Route::get('add-restaurant/{campaign}/{restaurant}', 'CampaignController@addrestaurant')->name('addrestaurant');
         });
 
-        Route::group(['prefix' => 'wallet', 'as' => 'wallet.', 'middleware' => ['module:wallet','subscription:wallet']], function () {
+        Route::group(['prefix' => 'wallet', 'as' => 'wallet.', 'middleware' => ['module:wallet', 'subscription:wallet']], function () {
             Route::get('/', 'WalletController@index')->name('index');
             Route::post('request', 'WalletController@w_request')->name('withdraw-request');
             Route::delete('close/{id}', 'WalletController@close_request')->name('close-request');
@@ -187,7 +222,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('export', 'WalletController@getDisbursementExport')->name('export');
 
         });
-        Route::group(['prefix' => 'withdraw-method', 'as' => 'wallet-method.', 'middleware' => ['module:wallet','subscription:wallet']], function () {
+        Route::group(['prefix' => 'withdraw-method', 'as' => 'wallet-method.', 'middleware' => ['module:wallet', 'subscription:wallet']], function () {
             Route::get('/', 'WalletMethodController@index')->name('index');
             Route::post('store/', 'WalletMethodController@store')->name('store');
             Route::get('default/{id}/{default}', 'WalletMethodController@default')->name('default');
@@ -195,7 +230,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         });
 
 
-        Route::group(['prefix' => 'coupon', 'as' => 'coupon.', 'middleware' => ['module:coupon','subscription:coupon']], function () {
+        Route::group(['prefix' => 'coupon', 'as' => 'coupon.', 'middleware' => ['module:coupon', 'subscription:coupon']], function () {
             Route::get('add-new', 'CouponController@add_new')->name('add-new');
             Route::post('store', 'CouponController@store')->name('store');
             Route::get('update/{id}', 'CouponController@edit')->name('update');
@@ -205,7 +240,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('search', 'CouponController@search')->name('search');
         });
 
-        Route::group(['prefix' => 'addon', 'as' => 'addon.', 'middleware' => ['module:addon','subscription:addon']], function () {
+        Route::group(['prefix' => 'addon', 'as' => 'addon.', 'middleware' => ['module:addon', 'subscription:addon']], function () {
             Route::get('add-new', 'AddOnController@index')->name('add-new');
             Route::post('store', 'AddOnController@store')->name('store');
             Route::get('edit/{id}', 'AddOnController@edit')->name('edit');
@@ -213,7 +248,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::delete('delete/{id}', 'AddOnController@delete')->name('delete');
         });
 
-        Route::group(['prefix' => 'order', 'as' => 'order.' , 'middleware' => ['module:order']], function () {
+        Route::group(['prefix' => 'order', 'as' => 'order.', 'middleware' => ['module:order']], function () {
             Route::get('/sync-orders', 'OrderController@sync')->name('sync.orders');
             Route::get('list/{status}', 'OrderController@list')->name('list');
             Route::put('status-update/{id}', 'OrderController@status')->name('status-update');
@@ -237,7 +272,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('remove-proof-image', 'OrderController@remove_proof_image')->name('remove-proof-image');
 
 
-            Route::group([ 'as' => 'subscription.'], function () {
+            Route::group(['as' => 'subscription.'], function () {
                 Route::get('subscription/update-status/{supscription_id}/{status}', 'OrderSubscriptionController@view')->name('update-status');
                 Route::get('subscription', 'OrderSubscriptionController@index')->name('index');
                 Route::get('subscription/show/{subscription}', 'OrderSubscriptionController@show')->name('show');
@@ -248,7 +283,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('add-delivery-man/{order_id}/{delivery_man_id}', 'OrderController@add_delivery_man')->name('add-delivery-man');
 
         });
-        Route::group(['prefix' => 'business-settings', 'as' => 'business-settings.', 'middleware' => ['module:restaurant_setup','subscription:restaurant_setup' ]], function () {
+        Route::group(['prefix' => 'business-settings', 'as' => 'business-settings.', 'middleware' => ['module:restaurant_setup', 'subscription:restaurant_setup']], function () {
             Route::get('restaurant-setup', 'BusinessSettingsController@restaurant_index')->name('restaurant-setup');
             Route::get('notification-setup', 'BusinessSettingsController@notification_index')->name('notification-setup');
             Route::get('notification-status-change/{key}/{type}', 'BusinessSettingsController@notification_status_change')->name('notification_status_change');
@@ -262,7 +297,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
         });
 
-        Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['module:bank_info','subscription:bank_info' ]], function () {
+        Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['module:bank_info', 'subscription:bank_info']], function () {
             Route::get('view', 'ProfileController@view')->name('view');
             // Route::get('update', 'ProfileController@edit')->name('update');
             Route::post('update', 'ProfileController@update')->name('update');
@@ -273,7 +308,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             // Route::post('bank-delete', 'ProfileController@bank_delete')->name('bank_delete');
         });
 
-        Route::group(['prefix' => 'restaurant', 'as' => 'shop.', 'middleware' => ['module:my_shop','subscription:my_shop' ]], function () {
+        Route::group(['prefix' => 'restaurant', 'as' => 'shop.', 'middleware' => ['module:my_shop', 'subscription:my_shop']], function () {
             Route::get('view', 'RestaurantController@view')->name('view');
             Route::get('edit', 'RestaurantController@edit')->name('edit');
             Route::post('update', 'RestaurantController@update')->name('update');
@@ -284,28 +319,28 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('qr-print', 'RestaurantController@qr_print')->name('qr-print');
         });
 
-        Route::group(['prefix' => 'message', 'as' => 'message.', 'middleware' => ['module:chat','subscription:chat'] ], function () {
+        Route::group(['prefix' => 'message', 'as' => 'message.', 'middleware' => ['module:chat', 'subscription:chat']], function () {
             Route::get('list', 'ConversationController@list')->name('list');
             Route::post('store/{user_id}/{user_type}', 'ConversationController@store')->name('store');
             Route::get('view/{conversation_id}/{user_id}', 'ConversationController@view')->name('view');
         });
 
-        Route::group(['prefix' => 'subscription' , 'as' => 'subscriptionackage.'], function () {
-            Route::get('/subscriber-detail',  [SubscriptionController::class, 'subscriberDetail'])->name('subscriberDetail');
-            Route::get('/invoice/{id}',  [SubscriptionController::class, 'invoice'])->name('invoice');
-            Route::get('/subscriber-list',  [SubscriptionController::class, 'subscriberList'])->name('subscriberList');
-            Route::post('/cancel-subscription/{id}',  [SubscriptionController::class, 'cancelSubscription'])->name('cancelSubscription');
-            Route::post('/switch-to-commission/{id}',  [SubscriptionController::class, 'switchToCommission'])->name('switchToCommission');
-            Route::get('/package-view/{id}/{store_id}',  [SubscriptionController::class, 'packageView'])->name('packageView');
-            Route::get('/subscriber-transactions/{id}',  [SubscriptionController::class, 'subscriberTransactions'])->name('subscriberTransactions');
-            Route::get('/subscriber-transaction-export',  [SubscriptionController::class, 'subscriberTransactionExport'])->name('subscriberTransactionExport');
-            Route::get('/subscriber-wallet-transactions',  [SubscriptionController::class, 'subscriberWalletTransactions'])->name('subscriberWalletTransactions');
-            Route::post('/package-buy',  [SubscriptionController::class, 'packageBuy'])->name('packageBuy');
-            Route::post('/add-to-session',  [SubscriptionController::class, 'addToSession'])->name('addToSession');
+        Route::group(['prefix' => 'subscription', 'as' => 'subscriptionackage.'], function () {
+            Route::get('/subscriber-detail', [SubscriptionController::class, 'subscriberDetail'])->name('subscriberDetail');
+            Route::get('/invoice/{id}', [SubscriptionController::class, 'invoice'])->name('invoice');
+            Route::get('/subscriber-list', [SubscriptionController::class, 'subscriberList'])->name('subscriberList');
+            Route::post('/cancel-subscription/{id}', [SubscriptionController::class, 'cancelSubscription'])->name('cancelSubscription');
+            Route::post('/switch-to-commission/{id}', [SubscriptionController::class, 'switchToCommission'])->name('switchToCommission');
+            Route::get('/package-view/{id}/{store_id}', [SubscriptionController::class, 'packageView'])->name('packageView');
+            Route::get('/subscriber-transactions/{id}', [SubscriptionController::class, 'subscriberTransactions'])->name('subscriberTransactions');
+            Route::get('/subscriber-transaction-export', [SubscriptionController::class, 'subscriberTransactionExport'])->name('subscriberTransactionExport');
+            Route::get('/subscriber-wallet-transactions', [SubscriptionController::class, 'subscriberWalletTransactions'])->name('subscriberWalletTransactions');
+            Route::post('/package-buy', [SubscriptionController::class, 'packageBuy'])->name('packageBuy');
+            Route::post('/add-to-session', [SubscriptionController::class, 'addToSession'])->name('addToSession');
         });
 
 
-        Route::group(['prefix' => 'report', 'as' => 'report.', 'middleware' => ['module:report' ,'subscription:report']], function () {
+        Route::group(['prefix' => 'report', 'as' => 'report.', 'middleware' => ['module:report', 'subscription:report']], function () {
             Route::post('set-date', 'ReportController@set_date')->name('set-date');
             Route::get('expense-report', 'ReportController@expense_report')->name('expense-report');
             Route::get('expense-export', 'ReportController@expense_export')->name('expense-export');

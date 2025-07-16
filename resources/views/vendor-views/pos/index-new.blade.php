@@ -1703,26 +1703,49 @@
                 alert("Bill print failed: " + err);
             });
 
-            // qz.printers.find(kitchenPrinterName).then(function(printer) {
-            //     const config = qz.configs.create(printer);
-            //     const printableDiv = document.getElementById('kitchen-print-content');
-            //     if (!printableDiv) {
-            //         return;
-            //     }
-            //     const html = printableDiv.innerHTML;
+            qz.printers.find(kitchenPrinterName).then(function(printer) {
+                const config = qz.configs.create(printer);
+                // const printableDiv = document.getElementById('kitchen-print-content');
+                // if (!printableDiv) {
+                //     return;
+                // }
+                // const html = printableDiv.innerHTML;
 
-            //     const data = [{
-            //         type: 'html',
-            //         format: 'plain',
-            //         data: html
-            //     }];
 
-            //     return qz.print(config, data);
-            // }).then(() => {
-            //     console.log("Kitchen print done");
-            // }).catch(err => {
-            //     alert("Kitchen print failed: " + err);
-            // });
+                const printableWrapper = document.getElementById('kitchen-print-content');
+                if (!printableWrapper) {
+                    alert("Printable wrapper not found.");
+                    return;
+                }
+                const printableDiv = printableWrapper.querySelector('#printableArea');
+                if (!printableDiv) {
+                    alert("Printable content (#printableArea) not found inside #bill-print-content.");
+                    return;
+                }
+
+                const clone = printableDiv.cloneNode(true);
+                clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+
+                let fullHtml = document.documentElement.outerHTML;
+
+                fullHtml = fullHtml.replace(
+                    /<body[^>]*>[\s\S]*<\/body>/i,
+                    `<body>${clone.innerHTML}</body>`
+                );
+
+
+                const data = [{
+                    type: 'html',
+                    format: 'plain',
+                    data: fullHtml
+                }];
+
+                return qz.print(config, data);
+            }).then(() => {
+                console.log("Kitchen print done");
+            }).catch(err => {
+                alert("Kitchen print failed: " + err);
+            });
         }
     </script>
 @endpush

@@ -245,20 +245,52 @@ Route::group(['prefix' => 'deliveryman', 'as' => 'deliveryman.'], function () {
 });
 
 
+// Route::post('/qz/sign', function (\Illuminate\Http\Request $request) {
+//     $data = $request->input('data');
+
+//     $privateKeyPath = storage_path('app/keys/private-key.pem');
+//     if (!file_exists($privateKeyPath)) {
+//         return response()->json(['error' => 'Private key not found'], 500);
+//     }
+
+//     $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyPath));
+
+//     $signature = '';
+//     if (!openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA512)) {
+//         return response()->json(['error' => 'Signing failed'], 500);
+//     }
+
+//     return response()->json(['signature' => base64_encode($signature)]);
+// });
+
+
+use Illuminate\Support\Facades\Log;
+
 Route::post('/qz/sign', function (\Illuminate\Http\Request $request) {
     $data = $request->input('data');
+    Log::info('🖋 QZ Sign Request Received', ['data' => $data]);
 
     $privateKeyPath = storage_path('app/keys/private-key.pem');
     if (!file_exists($privateKeyPath)) {
+        Log::error('🔑 Private key file not found at ' . $privateKeyPath);
         return response()->json(['error' => 'Private key not found'], 500);
     }
 
-    $privateKey = openssl_pkey_get_private(file_get_contents($privateKeyPath));
+    $privateKeyContent = file_get_contents($privateKeyPath);
+    $privateKey = openssl_pkey_get_private($privateKeyContent);
+    if (!$privateKey) {
+        Log::error('🚫 Failed to load private key from pem file');
+        return response()->json(['error' => 'Invalid private key'], 500);
+    }
 
     $signature = '';
     if (!openssl_sign($data, $signature, $privateKey, OPENSSL_ALGO_SHA512)) {
+        Log::error('❌ openssl_sign failed');
         return response()->json(['error' => 'Signing failed'], 500);
     }
 
-    return response()->json(['signature' => base64_encode($signature)]);
+    $encoded = base64_encode($signature);
+    Log::info('✅ Signature generated successfully');
+    return response()->json(['signature' => $encoded]);
 });
+

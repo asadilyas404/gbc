@@ -1605,8 +1605,8 @@
 
         document.addEventListener("DOMContentLoaded", function() {
 
-                        qz.security.setCertificatePromise(function(resolve, reject) {
-                            resolve(`-----BEGIN CERTIFICATE-----
+            qz.security.setCertificatePromise(function(resolve, reject) {
+                resolve(`-----BEGIN CERTIFICATE-----
         MIIC+zCCAeOgAwIBAgIJAM8MMz5wiJAvMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
         BAMMCWxvY2FsaG9zdDAeFw0yNTA3MTAwNTUxMjVaFw0yNjA3MTAwNTUxMjVaMBQx
         EjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
@@ -1625,33 +1625,35 @@
         9pWqnpi/kPkzzfgoUVLomc9YHPoiRwkX53kFYB79Rs/QS0NLhus4LYdnXQvwm1o=
         -----END CERTIFICATE-----
         `);
-                        });
+            });
 
-                        qz.security.setSignatureAlgorithm("SHA512");
-                        qz.security.setSignaturePromise(function(toSign) {
-                            return new Promise(function(resolve, reject) {
-                                fetch("/qz/sign", {
-                                        method: "POST",
-                                        headers: {
-                                            "Content-Type": "application/json",
-                                            "X-CSRF-TOKEN": document.querySelector(
-                                                'meta[name="csrf-token"]').getAttribute('content')
-                                        },
-                                        body: JSON.stringify({
-                                            data: toSign
-                                        })
-                                    })
-                                    .then(res => res.json())
-                                    .then(data => {
-                                        if (data.signature) {
-                                            resolve(data.signature);
-                                        } else {
-                                            reject("Invalid signature response");
-                                        }
-                                    })
-                                    .catch(err => reject(err));
-                            });
-                        });
+            qz.security.setSignatureAlgorithm("SHA512");
+
+            qz.security.setSignaturePromise(function(toSign) {
+                return function(resolve, reject) {
+                    fetch("/qz/sign", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                data: toSign
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.signature) {
+                                resolve(data.signature);
+                            } else {
+                                reject("Invalid signature response");
+                            }
+                        })
+                        .catch(err => reject(err));
+                };
+            });
+
 
 
             if (!qz.websocket.isActive()) {

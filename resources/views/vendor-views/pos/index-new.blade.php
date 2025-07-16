@@ -11,6 +11,8 @@
         $billPrinter = $printers['bill_print'] ?? null;
         $kitchenPrinter = $printers['kitchen_print'] ?? null;
     }
+
+    dd($billPrinter,$kitchenPrinter);
 @endphp
 @extends('layouts.vendor.app')
 
@@ -1588,9 +1590,9 @@
                 //  && value.trim() !== '';
             };
 
-
-
         });
+
+        // Printers working
 
         const billPrinterName = @json($billPrinter);
         const kitchenPrinterName = @json($kitchenPrinter);

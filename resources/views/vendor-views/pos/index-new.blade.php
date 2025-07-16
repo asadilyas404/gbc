@@ -1674,7 +1674,6 @@
                     return;
                 }
                 const html = printableDiv.innerHTML;
-                console.log(html);
                 if (!html) {
                     return;
                 }

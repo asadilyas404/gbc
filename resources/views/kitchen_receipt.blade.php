@@ -1,4 +1,7 @@
 @php
+
+    $maxMakeTime = $order->details->map(fn($detail) => $detail->food->est_make_time ?? 0)->max();
+
     // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
     $printer = null;
 
@@ -6,6 +9,7 @@
     //     $printers = json_decode($setting->value, true);
     //     $printer = $printers['kitchen_print'] ?? null;
     // }
+
 @endphp
 
 <div class="content container-fluid initial-38 new-invoice ">
@@ -523,7 +527,7 @@
 
 <script>
     // document.addEventListener("DOMContentLoaded", function() {
-        var printerName = @json($printer);
+    var printerName = @json($printer);
     //     // console.log(printerName);
 
     //     if (!qz.websocket.isActive()) {

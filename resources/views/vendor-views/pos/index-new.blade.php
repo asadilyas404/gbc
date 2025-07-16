@@ -582,6 +582,7 @@
     </script>
     <script src="{{ dynamicAsset('public/assets/admin/js/view-pages/pos.js') }}"></script>
     {{-- <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script> --}}
+    <script src="https://cdn.jsdelivr.net/npm/rsvp@4.8.5/dist/rsvp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.1.0/qz-tray.js"></script>
 
     <script>

@@ -12,7 +12,6 @@
         $kitchenPrinter = $printers['kitchen_print'] ?? null;
     }
 
-    dd($billPrinter,$kitchenPrinter);
 @endphp
 @extends('layouts.vendor.app')
 

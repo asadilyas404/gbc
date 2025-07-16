@@ -1703,15 +1703,15 @@ qz.security.setSignaturePromise(function (toSign) {
 
 
 
-            if (!qz.websocket.isActive()) {
-                qz.websocket.connect().then(() => {
-                    initializePrinters();
-                }).catch(err => {
-                    alert("QZ Tray connection failed: " + err);
-                });
-            } else {
-                initializePrinters();
-            }
+            // if (!qz.websocket.isActive()) {
+            //     qz.websocket.connect().then(() => {
+            //         initializePrinters();
+            //     }).catch(err => {
+            //         alert("QZ Tray connection failed: " + err);
+            //     });
+            // } else {
+            //     initializePrinters();
+            // }
         });
 
         function initializePrinters() {

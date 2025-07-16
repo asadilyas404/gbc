@@ -421,7 +421,7 @@
                 @include('kitchen_receipt', ['order' => $order])
             </div>
 
-            <div class="modal fade" id="print-invoice" tabindex="-1">
+            {{-- <div class="modal fade" id="print-invoice" tabindex="-1">
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -440,7 +440,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
         @endif
 
 
@@ -582,10 +582,6 @@
     </script>
     <script src="{{ dynamicAsset('public/assets/admin/js/view-pages/pos.js') }}"></script>
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
-    {{-- <script src="https://cdn.jsdelivr.net/npm/rsvp@4.8.5/dist/rsvp.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/js-sha256@0.9.0/build/sha256.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qz-tray@2.1.0/qz-tray.js"></script> --}}
-
     <script>
         "use strict";
 
@@ -1703,15 +1699,15 @@ qz.security.setSignaturePromise(function (toSign) {
 
 
 
-            // if (!qz.websocket.isActive()) {
-            //     qz.websocket.connect().then(() => {
-            //         initializePrinters();
-            //     }).catch(err => {
-            //         alert("QZ Tray connection failed: " + err);
-            //     });
-            // } else {
-            //     initializePrinters();
-            // }
+            if (!qz.websocket.isActive()) {
+                qz.websocket.connect().then(() => {
+                    initializePrinters();
+                }).catch(err => {
+                    alert("QZ Tray connection failed: " + err);
+                });
+            } else {
+                initializePrinters();
+            }
         });
 
         function initializePrinters() {

@@ -1693,7 +1693,7 @@
                 const data = [{
                     type: 'html',
                     format: 'plain',
-                    html: fullHtml
+                    data: fullHtml
                 }];
 
                 return qz.print(config, data);

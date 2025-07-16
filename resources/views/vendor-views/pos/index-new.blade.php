@@ -1605,52 +1605,52 @@
 
         document.addEventListener("DOMContentLoaded", function() {
 
-//             qz.security.setCertificatePromise(function(resolve, reject) {
-//                 resolve(`-----BEGIN CERTIFICATE-----
-// MIIC+zCCAeOgAwIBAgIJAM8MMz5wiJAvMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
-// BAMMCWxvY2FsaG9zdDAeFw0yNTA3MTAwNTUxMjVaFw0yNjA3MTAwNTUxMjVaMBQx
-// EjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-// ggEBAMIROhqMyvydDbdlerVAJpvf3ppaOnVzPP29FbhfBZKrO3zoZGJPnLoDWg5S
-// WGDqQaTjnArWbfp4nLYOzHdavYK4m1qgp5o4WlhLd5ADDXpdz2PLBBcbpJoUn/Kx
-// BYuhWFYDGgZzD7oxYg4Pmgqo12/1+G9coVG9vRKLgKO1jQqWnl0k6wXeXIkp6RAC
-// pAtvDyCh+MwG8u2nhnkQBp4fkhBrAvHjqywsbu/yR+dvbJm06iz3QJqS7tCoDboz
-// vEuMYbswKf4lzSLF1hqJkHLriD98aND56GBR1WMlmvN1z+JRA9bHRSAKsuKtAmp7
-// yaX4HB2mAMvcXAvTzW1nA3UuQVsCAwEAAaNQME4wHQYDVR0OBBYEFLIX+Q6flGiE
-// nWj0QZI5feShi9LMMB8GA1UdIwQYMBaAFLIX+Q6flGiEnWj0QZI5feShi9LMMAwG
-// A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBACrS1IzPsVHXRGg1wOLZ1dib
-// kMAc+ia2hb6n4Biuv9b+dOOEgWT3GaZ8VUv5igEMokMnvmSdwORy8vdmddSeV+Hd
-// cXcDJ7tFdIV2xsKAHNdMYC+YIoQ8jZuP4Fii1TvYxvI6hF45ZFsSyQaWBL+4ic6q
-// bwQAIE2603u1WyFe6XdUm2apzVVmbwk34OM58yNWgqmyWKojQqx4QTpA9gtGTkfG
-// 9fvqRmLyZCdvflRzECA+qXKb2d+31kEUSanceUunZk0YTxAQpKVFXxjXdHvmqQ6U
-// 9pWqnpi/kPkzzfgoUVLomc9YHPoiRwkX53kFYB79Rs/QS0NLhus4LYdnXQvwm1o=
-// -----END CERTIFICATE-----
-// `);
-//             });
+            //             qz.security.setCertificatePromise(function(resolve, reject) {
+            //                 resolve(`-----BEGIN CERTIFICATE-----
+        // MIIC+zCCAeOgAwIBAgIJAM8MMz5wiJAvMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
+        // BAMMCWxvY2FsaG9zdDAeFw0yNTA3MTAwNTUxMjVaFw0yNjA3MTAwNTUxMjVaMBQx
+        // EjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
+        // ggEBAMIROhqMyvydDbdlerVAJpvf3ppaOnVzPP29FbhfBZKrO3zoZGJPnLoDWg5S
+        // WGDqQaTjnArWbfp4nLYOzHdavYK4m1qgp5o4WlhLd5ADDXpdz2PLBBcbpJoUn/Kx
+        // BYuhWFYDGgZzD7oxYg4Pmgqo12/1+G9coVG9vRKLgKO1jQqWnl0k6wXeXIkp6RAC
+        // pAtvDyCh+MwG8u2nhnkQBp4fkhBrAvHjqywsbu/yR+dvbJm06iz3QJqS7tCoDboz
+        // vEuMYbswKf4lzSLF1hqJkHLriD98aND56GBR1WMlmvN1z+JRA9bHRSAKsuKtAmp7
+        // yaX4HB2mAMvcXAvTzW1nA3UuQVsCAwEAAaNQME4wHQYDVR0OBBYEFLIX+Q6flGiE
+        // nWj0QZI5feShi9LMMB8GA1UdIwQYMBaAFLIX+Q6flGiEnWj0QZI5feShi9LMMAwG
+        // A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBACrS1IzPsVHXRGg1wOLZ1dib
+        // kMAc+ia2hb6n4Biuv9b+dOOEgWT3GaZ8VUv5igEMokMnvmSdwORy8vdmddSeV+Hd
+        // cXcDJ7tFdIV2xsKAHNdMYC+YIoQ8jZuP4Fii1TvYxvI6hF45ZFsSyQaWBL+4ic6q
+        // bwQAIE2603u1WyFe6XdUm2apzVVmbwk34OM58yNWgqmyWKojQqx4QTpA9gtGTkfG
+        // 9fvqRmLyZCdvflRzECA+qXKb2d+31kEUSanceUunZk0YTxAQpKVFXxjXdHvmqQ6U
+        // 9pWqnpi/kPkzzfgoUVLomc9YHPoiRwkX53kFYB79Rs/QS0NLhus4LYdnXQvwm1o=
+        // -----END CERTIFICATE-----
+        // `);
+            //             });
 
-//             qz.security.setSignaturePromise(function(toSign) {
-//                 return new Promise(function(resolve, reject) {
-//                     fetch("/qz/sign", {
-//                             method: "POST",
-//                             headers: {
-//                                 "Content-Type": "application/json",
-//                                 "X-CSRF-TOKEN": document.querySelector(
-//                                     'meta[name="csrf-token"]').getAttribute('content')
-//                             },
-//                             body: JSON.stringify({
-//                                 data: toSign
-//                             })
-//                         })
-//                         .then(res => res.json())
-//                         .then(data => {
-//                             if (data.signature) {
-//                                 resolve(data.signature);
-//                             } else {
-//                                 reject("Invalid signature response");
-//                             }
-//                         })
-//                         .catch(err => reject(err));
-//                 });
-//             });
+            //             qz.security.setSignaturePromise(function(toSign) {
+            //                 return new Promise(function(resolve, reject) {
+            //                     fetch("/qz/sign", {
+            //                             method: "POST",
+            //                             headers: {
+            //                                 "Content-Type": "application/json",
+            //                                 "X-CSRF-TOKEN": document.querySelector(
+            //                                     'meta[name="csrf-token"]').getAttribute('content')
+            //                             },
+            //                             body: JSON.stringify({
+            //                                 data: toSign
+            //                             })
+            //                         })
+            //                         .then(res => res.json())
+            //                         .then(data => {
+            //                             if (data.signature) {
+            //                                 resolve(data.signature);
+            //                             } else {
+            //                                 reject("Invalid signature response");
+            //                             }
+            //                         })
+            //                         .catch(err => reject(err));
+            //                 });
+            //             });
 
 
             if (!qz.websocket.isActive()) {
@@ -1677,10 +1677,21 @@
                 if (!html) {
                     return;
                 }
+
+                const clone = html.cloneNode(true);
+                clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+
+                let fullHtml = document.documentElement.outerHTML;
+
+                fullHtml = fullHtml.replace(
+                    /<body[^>]*>[\s\S]*<\/body>/i,
+                    `<body>${clone.innerHTML}</body>`
+                );
+
                 const data = [{
                     type: 'html',
                     format: 'plain',
-                    data: html
+                    fullHtml: html
                 }];
 
                 return qz.print(config, data);

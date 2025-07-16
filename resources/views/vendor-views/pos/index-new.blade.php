@@ -3,14 +3,14 @@
     use App\Models\BusinessSetting;
     use App\Models\Order;
 
-    // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+    $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
     $billPrinter = $kitchenPrinter = null;
 
-    // if ($setting) {
-    //     $printers = json_decode($setting->value, true);
-    //     $billPrinter = $printers['bill_print'] ?? null;
-    //     $kitchenPrinter = $printers['kitchen_print'] ?? null;
-    // }
+    if ($setting) {
+        $printers = json_decode($setting->value, true);
+        $billPrinter = $printers['bill_print'] ?? null;
+        $kitchenPrinter = $printers['kitchen_print'] ?? null;
+    }
 @endphp
 @extends('layouts.vendor.app')
 
@@ -411,14 +411,14 @@
             @php(session(['last_order' => false]))
 
             {{-- Load Bill Print --}}
-            {{-- <div id="bill-print-content" class="d-none">
+            <div id="bill-print-content" class="d-none">
                 @include('new_invoice', ['order' => $order])
-            </div> --}}
+            </div>
 
             {{-- Load Kitchen Print --}}
-            {{-- <div id="kitchen-print-content" class="d-none">
+            <div id="kitchen-print-content" class="d-none">
                 @include('kitchen_receipt', ['order' => $order])
-            </div> --}}
+            </div>
 
             <div class="modal fade" id="print-invoice" tabindex="-1">
                 <div class="modal-dialog">
@@ -1595,110 +1595,116 @@
         const billPrinterName = @json($billPrinter);
         const kitchenPrinterName = @json($kitchenPrinter);
 
-//         document.addEventListener("DOMContentLoaded", function() {
+        console.log(billPrinterName);
+        console.log(kitchenPrinterName);
 
-//             qz.security.setCertificatePromise(function(resolve, reject) {
-//                 resolve(`-----BEGIN CERTIFICATE-----
-// MIIC+zCCAeOgAwIBAgIJAM8MMz5wiJAvMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
-// BAMMCWxvY2FsaG9zdDAeFw0yNTA3MTAwNTUxMjVaFw0yNjA3MTAwNTUxMjVaMBQx
-// EjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
-// ggEBAMIROhqMyvydDbdlerVAJpvf3ppaOnVzPP29FbhfBZKrO3zoZGJPnLoDWg5S
-// WGDqQaTjnArWbfp4nLYOzHdavYK4m1qgp5o4WlhLd5ADDXpdz2PLBBcbpJoUn/Kx
-// BYuhWFYDGgZzD7oxYg4Pmgqo12/1+G9coVG9vRKLgKO1jQqWnl0k6wXeXIkp6RAC
-// pAtvDyCh+MwG8u2nhnkQBp4fkhBrAvHjqywsbu/yR+dvbJm06iz3QJqS7tCoDboz
-// vEuMYbswKf4lzSLF1hqJkHLriD98aND56GBR1WMlmvN1z+JRA9bHRSAKsuKtAmp7
-// yaX4HB2mAMvcXAvTzW1nA3UuQVsCAwEAAaNQME4wHQYDVR0OBBYEFLIX+Q6flGiE
-// nWj0QZI5feShi9LMMB8GA1UdIwQYMBaAFLIX+Q6flGiEnWj0QZI5feShi9LMMAwG
-// A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBACrS1IzPsVHXRGg1wOLZ1dib
-// kMAc+ia2hb6n4Biuv9b+dOOEgWT3GaZ8VUv5igEMokMnvmSdwORy8vdmddSeV+Hd
-// cXcDJ7tFdIV2xsKAHNdMYC+YIoQ8jZuP4Fii1TvYxvI6hF45ZFsSyQaWBL+4ic6q
-// bwQAIE2603u1WyFe6XdUm2apzVVmbwk34OM58yNWgqmyWKojQqx4QTpA9gtGTkfG
-// 9fvqRmLyZCdvflRzECA+qXKb2d+31kEUSanceUunZk0YTxAQpKVFXxjXdHvmqQ6U
-// 9pWqnpi/kPkzzfgoUVLomc9YHPoiRwkX53kFYB79Rs/QS0NLhus4LYdnXQvwm1o=
-// -----END CERTIFICATE-----
-// `);
-//             });
+        document.addEventListener("DOMContentLoaded", function() {
 
-//             qz.security.setSignaturePromise(function(toSign) {
-//     return new Promise(function(resolve, reject) {
-//         fetch("/qz/sign", {
-//             method: "POST",
-//             headers: {
-//                 "Content-Type": "application/json",
-//                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-//             },
-//             body: JSON.stringify({ data: toSign })
-//         })
-//         .then(res => res.json())
-//         .then(data => {
-//             if (data.signature) {
-//                 resolve(data.signature);
-//             } else {
-//                 reject("Invalid signature response");
-//             }
-//         })
-//         .catch(err => reject(err));
-//     });
-// });
+            qz.security.setCertificatePromise(function(resolve, reject) {
+                resolve(`-----BEGIN CERTIFICATE-----
+MIIC+zCCAeOgAwIBAgIJAM8MMz5wiJAvMA0GCSqGSIb3DQEBCwUAMBQxEjAQBgNV
+BAMMCWxvY2FsaG9zdDAeFw0yNTA3MTAwNTUxMjVaFw0yNjA3MTAwNTUxMjVaMBQx
+EjAQBgNVBAMMCWxvY2FsaG9zdDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoC
+ggEBAMIROhqMyvydDbdlerVAJpvf3ppaOnVzPP29FbhfBZKrO3zoZGJPnLoDWg5S
+WGDqQaTjnArWbfp4nLYOzHdavYK4m1qgp5o4WlhLd5ADDXpdz2PLBBcbpJoUn/Kx
+BYuhWFYDGgZzD7oxYg4Pmgqo12/1+G9coVG9vRKLgKO1jQqWnl0k6wXeXIkp6RAC
+pAtvDyCh+MwG8u2nhnkQBp4fkhBrAvHjqywsbu/yR+dvbJm06iz3QJqS7tCoDboz
+vEuMYbswKf4lzSLF1hqJkHLriD98aND56GBR1WMlmvN1z+JRA9bHRSAKsuKtAmp7
+yaX4HB2mAMvcXAvTzW1nA3UuQVsCAwEAAaNQME4wHQYDVR0OBBYEFLIX+Q6flGiE
+nWj0QZI5feShi9LMMB8GA1UdIwQYMBaAFLIX+Q6flGiEnWj0QZI5feShi9LMMAwG
+A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBACrS1IzPsVHXRGg1wOLZ1dib
+kMAc+ia2hb6n4Biuv9b+dOOEgWT3GaZ8VUv5igEMokMnvmSdwORy8vdmddSeV+Hd
+cXcDJ7tFdIV2xsKAHNdMYC+YIoQ8jZuP4Fii1TvYxvI6hF45ZFsSyQaWBL+4ic6q
+bwQAIE2603u1WyFe6XdUm2apzVVmbwk34OM58yNWgqmyWKojQqx4QTpA9gtGTkfG
+9fvqRmLyZCdvflRzECA+qXKb2d+31kEUSanceUunZk0YTxAQpKVFXxjXdHvmqQ6U
+9pWqnpi/kPkzzfgoUVLomc9YHPoiRwkX53kFYB79Rs/QS0NLhus4LYdnXQvwm1o=
+-----END CERTIFICATE-----
+`);
+            });
+
+            qz.security.setSignaturePromise(function(toSign) {
+                return new Promise(function(resolve, reject) {
+                    fetch("/qz/sign", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": document.querySelector(
+                                    'meta[name="csrf-token"]').getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                data: toSign
+                            })
+                        })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.signature) {
+                                resolve(data.signature);
+                            } else {
+                                reject("Invalid signature response");
+                            }
+                        })
+                        .catch(err => reject(err));
+                });
+            });
 
 
-//             if (!qz.websocket.isActive()) {
-//                 qz.websocket.connect().then(() => {
-//                     initializePrinters();
-//                 }).catch(err => {
-//                     alert("QZ Tray connection failed: " + err);
-//                 });
-//             } else {
-//                 initializePrinters();
-//             }
-//         });
+            if (!qz.websocket.isActive()) {
+                qz.websocket.connect().then(() => {
+                    initializePrinters();
+                }).catch(err => {
+                    alert("QZ Tray connection failed: " + err);
+                });
+            } else {
+                initializePrinters();
+            }
+        });
 
-//         function initializePrinters() {
-//             let printersFound = 0;
+        function initializePrinters() {
+            let printersFound = 0;
 
-//             qz.printers.find(billPrinterName).then(function(printer) {
-//                 const config = qz.configs.create(printer);
-//                 const printableDiv = document.getElementById('bill-print-content');
-//                 if (!printableDiv) {
-//                     return;
-//                 }
-//                 const html = printableDiv.innerHTML;
-//                 if (!html) {
-//                     return;
-//                 }
-//                 const data = [{
-//                     type: 'html',
-//                     format: 'plain',
-//                     data: html
-//                 }];
+            qz.printers.find(billPrinterName).then(function(printer) {
+                const config = qz.configs.create(printer);
+                const printableDiv = document.getElementById('bill-print-content');
+                if (!printableDiv) {
+                    return;
+                }
+                const html = printableDiv.innerHTML;
+                if (!html) {
+                    return;
+                }
+                const data = [{
+                    type: 'html',
+                    format: 'plain',
+                    data: html
+                }];
 
-//                 return qz.print(config, data);
-//             }).then(() => {
-//                 console.log("Bill print done");
-//             }).catch(err => {
-//                 alert("Bill print failed: " + err);
-//             });
+                return qz.print(config, data);
+            }).then(() => {
+                console.log("Bill print done");
+            }).catch(err => {
+                alert("Bill print failed: " + err);
+            });
 
-//             qz.printers.find(kitchenPrinterName).then(function(printer) {
-//                 const config = qz.configs.create(printer);
-//                 const printableDiv = document.getElementById('kitchen-print-content');
-//                 if (!printableDiv) {
-//                     return;
-//                 }
-//                 const html = printableDiv.innerHTML;
+            qz.printers.find(kitchenPrinterName).then(function(printer) {
+                const config = qz.configs.create(printer);
+                const printableDiv = document.getElementById('kitchen-print-content');
+                if (!printableDiv) {
+                    return;
+                }
+                const html = printableDiv.innerHTML;
 
-//                 const data = [{
-//                     type: 'html',
-//                     format: 'plain',
-//                     data: html
-//                 }];
+                const data = [{
+                    type: 'html',
+                    format: 'plain',
+                    data: html
+                }];
 
-//                 return qz.print(config, data);
-//             }).then(() => {
-//                 console.log("Kitchen print done");
-//             }).catch(err => {
-//                 alert("Kitchen print failed: " + err);
-//             });
-//         }
+                return qz.print(config, data);
+            }).then(() => {
+                console.log("Kitchen print done");
+            }).catch(err => {
+                alert("Kitchen print failed: " + err);
+            });
+        }
     </script>
 @endpush

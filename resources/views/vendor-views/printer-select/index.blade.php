@@ -31,7 +31,7 @@
                         </select>
                     </div>
 
-                    <div class="col-md-7">
+                    <div class="col-md-7 mt-3">
                         <label for="kitchenPrinter">Kitchen Printer</label>
                         <select id="kitchenPrinter" name="kitchenPrinter" class="form-control">
                             <option value="">-- Select Kitchen Printer --</option>

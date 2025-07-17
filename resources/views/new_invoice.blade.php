@@ -27,9 +27,9 @@
                 </div>
                 <div class="text-center pt-3 mb-3">
                     {{-- <h5 class="initial-38-3">{{ $order->restaurant->name }} | مالك البيتزا </h5> --}}
-                    <h5 class="initial-38-3">{{ $order->restaurant->name }} | الخليج بروستید تشیکن </h5>
+                    <h5 class="initial-38-3">{{ $order->restaurant->name }} | {{ config('invoice.restaurant_name') }} </h5>
                     <h5 class="text-break initial-38-4">
-                        {{ $order->restaurant->address }} | المصنعة
+                        {{ $order->restaurant->address }} | {{ config('invoice.branch_name') }}
                     </h5>
                     {{-- <h5 class="text-break initial-38-4">
                         المصنعة
@@ -493,7 +493,7 @@
                     {{ \App\Models\BusinessSetting::where(['key' => 'business_name'])->first()->value }}</div>
                 {{-- <div class="text-center">لطلب الطعام من مالك البيتزا </div> --}}
 
-                <div class="text-center"> الخليج بروستید تشیکن لطلب الطعام من</div>
+                <div class="text-center"> {{ config('invoice.slogan') }} </div>
 
                 <dd class="col-12 border-bottom-dashed my-2"></dd>
 

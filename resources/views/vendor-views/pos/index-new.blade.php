@@ -1596,114 +1596,58 @@
         const billPrinterName = @json($billPrinter);
         const kitchenPrinterName = @json($kitchenPrinter);
 
-        console.log(billPrinterName);
-        console.log(kitchenPrinterName);
+        // console.log(billPrinterName);
+        // console.log(kitchenPrinterName);
 
         document.addEventListener("DOMContentLoaded", function() {
 
-//             qz.security.setCertificatePromise(function(resolve, reject) {
-//                 resolve(`-----BEGIN CERTIFICATE-----
-// MIIDMTCCAhmgAwIBAgIJAL+v8d64VlbcMA0GCSqGSIb3DQEBCwUAMC8xCzAJBgNV
-// BAYTAlBLMQ8wDQYDVQQIDAZQdW5qYWIxDzANBgNVBAcMBkxhaG9yZTAeFw0yNTA3
-// MTYxMDQzMjNaFw0yNjA3MTYxMDQzMjNaMC8xCzAJBgNVBAYTAlBLMQ8wDQYDVQQI
-// DAZQdW5qYWIxDzANBgNVBAcMBkxhaG9yZTCCASIwDQYJKoZIhvcNAQEBBQADggEP
-// ADCCAQoCggEBALqslFvcBKkpAAqm/qOkPIB37kaEnt5HHZ5JmF9bVV3MyAHrg7cP
-// we6vRV2//UL7kRYK+8VSh/hkMbxedym7mLaysm6Mcdwglhe71R0YDDpajviB/grt
-// E4PkUGhm2ZopwbedE20lXMciBcVOFUYFE7+5FEvmyrqQF5EuA+YgU/CiioZVjoWk
-// HmNT91wV31x1bpYub8jlSgtT8zxU1PXrZp7vl2nrMvw4kMScqnqfxgHg8R5ENLL1
-// WpoyeeY+hud+AwL2N1I1Hd+ENqSxIG7xOpbmbspc3YxkDWumQD2JLM7y84VtlVdW
-// aUbpCH+TH7VfU2ILA/zK5q3W4R8NWm6gN4UCAwEAAaNQME4wHQYDVR0OBBYEFNwA
-// URSzXLpKCZ895xFwQdsXjqnPMB8GA1UdIwQYMBaAFNwAURSzXLpKCZ895xFwQdsX
-// jqnPMAwGA1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADggEBAAFnywVMgoR9mG9L
-// jEP9jW3Ye3jmwVMQOnphQ7DH45GyZE7TXTBBMdocJ92p+TlciDaHB8cimRCu670Z
-// E4BFa8B2kD9ab9EZlPthyC03r6FjYqLruAILyhB1BMmYwZPqL0IJddT7dr6AXsgS
-// J1mnJ8sVPt9Gc7d50lcPsmW7s48IQVZVdipos8Dz7qjwfWMpdG+nODC7N9s4Nscw
-// Iifpqp33+KnEPf1ERvnpByV1OhhVD4QbBgTUUA/s6LAW8qIStjbIoZ+Gh7T17A61
-// H/cujqli+Dk6SEgpqlABot2U9jogl/oiMtydGRKz7GHeP/VYKbvaC4BYIumRxph6
-// 1SZn8Zs=
-// -----END CERTIFICATE-----`);
-//             });
-
-//             qz.security.setSignatureAlgorithm("SHA512");
-
-//             qz.security.setSignaturePromise(function(toSign) {
-//                 return function(resolve, reject) {
-//                     fetch("/qz/sign", {
-//                             method: "POST",
-//                             headers: {
-//                                 "Content-Type": "application/json",
-//                                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
-//                                     .getAttribute('content')
-//                             },
-//                             body: JSON.stringify({
-//                                 data: toSign
-//                             })
-//                         })
-//                         .then(res => res.json())
-//                         .then(data => {
-//                             if (data.signature) {
-//                                 resolve(data.signature);
-//                             } else {
-//                                 reject("Invalid signature response");
-//                             }
-//                         })
-//                         .catch(err => reject(err));
-//                 };
-//             });
-
-
-// Set the certificate
-qz.security.setCertificatePromise(function (resolve, reject) {
-    console.log("🔐 Setting certificate...");
-    resolve(`-----BEGIN CERTIFICATE-----
-MIIDMTCCAhmgAwIBAgIJAL+v8d64VlbcMA0GCSqGSIb3DQEBCwUAMC8xCzAJBgNV
-BAYTAlBLMQ8wDQYDVQQIDAZQdW5qYWIxDzANBgNVBAcMBkxhaG9yZTAeFw0yNTA3
-... [REDACTED for brevity] ...
-1SZn8Zs=
------END CERTIFICATE-----`);
-});
-
-qz.security.setSignatureAlgorithm("SHA512");
-
-qz.security.setSignaturePromise(function (toSign) {
-    console.log("✍️  Signature request received:", toSign);
-    return function (resolve, reject) {
-        fetch("/qz/sign", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-            },
-            body: JSON.stringify({ data: toSign })
-        })
-            .then(res => {
-                console.log("📨 Signature response status:", res.status);
-                return res.json();
-            })
-            .then(data => {
-                console.log("✅ Signature response data:", data);
-                if (data.signature) {
-                    resolve(data.signature);
-                } else {
-                    console.error("❌ No signature in response");
-                    reject("Invalid signature response");
-                }
-            })
-            .catch(err => {
-                console.error("❌ Signature fetch error:", err);
-                reject(err);
+            // Set the certificate
+            qz.security.setCertificatePromise(function(resolve, reject) {
+                fetch('/qz/cert')
+                    .then(res => res.text())
+                    .then(resolve)
+                    .catch(reject);
             });
-    };
-});
 
+            qz.security.setSignatureAlgorithm("SHA512");
 
+            qz.security.setSignaturePromise(function(toSign) {
+                return function(resolve, reject) {
+                    fetch("/qz/sign", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                data: toSign
+                            })
+                        })
+                        .then(res => {
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data.signature) {
+                                resolve(data.signature);
+                            } else {
+                                console.error("❌ No signature in response");
+                                reject("Invalid signature response");
+                            }
+                        })
+                        .catch(err => {
+                            console.error("❌ Signature fetch error:", err);
+                            reject(err);
+                        });
+                };
+            });
 
 
             if (!qz.websocket.isActive()) {
                 qz.websocket.connect().then(() => {
                     initializePrinters();
                 }).catch(err => {
-                    alert("QZ Tray connection failed: " + err);
+                    console.log("QZ Tray connection failed: " + err);
                 });
             } else {
                 initializePrinters();

@@ -154,10 +154,10 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
                 'kitchen_print' => $kitchen,
             ]);
 
-            \DB::table('business_settings')->updateOrInsert(
-                ['key' => 'print_keys'],
-                ['value' => $value, 'updated_at' => now()]
-            );
+            $setting = \App\Models\BusinessSetting::firstOrNew(['key' => 'print_keys']);
+            $setting->value = $value;
+            $setting->updated_at = now();
+            $setting->save();
 
             return response()->json(['success' => true]);
         })->name('printer.settings.save');

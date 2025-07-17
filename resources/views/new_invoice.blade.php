@@ -29,7 +29,7 @@
                     {{-- <h5 class="initial-38-3">{{ $order->restaurant->name }} | مالك البيتزا </h5> --}}
                     <h5 class="initial-38-3">{{ $order->restaurant->name }} | {{ config('invoice.restaurant_name') }} </h5>
                     <h5 class="text-break initial-38-4">
-                        {{ $order->restaurant->address }} | {{ env('INVOICE_RESTAURANT_NAME') }}
+                        {{ $order->restaurant->address }} | {{ env('invoice.branch_name') }}
                     </h5>
                     {{-- <h5 class="text-break initial-38-4">
                         المصنعة

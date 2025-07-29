@@ -64,8 +64,6 @@ class CategoryController extends Controller
 
     function store(Request $request)
     {
-        $maxTranslationId = DB::table('translations')->max('id') ?? 0;
-        dd($maxTranslationId);
         $request->validate([
             'name' => 'required|unique:categories|max:100',
             'image' => 'nullable|max:2048',

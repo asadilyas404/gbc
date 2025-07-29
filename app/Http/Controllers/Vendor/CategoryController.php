@@ -17,7 +17,6 @@ class CategoryController extends Controller
     {
         $key = explode(' ', $request['search']) ?? null;
         $categories=Category::with('childes')->where(['position'=>0])->latest()
-
         ->when(isset($key) , function($query) use($key){
             $query->where(function ($q) use ($key) {
                 foreach ($key as $value) {
@@ -27,6 +26,9 @@ class CategoryController extends Controller
         })
 
         ->paginate(config('default_pagination'));
+
+dd($categories);
+
         return view('vendor-views.category.index',compact('categories'));
     }
 

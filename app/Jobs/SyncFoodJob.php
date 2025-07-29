@@ -187,26 +187,33 @@ class SyncFoodJob implements ShouldQueue
     }
 
     private function copyImageFromStorage(string $filename, string $folder = 'product/'): void
-    {
-        $imageSourceBase = env('image_source_base');
+{
+    $imageSourceBase = rtrim(env('image_source_base'), '/') . '/';
+    $relativePath = $folder . $filename;
 
-        $relativePath = $folder . $filename;
-        $source = $imageSourceBase . $relativePath;
-        $destination = public_path('storage/' . $relativePath);
+    $sourceUrl = $imageSourceBase . $relativePath;
+    $destinationPath = public_path('storage/' . $relativePath);
 
-        try {
-            Log::info("Looking for source image at: " . $source);
-            if (file_exists($source)) {
-                if (!file_exists(dirname($destination))) {
-                    mkdir(dirname($destination), 0755, true);
-                }
-                copy($source, $destination);
-            } else {
-                Log::warning("Image not found: {$relativePath}");
-            }
-        } catch (\Exception $e) {
-            Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
+    Log::info("Trying to sync image from: " . $sourceUrl);
+
+    try {
+        if (!file_exists(dirname($destinationPath))) {
+            mkdir(dirname($destinationPath), 0755, true);
         }
+
+        $imageData = @file_get_contents($sourceUrl);
+        if ($imageData === false) {
+            // Log::warning("Image not found or failed to fetch: {$sourceUrl}");
+            return;
+        }
+
+        file_put_contents($destinationPath, $imageData);
+        // Log::info("Image copied to: " . $destinationPath);
+
+    } catch (\Exception $e) {
+        Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
     }
+}
+
 
 }

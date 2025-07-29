@@ -146,9 +146,6 @@ class CategoryController extends Controller
 
     public function update(Request $request, $id)
     {
-
-        $maxTranslationId = DB::table('translations')->max('id') ?? 0;
-        dd($maxTranslationId);
         $request->validate([
             'name' => 'required|max:100|unique:categories,name,' . $id,
             'image' => 'nullable|max:2048',
@@ -170,35 +167,47 @@ class CategoryController extends Controller
 
         $default_lang = str_replace('_', '-', app()->getLocale());
 
+        $maxTranslationId = DB::table('translations')->max('id') ?? 0;
+
         foreach ($request->lang as $index => $key) {
+            $shouldInsert = false;
+            $value = null;
 
             if ($default_lang == $key && !($request->name[$index])) {
                 if (isset($category->name) && $key != 'default') {
-                    Translation::updateOrInsert(
-                        [
-                            'translationable_type' => 'App\Models\Category',
-                            'translationable_id' => $category->id,
-                            'locale' => $key,
-                            'key' => 'name'
-                        ],
-                        ['value' => $category->name]
-                    );
+                    $value = $category->name;
+                    $shouldInsert = true;
                 }
-            } else {
+            } elseif ($request->name[$index] && $key != 'default') {
+                $value = $request->name[$index];
+                $shouldInsert = true;
+            }
 
-                if ($request->name[$index] && $key != 'default') {
-                    Translation::updateOrInsert(
-                        [
-                            'translationable_type' => 'App\Models\Category',
-                            'translationable_id' => $category->id,
-                            'locale' => $key,
-                            'key' => 'name'
-                        ],
-                        ['value' => $request->name[$index]]
-                    );
+            if ($shouldInsert) {
+                $existing = Translation::where([
+                    'translationable_type' => 'App\Models\Category',
+                    'translationable_id' => $category->id,
+                    'locale' => $key,
+                    'key' => 'name',
+                ])->first();
+
+                if ($existing) {
+                    $existing->value = $value;
+                    $existing->save();
+                } else {
+                    $maxTranslationId++;
+                    Translation::create([
+                        'id' => $maxTranslationId,
+                        'translationable_type' => 'App\Models\Category',
+                        'translationable_id' => $category->id,
+                        'locale' => $key,
+                        'key' => 'name',
+                        'value' => $value,
+                    ]);
                 }
             }
         }
+
         if ($category->parent_id == 0) {
             Toastr::success(translate('messages.category_updated_successfully'));
         } else {

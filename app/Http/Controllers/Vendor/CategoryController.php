@@ -27,6 +27,8 @@ class CategoryController extends Controller
 
             ->paginate(config('default_pagination'));
 
+        dd($categories);
+
         return view('vendor-views.category.index', compact('categories'));
     }
 

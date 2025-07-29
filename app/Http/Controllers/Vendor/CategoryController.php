@@ -27,7 +27,6 @@ class CategoryController extends Controller
 
             ->paginate(config('default_pagination'));
 
-        dd($categories);
 
         return view('vendor-views.category.index', compact('categories'));
     }
@@ -58,6 +57,8 @@ class CategoryController extends Controller
 
     function store(Request $request)
     {
+        $maxTranslationId = DB::table('translations')->max('id') ?? 0;
+        dd($maxTranslationId);
         $request->validate([
             'name' => 'required|unique:categories|max:100',
             'image' => 'nullable|max:2048',

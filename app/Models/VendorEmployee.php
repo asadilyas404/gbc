@@ -13,6 +13,7 @@ class VendorEmployee extends Authenticatable
 
     public $incrementing = false;
     protected $primaryKey = 'id';
+    protected $table = 'users';
 
     protected $hidden = [
         'password',

@@ -14,7 +14,7 @@
             <div class="text-center">
                 <input type="button" class="btn text-white btn--primary non-printable print-Div"
                     value="{{ translate('messages.Proceed_If_thermal_printer_is_ready.') }}" />
-                <button onclick="directPrint()" class="btn btn--warning text-white non-printable">Direct Print</button>
+                {{-- <button onclick="directPrint()" class="btn btn--warning text-white non-printable">Direct Print</button> --}}
                 <a href="{{ url()->previous() }}"
                     class="btn btn-danger non-printable">{{ translate('messages.back') }}</a>
             </div>

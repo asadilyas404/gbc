@@ -53,70 +53,115 @@
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
     <script>
-document.addEventListener('DOMContentLoaded', function () {
-    // Connect QZ Tray first
-    qz.websocket.connect().then(() => {
-        loadPrinters();
-    }).catch(err => {
-        alert('QZ Tray connection failed: ' + err);
-    });
+        document.addEventListener('DOMContentLoaded', function() {
 
-    // Load available printers and preselect saved ones
-    function loadPrinters() {
-        qz.printers.find().then(function(printers) {
-            const billSelect = document.getElementById('billPrinter');
-            const kitchenSelect = document.getElementById('kitchenPrinter');
-
-            // Clear previous options
-            billSelect.innerHTML = `<option value="">-- Select Bill Printer --</option>`;
-            kitchenSelect.innerHTML = `<option value="">-- Select Kitchen Printer --</option>`;
-
-            // Populate options
-            printers.forEach(function (printer) {
-                billSelect.innerHTML += `<option value="${printer}">${printer}</option>`;
-                kitchenSelect.innerHTML += `<option value="${printer}">${printer}</option>`;
+            // Set the certificate
+            qz.security.setCertificatePromise(function(resolve, reject) {
+                fetch('/qz/cert')
+                    .then(res => res.text())
+                    .then(resolve)
+                    .catch(reject);
             });
 
-            // Load already saved printer values via AJAX
-            fetch("{{ route('vendor.printer.settings') }}")
-                .then(res => res.json())
-                .then(data => {
-                    if (data.bill_print) {
-                        billSelect.value = data.bill_print;
-                    }
-                    if (data.kitchen_print) {
-                        kitchenSelect.value = data.kitchen_print;
-                    }
+            qz.security.setSignatureAlgorithm("SHA512");
+
+            qz.security.setSignaturePromise(function(toSign) {
+                return function(resolve, reject) {
+                    fetch("/qz/sign", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+                                    .getAttribute('content')
+                            },
+                            body: JSON.stringify({
+                                data: toSign
+                            })
+                        })
+                        .then(res => {
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (data.signature) {
+                                resolve(data.signature);
+                            } else {
+                                console.error("❌ No signature in response");
+                                reject("Invalid signature response");
+                            }
+                        })
+                        .catch(err => {
+                            console.error("❌ Signature fetch error:", err);
+                            reject(err);
+                        });
+                };
+            });
+
+
+            if (!qz.websocket.isActive()) {
+                qz.websocket.connect().then(() => {
+                    loadPrinters();
+                }).catch(err => {
+                    console.log("QZ Tray connection failed: " + err);
                 });
-        });
-    }
-
-    // Handle form submit
-    document.getElementById('printer-settings-form').addEventListener('submit', function (e) {
-        e.preventDefault();
-        const formData = new FormData(this);
-
-        fetch("{{ route('vendor.printer.settings.save') }}", {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': formData.get('_token')
-            },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                alert('Printers saved successfully!');
             } else {
-                alert('Failed to save printers.');
+                loadPrinters();
             }
-        })
-        .catch(error => {
-            console.error(error);
-            alert('Error occurred while saving printers.');
-        });
-    });
-});
-</script>
 
+            // Load available printers and preselect saved ones
+            function loadPrinters() {
+                qz.printers.find().then(function(printers) {
+                    const billSelect = document.getElementById('billPrinter');
+                    const kitchenSelect = document.getElementById('kitchenPrinter');
+
+                    // Clear previous options
+                    billSelect.innerHTML = `<option value="">-- Select Bill Printer --</option>`;
+                    kitchenSelect.innerHTML = `<option value="">-- Select Kitchen Printer --</option>`;
+
+                    // Populate options
+                    printers.forEach(function(printer) {
+                        billSelect.innerHTML += `<option value="${printer}">${printer}</option>`;
+                        kitchenSelect.innerHTML += `<option value="${printer}">${printer}</option>`;
+                    });
+
+                    // Load already saved printer values via AJAX
+                    fetch("{{ route('vendor.printer.settings') }}")
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.bill_print) {
+                                billSelect.value = data.bill_print;
+                            }
+                            if (data.kitchen_print) {
+                                kitchenSelect.value = data.kitchen_print;
+                            }
+                        });
+                });
+            }
+
+            // Handle form submit
+            document.getElementById('printer-settings-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+
+                fetch("{{ route('vendor.printer.settings.save') }}", {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': formData.get('_token')
+                        },
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Printers saved successfully!');
+                        } else {
+                            alert('Failed to save printers.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Error occurred while saving printers.');
+                    });
+            });
+        });
+    </script>
 @endpush

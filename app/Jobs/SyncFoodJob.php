@@ -194,7 +194,7 @@ class SyncFoodJob implements ShouldQueue
     $sourceUrl = $imageSourceBase . $relativePath;
     $destinationPath = public_path('storage/' . $relativePath);
 
-    Log::info("Trying to sync image from: " . $sourceUrl);
+    // Log::info("Trying to sync image from: " . $sourceUrl);
 
     try {
         if (!file_exists(dirname($destinationPath))) {

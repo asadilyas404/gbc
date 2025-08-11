@@ -89,10 +89,15 @@ class CategoryController extends Controller
         $data = [];
         $default_lang = str_replace('_', '-', app()->getLocale());
 
+        $maxTranslationId = DB::table('translations')->max('id') ?? 0;
+
         foreach ($request->lang as $index => $key) {
+            $maxTranslationId++;
+
             if ($default_lang == $key && !($request->name[$index])) {
                 if ($key != 'default') {
                     array_push($data, array(
+                        'id' => $maxTranslationId,
                         'translationable_type' => 'App\Models\Category',
                         'translationable_id' => $category->id,
                         'locale' => $key,
@@ -103,6 +108,7 @@ class CategoryController extends Controller
             } else {
                 if ($request->name[$index] && $key != 'default') {
                     array_push($data, array(
+                        'id' => $maxTranslationId,
                         'translationable_type' => 'App\Models\Category',
                         'translationable_id' => $category->id,
                         'locale' => $key,
@@ -167,32 +173,43 @@ class CategoryController extends Controller
 
         $default_lang = str_replace('_', '-', app()->getLocale());
 
+        $maxTranslationId = DB::table('translations')->max('id') ?? 0;
+
         foreach ($request->lang as $index => $key) {
+            $shouldInsert = false;
+            $value = null;
 
             if ($default_lang == $key && !($request->name[$index])) {
                 if (isset($category->name) && $key != 'default') {
-                    Translation::updateOrInsert(
-                        [
-                            'translationable_type' => 'App\Models\Category',
-                            'translationable_id' => $category->id,
-                            'locale' => $key,
-                            'key' => 'name'
-                        ],
-                        ['value' => $category->name]
-                    );
+                    $value = $category->name;
+                    $shouldInsert = true;
                 }
-            } else {
+            } elseif ($request->name[$index] && $key != 'default') {
+                $value = $request->name[$index];
+                $shouldInsert = true;
+            }
 
-                if ($request->name[$index] && $key != 'default') {
-                    Translation::updateOrInsert(
-                        [
-                            'translationable_type' => 'App\Models\Category',
-                            'translationable_id' => $category->id,
-                            'locale' => $key,
-                            'key' => 'name'
-                        ],
-                        ['value' => $request->name[$index]]
-                    );
+            if ($shouldInsert) {
+                $existing = Translation::where([
+                    'translationable_type' => 'App\Models\Category',
+                    'translationable_id' => $category->id,
+                    'locale' => $key,
+                    'key' => 'name',
+                ])->first();
+
+                if ($existing) {
+                    $existing->value = $value;
+                    $existing->save();
+                } else {
+                    $maxTranslationId++;
+                    Translation::create([
+                        'id' => $maxTranslationId,
+                        'translationable_type' => 'App\Models\Category',
+                        'translationable_id' => $category->id,
+                        'locale' => $key,
+                        'key' => 'name',
+                        'value' => $value,
+                    ]);
                 }
             }
         }
@@ -233,11 +250,11 @@ class CategoryController extends Controller
                 $data = $category->position == 0 ? translate('messages.main') : translate('messages.sub');
                 return [
                     'id' => $category->id,
-                    'text' => $category->name . ' (' .  $data   . ')',
+                    'text' => $category->name . ' (' . $data . ')',
                 ];
             });
 
-        $data[] = (object)['id' => 'all', 'text' => 'All'];
+        $data[] = (object) ['id' => 'all', 'text' => 'All'];
 
         return response()->json($data);
     }
@@ -333,7 +350,7 @@ class CategoryController extends Controller
                     'parent_id' => $parent_id,
                     'position' => $collection['Position'],
                     'priority' => is_numeric($collection['Priority']) ? $collection['Priority'] : 0,
-                    'status' => $collection['Status']  == 'active' ? 1 : 0,
+                    'status' => $collection['Status'] == 'active' ? 1 : 0,
                     'updated_at' => now()
                 ]);
             }

@@ -442,17 +442,13 @@
                             <div class="row g-2">
                                 <div class="col-md-12">
                                     <div id="add_new_option">
-                                        @if (isset($product->variations))
-                                            @foreach (json_decode($product->variations, true) as $key_choice_options => $item)
-
+                                        @php($prefill = isset($variationsPayload) && count($variationsPayload) ? $variationsPayload : (isset($product->variations) ? json_decode($product->variations, true) : []))
+                                        @if (!empty($prefill))
+                                            @foreach ($prefill as $key_choice_options => $item)
                                                 @if (isset($item['price']))
                                                     @break
-
                                                 @else
-                                                    @include(
-                                                        'vendor-views.product.partials._new_variations',
-                                                        ['item' => $item, 'key' => $key_choice_options + 1]
-                                                    )
+                                                    @include('vendor-views.product.partials._new_variations', ['item' => $item, 'key' => $key_choice_options + 1])
                                                 @endif
                                             @endforeach
                                         @endif

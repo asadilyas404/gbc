@@ -315,8 +315,40 @@ class FoodController extends Controller
         $product_category = json_decode($product->category_ids);
         $categories = Category::where(['parent_id' => 0])->get();
         $optionList = DB::table('options_list')->get();
-        // dd($product->variations);
-        return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList'));
+
+        // Build variations payload from normalized tables for edit view
+        $variationsPayload = [];
+        $dbVariations = Variation::where('food_id', $product->id)->orderBy('id')->get();
+        if ($dbVariations->count() > 0) {
+            foreach ($dbVariations as $v) {
+                $entry = [
+                    'variation_id' => $v->id,
+                    'name' => $v->name,
+                    'type' => $v->type,
+                    'min' => $v->min,
+                    'max' => $v->max,
+                    'required' => $v->is_required ? 'on' : 'off',
+                    'values' => [],
+                ];
+                $dbOptions = VariationOption::where('food_id', $product->id)
+                    ->where('variation_id', $v->id)
+                    ->orderBy('id')
+                    ->get();
+                foreach ($dbOptions as $opt) {
+                    $entry['values'][] = [
+                        'option_id' => $opt->id,
+                        'label' => $opt->option_name,
+                        'options_list_id' => $opt->options_list_id,
+                        'optionPrice' => $opt->option_price,
+                        'total_stock' => $opt->total_stock,
+                        'current_stock' => $opt->total_stock,
+                    ];
+                }
+                $variationsPayload[] = $entry;
+            }
+        }
+
+        return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload'));
     }
 
     public function status(Request $request)

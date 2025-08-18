@@ -35,7 +35,8 @@ class FoodController extends Controller
             return back();
         }
         $categories = Category::where(['position' => 0])->get();
-        return view('vendor-views.product.index', compact('categories'));
+        $optionList = DB::table('options_list')->get();
+        return view('vendor-views.product.index', compact('categories', 'optionList'));
     }
 
     public function store(Request $request)

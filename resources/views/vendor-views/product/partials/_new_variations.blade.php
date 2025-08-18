@@ -93,6 +93,17 @@
                                         value="{{ $value['label'] }}">
                                 </div>
                                 <div class="col-md-3 col-sm-6">
+                                    <label for="">Option List Name &nbsp;<span class="form-label-secondary text-danger"
+                                    data-toggle="tooltip" data-placement="right"
+                                    data-original-title="{{ translate('messages.Required.') }}"> *
+                                    </span></label>
+                                    <select name="options[{{ $key }}][values][{{ $key_value }}][options_list_id]" id="" class="form-control js-select2-custom">
+                                        @foreach ($optionList as $options)
+                                            <option {{ $options->id == $value['options_list_id'] ? 'selected' : '' }} value="{{ $options->id }}">{{ $options->name }}</option>
+                                        @endforeach
+                                        </select>
+                                                </div>
+                                <div class="col-md-3 col-sm-6">
                                     <label for="">{{ translate('Additional_price') }} &nbsp;<span
                                             class="form-label-secondary text-danger" data-toggle="tooltip"
                                             data-placement="right"

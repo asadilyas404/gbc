@@ -619,7 +619,7 @@
                                     </span></label>
                                     <select name="options[` +count +`][values][0][optionListId]" id="" class="form-control js-select2-custom">
                                         @foreach ($optionList as $options)
-                                            <option {{ $options->id == options[` +count +`][values][0][options_list_id] ? 'selected' : '' }} value="{{ $options->id }}">{{ $options->name }}</option>
+                                            <option value="{{ $options->id }}">{{ $options->name }}</option>
                                         @endforeach
                                         </select>
                                                 </div>
@@ -675,6 +675,17 @@
                         <input class="form-control" required type="text" name="options[` + data + `][values][` +
                 countRow + `][label]" id="">
                     </div>
+                    <div class="col-md-3 col-sm-5">
+                        <label for="">Option List Name &nbsp;<span class="form-label-secondary text-danger"
+                                    data-toggle="tooltip" data-placement="right"
+                                    data-original-title="{{ translate('messages.Required.') }}"> *
+                                    </span></label>
+                                    <select name="options[` +count +`][values][0][options_list_id]" id="" class="form-control js-select2-custom">
+                                        @foreach ($optionList as $options)
+                                            <option value="{{ $options->id }}">{{ $options->name }}</option>
+                                        @endforeach
+                                        </select>
+                                                </div>
                     <div class="col-md-3 col-sm-5">
                         <label for="">{{ translate('Additional_price') }}  &nbsp;<span class="form-label-secondary text-danger"
                                 data-toggle="tooltip" data-placement="right"

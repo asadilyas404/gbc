@@ -444,9 +444,8 @@
                                     <div id="add_new_option">
                                         @if (isset($product->variations))
                                             @foreach (json_decode($product->variations, true) as $key_choice_options => $item)
-                                            @php
-                                                dd($item);
-                                            @endphp
+                                            @php(dd($item));
+
                                                 @if (isset($item['price']))
                                                     @break
 

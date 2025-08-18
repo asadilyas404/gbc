@@ -804,15 +804,26 @@
                 <div class="col-md-3 col-sm-5">
                         <label for="">{{ translate('Option_name') }}  &nbsp;<span class="form-label-secondary text-danger"
                                 data-toggle="tooltip" data-placement="right"
-                                data-original-title="{{ translate('messages.Required.')}}"> *
+                                data-original-title="{{ translate('messages.Required.') }}"> *
                                 </span></label>
                         <input class="form-control" required type="text" name="options[` + data + `][values][` +
                 countRow + `][label]" id="">
                     </div>
                     <div class="col-md-3 col-sm-5">
+                        <label for="">Option List Name &nbsp;<span class="form-label-secondary text-danger"
+                                data-toggle="tooltip" data-placement="right"
+                                data-original-title="{{ translate('messages.Required.') }}"> *
+                                </span></label>
+                        <select name="options[` + data + `][values][` + countRow + `][options_list_id]" id="" class="form-control js-select2-custom">
+                            @foreach ($optionList as $options)
+                                <option value="{{ $options->id }}">{{ $options->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3 col-sm-5">
                         <label for="">{{ translate('Additional_price') }}  &nbsp;<span class="form-label-secondary text-danger"
                                 data-toggle="tooltip" data-placement="right"
-                                data-original-title="{{ translate('messages.Required.')}}"> *
+                                data-original-title="{{ translate('messages.Required.') }}"> *
                                 </span></label>
                         <input class="form-control"  required type="number" min="0" step="0.01" name="options[` +
                         data +

@@ -444,7 +444,6 @@
                                     <div id="add_new_option">
                                         @if (isset($product->variations))
                                             @foreach (json_decode($product->variations, true) as $key_choice_options => $item)
-                                            @php(dd($item));
 
                                                 @if (isset($item['price']))
                                                     @break
@@ -682,7 +681,7 @@
                                     data-toggle="tooltip" data-placement="right"
                                     data-original-title="{{ translate('messages.Required.') }}"> *
                                     </span></label>
-                                    <select name="options[` +count +`][values][0][options_list_id]" id="" class="form-control js-select2-custom">
+                                    <select name="options[` + data + `][values][` + countRow + `][options_list_id]" id="" class="form-control js-select2-custom">
                                         @foreach ($optionList as $options)
                                             <option value="{{ $options->id }}">{{ $options->name }}</option>
                                         @endforeach

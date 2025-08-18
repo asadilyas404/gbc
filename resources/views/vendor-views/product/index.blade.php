@@ -919,6 +919,17 @@
                     countRow + `][label]" id="">
                         </div>
                         <div class="col-md-3 col-sm-5">
+                            <label for="">Option List Name &nbsp;<span class="form-label-secondary text-danger"
+                                    data-toggle="tooltip" data-placement="right"
+                                    data-original-title="{{ translate('messages.Required.') }}"> *
+                                    </span></label>
+                            <select name="options[` + data + `][values][` + countRow + `][options_list_id]" id="" class="form-control js-select2-custom">
+                                @foreach ($optionList as $options)
+                                    <option value="{{ $options->id }}">{{ $options->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-3 col-sm-5">
                             <label for="">{{ translate('Additional_price') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})&nbsp;<span class="form-label-secondary text-danger"
                                     data-toggle="tooltip" data-placement="right"
                                     data-original-title="{{ translate('messages.Required.') }}"> *

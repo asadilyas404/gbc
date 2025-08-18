@@ -99,7 +99,7 @@
                                     </span></label>
                                     <select name="options[{{ $key }}][values][{{ $key_value }}][options_list_id]" id="" class="form-control js-select2-custom">
                                         @foreach ($optionList as $options)
-                                            <option {{ $options->id == $value['options_list_id'] ? 'selected' : '' }} value="{{ $options->id }}">{{ $options->name }}</option>
+                                            <option {{ $options->id == (isset($value['options_list_id']) ? $value['options_list_id'] : null) ? 'selected' : '' }} value="{{ $options->id }}">{{ $options->name }}</option>
                                         @endforeach
                                         </select>
                                                 </div>

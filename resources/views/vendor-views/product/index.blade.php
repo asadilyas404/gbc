@@ -864,11 +864,11 @@
                                                 </div>
 
 <div class="col-md-3 col-sm-6">
-                                                    <label for="">{{ translate('Option List Name') }} &nbsp;<span class="form-label-secondary text-danger"
+                                                    <label for="">Option List Name &nbsp;<span class="form-label-secondary text-danger"
                                     data-toggle="tooltip" data-placement="right"
                                     data-original-title="{{ translate('messages.Required.') }}"> *
                                     </span></label>
-                                    <select name="options[` +count +`][values][0][optionListId]" id="" class="form-control js-select2-custom">
+                                    <select name="options[` +count +`][values][0][options_list_id]" id="" class="form-control js-select2-custom">
                                         @foreach ($optionList as $options)
                                             <option value="{{ $options->id }}">{{ $options->name }}</option>
                                         @endforeach

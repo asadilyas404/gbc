@@ -276,6 +276,7 @@ class FoodController extends Controller
                         $VariationOption->food_id = $food->id;
                         $VariationOption->variation_id = $variation->id;
                         $VariationOption->option_name = $value['label'];
+                        $VariationOption->options_list_id = $value['options_list_id'];
                         $VariationOption->option_price = $value['optionPrice'];
                         $VariationOption->stock_type = $request->stock_type ?? 'unlimited';
                         $VariationOption->total_stock = data_get($value, 'total_stock') == null || $VariationOption->stock_type == 'unlimited' ? 0 : data_get($value, 'total_stock');
@@ -313,7 +314,8 @@ class FoodController extends Controller
         $product = Food::withoutGlobalScope('translate')->findOrFail($id);
         $product_category = json_decode($product->category_ids);
         $categories = Category::where(['parent_id' => 0])->get();
-        return view('vendor-views.product.edit', compact('product', 'product_category', 'categories'));
+        $optionList = DB::table('options_list')->get();
+        return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList'));
     }
 
     public function status(Request $request)
@@ -505,6 +507,7 @@ class FoodController extends Controller
                     }
                     if ($v) {
                         $v->option_name = $value['label'];
+                        $v->options_list_id = $value['options_list_id'];
                         $v->option_price = $value['optionPrice'];
                         $v->total_stock = data_get($value, 'total_stock') == null ||  $request->stock_type == 'unlimited' ? 0 : data_get($value, 'total_stock');
                         $v->stock_type = $request->stock_type ?? 'unlimited';
@@ -515,6 +518,7 @@ class FoodController extends Controller
                             "food_id" => $p->id,
                             "variation_id" => $variation->id,
                             "option_name" => $value['label'],
+                            "options_list_id" => $value['options_list_id'],
                             "option_price" => $value['optionPrice'],
                             "total_stock" => data_get($value, 'total_stock') == null ||  $request->stock_type == 'unlimited' ? 0 : data_get($value, 'total_stock'),
                             "stock_type" => $request->stock_type ?? 'unlimited',

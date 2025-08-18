@@ -315,6 +315,7 @@ class FoodController extends Controller
         $product_category = json_decode($product->category_ids);
         $categories = Category::where(['parent_id' => 0])->get();
         $optionList = DB::table('options_list')->get();
+        dd($product->variations);
         return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList'));
     }
 

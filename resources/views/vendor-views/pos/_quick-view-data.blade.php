@@ -100,6 +100,8 @@
                         </div>
                     </div>
 
+                                    @php(dd($product->variations));
+
                     @foreach (json_decode($product->variations) as $key => $choice)
                         @if (isset($choice->price) == false)
                             <div class="h3 p-0 pt-2">{{ $choice->name }} <small class="text-muted fs-12">

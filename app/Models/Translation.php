@@ -7,19 +7,31 @@ use Illuminate\Database\Eloquent\Model;
 
 class Translation extends Model
 {
-    // Use default Laravel behavior: auto-increment integer primary key `id`
-    // and manage timestamps according to the migration definition.
     protected $primaryKey = 'id';
-    public $incrementing = true;
+    public $incrementing = false; // manual incrementing for Oracle compatibility
+    protected $keyType = 'int';
     public $timestamps = true;
 
     protected $fillable = [
+        'id',
         'translationable_type',
         'translationable_id',
         'locale',
         'key',
         'value',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function (self $model) {
+            if (empty($model->id)) {
+                $maxExistingId = (int) static::max('id');
+                $model->id = $maxExistingId > 0 ? $maxExistingId + 1 : 1;
+            }
+        });
+    }
 
     protected $casts = [
         'translationable_id' => 'integer',

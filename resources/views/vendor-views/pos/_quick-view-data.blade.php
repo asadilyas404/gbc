@@ -148,6 +148,7 @@
                     @endforeach --}}
 
                                 <div class="d-flex justify-content-left flex-wrap">
+                                    @php(dd($choice->values));
                                     @foreach ($choice->values as $k => $option)
                                         <div class="flex-column pb-2">
                                             <input

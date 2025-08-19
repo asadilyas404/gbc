@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Translation extends Model
 {
-    public $incrementing = false;
+    // Use default Laravel behavior: auto-increment integer primary key `id`
+    // and manage timestamps according to the migration definition.
     protected $primaryKey = 'id';
-    public $timestamps = false;
+    public $incrementing = true;
+    public $timestamps = true;
 
     protected $fillable = [
-        'id',
         'translationable_type',
         'translationable_id',
         'locale',

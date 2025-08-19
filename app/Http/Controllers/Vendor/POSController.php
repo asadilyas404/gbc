@@ -138,7 +138,7 @@ class POSController extends Controller
     public function quick_view(Request $request)
     {
         $product = Food::findOrFail($request->product_id);
-        dd($product);
+        // dd($product);
         return response()->json([
             'success' => 1,
             'view' => view('vendor-views.pos._quick-view-data', compact('product'))->render(),

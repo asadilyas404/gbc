@@ -1,6 +1,7 @@
 @php
 use App\CentralLogics\Helpers;
 use App\Models\AddOn;
+use App\Models\OptionsList;
 use App\Scopes\RestaurantScope;
 @endphp
 <div class="initial-49">
@@ -133,7 +134,11 @@ use App\Scopes\RestaurantScope;
                                 <label
                                     class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? 'stock_out text-muted' : 'text-dark' }}"
                                     for="choice-option-{{ $key }}-{{ $k }}">
-                                    {{ Str::limit($option->label, 20, '...') }}
+                                    @if(isset($option->options_list_id) && $option->options_list_id)
+                                        {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 20, '...') }}
+                                    @else
+                                        {{ Str::limit($option->label, 20, '...') }}
+                                    @endif
                                     <br>
                                     {{ Helpers::format_currency(data_get($option, 'optionPrice')) }}
                                     <span

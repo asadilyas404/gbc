@@ -1,6 +1,7 @@
 @php
     use App\CentralLogics\Helpers;
     use App\Models\AddOn;
+    use App\Models\OptionsList;
 @endphp
 <div class="initial-49">
     <div class="modal-header p-0">
@@ -138,19 +139,23 @@
                                                 value="{{ $option->label }}"
                                                 {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'disabled' : '' }}
                                                 autocomplete="off">
-                                            <label
-                                                class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out text-muted' : 'text-dark' }}"
-                                                for="choice-option-{{ $key }}-{{ $k }}">
-                                                {{ Str::limit($option->label, 20, '...') }}
-                                                <br>
-                                                {{ Helpers::format_currency(data_get($option, 'optionPrice')) }}
-                                                <span
-                                                    class="input-label-secondary text--title text--warning {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? '' : 'd-none' }}"
-                                                    title="{{ translate('Currently_you_need_to_manage_discount_with_the_Restaurant.') }}">
-                                                    <i class="tio-info-outlined"></i>
-                                                    <small>{{ translate('stock_out') }}</small>
-                                                </span>
-                                            </label>
+                                                                            <label
+                                    class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out text-muted' : 'text-dark' }}"
+                                    for="choice-option-{{ $key }}-{{ $k }}">
+                                    @if(isset($option->options_list_id) && $option->options_list_id)
+                                        {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 20, '...') }}
+                                    @else
+                                        {{ Str::limit($option->label, 20, '...') }}
+                                    @endif
+                                    <br>
+                                    {{ Helpers::format_currency(data_get($option, 'optionPrice')) }}
+                                    <span
+                                        class="input-label-secondary text--title text--warning {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? '' : 'd-none' }}"
+                                        title="{{ translate('Currently_you_need_to_manage_discount_with_the_Restaurant.') }}">
+                                        <i class="tio-info-outlined"></i>
+                                        <small>{{ translate('stock_out') }}</small>
+                                    </span>
+                                </label>
                                             @if ($choice->type == 'multi')
                                                 <label
                                                     class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"

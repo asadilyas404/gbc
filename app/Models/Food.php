@@ -331,6 +331,7 @@ class Food extends Model
                                 "stock_type" => $option['stock_type'],
                                 "sell_count" =>(string) $option['sell_count'],
                                 "option_id" => (int) $option['id'],
+                                "options_list_id" => $option['options_list_id'],
                                 "current_stock" => (int)   ($current_stock == 'unlimited' ? 0 : ($current_stock > 0 ? $current_stock : 0)),
                             ];
                         }

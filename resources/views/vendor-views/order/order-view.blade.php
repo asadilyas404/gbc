@@ -4,6 +4,8 @@
     if ($order->delivery_address) {
         $c_address = json_decode($order->delivery_address, true);
     }
+
+    use App\Models\OptionsList;
 @endphp
 
 
@@ -346,7 +348,8 @@
                                                                                 </span>
                                                                                 @foreach ($variation['values'] as $value)
                                                                                     <span class="d-block text-capitalize">
-                                                                                        &nbsp; &nbsp; {{ $value['label'] }}
+                                                                                        &nbsp; &nbsp; {{
+                                                                                            OptionsList::find($value['options_list_id'])->name ?? ''}}
                                                                                         :
                                                                                         <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
                                                                                     </span>

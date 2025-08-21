@@ -1,4 +1,6 @@
 @php
+    use App\Models\OptionsList;
+
     // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
     $printer = null;
 
@@ -208,7 +210,7 @@
                                                     </span>
                                                     @foreach ($variation['values'] as $value)
                                                         <span class="d-block text-capitalize">
-                                                            &nbsp; &nbsp; {{ $value['label'] }} :
+                                                            &nbsp; &nbsp; {{ OptionsList::find($value['options_list_id'])->name ?? '' }} :
                                                             <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
                                                         </span>
                                                     @endforeach
@@ -276,7 +278,7 @@
                                                     </span>
                                                     @foreach ($variation['values'] as $value)
                                                         <span class="d-block text-capitalize">
-                                                            &nbsp; &nbsp; {{ $value['label'] }} :
+                                                            &nbsp; &nbsp; {{ OptionsList::find($value['options_list_id'])->name ?? '' }} :
                                                             <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
                                                         </span>
                                                     @endforeach

@@ -135,7 +135,7 @@
                                                 type="{{ $choice->type == 'multi' ? 'checkbox' : 'radio' }}"
                                                 id="choice-option-{{ $key }}-{{ $k }}"
                                                 data-option_id="{{ data_get($option, 'option_id') }}"
-                                                name="variations[{{ $key }}][values][name][]"
+                                                name="variations[{{ $key }}][values][label][]"
                                                 value="{{ isset($option->options_list_id) && $option->options_list_id ? OptionsList::find($option->options_list_id)->name : 'Option' }}"
                                                 {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'disabled' : '' }}
                                                 autocomplete="off">

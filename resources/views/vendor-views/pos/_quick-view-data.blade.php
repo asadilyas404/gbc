@@ -100,7 +100,7 @@
                         </div>
                     </div>
 
-                                    @php(dd($product->variations));
+                                    {{-- @php(dd($product->variations)); --}}
 
                     @foreach (json_decode($product->variations) as $key => $choice)
                         @if (isset($choice->price) == false)
@@ -124,30 +124,6 @@
                                     value="{{ $choice->required }}">
                                 <input type="hidden" name="variations[{{ $key }}][name]"
                                     value="{{ $choice->name }}">
-                                {{-- @foreach ($choice->values as $k => $option)
-                        <div class="form-check form--check d-flex pr-5 mr-6">
-                            <input
-                                class="form-check-input input-element {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? 'stock_out' : '' }}"
-                        type="{{ $choice->type == 'multi' ? 'checkbox' : 'radio' }}"
-                        id="choice-option-{{ $key }}-{{ $k }}"
-                        data-option_id="{{ data_get($option, 'option_id') }}"
-                        name="variations[{{ $key }}][values][label][]" value="{{ $option->label }}"
-                        {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? 'disabled' : '' }} autocomplete="off">
-
-                        <label
-                            class="form-check-label  {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? 'stock_out text-muted' : 'text-dark' }}"
-                            for="choice-option-{{ $key }}-{{ $k }}">{{ Str::limit($option->label, 20, '...') }}
-                            &nbsp;
-                            <span
-                                class="input-label-secondary text--title text--warning {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? '' : 'd-none' }}"
-                                title="{{ translate('Currently_you_need_to_manage_discount_with_the_Restaurant.') }}">
-                                <i class="tio-info-outined"></i>
-                                <small>{{ translate('stock_out') }}</small>
-                            </span>
-                        </label>
-                        <span class="ml-auto">{{ Helpers::format_currency($option->optionPrice) }}</span>
-                    </div>
-                    @endforeach --}}
 
                                 <div class="d-flex justify-content-left flex-wrap">
                                     {{-- @php(dd($choice->values)); --}}

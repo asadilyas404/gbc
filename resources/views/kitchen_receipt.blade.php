@@ -1,5 +1,7 @@
 @php
 
+    use App\Models\OptionsList;
+
     $maxMakeTime = $order->details->map(fn($detail) => $detail->food->est_make_time ?? 0)->max();
 
     // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();

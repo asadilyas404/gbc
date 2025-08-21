@@ -101,12 +101,12 @@ use App\Scopes\RestaurantScope;
                                 type="{{ $choice->type == 'multi' ? 'checkbox' : 'radio' }}"
                                 id="choice-option-{{ $key }}-{{ $k }}"
                                 data-option_id="{{ data_get($option, 'option_id') }}"
-                                name="variations[{{ $key }}][values][label][]" value="{{ $option->label }}"
+                                name="variations[{{ $key }}][values][name][]" value="{{ isset($option->options_list_id) && $option->options_list_id ? OptionsList::find($option->options_list_id)->name : 'Option' }}"
                                 {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? 'disabled' : '' }} autocomplete="off">
 
                             <label
                                 class="form-check-label  {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? 'stock_out text-muted' : 'text-dark' }}"
-                                for="choice-option-{{ $key }}-{{ $k }}">{{ Str::limit($option->label, 20, '...') }}
+                                for="choice-option-{{ $key }}-{{ $k }}">{{ Str::limit(isset($option->options_list_id) && $option->options_list_id ? OptionsList::find($option->options_list_id)->name : 'Option', 20, '...') }}
                                 &nbsp;
                                 <span
                                     class="input-label-secondary text--title text--warning {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? '' : 'd-none' }}"
@@ -127,17 +127,17 @@ use App\Scopes\RestaurantScope;
                                     type="{{ $choice->type == 'multi' ? 'checkbox' : 'radio' }}"
                                     id="choice-option-{{ $key }}-{{ $k }}"
                                     data-option_id="{{ data_get($option, 'option_id') }}"
-                                    name="variations[{{ $key }}][values][label][]"
-                                    value="{{ $option->label }}"
+                                    name="variations[{{ $key }}][values][name][]"
+                                    value="{{ isset($option->options_list_id) && $option->options_list_id ? OptionsList::find($option->options_list_id)->name : 'Option' }}"
                                     {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? 'disabled' : '' }}
                                     autocomplete="off">
                                 <label
                                     class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0? 'stock_out text-muted' : 'text-dark' }}"
                                     for="choice-option-{{ $key }}-{{ $k }}">
                                     @if(isset($option->options_list_id) && $option->options_list_id)
-                                        {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 20, '...') }}
+                                        {{ Str::limit(OptionsList::find($option->options_list_id)->name, 20, '...') }}
                                     @else
-                                        {{ Str::limit($option->label, 20, '...') }}
+                                        {{ Str::limit('Option', 20, '...') }}
                                     @endif
                                     <br>
                                     {{ Helpers::format_currency(data_get($option, 'optionPrice')) }}

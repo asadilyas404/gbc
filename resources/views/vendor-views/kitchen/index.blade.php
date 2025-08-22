@@ -5,6 +5,9 @@
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- QZ Tray Script -->
+    <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
+
     <style>
         #pending .card-body {
             background: #e2e3e5;
@@ -78,6 +81,10 @@
                                                 <a href="/restaurant-panel/order/details/{{ $order->id }}"
                                                     target="_blank" class="btn btn-primary btn-sm btn-style">Order
                                                     Detail</a>
+                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
+                                                    data-order-id="{{ $order->id }}">
+                                                    <i class="tio-print"></i> Direct Print
+                                                </button>
                                             </div>
                                             <div class="text-right">
                                                 <button class="btn btn-primary btn-sm btn-style startCooking"
@@ -120,6 +127,10 @@
                                                 <a href="/restaurant-panel/order/details/{{ $order->id }}"
                                                     target="_blank" class="btn btn-primary btn-sm btn-style">Order
                                                     Detail</a>
+                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
+                                                    data-order-id="{{ $order->id }}">
+                                                    <i class="tio-print"></i> Direct Print
+                                                </button>
                                             </div>
                                             <div class="text-right">
                                                 <button class="btn btn-primary btn-sm btn-style orderReady"
@@ -163,6 +174,10 @@
                                                 <a href="/restaurant-panel/order/details/{{ $order->id }}"
                                                     target="_blank" class="btn btn-primary btn-sm btn-style">Order
                                                     Detail</a>
+                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
+                                                    data-order-id="{{ $order->id }}">
+                                                    <i class="tio-print"></i> Direct Print
+                                                </button>
                                             </div>
                                             <div class="text-right">
                                                 <button class="btn btn-primary btn-sm btn-style orderCompleted"
@@ -184,6 +199,16 @@
             New order are getting from counter.
         </div>
     </div>
+
+    <!-- Print Content Divs -->
+    <div id="bill-print-content" class="d-none">
+        <!-- Will be populated dynamically -->
+    </div>
+
+    <div id="kitchen-print-content" class="d-none">
+        <!-- Will be populated dynamically -->
+    </div>
+
 @endsection
 
 @push('script')
@@ -286,6 +311,9 @@
                                 <div class="d-flex justify-content-between">
                                     <div>
                                         <a href="/restaurant-panel/order/details/${item.id}" target="_blank" class="btn btn-primary btn-sm btn-style">Order Detail</a>
+                                        <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1" data-order-id="${item.id}">
+                                            <i class="tio-print"></i> Direct Print
+                                        </button>
                                     </div>
                                     <div class="text-right">
                                         <button class="btn btn-primary btn-sm btn-style ${btnAction}" data-id="${item.id}">${buttonName}</button>
@@ -363,5 +391,154 @@
         setInterval(function() {
             window.location.reload();
         }, 600000);
+
+        // Print Order Functionality
+        $(document).on('click', '.direct-print-btn', function() {
+            const orderId = $(this).data('order-id');
+            printOrder(orderId);
+        });
+
+        function printOrder(orderId) {
+            // Show loading
+            toastr.info('Preparing print...');
+
+            // Fetch order data and print content
+            $.ajax({
+                url: "{{ route('vendor.order.print-order', ['id' => '__id__']) }}".replace('__id__', orderId),
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Populate print content
+                        $('#bill-print-content').html(response.bill_content);
+                        $('#kitchen-print-content').html(response.kitchen_content);
+
+                        // Start printing directly like in POS
+                        initializePrinters();
+                    } else {
+                        toastr.error(response.message || 'Failed to prepare print content');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Print preparation error:', error);
+                    toastr.error('Failed to prepare print content');
+                }
+            });
+        }
+
+        function initializePrinters() {
+            if (typeof qz === 'undefined') {
+                toastr.error('QZ Tray is not available. Please install QZ Tray.');
+                return;
+            }
+
+            if (!qz.websocket.isActive()) {
+                toastr.error('QZ Tray is not connected. Please ensure QZ Tray is running and connected.');
+                return;
+            }
+
+            // Get printer names from configuration or use defaults
+            const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
+            const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
+
+            let printersFound = 0;
+
+            // Print Bill
+            qz.printers.find(billPrinterName).then(function(printer) {
+                const config = qz.configs.create(printer);
+                const printableWrapper = document.getElementById('bill-print-content');
+                if (!printableWrapper) {
+                    toastr.error("Bill print content not found");
+                    return;
+                }
+                const printableDiv = printableWrapper.querySelector('#printableArea');
+                if (!printableDiv) {
+                    toastr.error("Printable content (#printableArea) not found");
+                    return;
+                }
+
+                const clone = printableDiv.cloneNode(true);
+                clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+
+                let fullHtml = document.documentElement.outerHTML;
+                fullHtml = fullHtml.replace(
+                    /<body[^>]*>[\s\S]*<\/body>/i,
+                    `<body>${clone.innerHTML}</body>`
+                );
+
+                const data = [{
+                    type: 'html',
+                    format: 'plain',
+                    data: fullHtml
+                }];
+
+                return qz.print(config, data);
+            }).then(() => {
+                console.log("Bill print done");
+                printersFound++;
+                if (printersFound === 2) {
+                    toastr.success('Both prints completed successfully!');
+                }
+            }).catch(err => {
+                console.error("Bill print failed:", err);
+                toastr.error("Bill print failed: " + err);
+            });
+
+            // Print Kitchen Receipt
+            qz.printers.find(kitchenPrinterName).then(function(printer) {
+                const config = qz.configs.create(printer);
+                const printableWrapper = document.getElementById('kitchen-print-content');
+                if (!printableWrapper) {
+                    toastr.error("Kitchen print content not found");
+                    return;
+                }
+                const printableDiv = printableWrapper.querySelector('#printableArea');
+                if (!printableDiv) {
+                    toastr.error("Printable content (#printableArea) not found");
+                    return;
+                }
+
+                const clone = printableDiv.cloneNode(true);
+                clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+
+                let fullHtml = document.documentElement.outerHTML;
+                fullHtml = fullHtml.replace(
+                    /<body[^>]*>[\s\S]*<\/body>/i,
+                    `<body>${clone.innerHTML}</body>`
+                );
+
+                const data = [{
+                    type: 'html',
+                    format: 'plain',
+                    data: fullHtml
+                }];
+
+                return qz.print(config, data);
+            }).then(() => {
+                console.log("Kitchen print done");
+                printersFound++;
+                if (printersFound === 2) {
+                    toastr.success('Both prints completed successfully!');
+                }
+            }).catch(err => {
+                console.error("Kitchen print failed:", err);
+                toastr.error("Kitchen print failed: " + err);
+            });
+        }
+
+        // Initialize QZ Tray connection
+        if (typeof qz !== 'undefined') {
+            if (!qz.websocket.isActive()) {
+                qz.websocket.connect().then(() => {
+                    console.log('QZ Tray connected successfully');
+                }).catch(err => {
+                    console.log("QZ Tray connection failed: " + err);
+                });
+            } else {
+                console.log('QZ Tray already connected');
+            }
+        } else {
+            console.log('QZ Tray not available');
+        }
     </script>
 @endpush

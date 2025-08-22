@@ -283,7 +283,7 @@
                     @endif
                     <!-- End AddOn -->
                     <!-- Options List -->
-                    @if (\App\CentralLogics\Helpers::employee_module_permission_check('addon'))
+                    {{-- @if (\App\CentralLogics\Helpers::employee_module_permission_check('addon')) --}}
                         <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/options-list*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link"
@@ -295,7 +295,7 @@
                                 </span>
                             </a>
                         </li>
-                    @endif
+                    {{-- @endif --}}
                     <!-- End Options List -->
                     <!-- Employee-->
                     {{-- <li class="nav-item">

@@ -248,6 +248,14 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::delete('delete/{id}', 'AddOnController@delete')->name('delete');
         });
 
+        Route::group(['prefix' => 'options-list', 'as' => 'options-list.', 'middleware' => ['module:addon', 'subscription:addon']], function () {
+            Route::get('add-new', 'OptionsListController@index')->name('add-new');
+            Route::post('store', 'OptionsListController@store')->name('store');
+            Route::get('edit/{id}', 'OptionsListController@edit')->name('edit');
+            Route::post('update/{id}', 'OptionsListController@update')->name('update');
+            Route::delete('delete/{id}', 'OptionsListController@delete')->name('delete');
+        });
+
         Route::group(['prefix' => 'order', 'as' => 'order.', 'middleware' => ['module:order']], function () {
             Route::get('/sync-orders', 'OrderController@sync')->name('sync.orders');
             Route::get('list/{status}', 'OrderController@list')->name('list');

@@ -8,7 +8,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <!-- QZ Tray Script -->
-    <script src="https://cdn.jsdelivr.net/npm/qz-tray@2.2.0/dist/qz-tray.js"></script>
+    <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
     <style>
         .order-card {
@@ -99,14 +99,6 @@
                             class="badge badge-soft-dark ml-2">{{ $orders->total() }}</span>
                     </span>
                 </h2>
-            </div>
-
-            <!-- Printer Debug Section -->
-            <div class="my-2">
-                <button type="button" class="btn btn-sm btn-outline-info" id="testPrintersBtn">
-                    <i class="tio-settings"></i> {{ translate('Test Printers') }}
-                </button>
-                <span id="printerStatus" class="ml-2 badge badge-secondary">Checking...</span>
             </div>
 
             @if (app()->environment('local'))
@@ -666,39 +658,6 @@
         <!-- Will be populated dynamically -->
     </div>
 
-    <!-- Printer Selection Modal -->
-    <div class="modal fade" id="printerSelectionModal" tabindex="-1" aria-labelledby="printerSelectionModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="printerSelectionModalLabel">{{ translate('Select Printers') }}</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="billPrinterSelect">{{ translate('Bill Printer') }}</label>
-                        <select class="form-control" id="billPrinterSelect">
-                            <option value="">{{ translate('Loading printers...') }}</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="kitchenPrinterSelect">{{ translate('Kitchen Printer') }}</label>
-                        <select class="form-control" id="kitchenPrinterSelect">
-                            <option value="">{{ translate('Loading printers...') }}</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">{{ translate('Cancel') }}</button>
-                    <button type="button" class="btn btn-primary" id="confirmPrintBtn">{{ translate('Print') }}</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <div class="modal fade" id="quickViewModal" tabindex="-1" aria-labelledby="quickViewModalLabel"
         aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
@@ -1056,46 +1015,6 @@
                 printOrder(orderId);
             });
 
-            // Initialize QZ Tray connection
-            if (typeof qz !== 'undefined') {
-                if (!qz.websocket.isActive()) {
-                    qz.websocket.connect().then(() => {
-                        console.log('QZ Tray connected successfully');
-                        // Test printer connection
-                        testPrinterConnection();
-                    }).catch(err => {
-                        console.log("QZ Tray connection failed: " + err);
-                        toastr.warning('QZ Tray connection failed. Please ensure QZ Tray is running.');
-                    });
-                } else {
-                    console.log('QZ Tray already connected');
-                    testPrinterConnection();
-                }
-            } else {
-                console.log('QZ Tray not available');
-            }
-
-            function testPrinterConnection() {
-                if (typeof qz === 'undefined' || !qz.websocket.isActive()) {
-                    $('#printerStatus').removeClass().addClass('ml-2 badge badge-warning').text('Not Connected');
-                    return;
-                }
-
-                qz.printers.find().then(function(printers) {
-                    console.log('Printer test - Available printers:', printers);
-                    if (printers.length > 0) {
-                        console.log('Printer connection test successful');
-                        $('#printerStatus').removeClass().addClass('ml-2 badge badge-success').text(`${printers.length} Printer(s) Found`);
-                    } else {
-                        console.log('No printers found during test');
-                        $('#printerStatus').removeClass().addClass('ml-2 badge badge-warning').text('No Printers Found');
-                    }
-                }).catch(err => {
-                    console.error('Printer test failed:', err);
-                    $('#printerStatus').removeClass().addClass('ml-2 badge badge-danger').text('Test Failed');
-                });
-            }
-
             function printOrder(orderId) {
                 // Show loading
                 toastr.info('Preparing print...');
@@ -1111,8 +1030,8 @@
                             $('#bill-print-content').html(response.bill_content);
                             $('#kitchen-print-content').html(response.kitchen_content);
 
-                            // Show printer selection modal
-                            showPrinterSelectionModal();
+                            // Start printing directly like in POS
+                            initializePrinters();
                         } else {
                             toastr.error(response.message || 'Failed to prepare print content');
                         }
@@ -1124,8 +1043,7 @@
                 });
             }
 
-            function showPrinterSelectionModal() {
-                // Check QZ Tray connection first
+            function initializePrinters() {
                 if (typeof qz === 'undefined') {
                     toastr.error('QZ Tray is not available. Please install QZ Tray.');
                     return;
@@ -1136,162 +1054,108 @@
                     return;
                 }
 
-                // Get available printers
-                qz.printers.find().then(function(printers) {
-                    console.log('Available printers:', printers);
+                // Get printer names from configuration or use defaults
+                const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
+                const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
 
-                    if (printers.length === 0) {
-                        toastr.error('No printers found. Please check your printer setup.');
+                let printersFound = 0;
+
+                // Print Bill
+                qz.printers.find(billPrinterName).then(function(printer) {
+                    const config = qz.configs.create(printer);
+                    const printableWrapper = document.getElementById('bill-print-content');
+                    if (!printableWrapper) {
+                        toastr.error("Bill print content not found");
+                        return;
+                    }
+                    const printableDiv = printableWrapper.querySelector('#printableArea');
+                    if (!printableDiv) {
+                        toastr.error("Printable content (#printableArea) not found");
                         return;
                     }
 
-                    // Populate printer dropdowns
-                    const billSelect = $('#billPrinterSelect');
-                    const kitchenSelect = $('#kitchenPrinterSelect');
+                    const clone = printableDiv.cloneNode(true);
+                    clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-                    billSelect.empty();
-                    kitchenSelect.empty();
+                    let fullHtml = document.documentElement.outerHTML;
+                    fullHtml = fullHtml.replace(
+                        /<body[^>]*>[\s\S]*<\/body>/i,
+                        `<body>${clone.innerHTML}</body>`
+                    );
 
-                    // Add default option
-                    billSelect.append('<option value="">Select Bill Printer</option>');
-                    kitchenSelect.append('<option value="">Select Kitchen Printer</option>');
+                    const data = [{
+                        type: 'html',
+                        format: 'plain',
+                        data: fullHtml
+                    }];
 
-                    // Add printer options
-                    printers.forEach(function(printer) {
-                        const option = `<option value="${printer.name}">${printer.name}</option>`;
-                        billSelect.append(option);
-                        kitchenSelect.append(option);
-                    });
-
-                    // Set default selections if possible
-                    if (printers.length >= 2) {
-                        billSelect.val(printers[0].name);
-                        kitchenSelect.val(printers[1].name);
-                    } else if (printers.length === 1) {
-                        billSelect.val(printers[0].name);
-                        kitchenSelect.val(printers[0].name);
-                    }
-
-                    // Show modal
-                    $('#printerSelectionModal').modal('show');
-
-                }).catch(err => {
-                    console.error("Failed to get printers:", err);
-                    toastr.error("Failed to get printer list: " + err);
-                });
-            }
-
-            // Handle print confirmation
-            $('#confirmPrintBtn').click(function() {
-                const billPrinter = $('#billPrinterSelect').val();
-                const kitchenPrinter = $('#kitchenPrinterSelect').val();
-
-                if (!billPrinter || !kitchenPrinter) {
-                    toastr.error('Please select both printers');
-                    return;
-                }
-
-                $('#printerSelectionModal').modal('hide');
-
-                // Start printing with selected printers
-                printWithSelectedPrinters(billPrinter, kitchenPrinter);
-            });
-
-            // Test printers button
-            $('#testPrintersBtn').click(function() {
-                testPrinters();
-            });
-
-            function testPrinters() {
-                const statusElement = $('#printerStatus');
-                statusElement.removeClass().addClass('ml-2 badge badge-info').text('Testing...');
-
-                if (typeof qz === 'undefined') {
-                    statusElement.removeClass().addClass('ml-2 badge badge-danger').text('QZ Tray Not Available');
-                    toastr.error('QZ Tray is not available. Please install QZ Tray.');
-                    return;
-                }
-
-                if (!qz.websocket.isActive()) {
-                    statusElement.removeClass().addClass('ml-2 badge badge-warning').text('Not Connected');
-                    toastr.warning('QZ Tray is not connected. Please ensure QZ Tray is running.');
-                    return;
-                }
-
-                qz.printers.find().then(function(printers) {
-                    console.log('Test - Available printers:', printers);
-                    if (printers.length > 0) {
-                        statusElement.removeClass().addClass('ml-2 badge badge-success').text(`${printers.length} Printer(s) Found`);
-                        toastr.success(`Found ${printers.length} printer(s): ${printers.map(p => p.name).join(', ')}`);
-                    } else {
-                        statusElement.removeClass().addClass('ml-2 badge badge-warning').text('No Printers Found');
-                        toastr.warning('No printers found. Please check your printer setup.');
-                    }
-                }).catch(err => {
-                    console.error('Printer test failed:', err);
-                    statusElement.removeClass().addClass('ml-2 badge badge-danger').text('Test Failed');
-                    toastr.error('Printer test failed: ' + err);
-                });
-            }
-
-            function printWithSelectedPrinters(billPrinter, kitchenPrinter) {
-                // Print Bill
-                printToPrinter(billPrinter, 'bill-print-content', 'Bill')
-                    .then(() => {
-                        console.log("Bill print done");
-                        // Print Kitchen Receipt
-                        return printToPrinter(kitchenPrinter, 'kitchen-print-content', 'Kitchen');
-                    })
-                    .then(() => {
-                        console.log("Kitchen print done");
+                    return qz.print(config, data);
+                }).then(() => {
+                    console.log("Bill print done");
+                    printersFound++;
+                    if (printersFound === 2) {
                         toastr.success('Both prints completed successfully!');
-                    })
-                    .catch(err => {
-                        console.error("Print failed:", err);
-                        toastr.error("Print failed: " + err);
-                    });
+                    }
+                }).catch(err => {
+                    console.error("Bill print failed:", err);
+                    toastr.error("Bill print failed: " + err);
+                });
+
+                // Print Kitchen Receipt
+                qz.printers.find(kitchenPrinterName).then(function(printer) {
+                    const config = qz.configs.create(printer);
+                    const printableWrapper = document.getElementById('kitchen-print-content');
+                    if (!printableWrapper) {
+                        toastr.error("Kitchen print content not found");
+                        return;
+                    }
+                    const printableDiv = printableWrapper.querySelector('#printableArea');
+                    if (!printableDiv) {
+                        toastr.error("Printable content (#printableArea) not found");
+                        return;
+                    }
+
+                    const clone = printableDiv.cloneNode(true);
+                    clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+
+                    let fullHtml = document.documentElement.outerHTML;
+                    fullHtml = fullHtml.replace(
+                        /<body[^>]*>[\s\S]*<\/body>/i,
+                        `<body>${clone.innerHTML}</body>`
+                    );
+
+                    const data = [{
+                        type: 'html',
+                        format: 'plain',
+                        data: fullHtml
+                    }];
+
+                    return qz.print(config, data);
+                }).then(() => {
+                    console.log("Kitchen print done");
+                    printersFound++;
+                    if (printersFound === 2) {
+                        toastr.success('Both prints completed successfully!');
+                    }
+                }).catch(err => {
+                    console.error("Kitchen print failed:", err);
+                    toastr.error("Kitchen print failed: " + err);
+                });
             }
 
-            function printToPrinter(printer, contentId, printType) {
-                return new Promise((resolve, reject) => {
-                    try {
-                        const config = qz.configs.create(printer);
-                        const printableWrapper = document.getElementById(contentId);
-
-                        if (!printableWrapper) {
-                            reject(`${printType} print content not found`);
-                            return;
-                        }
-
-                        const printableDiv = printableWrapper.querySelector('#printableArea');
-                        if (!printableDiv) {
-                            reject(`Printable content (#printableArea) not found in ${printType} content`);
-                            return;
-                        }
-
-                        const clone = printableDiv.cloneNode(true);
-                        clone.querySelectorAll('.non-printable').forEach(el => el.remove());
-
-                        let fullHtml = document.documentElement.outerHTML;
-                        fullHtml = fullHtml.replace(
-                            /<body[^>]*>[\s\S]*<\/body>/i,
-                            `<body>${clone.innerHTML}</body>`
-                        );
-
-                        const data = [{
-                            type: 'html',
-                            format: 'plain',
-                            data: fullHtml
-                        }];
-
-                        qz.print(config, data)
-                            .then(() => resolve())
-                            .catch(err => reject(err));
-
-                    } catch (err) {
-                        reject(err);
-                    }
-                });
+            // Initialize QZ Tray connection
+            if (typeof qz !== 'undefined') {
+                if (!qz.websocket.isActive()) {
+                    qz.websocket.connect().then(() => {
+                        console.log('QZ Tray connected successfully');
+                    }).catch(err => {
+                        console.log("QZ Tray connection failed: " + err);
+                    });
+                } else {
+                    console.log('QZ Tray already connected');
+                }
+            } else {
+                console.log('QZ Tray not available');
             }
 
         });

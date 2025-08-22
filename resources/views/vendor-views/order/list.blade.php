@@ -497,11 +497,11 @@
                                                 href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}"><i
                                                     class="tio-document"></i></a>
 
-                                            <button type="button" class="btn action-btn btn--info btn-outline-info print-order-btn"
+                                            <a type="button" class="btn action-btn btn--info btn-outline-info print-order-btn"
                                                 data-order-id="{{ $order['id'] }}"
-                                                title="{{ translate('Print Order') }}">
+                                                title="{{ translate('Direct Print') }}">
                                                 <i class="tio-print"></i>
-                                            </button>
+                                            </a>
                                         </div>
                                     </td>
                                 </tr>

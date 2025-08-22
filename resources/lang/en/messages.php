@@ -226,6 +226,7 @@
   'new_addon' => 'New addon',
   'option_name' => 'Option name',
   'update' => 'Update',
+  'Direct Print' => 'Direct Print',
   'Name is required!' => 'Name is required!',
   'addon_updated_successfully' => 'Addon updated successfully',
   'option_updated_successfully' => 'Option updated successfully',

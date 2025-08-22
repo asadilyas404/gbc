@@ -97,6 +97,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Printer Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Default printer names for QZ Tray printing
+    |
+    */
+    'bill_printer_name' => env('BILL_PRINTER_NAME', 'Bill Printer'),
+    'kitchen_printer_name' => env('KITCHEN_PRINTER_NAME', 'Kitchen Printer'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Faker Locale
     |--------------------------------------------------------------------------
     |

@@ -501,6 +501,40 @@ class OrderController extends Controller
         return view('vendor-views.order.receipt', compact('order', 'maxMakeTime'));
     }
 
+    public function print_order($id)
+    {
+        try {
+            $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])
+                ->with(['payments', 'details.food', 'restaurant'])
+                ->first();
+
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
+            }
+
+            // Generate bill content using the new_invoice template
+            $billContent = view('new_invoice', compact('order'))->render();
+
+            // Generate kitchen content using the kitchen_receipt template
+            $kitchenContent = view('kitchen_receipt', compact('order'))->render();
+
+            return response()->json([
+                'success' => true,
+                'bill_content' => $billContent,
+                'kitchen_content' => $kitchenContent
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate print content: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function add_payment_ref_code(Request $request, $id)
     {
         Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])->update([

@@ -273,6 +273,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('quick-view-cart-item', 'OrderController@quick_view_cart_item')->name('quick-view-cart-item');
             Route::get('generate-invoice/{id}', 'OrderController@generate_invoice')->name('generate-invoice');
             Route::get('generate-order-receipt/{id}', 'OrderController@generate_order_receipt')->name('generate-order-receipt');
+            Route::get('print-order/{id}', 'OrderController@print_order')->name('print-order');
             Route::post('add-payment-ref-code/{id}', 'OrderController@add_payment_ref_code')->name('add-payment-ref-code');
 
             Route::get('orders-export/{status}', 'OrderController@orders_export')->name('export');

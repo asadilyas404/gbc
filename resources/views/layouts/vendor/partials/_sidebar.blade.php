@@ -283,19 +283,19 @@
                     @endif
                     <!-- End AddOn -->
                     <!-- Options List -->
-                    {{-- @if (\App\CentralLogics\Helpers::employee_module_permission_check('addon')) --}}
+                    @if (\App\CentralLogics\Helpers::employee_module_permission_check('addon'))
                         <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/options-list*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link"
                                 href="{{ route('vendor.options-list.add-new') }}"
                                 title="{{ translate('messages.options_list') }}">
-                                <i class="tio-list nav-icon"></i>
+                                <i class="tio-add-circle-outlined nav-icon"></i>
                                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
                                     {{ translate('messages.options_list') }}
                                 </span>
                             </a>
                         </li>
-                    {{-- @endif --}}
+                    @endif
                     <!-- End Options List -->
                     <!-- Employee-->
                     {{-- <li class="nav-item">

@@ -59,7 +59,7 @@ class VendorController extends Controller
 {
     public function index()
     {
-
+dd('hello');
         $page_data = optional(
             DataSetting::where('type', 'restaurant')->where('key', 'restaurant_page_data')->first()
         )->value ?? null;
@@ -926,7 +926,7 @@ $restaurantId = isset($restaurant) ? $restaurant->id : null;
 $reataurant_push_notification_status = Helpers::getRestaurantNotificationStatusData($restaurantId, 'restaurant_account_unblock');
 
 if (
-    isset($push_notification_status) && 
+    isset($push_notification_status) &&
     $push_notification_status->push_notification_status == 'active' &&
     isset($reataurant_push_notification_status) &&
     $reataurant_push_notification_status->push_notification_status == 'active' &&
@@ -1034,14 +1034,14 @@ if ($request->menu == "self_delivery_system" && $request->status == '0') {
 
 if (
     (
-        ($request->menu == "instant_order" && $restaurant->schedule_order == 0) 
-        || 
+        ($request->menu == "instant_order" && $restaurant->schedule_order == 0)
+        ||
         (
-            isset($restaurant->restaurant_config) 
+            isset($restaurant->restaurant_config)
             && ($request->menu == "schedule_order" && $restaurant->restaurant_config->instant_order == 0)
         )
-    ) 
-    && $request->status == 0 
+    )
+    && $request->status == 0
     && $instant_order
 ) {
     Toastr::warning(translate('messages.can_not_disable_both_instant_order_and_schedule_order'));
@@ -1074,7 +1074,7 @@ if ($restaurant) {
         $message .= $restaurant->discount ? translate('messages.updated_successfully') : translate('messages.added_successfully');
        if ($restaurant && method_exists($restaurant, 'discount')) {
     $discountQuery = $restaurant->discount(); // Assuming this returns a relationship (query builder)
-    
+
     if ($discountQuery) {
         $discountQuery->updateOrInsert(
             ['restaurant_id' => $restaurant->id],
@@ -1194,17 +1194,17 @@ if ($restaurant) {
 
                 $mail_status = Helpers::get_mail_status('approve_mail_status_restaurant');
                 if (
-    $notification_status && 
-    $notification_status->mail_status === 'active' && 
-    config('mail.status') && 
-    $mail_status == '1' && 
-    $restaurant && 
-    $restaurant->vendor && 
+    $notification_status &&
+    $notification_status->mail_status === 'active' &&
+    config('mail.status') &&
+    $mail_status == '1' &&
+    $restaurant &&
+    $restaurant->vendor &&
     $restaurant->vendor->email
 ) {
     Mail::to($restaurant->vendor->email)
         ->send(new \App\Mail\VendorSelfRegistration(
-            'approved', 
+            'approved',
             ($restaurant->vendor->f_name ?? '') . ' ' . ($restaurant->vendor->l_name ?? '')
         ));
 }
@@ -1214,17 +1214,17 @@ if ($restaurant) {
                 $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_registration_deny');
                 $mail_status = Helpers::get_mail_status('deny_mail_status_restaurant');
                if (
-    $notification_status && 
-    $notification_status->mail_status === 'active' && 
-    config('mail.status') && 
-    $mail_status == '1' && 
-    $restaurant && 
-    $restaurant->vendor && 
+    $notification_status &&
+    $notification_status->mail_status === 'active' &&
+    config('mail.status') &&
+    $mail_status == '1' &&
+    $restaurant &&
+    $restaurant->vendor &&
     $restaurant->vendor->email
 ) {
     Mail::to($restaurant->vendor->email)
         ->send(new \App\Mail\VendorSelfRegistration(
-            'denied', 
+            'denied',
             ($restaurant->vendor->f_name ?? '') . ' ' . ($restaurant->vendor->l_name ?? '')
         ));
 }
@@ -1336,9 +1336,9 @@ $reataurant_push_notification_status = Helpers::getRestaurantNotificationStatusD
         'type' => 'withdraw',
         'order_status' => '',
     ];
-    
+
     Helpers::send_push_notif_to_device($withdraw->vendor->firebase_token, $data);
-    
+
     DB::table('user_notifications')->insert([
         'data' => json_encode($data),
         'vendor_id' => $withdraw->vendor_id,

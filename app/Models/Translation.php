@@ -27,7 +27,7 @@ class Translation extends Model
 
         static::creating(function (self $model) {
             if (empty($model->id)) {
-                $maxExistingId = (int) static::max('id');
+                $maxExistingId = (int) static::lockForUpdate()->max('id');
                 $model->id = $maxExistingId > 0 ? $maxExistingId + 1 : 1;
             }
         });

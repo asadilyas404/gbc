@@ -15,7 +15,10 @@ use App\Traits\ReportFilter;
 class Restaurant extends Model
 {
     use HasFactory, ReportFilter;
-    protected $fillable = ['food_section','status'];
+
+    public $incrementing = false;
+    protected $keyType = 'int';
+    protected $fillable = ['id','food_section','status'];
 
     protected $with = ['restaurant_config'];
 

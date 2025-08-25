@@ -102,7 +102,6 @@ class VendorController extends Controller
             // 'additional_documents.max' => translate('You_can_chose_max_5_files_only'),
         ]);
 
-        dd($request->all());
         $cuisine_ids = [];
         $cuisine_ids = $request->cuisine_ids;
         if ($request->zone_id) {
@@ -163,6 +162,7 @@ class VendorController extends Controller
         $vendor->save();
 
         $restaurant = new Restaurant;
+        $restaurant->id = $request->branch_id;
         $restaurant->name = $request->name[array_search('default', $request->lang)];
         $restaurant->phone = $request->phone;
         $restaurant->email = $request->email;

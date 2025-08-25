@@ -72,6 +72,7 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
             'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|unique:vendors',
             'minimum_delivery_time' => 'required',
             'maximum_delivery_time' => 'required',
+            'branch_id' => 'required',
             'zone_id' => 'required',
             'logo' => 'required|max:2048',
             'cover_photo' => 'required|max:2048',
@@ -96,11 +97,12 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
             return back()->withErrors($validator)->withInput();
         }
 
+        dd($request->all());
 
         if ($request->latitude == null && $request->longitude == null) {
             return back()->withErrors($validator)->withInput();
         }
-        
+
         if($request->zone_id)
         {
             $zone = Zone::query()
@@ -156,7 +158,7 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
             $restaurant->phone = $request->phone;
             $restaurant->email = $request->email;
             $restaurant->logo = Helpers::upload('restaurant/', 'png', $request->file('logo'));
-            $restaurant->cover_photo = Helpers::upload('restaurant/cover/', 'png', $request->file('cover_photo'));            
+            $restaurant->cover_photo = Helpers::upload('restaurant/cover/', 'png', $request->file('cover_photo'));
             $restaurant->address = $request->address[array_search('default', $request->lang)];
             $restaurant->latitude = $request->latitude;
             $restaurant->longitude = $request->longitude;
@@ -194,30 +196,30 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
 
                         Helpers::add_or_update_translations($request, 'name', 'name', 'Restaurant', $restaurant->id, $restaurant->name);
                         Helpers::add_or_update_translations($request, 'address', 'address', 'Restaurant', $restaurant->id, $restaurant->address);
-                        
+
 
             DB::commit();
             try {
                 $admin = Admin::where('role_id', 1)->first();
                 $notification_status = Helpers::getNotificationStatusData('restaurant', 'restaurant_registration');
-            
+
                 // Check if mail_status is active and other conditions
                 if ($notification_status && $notification_status->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('registration_mail_status_restaurant') == '1') {
                     Mail::to($request['email'])->send(new \App\Mail\VendorSelfRegistration('pending', $vendor->f_name.' '.$vendor->l_name));
                 }
-            
+
                 $notification_status = null;  // Clear the notification_status variable
                 $notification_status = Helpers::getNotificationStatusData('admin', 'restaurant_self_registration');
-            
+
                 // Check if mail_status is active and other conditions
                 if ($notification_status && $notification_status->mail_status == 'active' && config('mail.status') && Helpers::get_mail_status('restaurant_registration_mail_status_admin') == '1') {
                     Mail::to($admin['email'])->send(new \App\Mail\RestaurantRegistration('pending', $vendor->f_name.' '.$vendor->l_name));
                 }
-            
+
             } catch (\Exception $exception) {
                 info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
             }
-            
+
 
             if (Helpers::subscription_check()) {
                 if ($request->business_plan == 'subscription-base' && $request->package_id != null) {
@@ -251,7 +253,7 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
                         'restaurant_id' => $restaurant->id,
                         'type' => $request->type
                     ]);
-                    
+
                 }
             } else {
                 $restaurant->restaurant_model = 'commission';
@@ -308,7 +310,7 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
                 'restaurant_id' => $request->restaurant_id,
                 'type' => $request->type
             ]);
-            
+
         }
     }
 
@@ -349,7 +351,7 @@ if ($request->payment == 'free_trial') {
     );
 }
 
-        
+
         $plan_data != false ?  Toastr::success(translate('Successfully_Subscribed.')) : Toastr::error(translate('Something_went_wrong!.'));
         return to_route('restaurant.final_step');
     }
@@ -396,24 +398,24 @@ public function final_step(Request $request)
             'email' => 'required|email',
             'password' => 'required|min:6'
         ]);
-    
+
         // Return validation errors if validation fails
         if ($validator->fails()) {
             return response()->json(['errors' => $validator->errors()], 422);
         }
-    
+
         // Find the employee by email
         $employee = VendorEmployee::where('email', $request->email)->first();
-    
+
         // Check if the employee exists and password matches
         if ($employee && Hash::check($request->password, $employee->password)) {
             // Generate a new token
             $token = bin2hex(random_bytes(40));
-    
+
             // Save the token to the employee record
             $employee->auth_token = $token;
             $employee->save();
-    
+
             return response()->json([
                 'status' => true,
                 'token' => $token,
@@ -421,11 +423,11 @@ public function final_step(Request $request)
                 'vendor_id' => $employee->vendor_id
             ]);
         }
-    
+
         return response()->json([
             'status' => false,
             'message' => 'Invalid email or password.'
         ], 401);
     }
-    
+
 }

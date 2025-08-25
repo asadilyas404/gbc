@@ -311,7 +311,7 @@
                                 <div class="d-flex justify-content-between">
                                     <div>
                                         <a href="/restaurant-panel/order/details/${item.id}" target="_blank" class="btn btn-primary btn-sm btn-style">Order Detail</a>
-                                        <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1" data-order-id="${item.id}">
+                                        <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1 mt-1" data-order-id="${item.id}">
                                             <i class="tio-print"></i> Direct Print
                                         </button>
                                     </div>

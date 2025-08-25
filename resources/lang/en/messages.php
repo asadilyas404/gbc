@@ -1931,6 +1931,7 @@
   'bank_info' => 'Bank info',
   'bank_name' => 'Bank name',
   'branch' => 'Branch',
+  'select_branch' => 'Select branch',
   'holder_name' => 'Holder name',
   'account_no' => 'Account no',
   'Restaurant_Model' => 'Restaurant Model',

@@ -104,15 +104,15 @@ class VendorController extends Controller
 
         $cuisine_ids = [];
         $cuisine_ids = $request->cuisine_ids;
-        if ($request->zone_id) {
-            $zone = Zone::query()
-                ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))->where('id', $request->zone_id)->first();
-            if (!$zone) {
-                $validator->getMessageBag()->add('latitude', translate('messages.coordinates_out_of_zone'));
-                return back()->withErrors($validator)
-                    ->withInput();
-            }
-        }
+        // if ($request->zone_id) {
+        //     $zone = Zone::query()
+        //         ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))->where('id', $request->zone_id)->first();
+        //     if (!$zone) {
+        //         $validator->getMessageBag()->add('latitude', translate('messages.coordinates_out_of_zone'));
+        //         return back()->withErrors($validator)
+        //             ->withInput();
+        //     }
+        // }
 
         if ($request->name[array_search('default', $request->lang)] == '') {
             $validator->getMessageBag()->add('address', translate('messages.default_restaurant_name_is_required'));

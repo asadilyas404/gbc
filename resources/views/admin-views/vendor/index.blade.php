@@ -255,7 +255,7 @@
                                                     src="{{ dynamicAsset('/public/assets/admin/img/info-circle.svg') }}"
                                                     alt="{{ translate('messages.restaurant_lat_lng_warning') }}"></span></label>
                                         <input type="text" id="latitude" name="latitude" class="form-control h--45px "
-                                            placeholder="{{ translate('messages.Ex:_-94.22213') }} " value="{{ old('latitude') }}" required readonly>
+                                            placeholder="{{ translate('messages.Ex:_-94.22213') }} " value="{{ old('latitude') }}" required>
                                     </div>
                                     <div class="form-group mb-md-0">
                                         <label class="input-label" for="longitude">{{ translate('messages.longitude') }}
@@ -265,7 +265,7 @@
                                                     alt="{{ translate('messages.restaurant_lat_lng_warning') }}"></span>
                                                 </label>
                                         <input type="text" name="longitude" class="form-control h--45px " placeholder="{{ translate('messages.Ex:_103.344322') }} "
-                                            id="longitude" value="{{ old('longitude') }}" required readonly>
+                                            id="longitude" value="{{ old('longitude') }}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-8">

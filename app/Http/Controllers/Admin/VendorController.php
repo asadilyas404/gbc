@@ -59,7 +59,6 @@ class VendorController extends Controller
 {
     public function index()
     {
-dd('hello');
         $page_data = optional(
             DataSetting::where('type', 'restaurant')->where('key', 'restaurant_page_data')->first()
         )->value ?? null;
@@ -86,6 +85,7 @@ dd('hello');
             // 'additional_documents' => 'nullable|array|max:5',
             // 'additional_documents.*' => 'nullable|max:2048',
             'zone_id' => 'required',
+            'branch_id' => 'required',
             'logo' => 'required|max:2048',
             'cover_photo' => 'required|max:2048',
             'tax' => 'required',
@@ -102,6 +102,7 @@ dd('hello');
             // 'additional_documents.max' => translate('You_can_chose_max_5_files_only'),
         ]);
 
+        dd($request->all());
         $cuisine_ids = [];
         $cuisine_ids = $request->cuisine_ids;
         if ($request->zone_id) {

@@ -72,7 +72,6 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
             'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|unique:vendors',
             'minimum_delivery_time' => 'required',
             'maximum_delivery_time' => 'required',
-            'branch_id' => 'required',
             'zone_id' => 'required',
             'logo' => 'required|max:2048',
             'cover_photo' => 'required|max:2048',
@@ -97,7 +96,6 @@ $packages = SubscriptionPackage::where('status', 1)->latest()->get();
             return back()->withErrors($validator)->withInput();
         }
 
-        dd($request->all());
 
         if ($request->latitude == null && $request->longitude == null) {
             return back()->withErrors($validator)->withInput();

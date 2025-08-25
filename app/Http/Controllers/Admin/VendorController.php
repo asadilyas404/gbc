@@ -154,6 +154,7 @@ class VendorController extends Controller
 
 
         $vendor = new Vendor();
+        $vendor->id = $request->branch_id;
         $vendor->f_name = $request->f_name;
         $vendor->l_name = $request->l_name;
         $vendor->email = $request->email;

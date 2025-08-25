@@ -216,7 +216,7 @@
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-md-4">
-                                    <div class="form-group">
+                                    {{-- <div class="form-group">
                                         <label class="input-label" for="cuisine">{{ translate('messages.cuisine') }}</label>
                                         <select name="cuisine_ids[]" id="cuisine" class="form-control h--45px min--45 js-select2-custom"
                                         multiple="multiple"  data-placeholder="{{ translate('messages.select_Cuisine') }}" >
@@ -225,7 +225,7 @@
                                                     <option value="{{ $cu->id }}">{{ $cu->name }}</option>
                                             @endforeach
                                         </select>
-                                    </div>
+                                    </div> --}}
                                     <div class="form-group">
                                         <label class="input-label" for="choice_zones">{{ translate('messages.zone') }}
                                                 <span data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.select_zone_for_map') }}"

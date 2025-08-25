@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Translation extends Model
 {
@@ -27,8 +28,12 @@ class Translation extends Model
 
         static::creating(function (self $model) {
             if (empty($model->id)) {
-                $maxExistingId = (int) static::max('id');
-                $model->id = $maxExistingId > 0 ? $maxExistingId + 1 : 1;
+                $nextId = DB::table('translations')
+                    ->select(DB::raw('NVL(MAX(id),0) + 1 as next_id'))
+                    ->lockForUpdate()
+                    ->value('next_id');
+
+                $model->id = $nextId;
             }
         });
     }

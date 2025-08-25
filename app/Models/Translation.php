@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\DB;
 
 class Translation extends Model
 {
-    protected $primaryKey = 'id';
-    public $incrementing = false; // manual incrementing for Oracle compatibility
+    // protected $primaryKey = 'id';
+    public $incrementing = false;
     protected $keyType = 'int';
     public $timestamps = true;
 

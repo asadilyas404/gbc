@@ -302,18 +302,18 @@ class VendorController extends Controller
             $validator->getMessageBag()->add('address', translate('messages.default_restaurant_address_is_required'));
             return back()->withErrors($validator)->withInput();
         }
-        if ($request && $request->zone_id) {
-            $zone = Zone::query()
-                ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))
-                ->where('id', $request->zone_id)
-                ->first();
+        // if ($request && $request->zone_id) {
+        //     $zone = Zone::query()
+        //         ->whereContains('coordinates', new Point($request->latitude, $request->longitude, POINT_SRID))
+        //         ->where('id', $request->zone_id)
+        //         ->first();
 
-            if (!$zone) {
-                $validator->getMessageBag()->add('latitude', translate('messages.coordinates_out_of_zone'));
-                return back()->withErrors($validator)
-                    ->withInput();
-            }
-        }
+        //     if (!$zone) {
+        //         $validator->getMessageBag()->add('latitude', translate('messages.coordinates_out_of_zone'));
+        //         return back()->withErrors($validator)
+        //             ->withInput();
+        //     }
+        // }
 
 
 

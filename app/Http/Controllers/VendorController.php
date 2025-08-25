@@ -27,6 +27,7 @@ class VendorController extends Controller
 {
     public function create()
     {
+        dd('hello');
         $status = BusinessSetting::where('key', 'toggle_restaurant_registration')->first();
         if(!isset($status) || $status->value == '0')
         {

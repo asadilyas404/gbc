@@ -253,22 +253,6 @@
                                 <div class="col-md-3">
                                     <div class="form-group">
                                         <label class="form-label mb-2 pb-1"
-                                            for="branch_id">{{ translate('messages.branch') }}
-                                        </label>
-                                        <select name="branch_id" id="branch_id"
-                                            class="form-control js-select2-custom select2-container--default"
-                                            data-placeholder="{{ translate('messages.select_branch') }}">
-                                            <option value="" disabled>{{ translate('messages.select_branch') }}
-                                            </option>
-                                            @foreach (DB::table('tbl_soft_branch')->where('branch_active_status', 1)->get(['branch_id', 'branch_name']) as $branch)
-                                                <option value="{{ $branch->branch_id }}">{{ $branch->branch_name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="form-group">
-                                        <label class="form-label mb-2 pb-1"
                                             for="cuisine">{{ translate('messages.cuisine') }}
                                         </label>
                                         <select name="cuisine_ids[]" id="cuisine"

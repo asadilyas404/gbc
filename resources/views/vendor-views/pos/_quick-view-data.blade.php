@@ -415,8 +415,8 @@
 .variation-addon-container {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 8px;
-    padding: 10px;
-    margin: 8px 0;
+    padding: 8px;
+    margin: 6px 0;
     border-left: 4px solid #17a2b8;
 }
 
@@ -426,20 +426,26 @@
     color: #1565c0 !important;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
-    margin-bottom: 5px;
+    margin-bottom: 3px;
+    display: block;
+    width: 100%;
 }
 
 .variation-addon-label:hover {
     background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(33, 150, 243, 0.3);
 }
 
 .variation-addon-quantity {
     border: 2px solid #4caf50 !important;
     background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%) !important;
     box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
-    margin-bottom: 5px;
+    margin-bottom: 3px;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    min-width: 120px;
 }
 
 .variation-decrease-btn,
@@ -449,13 +455,19 @@
     border: none !important;
     transition: all 0.3s ease;
     cursor: pointer;
-    min-width: 30px;
+    min-width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 12px;
 }
 
 .variation-decrease-btn:hover,
 .variation-increase-btn:hover {
     background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%) !important;
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .variation-decrease-btn:active,
@@ -469,6 +481,11 @@
     color: #2e7d32 !important;
     font-weight: bold;
     text-align: center;
+    width: 50px !important;
+    min-width: 50px !important;
+    height: 28px;
+    margin: 0 2px;
+    border-radius: 0;
 }
 
 /* Checkbox styling for variation addons */
@@ -476,7 +493,7 @@
     background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
     color: white !important;
     border-color: #2e7d32 !important;
-    transform: scale(1.05);
+    transform: scale(1.02);
 }
 
 /* Badge styling */
@@ -484,8 +501,8 @@
     background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
     color: white;
     font-size: 0.8em;
-    padding: 5px 10px;
-    border-radius: 15px;
+    padding: 4px 8px;
+    border-radius: 12px;
 }
 
 /* Variation name styling */
@@ -504,27 +521,42 @@
 
 /* Container hover effect */
 .variation-addon-container:hover {
-    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.15);
+    box-shadow: 0 3px 8px rgba(23, 162, 184, 0.15);
     transform: translateY(-1px);
     transition: all 0.3s ease;
 }
 
 /* Reduce spacing between addon items */
 .flex-column.pb-1 {
-    margin-bottom: 8px;
+    margin-bottom: 4px;
+    padding-bottom: 0 !important;
 }
 
-/* Ensure proper button sizing */
+/* Ensure proper button sizing and layout */
+.variation-addon-quantity {
+    flex-direction: row !important;
+    gap: 2px;
+}
+
 .variation-addon-quantity .btn {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    border-radius: 0.2rem;
+    flex-shrink: 0;
 }
 
-/* Fix input sizing */
+/* Fix input sizing and alignment */
 .variation-addon-input {
-    width: 50px !important;
-    min-width: 50px !important;
+    flex: 1;
+    text-align: center;
+    border-radius: 0;
+}
+
+/* Make addon items more compact */
+.variation-addon-container .flex-column {
+    margin-right: 8px;
+    margin-bottom: 4px;
+}
+
+/* Ensure proper spacing for the last item */
+.variation-addon-container .flex-column:last-child {
+    margin-right: 0;
 }
 </style>

@@ -207,6 +207,19 @@ class POSController extends Controller
             }
         }
 
+        // NEW: Calculate variation-specific addon prices
+        if ($request->has('variation_addon_id')) {
+            foreach ($request->variation_addon_id as $variation_key => $addon_ids) {
+                if (is_array($addon_ids)) {
+                    foreach ($addon_ids as $addon_id) {
+                        $quantity = $request->input("variation_addon_quantity.{$variation_key}.{$addon_id}", 1);
+                        $price_per_addon = $request->input("variation_addon_price.{$variation_key}.{$addon_id}", 0);
+                        $addon_price += $price_per_addon * $quantity;
+                    }
+                }
+            }
+        }
+
         $variation_options = null;
         if (isset($request->option_ids) && is_array($request->option_ids)) {
             $variation_options = explode(',', $request->option_ids);
@@ -216,7 +229,7 @@ class POSController extends Controller
             return response()->json([
                 'error' => 'stock_out',
                 'message' => data_get($addonAndVariationStock, 'out_of_stock'),
-                'current_stock' => data_get($addonAndVariationStock, 'current_stock'),
+                'current_stock' => data_get($addonAndVariationStock, 'out_of_stock'),
                 'id' => data_get($addonAndVariationStock, 'id'),
                 'type' => data_get($addonAndVariationStock, 'type'),
             ], 203);
@@ -336,6 +349,29 @@ class POSController extends Controller
             $variation_data = Helpers::get_varient($product_variations, $request->variations);
             $variation_price = $variation_data['price'];
             $variations = $request->variations;
+
+            // NEW: Add addon information to each variation
+            if ($request->has('variation_addon_id')) {
+                foreach ($variations as $key => $variation) {
+                    if (isset($request->variation_addon_id[$key]) && is_array($request->variation_addon_id[$key])) {
+                        $variations[$key]['addons'] = [];
+                        foreach ($request->variation_addon_id[$key] as $addon_id) {
+                            $quantity = $request->input("variation_addon_quantity.{$key}.{$addon_id}", 1);
+                            $price = $request->input("variation_addon_price.{$key}.{$addon_id}", 0);
+
+                            $variations[$key]['addons'][] = [
+                                'id' => $addon_id,
+                                'name' => \App\Models\AddOn::find($addon_id)->name ?? '',
+                                'price' => $price,
+                                'quantity' => $quantity
+                            ];
+
+                            // Add to total addon price
+                            $addon_price += $price * $quantity;
+                        }
+                    }
+                }
+            }
         }
 
         $data['variations'] = $variations;
@@ -376,7 +412,25 @@ class POSController extends Controller
             }
             $data['add_ons'] = $request['addon_id'];
         }
-        $addonAndVariationStock = Helpers::addonAndVariationStockCheck($product, $request->quantity, $add_on_qtys, explode(',', $request->option_ids), $add_on_ids);
+
+        // Prepare addon data for stock checking (including variation-specific addons)
+        $all_addon_ids = $add_on_ids;
+        $all_addon_qtys = $add_on_qtys;
+
+        // Add variation-specific addons to stock checking
+        if ($request->has('variation_addon_id')) {
+            foreach ($request->variation_addon_id as $variation_key => $addon_ids) {
+                if (is_array($addon_ids)) {
+                    foreach ($addon_ids as $addon_id) {
+                        $quantity = $request->input("variation_addon_quantity.{$variation_key}.{$addon_id}", 1);
+                        $all_addon_ids[] = $addon_id;
+                        $all_addon_qtys[] = $quantity;
+                    }
+                }
+            }
+        }
+
+        $addonAndVariationStock = Helpers::addonAndVariationStockCheck($product, $request->quantity, $all_addon_qtys, explode(',', $request->option_ids), $all_addon_ids);
         if (data_get($addonAndVariationStock, 'out_of_stock') != null) {
             return response()->json([
                 'data' => 'stock_out',
@@ -686,8 +740,24 @@ class POSController extends Controller
                     $product = Helpers::product_data_formatting($product);
                     $addon_data = Helpers::calculate_addon_price(\App\Models\AddOn::whereIn('id', $c['add_ons'])->get(), $c['add_on_qtys']);
 
-                    if (data_get($c, 'variation_option_ids') || (is_array($c['add_ons']) && count($c['add_ons']) > 0)) {
-                        $addonAndVariationStock = Helpers::addonAndVariationStockCheck($product, $c['quantity'], $c['add_on_qtys'], explode(',', data_get($c, 'variation_option_ids')), $c['add_ons'], true);
+                    // Prepare addon data for stock checking (including variation-specific addons)
+                    $all_addon_ids = $c['add_ons'] ?? [];
+                    $all_addon_qtys = $c['add_on_qtys'] ?? [];
+
+                    // Add variation-specific addons to stock checking
+                    if (isset($c['variations']) && is_array($c['variations'])) {
+                        foreach ($c['variations'] as $variation) {
+                            if (isset($variation['addons']) && is_array($variation['addons'])) {
+                                foreach ($variation['addons'] as $addon) {
+                                    $all_addon_ids[] = $addon['id'];
+                                    $all_addon_qtys[] = $addon['quantity'];
+                                }
+                            }
+                        }
+                    }
+
+                    if (data_get($c, 'variation_option_ids') || count($all_addon_ids) > 0) {
+                        $addonAndVariationStock = Helpers::addonAndVariationStockCheck($product, $c['quantity'], $all_addon_qtys, explode(',', data_get($c, 'variation_option_ids')), $all_addon_ids, true);
 
                         if (data_get($addonAndVariationStock, 'out_of_stock') != null) {
                             Toastr::error(data_get($addonAndVariationStock, 'out_of_stock'));
@@ -701,6 +771,20 @@ class POSController extends Controller
                     $variation_data = Helpers::get_varient($product->variations, $c['variations']);
                     $variations = $variation_data['variations'];
 
+                    // Calculate total addon price including variation-specific addons
+                    $total_addon_price_for_item = $addon_data['total_add_on_price'];
+
+                    // Add variation-specific addon prices
+                    if (isset($c['variations']) && is_array($c['variations'])) {
+                        foreach ($c['variations'] as $variation) {
+                            if (isset($variation['addons']) && is_array($variation['addons'])) {
+                                foreach ($variation['addons'] as $addon) {
+                                    $total_addon_price_for_item += ($addon['price'] * $addon['quantity']);
+                                }
+                            }
+                        }
+                    }
+
                     $or_d = [
                         'food_id' => $c['id'],
                         'food_details' => json_encode($product),
@@ -711,7 +795,7 @@ class POSController extends Controller
                         'discount_type' => 'discount_on_product',
                         'variation' => json_encode($variations),
                         'add_ons' => json_encode($addon_data['addons']),
-                        'total_add_on_price' => $addon_data['total_add_on_price'],
+                        'total_add_on_price' => $total_addon_price_for_item,
                         'notes' => $c['notes'] ?? $c['details'] ?? null,
                         'created_at' => now(),
                         'updated_at' => now(),

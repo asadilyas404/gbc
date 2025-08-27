@@ -439,6 +439,7 @@ public function loginVendorEmployee(Request $request)
         return response()->json(['message' => 'Invalid credentials'], 401);
     }
 
+    dd($user);
         // Generate token manually (not using Passport)
         $token = bin2hex(random_bytes(40));
         $user->auth_token = $token;

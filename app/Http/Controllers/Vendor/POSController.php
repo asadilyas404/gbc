@@ -213,8 +213,8 @@ class POSController extends Controller
                 if (is_array($addon_ids)) {
                     foreach ($addon_ids as $addon_id) {
                         $quantity = $request->input("variation_addon_quantity.{$variation_key}.{$addon_id}", 1);
-                        $price_per_addon = $request->input("variation_addon_price.{$variation_key}.{$addon_id}", 0);
-                        $addon_price += $price_per_addon * $quantity;
+                        $price = $request->input("variation_addon_price.{$variation_key}.{$addon_id}", 0);
+                        $addon_price += $price * $quantity;
                     }
                 }
             }
@@ -361,7 +361,9 @@ class POSController extends Controller
 
                 foreach ($variations as $key => $variation) {
                     if (isset($request->variation_addon_id[$key]) && is_array($request->variation_addon_id[$key])) {
-                        $variations[$key]['addons'] = [];
+                        // Preserve all original variation data
+                        $variations[$key] = array_merge($variation, ['addons' => []]);
+
                         foreach ($request->variation_addon_id[$key] as $addon_id) {
                             $quantity = $request->input("variation_addon_quantity.{$key}.{$addon_id}", 1);
                             $price = $request->input("variation_addon_price.{$key}.{$addon_id}", 0);
@@ -803,7 +805,7 @@ class POSController extends Controller
                         'tax_amount' => Helpers::tax_calculate($product, $price),
                         'discount_on_food' => $c['discount'],
                         'discount_type' => 'discount_on_product',
-                        'variation' => json_encode($c['variations']), // Use original variations with addons
+                        'variation' => json_encode($c['variations']), // Use cart variations directly
                         'add_ons' => json_encode($addon_data['addons']),
                         'total_add_on_price' => $total_addon_price_for_item,
                         'notes' => $c['notes'] ?? $c['details'] ?? null,
@@ -812,7 +814,11 @@ class POSController extends Controller
                     ];
 
                     // Debug: Log what's being stored in order details
-                    error_log('Order detail variations: ' . json_encode($c['variations']));
+                    error_log('Cart variations structure: ' . json_encode($c['variations']));
+                    error_log('Cart variations keys: ' . json_encode(array_keys($c['variations'] ?? [])));
+                    if (isset($c['variations'][0]['values'])) {
+                        error_log('First variation values: ' . json_encode($c['variations'][0]['values']));
+                    }
                     error_log('Order detail variation field: ' . $or_d['variation']);
                     $total_addon_price += $or_d['total_add_on_price'];
                     $product_price += $price * $or_d['quantity'];

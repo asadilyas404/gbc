@@ -344,8 +344,12 @@
 
     // Initialize variation-specific addon quantity controls
     function initializeVariationAddonControls() {
+        // Remove any existing event handlers first
+        $(document).off('click.variationAddon');
+        $(document).off('change.variationAddon');
+
         // Handle decrease buttons for variation addons
-        $(document).on('click', '.variation-decrease-btn', function(e) {
+        $(document).on('click.variationAddon', '.variation-decrease-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
             var input = $(this).siblings('input[type="number"]');
@@ -357,7 +361,7 @@
         });
 
         // Handle increase buttons for variation addons
-        $(document).on('click', '.variation-increase-btn', function(e) {
+        $(document).on('click.variationAddon', '.variation-increase-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
             var input = $(this).siblings('input[type="number"]');
@@ -367,12 +371,12 @@
         });
 
         // Handle variation addon checkbox changes
-        $(document).on('change', 'input[name^="variation_addon_id"]', function() {
+        $(document).on('change.variationAddon', 'input[name^="variation_addon_id"]', function() {
             getVariantPrice();
         });
 
         // Handle variation addon quantity input changes
-        $(document).on('change', 'input[name^="variation_addon_quantity"]', function() {
+        $(document).on('change.variationAddon', 'input[name^="variation_addon_quantity"]', function() {
             getVariantPrice();
         });
     }
@@ -380,6 +384,14 @@
     // Initialize when document is ready
     $(document).ready(function() {
         initializeVariationAddonControls();
+    });
+
+    // Also initialize when modal is shown (in case of dynamic loading)
+    $(document).on('shown.bs.modal', function() {
+        // Small delay to ensure DOM is ready
+        setTimeout(function() {
+            initializeVariationAddonControls();
+        }, 100);
     });
 
     function getCheckedInputs() {

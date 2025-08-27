@@ -352,18 +352,9 @@ class POSController extends Controller
 
             // NEW: Add addon information to each variation
             if ($request->has('variation_addon_id')) {
-                // Debug: Log what we're receiving
-                error_log('Variation addon request data: ' . json_encode([
-                    'variation_addon_id' => $request->variation_addon_id,
-                    'variation_addon_quantity' => $request->variation_addon_quantity,
-                    'variation_addon_price' => $request->variation_addon_price
-                ]));
-
                 foreach ($variations as $key => $variation) {
                     if (isset($request->variation_addon_id[$key]) && is_array($request->variation_addon_id[$key])) {
-                        // Preserve all original variation data
-                        $variations[$key] = array_merge($variation, ['addons' => []]);
-
+                        $variations[$key]['addons'] = [];
                         foreach ($request->variation_addon_id[$key] as $addon_id) {
                             $quantity = $request->input("variation_addon_quantity.{$key}.{$addon_id}", 1);
                             $price = $request->input("variation_addon_price.{$key}.{$addon_id}", 0);
@@ -380,9 +371,6 @@ class POSController extends Controller
                         }
                     }
                 }
-
-                // Debug: Log the modified variations
-                error_log('Modified variations with addons: ' . json_encode($variations));
             }
         }
 
@@ -797,6 +785,22 @@ class POSController extends Controller
                         }
                     }
 
+                    // Prepare complete variation data for storage
+                    $complete_variations = [];
+                    if (isset($c['variations']) && is_array($c['variations'])) {
+                        foreach ($c['variations'] as $key => $cartVariation) {
+                            // Start with the processed variation data (for price calculation compatibility)
+                            $completeVariation = isset($processed_variations[$key]) ? $processed_variations[$key] : $cartVariation;
+
+                            // Add addons if they exist
+                            if (isset($cartVariation['addons'])) {
+                                $completeVariation['addons'] = $cartVariation['addons'];
+                            }
+
+                            $complete_variations[] = $completeVariation;
+                        }
+                    }
+
                     $or_d = [
                         'food_id' => $c['id'],
                         'food_details' => json_encode($product),
@@ -805,7 +809,7 @@ class POSController extends Controller
                         'tax_amount' => Helpers::tax_calculate($product, $price),
                         'discount_on_food' => $c['discount'],
                         'discount_type' => 'discount_on_product',
-                        'variation' => json_encode($c['variations']), // Use cart variations directly
+                        'variation' => json_encode($complete_variations), // Use complete variations with addons
                         'add_ons' => json_encode($addon_data['addons']),
                         'total_add_on_price' => $total_addon_price_for_item,
                         'notes' => $c['notes'] ?? $c['details'] ?? null,

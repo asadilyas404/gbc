@@ -101,7 +101,8 @@
                         </div>
                     </div>
 
-                                    {{-- @php(dd($product->variations)); --}}
+                    {{-- @php(dd($product->variations)); --}}
+                    @php($add_ons = json_decode($product->add_ons))
 
                     @foreach (json_decode($product->variations) as $key => $choice)
                         @if (isset($choice->price) == false)
@@ -139,23 +140,23 @@
                                                 value="{{ $option->label }}"
                                                 {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'disabled' : '' }}
                                                 autocomplete="off">
-                                                                            <label
-                                    class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out text-muted' : 'text-dark' }}"
-                                    for="choice-option-{{ $key }}-{{ $k }}">
-                                    @if(isset($option->options_list_id) && $option->options_list_id)
-                                        {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 20, '...') }}
-                                    @else
-                                        {{ Str::limit($option->label, 20, '...') }}
-                                    @endif
-                                    <br>
-                                    {{ Helpers::format_currency(data_get($option, 'optionPrice')) }}
-                                    <span
-                                        class="input-label-secondary text--title text--warning {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? '' : 'd-none' }}"
-                                        title="{{ translate('Currently_you_need_to_manage_discount_with_the_Restaurant.') }}">
-                                        <i class="tio-info-outlined"></i>
-                                        <small>{{ translate('stock_out') }}</small>
-                                    </span>
-                                </label>
+                                            <label
+                                                class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out text-muted' : 'text-dark' }}"
+                                                for="choice-option-{{ $key }}-{{ $k }}">
+                                                @if (isset($option->options_list_id) && $option->options_list_id)
+                                                    {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 20, '...') }}
+                                                @else
+                                                    {{ Str::limit($option->label, 20, '...') }}
+                                                @endif
+                                                <br>
+                                                {{ Helpers::format_currency(data_get($option, 'optionPrice')) }}
+                                                <span
+                                                    class="input-label-secondary text--title text--warning {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? '' : 'd-none' }}"
+                                                    title="{{ translate('Currently_you_need_to_manage_discount_with_the_Restaurant.') }}">
+                                                    <i class="tio-info-outlined"></i>
+                                                    <small>{{ translate('stock_out') }}</small>
+                                                </span>
+                                            </label>
                                             @if ($choice->type == 'multi')
                                                 <label
                                                     class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"
@@ -181,6 +182,41 @@
                                     @endforeach
                                 </div>
 
+                            </div>
+                        @endif
+                        @if (count($add_ons) > 0 && $add_ons[0])
+                            <div class="h3 p-0 pt-2">{{ translate('messages.addon') }}</div>
+
+                            <div class="d-flex justify-content-left flex-wrap">
+                                @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $key => $add_on)
+                                    <div class="flex-column pb-2">
+                                        <input type="hidden" name="addon-price{{ $add_on->id }}"
+                                            value="{{ $add_on->price }}">
+                                        <input class="btn-check addon-chek addon-quantity-input-toggle"
+                                            type="checkbox" id="addon{{ $key }}" name="addon_id[]"
+                                            value="{{ $add_on->id }}" autocomplete="off">
+                                        <label
+                                            class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break"
+                                            for="addon{{ $key }}">{{ Str::limit($add_on->name, 20, '...') }}
+                                            <br>
+                                            {{ Helpers::format_currency($add_on->price) }}</label>
+                                        <label
+                                            class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"
+                                            for="addon{{ $key }}">
+                                            <button class="btn btn-sm h-100 text-dark px-0 decrease-button"
+                                                data-id="{{ $add_on->id }}" type="button"><i
+                                                    class="tio-remove  font-weight-bold"></i></button>
+                                            <input type="number" name="addon-quantity{{ $add_on->id }}"
+                                                id="addon_quantity_input{{ $add_on->id }}"
+                                                class="form-control text-center border-0 h-100" placeholder="1"
+                                                value="1" min="1" max="9999999999" readonly>
+                                            <button class="btn btn-sm h-100 text-dark px-0 increase-button"
+                                                id="addon_quantity_button{{ $add_on->id }}"
+                                                data-id="{{ $add_on->id }}" type="button"><i
+                                                    class="tio-add  font-weight-bold"></i></button>
+                                        </label>
+                                    </div>
+                                @endforeach
                             </div>
                         @endif
                     @endforeach
@@ -212,41 +248,7 @@
                             </div>
                         </div>
                     </div>
-                    @php($add_ons = json_decode($product->add_ons))
-                    @if (count($add_ons) > 0 && $add_ons[0])
-                        <div class="h3 p-0 pt-2">{{ translate('messages.addon') }}</div>
 
-                        <div class="d-flex justify-content-left flex-wrap">
-                            @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $key => $add_on)
-                                <div class="flex-column pb-2">
-                                    <input type="hidden" name="addon-price{{ $add_on->id }}"
-                                        value="{{ $add_on->price }}">
-                                    <input class="btn-check addon-chek addon-quantity-input-toggle" type="checkbox"
-                                        id="addon{{ $key }}" name="addon_id[]" value="{{ $add_on->id }}"
-                                        autocomplete="off">
-                                    <label
-                                        class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break"
-                                        for="addon{{ $key }}">{{ Str::limit($add_on->name, 20, '...') }}
-                                        <br>
-                                        {{ Helpers::format_currency($add_on->price) }}</label>
-                                    <label class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"
-                                        for="addon{{ $key }}">
-                                        <button class="btn btn-sm h-100 text-dark px-0 decrease-button"
-                                            data-id="{{ $add_on->id }}" type="button"><i
-                                                class="tio-remove  font-weight-bold"></i></button>
-                                        <input type="number" name="addon-quantity{{ $add_on->id }}"
-                                            id="addon_quantity_input{{ $add_on->id }}"
-                                            class="form-control text-center border-0 h-100" placeholder="1"
-                                            value="1" min="1" max="9999999999" readonly>
-                                        <button class="btn btn-sm h-100 text-dark px-0 increase-button"
-                                            id="addon_quantity_button{{ $add_on->id }}"
-                                            data-id="{{ $add_on->id }}" type="button"><i
-                                                class="tio-add  font-weight-bold"></i></button>
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
                     <div class="row no-gutters d-none mt-2 text-dark" id="chosen_price_div">
                         <div class="col-2">
                             <div class="product-description-label">{{ translate('messages.Total_Price') }}:</div>

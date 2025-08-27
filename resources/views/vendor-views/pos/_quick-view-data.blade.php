@@ -186,36 +186,39 @@
 
                                 {{-- Addon selection for this variation --}}
                                 @if (count($add_ons) > 0 && $add_ons[0])
-                                    <div class="h3 p-0 pt-2 mt-3">{{ translate('messages.addon') }} for {{ $choice->name }}</div>
-                                    <div class="d-flex justify-content-left flex-wrap">
+                                    <div class="h3 p-0 pt-2 mt-3">
+                                        <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>
+                                        {{ translate('messages.for') }} <span class="text-primary">{{ $choice->name }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-left flex-wrap variation-addon-container">
                                         @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $addon_key => $add_on)
                                             <div class="flex-column pb-2">
                                                 <input type="hidden" name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"
                                                        value="{{ $add_on->price }}">
-                                                <input class="btn-check addon-chek addon-quantity-input-toggle"
+                                                <input class="btn-check addon-chek addon-quantity-input-toggle variation-addon-checkbox"
                                                        type="checkbox"
                                                        id="variation_addon{{ $key }}_{{ $add_on->id }}"
                                                        name="variation_addon_id[{{ $key }}][]"
                                                        value="{{ $add_on->id }}"
                                                        autocomplete="off">
-                                                <label class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break"
+                                                <label class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
                                                        for="variation_addon{{ $key }}_{{ $add_on->id }}">
                                                     {{ Str::limit($add_on->name, 20, '...') }}
                                                     <br>
-                                                    {{ Helpers::format_currency($add_on->price) }}
+                                                    <span class="text-success font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
                                                 </label>
-                                                <label class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"
+                                                <label class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1 variation-addon-quantity"
                                                        for="variation_addon{{ $key }}_{{ $add_on->id }}">
-                                                    <button class="btn btn-sm h-100 text-dark px-0 decrease-button"
+                                                    <button class="btn btn-sm h-100 text-dark px-0 decrease-button variation-decrease-btn"
                                                             data-id="{{ $add_on->id }}" type="button">
                                                         <i class="tio-remove font-weight-bold"></i>
                                                     </button>
                                                     <input type="number"
                                                            name="variation_addon_quantity[{{ $key }}][{{ $add_on->id }}]"
                                                            id="variation_addon_quantity_input{{ $key }}_{{ $add_on->id }}"
-                                                           class="form-control text-center border-0 h-100"
+                                                           class="form-control text-center border-0 h-100 variation-addon-input"
                                                            placeholder="1" value="1" min="1" max="9999999999" readonly>
-                                                    <button class="btn btn-sm h-100 text-dark px-0 increase-button"
+                                                    <button class="btn btn-sm h-100 text-dark px-0 increase-button variation-increase-btn"
                                                             id="variation_addon_quantity_button{{ $key }}_{{ $add_on->id }}"
                                                             data-id="{{ $add_on->id }}" type="button">
                                                         <i class="tio-add font-weight-bold"></i>
@@ -387,3 +390,93 @@
         element.addEventListener('change', getCheckedInputs);
     });
 </script>
+
+<style>
+/* Variation-specific addon styling */
+.variation-addon-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    border-left: 4px solid #17a2b8;
+}
+
+.variation-addon-label {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+    border: 2px solid #2196f3 !important;
+    color: #1565c0 !important;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+}
+
+.variation-addon-label:hover {
+    background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.variation-addon-quantity {
+    border: 2px solid #4caf50 !important;
+    background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%) !important;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.variation-decrease-btn,
+.variation-increase-btn {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
+    color: white !important;
+    border: none !important;
+    transition: all 0.3s ease;
+}
+
+.variation-decrease-btn:hover,
+.variation-increase-btn:hover {
+    background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%) !important;
+    transform: scale(1.1);
+}
+
+.variation-addon-input {
+    background: #f8f9fa !important;
+    border: 1px solid #4caf50 !important;
+    color: #2e7d32 !important;
+    font-weight: bold;
+}
+
+/* Checkbox styling for variation addons */
+.variation-addon-checkbox:checked + .variation-addon-label {
+    background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
+    color: white !important;
+    border-color: #2e7d32 !important;
+    transform: scale(1.05);
+}
+
+/* Badge styling */
+.badge-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+    font-size: 0.8em;
+    padding: 5px 10px;
+    border-radius: 15px;
+}
+
+/* Variation name styling */
+.text-primary {
+    color: #007bff !important;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 123, 255, 0.1);
+}
+
+/* Price styling */
+.text-success {
+    color: #28a745 !important;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(40, 167, 69, 0.1);
+}
+
+/* Container hover effect */
+.variation-addon-container:hover {
+    box-shadow: 0 4px 12px rgba(23, 162, 184, 0.15);
+    transform: translateY(-1px);
+    transition: all 0.3s ease;
+}
+</style>

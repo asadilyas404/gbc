@@ -437,7 +437,8 @@ public function loginVendorEmployee(Request $request)
     }
 
     // Attempt login with vendor_api guard
-    if (Auth::guard('vendor_api')->attempt($credentials)) {
+    // if (Auth::guard('vendor_api')->attempt($credentials)) {
+
         $user = Auth::guard('vendor_api')->user();
 
         // Generate token manually (not using Passport)
@@ -462,7 +463,7 @@ public function loginVendorEmployee(Request $request)
                 ]
             ]
         ]);
-    }
+    // }
 
     return response()->json([
         'status' => false,

@@ -337,10 +337,6 @@
 <script type="text/javascript">
     "use strict";
     cartQuantityInitialize();
-    getVariantPrice();
-    $('#add-to-cart-form input').on('change', function() {
-        getVariantPrice();
-    });
 
     // Initialize variation-specific addon quantity controls
     function initializeVariationAddonControls() {
@@ -384,6 +380,7 @@
     // Initialize when document is ready
     $(document).ready(function() {
         initializeVariationAddonControls();
+        getVariantPrice(); // Calculate initial price
     });
 
     // Also initialize when modal is shown (in case of dynamic loading)
@@ -391,7 +388,13 @@
         // Small delay to ensure DOM is ready
         setTimeout(function() {
             initializeVariationAddonControls();
+            getVariantPrice(); // Calculate price when modal is shown
         }, 100);
+    });
+
+    // Call getVariantPrice when any form input changes
+    $('#add-to-cart-form input').on('change', function() {
+        getVariantPrice();
     });
 
     // Debug: Log form data before submission
@@ -411,6 +414,49 @@
         });
         console.log('Variation addon data:', variationAddonData);
     });
+
+    // Enhanced getVariantPrice function to handle variation-specific addons
+    function getVariantPrice() {
+        getCheckedInputs();
+        if ($('#add-to-cart-form input[name=quantity]').val() > 0 ) {
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+                }
+            });
+            $.ajax({
+                type: "POST",
+                url: '{{ route('vendor.pos.variant_price') }}',
+                data: $('#add-to-cart-form').serializeArray(),
+                success: function (data) {
+                    if (data.error === 'quantity_error') {
+                        toastr.error(data.message);
+                    }
+                    else if(data.error === 'stock_out'){
+                        toastr.warning(data.message);
+                        if(data.type == 'addon'){
+                            $('#addon_quantity_button'+data.id).attr("disabled", true);
+                            $('#addon_quantity_input'+data.id).val(data.current_stock);
+                        }
+                        else{
+                            $('.input-element[data-option_id="'+data.id+'"]').attr("disabled", true);
+                        }
+                    }
+                    else {
+                        // Update the price display
+                        $('#add-to-cart-form #chosen_price_div').removeClass('d-none');
+                        $('#add-to-cart-form #chosen_price_div #chosen_price').html(data.price);
+                        $('.add-To-Cart').removeAttr("disabled");
+                        $('.increase-button').removeAttr("disabled");
+                        $('#quantity_increase_button').removeAttr("disabled");
+                    }
+                },
+                error: function() {
+                    toastr.error('Something went wrong. Please try again.');
+                }
+            });
+        }
+    }
 
     function getCheckedInputs() {
         var checkedInputs = [];

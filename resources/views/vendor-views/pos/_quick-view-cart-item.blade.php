@@ -217,6 +217,27 @@
                                 @endforeach
                             </div>
                         @endif
+
+                        {{-- Display variation-specific addons if they exist --}}
+                        @if (isset($cart_item['variations'][$key]['addons']) && is_array($cart_item['variations'][$key]['addons']) && count($cart_item['variations'][$key]['addons']) > 0)
+                            <div class="h3 p-0 pt-2 mt-3">
+                                <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>
+                                {{ translate('messages.for') }} <span class="text-primary">{{ $choice->name }}</span>
+                            </div>
+                            <div class="d-flex justify-content-left flex-wrap variation-addon-container">
+                                @foreach ($cart_item['variations'][$key]['addons'] as $addon)
+                                    <div class="flex-column pb-2">
+                                        <div class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label">
+                                            {{ Str::limit($addon['name'], 20, '...') }}
+                                            <br>
+                                            <span class="text-success font-weight-bold">{{ Helpers::format_currency($addon['price']) }}</span>
+                                            <br>
+                                            <small class="text-muted">Qty: {{ $addon['quantity'] }}</small>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     @endforeach
                     <input type="hidden" hidden name="option_ids" id="option_ids">
 
@@ -359,3 +380,47 @@
         element.addEventListener('change', getCheckedInputs);
     });
 </script>
+
+    <style>
+    /* Variation-specific addon styling for cart item view */
+    .variation-addon-container {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border-radius: 8px;
+        padding: 10px;
+        margin: 8px 0;
+        border-left: 4px solid #17a2b8;
+    }
+
+    .variation-addon-label {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%) !important;
+        border: 2px solid #2196f3 !important;
+        color: #1565c0 !important;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+        cursor: default;
+    }
+
+    .variation-addon-label:hover {
+        background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%) !important;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(33, 150, 243, 0.3);
+    }
+
+    .badge-info {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+        font-size: 0.8em;
+        padding: 4px 8px;
+        border-radius: 12px;
+    }
+
+    .text-primary {
+        color: #007bff !important;
+        font-weight: bold;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+        font-weight: bold;
+    }
+    </style>

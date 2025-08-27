@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 
 class VendorLoginController extends Controller
@@ -424,23 +425,19 @@ public function loginVendorEmployee(Request $request)
         return response()->json(['errors' => $validator->errors()], 422);
     }
 
-    $credentials = $request->only('email', 'password');
-
     // Check if vendor employee exists
-    $vendorEmployee = VendorEmployee::where('email', $request->email)->first();
+    $user = VendorEmployee::where('email', $request->email)->first();
 
-    if (!$vendorEmployee) {
+    if (!$user) {
         return response()->json([
             'status' => false,
             'message' => 'Email not found in the vendor employees list.'
         ], 404);
     }
 
-    dd('hello baby');
-    // Attempt login with vendor_api guard
-    // if (Auth::guard('vendor_api')->attempt($credentials)) {
-
-        $user = Auth::guard('vendor_api')->user();
+    if (!$user || !Hash::check($request->password, $user->password)) {
+        return response()->json(['message' => 'Invalid credentials'], 401);
+    }
 
         // Generate token manually (not using Passport)
         $token = bin2hex(random_bytes(40));
@@ -452,7 +449,7 @@ public function loginVendorEmployee(Request $request)
                 'token' => $token,
                 'user' => [
                     'id' => $user->id,
-                    'name' => $user->f_name,
+                    'name' => $user->name,
                     'surname' => $user->l_name,
                     'email' => $user->email,
                     'phone' => $user->phone,
@@ -464,11 +461,6 @@ public function loginVendorEmployee(Request $request)
                 ]
             ]
         ]);
-    // }
 
-    return response()->json([
-        'status' => false,
-        'message' => 'Invalid email or password.'
-    ], 401);
 }
 }

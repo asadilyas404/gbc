@@ -436,6 +436,7 @@ public function loginVendorEmployee(Request $request)
         ], 404);
     }
 
+    dd('hello baby');
     // Attempt login with vendor_api guard
     // if (Auth::guard('vendor_api')->attempt($credentials)) {
 

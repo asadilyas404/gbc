@@ -394,6 +394,24 @@
         }, 100);
     });
 
+    // Debug: Log form data before submission
+    $(document).on('click', '.add-To-Cart', function(e) {
+        var formData = $('#add-to-cart-form').serializeArray();
+        console.log('Form data being sent:', formData);
+
+        // Check if variation addon data is present
+        var variationAddonData = {};
+        formData.forEach(function(item) {
+            if (item.name.startsWith('variation_addon_')) {
+                if (!variationAddonData[item.name]) {
+                    variationAddonData[item.name] = [];
+                }
+                variationAddonData[item.name].push(item.value);
+            }
+        });
+        console.log('Variation addon data:', variationAddonData);
+    });
+
     function getCheckedInputs() {
         var checkedInputs = [];
         var checkedElements = document.querySelectorAll('.input-element:checked');

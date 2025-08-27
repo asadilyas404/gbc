@@ -101,6 +101,9 @@
                         </div>
                     </div>
 
+                    {{-- Define add_ons variable at the top --}}
+                    @php($add_ons = json_decode($product->add_ons))
+
                                     {{-- @php(dd($product->variations)); --}}
 
                     @foreach (json_decode($product->variations) as $key => $choice)
@@ -254,7 +257,6 @@
                             </div>
                         </div>
                     </div>
-                    @php($add_ons = json_decode($product->add_ons))
                     @if (count($add_ons) > 0 && $add_ons[0])
                         <div class="h3 p-0 pt-2">{{ translate('messages.addon') }}</div>
 

@@ -192,7 +192,7 @@
                                     </div>
                                     <div class="d-flex justify-content-left flex-wrap variation-addon-container">
                                         @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $addon_key => $add_on)
-                                            <div class="flex-column pb-2">
+                                            <div class="flex-column pb-1">
                                                 <input type="hidden" name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"
                                                        value="{{ $add_on->price }}">
                                                 <input class="btn-check addon-chek addon-quantity-input-toggle variation-addon-checkbox"
@@ -345,10 +345,11 @@
     // Initialize variation-specific addon quantity controls
     function initializeVariationAddonControls() {
         // Handle decrease buttons for variation addons
-        $(document).on('click', '.decrease-button', function() {
-            var addonId = $(this).data('id');
+        $(document).on('click', '.variation-decrease-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             var input = $(this).siblings('input[type="number"]');
-            var currentValue = parseInt(input.val());
+            var currentValue = parseInt(input.val()) || 1;
             if (currentValue > 1) {
                 input.val(currentValue - 1);
                 getVariantPrice();
@@ -356,16 +357,22 @@
         });
 
         // Handle increase buttons for variation addons
-        $(document).on('click', '.increase-button', function() {
-            var addonId = $(this).data('id');
+        $(document).on('click', '.variation-increase-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
             var input = $(this).siblings('input[type="number"]');
-            var currentValue = parseInt(input.val());
+            var currentValue = parseInt(input.val()) || 1;
             input.val(currentValue + 1);
             getVariantPrice();
         });
 
         // Handle variation addon checkbox changes
         $(document).on('change', 'input[name^="variation_addon_id"]', function() {
+            getVariantPrice();
+        });
+
+        // Handle variation addon quantity input changes
+        $(document).on('change', 'input[name^="variation_addon_quantity"]', function() {
             getVariantPrice();
         });
     }
@@ -396,8 +403,8 @@
 .variation-addon-container {
     background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
     border-radius: 8px;
-    padding: 15px;
-    margin: 10px 0;
+    padding: 10px;
+    margin: 8px 0;
     border-left: 4px solid #17a2b8;
 }
 
@@ -407,6 +414,7 @@
     color: #1565c0 !important;
     transition: all 0.3s ease;
     box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
+    margin-bottom: 5px;
 }
 
 .variation-addon-label:hover {
@@ -419,6 +427,7 @@
     border: 2px solid #4caf50 !important;
     background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%) !important;
     box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+    margin-bottom: 5px;
 }
 
 .variation-decrease-btn,
@@ -427,6 +436,8 @@
     color: white !important;
     border: none !important;
     transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 30px;
 }
 
 .variation-decrease-btn:hover,
@@ -435,11 +446,17 @@
     transform: scale(1.1);
 }
 
+.variation-decrease-btn:active,
+.variation-increase-btn:active {
+    transform: scale(0.95);
+}
+
 .variation-addon-input {
     background: #f8f9fa !important;
     border: 1px solid #4caf50 !important;
     color: #2e7d32 !important;
     font-weight: bold;
+    text-align: center;
 }
 
 /* Checkbox styling for variation addons */
@@ -478,5 +495,24 @@
     box-shadow: 0 4px 12px rgba(23, 162, 184, 0.15);
     transform: translateY(-1px);
     transition: all 0.3s ease;
+}
+
+/* Reduce spacing between addon items */
+.flex-column.pb-1 {
+    margin-bottom: 8px;
+}
+
+/* Ensure proper button sizing */
+.variation-addon-quantity .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* Fix input sizing */
+.variation-addon-input {
+    width: 50px !important;
+    min-width: 50px !important;
 }
 </style>

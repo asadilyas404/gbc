@@ -450,10 +450,10 @@ public function loginVendorEmployee(Request $request)
                 'user' => [
                     'id' => $user->id,
                     'name' => $user->name,
-                    'surname' => $user->l_name,
+                    'surname' => '',
                     'email' => $user->email,
-                    'phone' => $user->phone,
-                    'image' => $user->image ? asset('storage/Vendor/' . $user->image) : '',
+                    'phone' => $user->mobile_no,
+                    'image' => '',
                     'employee_role_id' => $user->employee_role_id,
                     'vendor_id' => $user->vendor_id,
                     'restaurant_id' => $user->restaurant_id,

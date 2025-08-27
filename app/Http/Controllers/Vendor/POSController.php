@@ -348,27 +348,44 @@ class POSController extends Controller
             }
             $variation_data = Helpers::get_varient($product_variations, $request->variations);
             $variation_price = $variation_data['price'];
-            $variations = $request->variations;
 
-            // NEW: Add addon information to each variation
-            if ($request->has('variation_addon_id')) {
-                // Debug: Log what we're receiving
-                error_log('Variation addon request data: ' . json_encode([
-                    'variation_addon_id' => $request->variation_addon_id,
-                    'variation_addon_quantity' => $request->variation_addon_quantity,
-                    'variation_addon_price' => $request->variation_addon_price
-                ]));
+            // Reconstruct proper variation structure from original product variations
+            $variations = [];
+            foreach ($request->variations as $key => $formVariation) {
+                // Find the corresponding original variation
+                $originalVariation = null;
+                foreach ($product_variations as $pv) {
+                    if ($pv['name'] === $formVariation['name']) {
+                        $originalVariation = $pv;
+                        break;
+                    }
+                }
 
-                foreach ($variations as $key => $variation) {
-                    if (isset($request->variation_addon_id[$key]) && is_array($request->variation_addon_id[$key])) {
-                        // Preserve all original variation data
-                        $variations[$key] = array_merge($variation, ['addons' => []]);
+                if ($originalVariation) {
+                    // Start with the original variation structure
+                    $variation = $originalVariation;
 
+                    // Update with form values
+                    if (isset($formVariation['values']['label'])) {
+                        $selectedLabels = $formVariation['values']['label'];
+                        $variation['values'] = [];
+
+                        // Find the selected values from original variation
+                        foreach ($originalVariation['values'] as $originalValue) {
+                            if (in_array($originalValue['label'], $selectedLabels)) {
+                                $variation['values'][] = $originalValue;
+                            }
+                        }
+                    }
+
+                    // Add addons if selected
+                    if ($request->has('variation_addon_id') && isset($request->variation_addon_id[$key])) {
+                        $variation['addons'] = [];
                         foreach ($request->variation_addon_id[$key] as $addon_id) {
                             $quantity = $request->input("variation_addon_quantity.{$key}.{$addon_id}", 1);
                             $price = $request->input("variation_addon_price.{$key}.{$addon_id}", 0);
 
-                            $variations[$key]['addons'][] = [
+                            $variation['addons'][] = [
                                 'id' => $addon_id,
                                 'name' => \App\Models\AddOn::find($addon_id)->name ?? '',
                                 'price' => $price,
@@ -379,11 +396,13 @@ class POSController extends Controller
                             $addon_price += $price * $quantity;
                         }
                     }
-                }
 
-                // Debug: Log the modified variations
-                error_log('Modified variations with addons: ' . json_encode($variations));
+                    $variations[] = $variation;
+                }
             }
+
+            // Debug: Log the reconstructed variations
+            error_log('Reconstructed variations structure: ' . json_encode($variations));
         }
 
         $data['variations'] = $variations;

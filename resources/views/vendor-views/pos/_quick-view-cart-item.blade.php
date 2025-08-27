@@ -218,22 +218,49 @@
                             </div>
                         @endif
 
-                        {{-- Display variation-specific addons if they exist --}}
-                        @if (isset($cart_item['variations'][$key]['addons']) && is_array($cart_item['variations'][$key]['addons']) && count($cart_item['variations'][$key]['addons']) > 0)
+                        {{-- Display all available addons for this variation with selection controls --}}
+                        @php($add_ons = json_decode($product->add_ons))
+                        @if (count($add_ons) > 0 && $add_ons[0])
                             <div class="h3 p-0 pt-2 mt-3">
                                 <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>
                                 {{ translate('messages.for') }} <span class="text-primary">{{ $choice->name }}</span>
                             </div>
                             <div class="d-flex justify-content-left flex-wrap variation-addon-container">
-                                @foreach ($cart_item['variations'][$key]['addons'] as $addon)
+                                @php($selected_variation_addons = isset($cart_item['variations'][$key]['addons']) ? $cart_item['variations'][$key]['addons'] : [])
+                                @php($selected_addon_ids = collect($selected_variation_addons)->pluck('id')->toArray())
+                                @php($selected_addon_qtys = collect($selected_variation_addons)->pluck('quantity', 'id')->toArray())
+
+                                @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $add_on)
                                     <div class="flex-column pb-2">
-                                        <div class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label">
-                                            {{ Str::limit($addon['name'], 20, '...') }}
+                                        <input type="hidden" name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]" value="{{ $add_on->price }}">
+                                        <input class="btn-check variation-addon-checkbox" type="checkbox"
+                                            id="variation_addon_{{ $key }}_{{ $add_on->id }}"
+                                            name="variation_addon_id[{{ $key }}][]"
+                                            value="{{ $add_on->id }}"
+                                            {{ in_array($add_on->id, $selected_addon_ids) ? 'checked' : '' }}
+                                            autocomplete="off">
+                                        <label class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
+                                            for="variation_addon_{{ $key }}_{{ $add_on->id }}">
+                                            {{ Str::limit($add_on->name, 20, '...') }}
                                             <br>
-                                            <span class="text-success font-weight-bold">{{ Helpers::format_currency($addon['price']) }}</span>
-                                            <br>
-                                            <small class="text-muted">Qty: {{ $addon['quantity'] }}</small>
-                                        </div>
+                                            <span class="text-success font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
+                                        </label>
+                                        <label class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1 variation-addon-quantity"
+                                            @if (in_array($add_on->id, $selected_addon_ids)) style="visibility:visible;" @else style="visibility:hidden;" @endif
+                                            for="variation_addon_{{ $key }}_{{ $add_on->id }}">
+                                            <button class="btn btn-sm h-100 text-dark px-0 variation-decrease-btn" type="button">
+                                                <i class="tio-remove font-weight-bold"></i>
+                                            </button>
+                                            <input type="number"
+                                                name="variation_addon_quantity[{{ $key }}][{{ $add_on->id }}]"
+                                                class="form-control text-center border-0 h-100 variation-addon-input"
+                                                placeholder="1"
+                                                value="{{ $selected_addon_qtys[$add_on->id] ?? 1 }}"
+                                                min="1" max="9999999999" readonly>
+                                            <button class="btn btn-sm h-100 text-dark px-0 variation-increase-btn" type="button">
+                                                <i class="tio-add font-weight-bold"></i>
+                                            </button>
+                                        </label>
                                     </div>
                                 @endforeach
                             </div>
@@ -366,6 +393,51 @@
         getVariantPrice();
     });
 
+    // Initialize variation addon controls for cart item view
+    function initializeVariationAddonControls() {
+        // Handle variation addon checkbox changes
+        $(document).off('change.variationAddonCart');
+        $(document).on('change.variationAddonCart', 'input[name^="variation_addon_id"]', function() {
+            var checkbox = $(this);
+            var quantityContainer = checkbox.siblings('label').next('.variation-addon-quantity');
+
+            if (checkbox.is(':checked')) {
+                quantityContainer.css('visibility', 'visible');
+            } else {
+                quantityContainer.css('visibility', 'hidden');
+            }
+            getVariantPrice();
+        });
+
+        // Handle variation addon quantity controls
+        $(document).off('click.variationAddonCart');
+        $(document).on('click.variationAddonCart', '.variation-decrease-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var input = $(this).siblings('input[type="number"]');
+            var currentValue = parseInt(input.val()) || 1;
+            if (currentValue > 1) {
+                input.val(currentValue - 1);
+                getVariantPrice();
+            }
+        });
+
+        $(document).on('click.variationAddonCart', '.variation-increase-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var input = $(this).siblings('input[type="number"]');
+            var currentValue = parseInt(input.val()) || 1;
+            input.val(currentValue + 1);
+            getVariantPrice();
+        });
+
+        // Handle variation addon quantity input changes
+        $(document).off('change.variationAddonCart');
+        $(document).on('change.variationAddonCart', 'input[name^="variation_addon_quantity"]', function() {
+            getVariantPrice();
+        });
+    }
+
     function getCheckedInputs() {
         var checkedInputs = [];
         var checkedElements = document.querySelectorAll('.input-element:checked');
@@ -378,6 +450,29 @@
     var inputElements = document.querySelectorAll('.input-element');
     inputElements.forEach(function(element) {
         element.addEventListener('change', getCheckedInputs);
+    });
+
+    // Initialize when document is ready
+    $(document).ready(function() {
+        initializeVariationAddonControls();
+    });
+
+    // Debug: Log form data before updating cart item
+    $(document).on('click', '.add-To-Cart', function(e) {
+        var formData = $('#add-to-cart-form').serializeArray();
+        console.log('Cart item update form data:', formData);
+
+        // Check if variation addon data is present
+        var variationAddonData = {};
+        formData.forEach(function(item) {
+            if (item.name.startsWith('variation_addon_')) {
+                if (!variationAddonData[item.name]) {
+                    variationAddonData[item.name] = [];
+                }
+                variationAddonData[item.name].push(item.value);
+            }
+        });
+        console.log('Variation addon data for update:', variationAddonData);
     });
 </script>
 
@@ -397,13 +492,37 @@
         color: #1565c0 !important;
         transition: all 0.3s ease;
         box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
-        cursor: default;
+        cursor: pointer;
     }
 
     .variation-addon-label:hover {
         background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%) !important;
         transform: translateY(-1px);
         box-shadow: 0 3px 6px rgba(33, 150, 243, 0.3);
+    }
+
+    .variation-addon-label:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 3px rgba(33, 150, 243, 0.4);
+    }
+
+    /* Hide the actual checkbox but keep it accessible */
+    .variation-addon-checkbox {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* Style for checked state */
+    .variation-addon-checkbox:checked + .variation-addon-label {
+        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
+        border-color: #4caf50 !important;
+        color: white !important;
+        box-shadow: 0 2px 8px rgba(76, 175, 80, 0.4);
+    }
+
+    .variation-addon-quantity {
+        transition: visibility 0.3s ease;
     }
 
     .badge-info {

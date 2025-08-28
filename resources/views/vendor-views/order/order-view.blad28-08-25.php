@@ -358,25 +358,6 @@
                                                                                         <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
                                                                                     </span>
                                                                                 @endforeach
-
-                                                                                {{-- Display variation-specific addons if they exist --}}
-                                                                                @if (isset($variation['addons']) && is_array($variation['addons']) && count($variation['addons']) > 0)
-                                                                                    <div class="variation-addons-section ml-3 mt-2">
-                                                                                        <span class="badge badge-info badge-sm mr-2">
-                                                                                            <i class="tio-add-circle"></i> {{ translate('messages.addon') }}
-                                                                                        </span>
-                                                                                        @foreach ($variation['addons'] as $addon)
-                                                                                            <div class="variation-addon-item ml-2 mt-1">
-                                                                                                <span class="text-muted">
-                                                                                                    • {{ Str::limit($addon['name'], 20, '...') }}
-                                                                                                </span>
-                                                                                                <span class="font-weight-bold text-success ml-2">
-                                                                                                    {{ $addon['quantity'] }}x {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        @endforeach
-                                                                                    </div>
-                                                                                @endif
                                                                             @else
                                                                                 @if (isset(json_decode($detail['variation'], true)[0]))
                                                                                     <strong><u>
@@ -1926,62 +1907,4 @@
             console.log('QZ Tray not available');
         }
     </script>
-
-    <style>
-    /* Variation-specific addon styling for order view */
-    .variation-addons-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 6px;
-        padding: 8px;
-        margin: 8px 0;
-        border-left: 3px solid #17a2b8;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .variation-addon-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 4px 0;
-        border-bottom: 1px solid #e9ecef;
-    }
-
-    .variation-addon-item:last-child {
-        border-bottom: none;
-    }
-
-    .badge-info.badge-sm {
-        font-size: 0.75em;
-        padding: 3px 6px;
-        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-        color: white;
-        border-radius: 10px;
-    }
-
-    .text-success {
-        color: #28a745 !important;
-        font-weight: 600;
-    }
-
-    .text-muted {
-        color: #6c757d !important;
-        font-size: 0.9em;
-    }
-
-    .ml-3 {
-        margin-left: 1rem !important;
-    }
-
-    .mt-2 {
-        margin-top: 0.5rem !important;
-    }
-
-    .ml-2 {
-        margin-left: 0.5rem !important;
-    }
-
-    .mt-1 {
-        margin-top: 0.25rem !important;
-    }
-    </style>
 @endpush

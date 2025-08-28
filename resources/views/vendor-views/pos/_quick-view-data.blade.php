@@ -104,7 +104,7 @@
                     {{-- Define add_ons variable at the top --}}
                     @php($add_ons = json_decode($product->add_ons))
 
-                                    {{-- @php(dd($product->variations)); --}}
+                                    @php(dd($product->variations));
 
                     @foreach (json_decode($product->variations) as $key => $choice)
                         @if (isset($choice->price) == false)
@@ -185,7 +185,6 @@
                                 </div>
 
                                 {{-- Addon selection for this variation --}}
-                                @php(dd($choice));
                                 @if (count($add_ons) > 0 && $add_ons[0] && !empty($choice->link_addons))
                                     <div class="h3 p-0 pt-2 mt-3">
                                         <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>

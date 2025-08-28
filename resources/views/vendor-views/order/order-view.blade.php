@@ -362,17 +362,20 @@
 
                                                                                 {{-- Display variation-specific addons if they exist --}}
                                                                                 @if (isset($variation['addons']) && is_array($variation['addons']) && count($variation['addons']) > 0)
-                                                                                    <span class="d-block text-capitalize variation-addons-inline p-3">
-                                                                                        <small class="text-muted">
-                                                                                            <i class="tio-add-circle text-info"></i>
-                                                                                            @foreach ($variation['addons'] as $addon)
-                                                                                                {{ Str::limit($addon['name'], 30, '...') }}({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
-                                                                                                @php($total_variation_addon_price += $addon['price'] * $addon['quantity'])
-                                                                                                {{-- @if (!$loop->last) br @endif --}}
-                                                                                            @endforeach
-                                                                                        </small>
-                                                                                    </span>
-                                                                                @endif
+    <div class="variation-addons-inline px-3 py-1">
+        @foreach ($variation['addons'] as $addon)
+            <span class="d-block text-capitalize">
+                <small class="text-muted">
+                    <i class="tio-add-circle text-info"></i>
+                    {{ Str::limit($addon['name'], 30, '...') }}
+                    ({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
+                </small>
+            </span>
+            @php($total_variation_addon_price += $addon['price'] * $addon['quantity'])
+        @endforeach
+    </div>
+@endif
+
                                                                             @else
                                                                                 @if (isset(json_decode($detail['variation'], true)[0]))
                                                                                     <strong><u>

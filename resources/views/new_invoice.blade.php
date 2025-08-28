@@ -189,6 +189,7 @@
                         @php($total_tax = 0)
                         @php($total_dis_on_pro = 0)
                         @php($add_ons_cost = 0)
+                        @php($variation_addons_cost = 0)
                         @foreach ($order->details as $detail)
                             @if ($detail->food_id || $detail->campaign == null)
                                 @php($food = \App\Models\Food::where(['id' => json_decode($detail->food_details, true)['id']])->first())
@@ -225,6 +226,7 @@
                                                                 <span class="d-block text-capitalize" style="font-size: 0.8em; margin-left: 1rem;">
                                                                     • {{ $addon['name'] }} ({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
                                                                 </span>
+                                                                @php($variation_addons_cost += $addon['price'] * $addon['quantity'])
                                                             @endforeach
                                                         </div>
                                                     @endif
@@ -301,12 +303,13 @@
                                                     @if (isset($variation['addons']) && count($variation['addons']) > 0)
                                                         <div class="ml-3 mt-1">
                                                             <span class="d-block text-capitalize text-muted" style="font-size: 0.85em;">
-                                                                <i class="tio-add-circle text-info"></i> {{ translate('messages.addons') }}:
+                                                                 {{ translate('messages.addons') }}:
                                                             </span>
                                                             @foreach ($variation['addons'] as $addon)
                                                                 <span class="d-block text-capitalize" style="font-size: 0.8em; margin-left: 1rem;">
                                                                     • {{ $addon['name'] }} ({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
                                                                 </span>
+                                                                @php($variation_addons_cost += $addon['price'] * $addon['quantity'])
                                                             @endforeach
                                                         </div>
                                                     @endif
@@ -373,6 +376,11 @@
                                 {{ \App\CentralLogics\Helpers::format_currency($add_ons_cost) }}
                             </dd>
 
+                            <dt class="col-6 text-left text-muted">{{ translate('messages.variation_addon_cost') }} | تكلفة إضافات التباين</dt>
+                            <dd class="col-6">
+                                {{ \App\CentralLogics\Helpers::format_currency($variation_addons_cost) }}
+                            </dd>
+
                             <dd class="col-12 border-bottom-dashed mb-2"></dd>
 
                             <dt class="col-6 text-left fw-500">{{ translate('messages.subtotal') }} | المجموع الفرعي
@@ -381,7 +389,7 @@
                                 @endif
                             </dt>
                             <dd class="col-6 fw-500">
-                                {{ \App\CentralLogics\Helpers::format_currency($sub_total + $add_ons_cost) }}</dd>
+                                {{ \App\CentralLogics\Helpers::format_currency($sub_total + $add_ons_cost + $variation_addons_cost) }}</dd>
 
                             <dd class="col-12 border-bottom-dashed mb-2"></dd>
 

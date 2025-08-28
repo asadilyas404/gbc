@@ -185,7 +185,7 @@
                                 </div>
 
                                 {{-- Addon selection for this variation --}}
-                                @if (count($add_ons) > 0 && $add_ons[0] && !empty($choice->link_addons))
+                                @if (count($add_ons) > 0 && $add_ons[0] && (isset($choice->link_addons) ? $choice->link_addons == 'on' : true))
                                     <div class="h3 p-0 pt-2 mt-3">
                                         <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>
                                         {{ translate('messages.for') }} <span class="text-primary">{{ $choice->name }}</span>

@@ -201,12 +201,17 @@
                                                        name="variation_addon_id[{{ $key }}][]"
                                                        value="{{ $add_on->id }}"
                                                        autocomplete="off">
-                                                <label class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
+                                                <label class="d-flex flex-column align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
                                                        for="variation_addon{{ $key }}_{{ $add_on->id }}">
-                                                    {{ Str::limit($add_on->name, 20, '...') }}
+                                                       <span class="addon-name">
+                                                        {{ Str::limit($add_on->name, 20, '...') }}
+                                                    </span>
                                                     <br>
                                                     <span class="text-success font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
                                                 </label>
+
+
+
                                                 <label class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1 variation-addon-quantity"
                                                        for="variation_addon{{ $key }}_{{ $add_on->id }}">
                                                     <button class="btn btn-sm h-100 text-dark px-0 decrease-button variation-decrease-btn"

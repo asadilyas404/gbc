@@ -319,7 +319,7 @@
                                                     @if (isset($variation['addons']) && count($variation['addons']) > 0)
                                                         <div class="ml-3 mt-1">
                                                             <span class="d-block text-capitalize text-muted" style="font-size: 0.85em;">
-                                                                <i class="tio-add-circle text-info"></i> {{ translate('messages.addons') }}:
+                                                                 {{ translate('messages.addons') }}:
                                                             </span>
                                                             @foreach ($variation['addons'] as $addon)
                                                                 <span class="d-block text-capitalize" style="font-size: 0.8em; margin-left: 1rem;">

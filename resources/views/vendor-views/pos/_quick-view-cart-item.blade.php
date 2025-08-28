@@ -218,7 +218,6 @@
                             </div>
                         @endif
 
-                        {{-- Display all available addons for this variation with selection controls --}}
                         @php($add_ons = json_decode($product->add_ons))
                         @if (count($add_ons) > 0 && $add_ons[0] && (isset($choice->link_addons) ? $choice->link_addons == 'on' : true))
                             <div class="h3 p-0 pt-2 mt-3">

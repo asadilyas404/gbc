@@ -231,6 +231,20 @@
                                                             <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
                                                         </span>
                                                     @endforeach
+
+                                                    {{-- Display variation-specific addons --}}
+                                                    @if (isset($variation['addons']) && count($variation['addons']) > 0)
+                                                        <div class="ml-3 mt-1">
+                                                            <span class="d-block text-capitalize text-muted" style="font-size: 0.85em;">
+                                                                <i class="tio-add-circle text-info"></i> {{ translate('messages.addons') }}:
+                                                            </span>
+                                                            @foreach ($variation['addons'] as $addon)
+                                                                <span class="d-block text-capitalize" style="font-size: 0.8em; margin-left: 1rem;">
+                                                                    • {{ $addon['name'] }} ({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
+                                                                </span>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
                                                 @else
                                                     @if (isset(json_decode($detail['variation'], true)[0]))
                                                         @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
@@ -299,6 +313,20 @@
                                                             <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
                                                         </span>
                                                     @endforeach
+
+                                                    {{-- Display variation-specific addons --}}
+                                                    @if (isset($variation['addons']) && count($variation['addons']) > 0)
+                                                        <div class="ml-3 mt-1">
+                                                            <span class="d-block text-capitalize text-muted" style="font-size: 0.85em;">
+                                                                <i class="tio-add-circle text-info"></i> {{ translate('messages.addons') }}:
+                                                            </span>
+                                                            @foreach ($variation['addons'] as $addon)
+                                                                <span class="d-block text-capitalize" style="font-size: 0.8em; margin-left: 1rem;">
+                                                                    • {{ $addon['name'] }} ({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
+                                                                </span>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
                                                 @else
                                                     @if (isset(json_decode($detail['variation'], true)[0]))
                                                         @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)

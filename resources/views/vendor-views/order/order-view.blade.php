@@ -362,13 +362,13 @@
 
                                                                                 {{-- Display variation-specific addons if they exist --}}
                                                                                 @if (isset($variation['addons']) && is_array($variation['addons']) && count($variation['addons']) > 0)
-                                                                                    <span class="d-block text-capitalize variation-addons-inline">
+                                                                                    <span class="d-block text-capitalize variation-addons-inline p-3">
                                                                                         <small class="text-muted">
                                                                                             <i class="tio-add-circle text-info"></i>
                                                                                             @foreach ($variation['addons'] as $addon)
-                                                                                                {{ Str::limit($addon['name'], 15, '...') }}({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
+                                                                                                {{ Str::limit($addon['name'], 30, '...') }}({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
                                                                                                 @php($total_variation_addon_price += $addon['price'] * $addon['quantity'])
-                                                                                                @if (!$loop->last), @endif
+                                                                                                {{-- @if (!$loop->last) br @endif --}}
                                                                                             @endforeach
                                                                                         </small>
                                                                                     </span>

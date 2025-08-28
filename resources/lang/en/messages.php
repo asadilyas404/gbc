@@ -1932,6 +1932,7 @@
   'bank_name' => 'Bank name',
   'branch' => 'Branch',
   'select_branch' => 'Select branch',
+  'variation_addon_cost' => 'Variation Addon Cost',
   'holder_name' => 'Holder name',
   'account_no' => 'Account no',
   'Restaurant_Model' => 'Restaurant Model',

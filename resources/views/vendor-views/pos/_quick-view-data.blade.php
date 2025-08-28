@@ -104,7 +104,7 @@
                     {{-- Define add_ons variable at the top --}}
                     @php($add_ons = json_decode($product->add_ons))
 
-                                    @php(dd($product->variations));
+                                    {{-- @php(dd($product->variations)); --}}
 
                     @foreach (json_decode($product->variations) as $key => $choice)
                         @if (isset($choice->price) == false)

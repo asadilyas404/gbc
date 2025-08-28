@@ -203,9 +203,7 @@
                                                        autocomplete="off">
                                                 <label class="d-flex flex-column align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
                                                        for="variation_addon{{ $key }}_{{ $add_on->id }}">
-                                                       <span class="addon-name">
-                                                        {{ Str::limit($add_on->name, 20, '...') }}
-                                                    </span>
+                                                    {{ Str::limit($add_on->name, 20, '...') }}
                                                     <br>
                                                     <span class="text-success font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
                                                 </label>

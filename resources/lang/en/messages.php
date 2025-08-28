@@ -1935,6 +1935,7 @@
   'select_branch' => 'Select branch',
   'variation_addon_cost' => 'Variation Addon Cost',
   'holder_name' => 'Holder name',
+  'Link Addons' => 'Link Addons',
   'account_no' => 'Account no',
   'Restaurant_Model' => 'Restaurant Model',
   'Package_Name' => 'Package Name',

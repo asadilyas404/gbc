@@ -237,7 +237,7 @@ class POSController extends Controller
 
         $product_variations = json_decode($product->variations, true);
 
-        if ($request->variations && count($product_variations)) {
+        if ($request->variations && is_array($request->variations) && count($request->variations) > 0 && count($product_variations) > 0) {
             $price_total = $price + Helpers::variation_price($product_variations, $request->variations);
         } else {
             $price_total = $price;
@@ -260,10 +260,13 @@ class POSController extends Controller
             $price_total = $price_total - Helpers::product_discount_calculate($product, $price_total, Helpers::get_restaurant_data());
         }
 
+        // Calculate total price: (base price + variations) * quantity + all addon costs
+        $total_price = ($price_total * $request->quantity) + $addon_price;
+
         return response()->json([
-            'price' => Helpers::format_currency(($price_total * $request->quantity) + $addon_price),
-            'original_price' => Helpers::format_currency(($original_price)),
-            'pre_addon_price' => Helpers::format_currency(($price_total)),
+            'price' => Helpers::format_currency($total_price),
+            'original_price' => Helpers::format_currency($original_price),
+            'pre_addon_price' => Helpers::format_currency($price_total),
         ]);
     }
 

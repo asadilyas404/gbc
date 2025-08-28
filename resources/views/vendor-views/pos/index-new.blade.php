@@ -988,6 +988,22 @@
             var discountAmount = $('#product_discount').val() || 0;
             var discountType = $('#product_discount_type').val();
 
+            // Debug: Log form data to console
+            var formData = $('#add-to-cart-form').serializeArray();
+            console.log('Form data being sent to variant_price:', formData);
+
+            // Check for variation addon data
+            var variationAddonData = {};
+            formData.forEach(function(item) {
+                if (item.name.startsWith('variation_addon_')) {
+                    if (!variationAddonData[item.name]) {
+                        variationAddonData[item.name] = [];
+                    }
+                    variationAddonData[item.name].push(item.value);
+                }
+            });
+            console.log('Variation addon data:', variationAddonData);
+
             // Ensure the quantity is greater than zero
             if ($('#add-to-cart-form input[name=quantity]').val() > 0) {
                 $.ajaxSetup({
@@ -1009,6 +1025,8 @@
                         }
                     ]), // Include discount values explicitly
                     success: function(data) {
+                        console.log('Server response from variant_price:', data);
+
                         if (data.error === 'quantity_error') {
                             toastr.error(data.message);
                         } else if (data.error === 'stock_out') {

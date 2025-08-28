@@ -307,6 +307,7 @@
                         $restaurant_discount_amount = 0;
                         $product_price = 0;
                         $total_addon_price = 0;
+                        $total_variation_addon_price = 0;
                         ?>
                         <div class="table-responsive">
                             <table
@@ -361,21 +362,16 @@
 
                                                                                 {{-- Display variation-specific addons if they exist --}}
                                                                                 @if (isset($variation['addons']) && is_array($variation['addons']) && count($variation['addons']) > 0)
-                                                                                    <div class="variation-addons-section ml-3 mt-2">
-                                                                                        <span class="badge badge-info badge-sm mr-2">
-                                                                                            <i class="tio-add-circle"></i> {{ translate('messages.addon') }}
-                                                                                        </span>
-                                                                                        @foreach ($variation['addons'] as $addon)
-                                                                                            <div class="variation-addon-item ml-2 mt-1">
-                                                                                                <span class="text-muted">
-                                                                                                    • {{ Str::limit($addon['name'], 20, '...') }}
-                                                                                                </span>
-                                                                                                <span class="font-weight-bold text-success ml-2">
-                                                                                                    {{ $addon['quantity'] }}x {{ \App\CentralLogics\Helpers::format_currency($addon['price']) }}
-                                                                                                </span>
-                                                                                            </div>
-                                                                                        @endforeach
-                                                                                    </div>
+                                                                                    <span class="d-block text-capitalize variation-addons-inline">
+                                                                                        <small class="text-muted">
+                                                                                            <i class="tio-add-circle text-info"></i>
+                                                                                            @foreach ($variation['addons'] as $addon)
+                                                                                                {{ Str::limit($addon['name'], 15, '...') }}({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
+                                                                                                @php($total_variation_addon_price += $addon['price'] * $addon['quantity'])
+                                                                                                @if (!$loop->last), @endif
+                                                                                            @endforeach
+                                                                                        </small>
+                                                                                    </span>
                                                                                 @endif
                                                                             @else
                                                                                 @if (isset(json_decode($detail['variation'], true)[0]))
@@ -546,6 +542,11 @@
                                         </dt>
                                         <dd class="col-sm-6">
                                             {{ \App\CentralLogics\Helpers::format_currency($total_addon_price) }}
+                                        </dd>
+                                        <dt class="col-sm-6">{{ translate('messages.variation_addon_cost') }}:
+                                        </dt>
+                                        <dd class="col-sm-6">
+                                            {{ \App\CentralLogics\Helpers::format_currency($total_variation_addon_price) }}
                                             <hr>
                                         </dd>
 
@@ -556,7 +557,7 @@
                                             :
                                         </dt>
                                         <dd class="col-sm-6">
-                                            {{ \App\CentralLogics\Helpers::format_currency($product_price + $total_addon_price) }}
+                                            {{ \App\CentralLogics\Helpers::format_currency($product_price + $total_addon_price + $total_variation_addon_price) }}
                                         </dd>
                                         <dt class="col-sm-6">{{ translate('messages.discount') }}:</dt>
                                         <dd class="col-sm-6">
@@ -1928,60 +1929,20 @@
     </script>
 
     <style>
-    /* Variation-specific addon styling for order view */
-    .variation-addons-section {
-        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 6px;
-        padding: 8px;
-        margin: 8px 0;
-        border-left: 3px solid #17a2b8;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    /* Minimal variation addon styling for order view */
+    .variation-addons-inline {
+        margin-top: 2px;
+        line-height: 1.2;
     }
 
-    .variation-addon-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 4px 0;
-        border-bottom: 1px solid #e9ecef;
+    .variation-addons-inline .text-info {
+        color: #17a2b8 !important;
+        font-size: 0.8em;
     }
 
-    .variation-addon-item:last-child {
-        border-bottom: none;
-    }
-
-    .badge-info.badge-sm {
+    .variation-addons-inline small {
         font-size: 0.75em;
-        padding: 3px 6px;
-        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
-        color: white;
-        border-radius: 10px;
-    }
-
-    .text-success {
-        color: #28a745 !important;
-        font-weight: 600;
-    }
-
-    .text-muted {
-        color: #6c757d !important;
-        font-size: 0.9em;
-    }
-
-    .ml-3 {
-        margin-left: 1rem !important;
-    }
-
-    .mt-2 {
-        margin-top: 0.5rem !important;
-    }
-
-    .ml-2 {
-        margin-left: 0.5rem !important;
-    }
-
-    .mt-1 {
-        margin-top: 0.25rem !important;
+        line-height: 1.1;
     }
     </style>
 @endpush

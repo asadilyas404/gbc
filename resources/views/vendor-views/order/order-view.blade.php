@@ -395,7 +395,7 @@
                                                                         @endforeach
                                                                     @endif
 
-                                                                    <div>
+                                                                    <div class="mt-2">
                                                                         <strong>{{ translate('messages.Price') }} | سعر:
                                                                         </strong>
                                                                         {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}

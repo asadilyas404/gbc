@@ -392,10 +392,8 @@
         }, 100);
     });
 
-    // Call getVariantPrice when any form input changes
-    $('#add-to-cart-form input').on('change', function() {
-        getVariantPrice();
-    });
+    // Note: getVariantPrice is already called by specific event handlers above
+    // This prevents duplicate calls when variation addons change
 
     // Debug: Log form data before submission
     $(document).on('click', '.add-To-Cart', function(e) {

@@ -213,8 +213,8 @@ class POSController extends Controller
                 if (is_array($addon_ids)) {
                     foreach ($addon_ids as $addon_id) {
                         $quantity = $request->input("variation_addon_quantity.{$variation_key}.{$addon_id}", 1);
-                        $price = $request->input("variation_addon_price.{$variation_key}.{$addon_id}", 0);
-                        $addon_price += $price * $quantity;
+                        $addon_price_value = $request->input("variation_addon_price.{$variation_key}.{$addon_id}", 0);
+                        $addon_price += $addon_price_value * $quantity;
                     }
                 }
             }
@@ -262,6 +262,19 @@ class POSController extends Controller
 
         // Calculate total price: (base price + variations) * quantity + all addon costs
         $total_price = ($price_total * $request->quantity) + $addon_price;
+
+        // Debug logging
+        error_log("=== VARIANT PRICE DEBUG ===");
+        error_log("Base price: " . $price);
+        error_log("Variations: " . json_encode($request->variations));
+        error_log("Price total (base + variations): " . $price_total);
+        error_log("Quantity: " . $request->quantity);
+        error_log("Addon price: " . $addon_price);
+        error_log("Total price calculation: (" . $price_total . " * " . $request->quantity . ") + " . $addon_price . " = " . $total_price);
+        error_log("Variation addon data: " . json_encode($request->variation_addon_id ?? []));
+        error_log("Variation addon quantities: " . json_encode($request->variation_addon_quantity ?? []));
+        error_log("Variation addon prices: " . json_encode($request->variation_addon_price ?? []));
+        error_log("==========================");
 
         return response()->json([
             'price' => Helpers::format_currency($total_price),

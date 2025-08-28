@@ -372,6 +372,7 @@
   'Min' => 'Min',
   'Max' => 'Max',
   'Required' => 'Required',
+  'Link_Addons' => 'Link Addons',
   'Delete' => 'Delete',
   'Option_name' => 'Option name',
   'Additional_price' => 'Additional price',

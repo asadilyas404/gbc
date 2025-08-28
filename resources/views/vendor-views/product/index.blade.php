@@ -573,10 +573,16 @@
                     <div class="__bg-F8F9FC-card view_new_option mb-2">
                         <div>
                             <div class="d-flex align-items-center justify-content-between mb-3">
-                                <label class="form-check form--check">
-                                    <input id="options[` + count + `][required]" name="options[` + count + `][required]" class="form-check-input" type="checkbox">
-                                    <span class="form-check-label">{{ translate('Required') }}</span>
-                                </label>
+                                <div class="d-flex align-items-center gap-3">
+                                    <label class="form-check form--check">
+                                        <input id="options[` + count + `][required]" name="options[` + count + `][required]" class="form-check-input" type="checkbox">
+                                        <span class="form-check-label">{{ translate('Required') }}</span>
+                                    </label>
+                                    <label class="form-check form--check">
+                                        <input id="options[` + count + `][link_addons]" name="options[` + count + `][link_addons]" class="form-check-input" type="checkbox">
+                                        <span class="form-check-label">{{ translate('Link Addons') }}</span>
+                                    </label>
+                                </div>
                                 <div>
                                     <button type="button" class="btn btn-danger btn-sm delete_input_button" title="{{ translate('Delete') }}">
                                         <i class="tio-add-to-trash"></i>
@@ -785,10 +791,16 @@
                         <div class="__bg-F8F9FC-card view_new_option mb-2">
                             <div>
                                 <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <label class="form-check form--check">
-                                        <input id="options[` + count + `][required]" name="options[` + count + `][required]" class="form-check-input" type="checkbox">
-                                        <span class="form-check-label">{{ translate('Required') }}</span>
-                                    </label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <label class="form-check form--check">
+                                            <input id="options[` + count + `][required]" name="options[` + count + `][required]" class="form-check-input" type="checkbox">
+                                            <span class="form-check-label">{{ translate('Required') }}</span>
+                                        </label>
+                                        <label class="form-check form--check">
+                                            <input id="options[` + count + `][link_addons]" name="options[` + count + `][link_addons]" class="form-check-input" type="checkbox">
+                                            <span class="form-check-label">{{ translate('Link Addons') }}</span>
+                                        </label>
+                                    </div>
                                     <div>
                                         <button type="button" class="btn btn-danger btn-sm delete_input_button"
                                             title="{{ translate('Delete') }}">

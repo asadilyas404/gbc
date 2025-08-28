@@ -1,11 +1,18 @@
 <div class="__bg-F8F9FC-card view_new_option mb-2">
     <div>
         <div class="d-flex align-items-center justify-content-between mb-3">
-            <label class="form-check form--check">
-                <input class="form-check-input" name="options[{{ $key }}][required]" type="checkbox"
-                    {{ isset($item['required']) ? ($item['required'] == 'on' ? 'checked	' : '') : '' }}>
-                <span class="form-check-label">{{ translate('Required') }}</span>
-            </label>
+            <div class="d-flex align-items-center gap-3">
+                <label class="form-check form--check">
+                    <input class="form-check-input" name="options[{{ $key }}][required]" type="checkbox"
+                        {{ isset($item['required']) ? ($item['required'] == 'on' ? 'checked	' : '') : '' }}>
+                    <span class="form-check-label">{{ translate('Required') }}</span>
+                </label>
+                <label class="form-check form--check">
+                    <input class="form-check-input" name="options[{{ $key }}][link_addons]" type="checkbox"
+                        {{ isset($item['link_addons']) ? ($item['link_addons'] == 'on' ? 'checked' : '') : '' }}>
+                    <span class="form-check-label">{{ translate('Link Addons') }}</span>
+                </label>
+            </div>
             <div>
                 <button type="button" data-id="{{ data_get($item, 'variation_id') }}"
                     class="btn btn-danger btn-sm delete_input_button remove_variation" title="{{ translate('Delete') }}">

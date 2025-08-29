@@ -237,8 +237,6 @@ class CategoryController extends Controller
 
 public function apiIndex($restaurant_id)
 {
-    dd($restaurant_id);
-
     // Eager load foods filtered by restaurant_id
     $categories = Category::with(['foods' => function ($query) use ($restaurant_id) {
         $query->where('restaurant_id', $restaurant_id);

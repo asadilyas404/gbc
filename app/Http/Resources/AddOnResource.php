@@ -9,7 +9,7 @@ class AddOnResource extends JsonResource
     public function toArray($request)
     {
         return [
-            'id' => $this->id,
+            'id' => (int) $this->id,
             'name' => $this->name,
             'price' => $this->price,
         ];

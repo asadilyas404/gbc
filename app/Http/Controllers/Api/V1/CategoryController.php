@@ -237,11 +237,11 @@ class CategoryController extends Controller
 
 public function apiIndex($restaurant_id)
 {
-    // Eager load foods filtered by restaurant_id
+    // Eager load foods with variations and variation options filtered by restaurant_id
     $categories = Category::with(['foods' => function ($query) use ($restaurant_id) {
-        $query->where('restaurant_id', $restaurant_id);
+        $query->where('restaurant_id', $restaurant_id)
+              ->with(['variationOptions.variation', 'newVariations', 'newVariationOptions']);
     }])->get();
-
 
     // Remove categories that have no foods after filtering
     $categories = $categories->filter(function ($category) {

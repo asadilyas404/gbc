@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Models\AddOn;
 
 class FoodResource extends JsonResource
 {
@@ -40,9 +41,6 @@ class FoodResource extends JsonResource
             'addons' => AddOnResource::collection($this->getAddOns()),
         ];
 
-
-
-
         if ($this->variationOptions && $this->variationOptions->count() > 0) {
             $data['variations'] = [];
 
@@ -52,12 +50,32 @@ class FoodResource extends JsonResource
             foreach ($grouped as $variationId => $options) {
                 $variation = optional($options->first()->variation); // Get the Variation model
 
+                // Get addons for this variation if link_addons is enabled
+                $variationAddons = collect();
+                if ($variation && $variation->link_addons) {
+                    $addonIds = json_decode($this->add_ons, true);
+                    if (is_array($addonIds)) {
+                        $variationAddons = AddOn::whereIn('id', $addonIds)
+                            ->active()
+                            ->get()
+                            ->map(function ($addon) {
+                                return [
+                                    'id' => (int) $addon->id,
+                                    'name' => $addon->name,
+                                    'price' => $addon->price,
+                                ];
+                            });
+                    }
+                }
+
                 $data['variations'][] = [
                     'heading' => $variation->name ?? 'Unnamed',
                     'type' => $variation->type ?? 'multi',
                     'min' => $variation->type === 'multi' ? $variation->min : null,
                     'max' => $variation->type === 'multi' ? $variation->max : null,
                     'is_required' => $variation->is_required ?? false,
+                    'link_addons' => $variation->link_addons ?? false,
+                    'addons' => $variationAddons,
                     'data' => $options->map(function ($option) {
                         return [
                             'option_name' => $option->option_name,
@@ -68,12 +86,7 @@ class FoodResource extends JsonResource
             }
         }
 
-
-
-
-
         return $data;
-
     }
 
     private function getAddOns()

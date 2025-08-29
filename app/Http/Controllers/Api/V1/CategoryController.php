@@ -24,7 +24,7 @@ class CategoryController extends Controller
             $category_list_sort_by_general = optional(
                 PriorityList::where('name', 'category_list_sort_by_general')->where('type', 'general')->first()
             )->value ?? '';
-            
+
             $zone_id=  $request->header('zoneId') ? json_decode($request->header('zoneId'), true) : [];
             $name= $request->query('name');
             $categories = Category::withCount(['products','childes'])->with(['childes' => function($query)  {
@@ -224,7 +224,7 @@ class CategoryController extends Controller
     // {
     //     // Fetch all categories along with their related foods
     //     $categories = Category::with('foods')->get();
-    
+
     //     return response()->json($categories);
     // }
 
@@ -237,10 +237,13 @@ class CategoryController extends Controller
 
 public function apiIndex($restaurant_id)
 {
+    dd($restaurant_id);
+
     // Eager load foods filtered by restaurant_id
     $categories = Category::with(['foods' => function ($query) use ($restaurant_id) {
         $query->where('restaurant_id', $restaurant_id);
     }])->get();
+
 
     // Remove categories that have no foods after filtering
     $categories = $categories->filter(function ($category) {

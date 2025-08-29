@@ -206,7 +206,7 @@
                                                        for="variation_addon{{ $key }}_{{ $add_on->id }}">
                                                     {{ Str::limit($add_on->name, 20, '...') }}
                                                     <br>
-                                                    <span class="text-success font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
+                                                    <span class="text-warning font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
                                                 </label>
 
 

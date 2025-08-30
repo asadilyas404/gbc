@@ -297,7 +297,7 @@ class WaiterController extends Controller
                         'order_status' => $order->order_status,
                         'table_id' => $order->table_id,
                         'order_type' => $order->order_type,
-                        'created_at' => $order->created_at->format('Y-m-d H:i:s')
+                        'created_at' => Carbon::parse($order->created_at)->format('Y-m-d H:i:s')
                     ]
                 ], 200);
 

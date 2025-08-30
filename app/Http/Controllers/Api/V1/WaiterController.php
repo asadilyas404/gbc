@@ -76,7 +76,7 @@ class WaiterController extends Controller
                 }
 
                 $price = $c['price'];
-                $product->tax = $restaurant->tax;
+                $product->tax = 0;
                 $product = Helpers::product_data_formatting($product);
 
                 // Calculate addon prices for general addons
@@ -187,7 +187,7 @@ class WaiterController extends Controller
 
             // Create order
             $order = new Order();
-            $order->id = Helpers::generateGlobalId($restaurant->id);
+            $order->id = Helpers::generateGlobalId($request->restaurant_id);
 
             // Generate order serial
             $today = Carbon::today();
@@ -215,7 +215,7 @@ class WaiterController extends Controller
 
             // Calculate totals
             $total_price = $product_price + $total_addon_price - $restaurant_discount_amount;
-            $tax = $restaurant->tax;
+            $tax = 0;
             $order->tax_status = 'excluded';
 
             $tax_included = BusinessSetting::where(['key' => 'tax_included'])->first()->value ?? 0;

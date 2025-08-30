@@ -379,7 +379,7 @@
                                                                                     </div>
                                                                                 @endif
                                                                             @else
-                                                                                {{-- @if (isset(json_decode($detail['variation'], true)[0]))
+                                                                                @if (isset(json_decode($detail['variation'], true)[0]))
                                                                                     <strong><u>
                                                                                             {{ translate('messages.Variation') }}
                                                                                             : </u></strong>
@@ -388,10 +388,10 @@
                                                                                             <span>{{ $key1 }} :
                                                                                             </span>
                                                                                             <span
-                                                                                                class="font-weight-bold">{{ $variation }}</span>
+                                                                                                class="font-weight-bold">{{ $variation ?? '' }}</span>
                                                                                         </div>
                                                                                     @endforeach
-                                                                                @endif --}}
+                                                                                @endif
                                                                                 @break
                                                                             @endif
                                                                         @endforeach

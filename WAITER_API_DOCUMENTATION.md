@@ -25,7 +25,6 @@ Accept: application/json
   "table_id": 2,
   "order_type": "indoor",
   "waiter_id": 123,
-  "user_id": 123,
   "cart": [
     {
       "id": 84,
@@ -82,13 +81,13 @@ Accept: application/json
       "discount": 0
     }
   ],
-  "payment_method": "cash",
-  "cash_paid": 7.5,
-  "card_paid": 0,
+//   "payment_method": "cash",
+//   "cash_paid": 7.5,
+//   "card_paid": 0,
   "customer_name": "Hassan",
   "phone": "+1234567890",
   "car_number": "",
-  "bank_account": ""
+//   "bank_account": ""
 }
 ```
 

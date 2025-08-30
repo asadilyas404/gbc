@@ -26,7 +26,6 @@ class WaiterController extends Controller
                 'table_id' => 'required|integer',
                 'order_type' => 'required|in:indoor,outdoor,take_away,delivery',
                 'waiter_id' => 'required|integer', // This will be stored in order_taken_by
-                'user_id' => 'required|integer', // ID of the waiter user
                 'cart' => 'required|array|min:1',
                 'cart.*.id' => 'required|integer',
                 'cart.*.quantity' => 'required|integer|min:1',
@@ -43,13 +42,13 @@ class WaiterController extends Controller
                 'cart.*.add_on_qtys' => 'nullable|array',
                 'cart.*.notes' => 'nullable|string',
                 'cart.*.discount' => 'nullable|numeric|min:0',
-                'payment_method' => 'required|in:cash,card,cash_card',
-                'cash_paid' => 'nullable|numeric|min:0',
-                'card_paid' => 'nullable|numeric|min:0',
+                // 'payment_method' => 'required|in:cash,card,cash_card',
+                // 'cash_paid' => 'nullable|numeric|min:0',
+                // 'card_paid' => 'nullable|numeric|min:0',
                 'customer_name' => 'nullable|string',
                 'phone' => 'nullable|string',
                 'car_number' => 'nullable|string',
-                'bank_account' => 'nullable|string',
+                // 'bank_account' => 'nullable|string',
             ]);
 
             if ($validator->fails()) {
@@ -207,14 +206,13 @@ class WaiterController extends Controller
 
             $order->created_at = now();
             $order->schedule_at = now();
-            $order->payment_status = 'paid';
+            $order->payment_status = 'draft';
             $order->kitchen_status = 'pending';
             $order->order_status = 'pending';
             $order->order_type = $request->order_type;
             $order->table_id = $request->table_id;
             $order->order_taken_by = $request->waiter_id;
             $order->restaurant_id = $restaurant->id;
-            $order->user_id = $request->user_id; // Store waiter's user ID
             $order->zone_id = $restaurant->zone_id;
             $order->delivery_charge = 0; // No delivery charge for indoor orders
             $order->original_delivery_charge = 0;
@@ -240,7 +238,7 @@ class WaiterController extends Controller
             $order->total_tax_amount = $total_tax_amount;
             $order->order_amount = $total_price + $tax_a;
             $order->adjusment = $order->order_amount;
-            $order->payment_method = $request->payment_method;
+            // $order->payment_method = $request->payment_method;
 
             DB::beginTransaction();
 
@@ -267,9 +265,9 @@ class WaiterController extends Controller
                 $posOrderDtl->car_number = $request->car_number;
                 $posOrderDtl->phone = $request->phone;
                 $posOrderDtl->invoice_amount = $order->order_amount;
-                $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
-                $posOrderDtl->card_paid = $request->card_paid ?? 0;
-                $posOrderDtl->bank_account = $request->bank_account;
+                // $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
+                // $posOrderDtl->card_paid = $request->card_paid ?? 0;
+                // $posOrderDtl->bank_account = $request->bank_account;
                 $posOrderDtl->save();
 
                 DB::commit();

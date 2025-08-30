@@ -384,7 +384,7 @@
                                                                                             {{ translate('messages.Variation') }}
                                                                                             : </u></strong>
                                                                                     @foreach (json_decode($detail['variation'], true)[0] as $key1 => $variation)
-                                                                                    @php(dd($variation));
+                                                                                    @php(dd($detail['variation']));
                                                                                         <div class="font-size-sm text-body">
                                                                                             <span>{{ $key1 }} :
                                                                                             </span>

@@ -16,6 +16,7 @@ Route::post('/push-sale-invoices', [DataPushController::class, 'pushInvoices']);
 
 Route::middleware('api')->group(function () {
     Route::post('order-place', [POSController::class, 'order_place']);
+    Route::post('waiter/place-order', [App\Http\Controllers\Api\V1\WaiterController::class, 'waiter_place_order']);
 });
 
 Route::post('employees', 'Api\TableEmployeeController@store');  // Store route for creating a new employee
@@ -334,7 +335,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware'=>['localization','react']], 
         Route::get('products/{category_id}/all', 'CategoryController@get_all_products');
         Route::get('restaurants/{category_id}', 'CategoryController@get_restaurants');
     });
-    
+
     Route::get('/categories-food/{restaurant_id}', 'CategoryController@apiIndex');
 
     Route::group(['prefix' => 'cuisine'], function () {
@@ -408,7 +409,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware'=>['localization','react']], 
             Route::put('payment-method', 'OrderController@update_payment_method');
             Route::put('offline-payment', 'OrderController@offline_payment');
             Route::put('offline-payment-update', 'OrderController@update_offline_payment_info');
-            
+
         });
         Route::get('getPendingReviews', 'OrderController@getPendingReviews');
         Route::post('/orders', 'OrderController@store');

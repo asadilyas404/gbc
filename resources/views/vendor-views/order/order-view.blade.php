@@ -353,8 +353,8 @@
                                                                                 </span>
                                                                                 @foreach ($variation['values'] as $value)
                                                                                     <span class="d-block text-capitalize">
-                                                                                        &nbsp; &nbsp; {{
-                                                                                            OptionsList::find($value['options_list_id'])->name ?? ''}}
+                                                                                        &nbsp; &nbsp;
+                                                                                        {{ OptionsList::find($value['options_list_id'])->name ?? '' }}
                                                                                         :
                                                                                         <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
                                                                                     </span>
@@ -362,22 +362,24 @@
 
                                                                                 {{-- Display variation-specific addons if they exist --}}
                                                                                 @if (isset($variation['addons']) && is_array($variation['addons']) && count($variation['addons']) > 0)
-    <div class="variation-addons-inline px-3 py-1">
-        @foreach ($variation['addons'] as $addon)
-            <span class="d-block text-capitalize">
-                <small class="text-muted">
-                    <i class="tio-add-circle text-info"></i>
-                    {{ Str::limit($addon['name'], 30, '...') }}
-                    ({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
-                </small>
-            </span>
-            @php($total_variation_addon_price += $addon['price'] * $addon['quantity'])
-        @endforeach
-    </div>
-@endif
-
+                                                                                    <div
+                                                                                        class="variation-addons-inline px-3 py-1">
+                                                                                        @foreach ($variation['addons'] as $addon)
+                                                                                            <span
+                                                                                                class="d-block text-capitalize">
+                                                                                                <small class="text-muted">
+                                                                                                    <i
+                                                                                                        class="tio-add-circle text-info"></i>
+                                                                                                    {{ Str::limit($addon['name'], 30, '...') }}
+                                                                                                    ({{ $addon['quantity'] }}x{{ \App\CentralLogics\Helpers::format_currency($addon['price']) }})
+                                                                                                </small>
+                                                                                            </span>
+                                                                                            @php($total_variation_addon_price += $addon['price'] * $addon['quantity'])
+                                                                                        @endforeach
+                                                                                    </div>
+                                                                                @endif
                                                                             @else
-                                                                                @if (isset(json_decode($detail['variation'], true)[0]))
+                                                                                {{-- @if (isset(json_decode($detail['variation'], true)[0]))
                                                                                     <strong><u>
                                                                                             {{ translate('messages.Variation') }}
                                                                                             : </u></strong>
@@ -389,7 +391,7 @@
                                                                                                 class="font-weight-bold">{{ $variation }}</span>
                                                                                         </div>
                                                                                     @endforeach
-                                                                                @endif
+                                                                                @endif --}}
                                                                                 @break
                                                                             @endif
                                                                         @endforeach
@@ -694,9 +696,11 @@
                                         {{ translate('Confirm Order') }}
                                     </a> --}}
                             @if ($order['payment_status'] == 'unpaid')
-                                    <a target="_blank" href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}" class="btn w-100 mb-1 btn-sm btn-outline-warning mt-2 btn--warning">
-                                        Load Unpaid to POS
-                                    </a>
+                                <a target="_blank"
+                                    href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
+                                    class="btn w-100 mb-1 btn-sm btn-outline-warning mt-2 btn--warning">
+                                    Load Unpaid to POS
+                                </a>
                             @endif
                             @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')
                                 <a
@@ -807,20 +811,7 @@
                                             {{ translate('Delivery Man Information') }}
                                         </span>
                                     </div>
-                                    @if (
-                                        !in_array($order['order_status'], [
-                                            'handover',
-                                            'delivered',
-                                            'refund_requested',
-                                            'canceled',
-                                            'refunded',
-                                            'refund_request_canceled',
-                                        ]) &&
-                                            ((isset($order->restaurant) &&
-                                                ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) ||
-                                                ($order->restaurant->restaurant_model == 'subscription' &&
-                                                    isset($order->restaurant->restaurant_sub) &&
-                                                    $order->restaurant->restaurant_sub->self_delivery == 1)))
+                                    @if (!in_array($order['order_status'], ['handover', 'delivered', 'refund_requested', 'canceled', 'refunded', 'refund_request_canceled']) && ((isset($order->restaurant) && ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) || ($order->restaurant->restaurant_model == 'subscription' && isset($order->restaurant->restaurant_sub) && $order->restaurant->restaurant_sub->self_delivery == 1)))
                                         <span class="ml-auto text--primary position-relative pl-2 cursor-pointer"
                                             data-toggle="modal" data-target="#myModal">
                                             {{ translate('messages.change') }}
@@ -884,22 +875,7 @@
                                 @endif
                             @endif --}}
                         @else
-                            {{-- @if (
-                                !$order->delivery_man &&
-                                    !in_array($order['order_status'], [
-                                        'handover',
-                                        'delivered',
-                                        'take_away',
-                                        'refund_requested',
-                                        'canceled',
-                                        'refunded',
-                                        'refund_request_canceled',
-                                    ]) &&
-                                    ((isset($order->restaurant) &&
-                                        ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) ||
-                                        ($order->restaurant->restaurant_model == 'subscription' &&
-                                            isset($order->restaurant->restaurant_sub) &&
-                                            $order->restaurant->restaurant_sub->self_delivery == 1)))
+                            {{-- @if (!$order->delivery_man && !in_array($order['order_status'], ['handover', 'delivered', 'take_away', 'refund_requested', 'canceled', 'refunded', 'refund_request_canceled']) && ((isset($order->restaurant) && ($order->restaurant->restaurant_model == 'commission' && $order->restaurant->self_delivery_system)) || ($order->restaurant->restaurant_model == 'subscription' && isset($order->restaurant->restaurant_sub) && $order->restaurant->restaurant_sub->self_delivery == 1)))
                                 <div class="w-100 text-center mr-2 mt-4 mb-4">
                                     <button type="button" class="btn w-100 btn-primary font-regular" data-toggle="modal"
                                         data-target="#myModal" data-lat='21.03' data-lng='105.85'>
@@ -1827,8 +1803,8 @@
             }
 
             // Get printer names from configuration or use defaults
-            const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
-            const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
+            const billPrinterName = '{{ config('app.bill_printer_name', 'Bill Printer') }}';
+            const kitchenPrinterName = '{{ config('app.kitchen_printer_name', 'Kitchen Printer') }}';
 
             let printersFound = 0;
 
@@ -1932,20 +1908,20 @@
     </script>
 
     <style>
-    /* Minimal variation addon styling for order view */
-    .variation-addons-inline {
-        margin-top: 2px;
-        line-height: 1.2;
-    }
+        /* Minimal variation addon styling for order view */
+        .variation-addons-inline {
+            margin-top: 2px;
+            line-height: 1.2;
+        }
 
-    .variation-addons-inline .text-info {
-        color: #17a2b8 !important;
-        font-size: 0.8em;
-    }
+        .variation-addons-inline .text-info {
+            color: #17a2b8 !important;
+            font-size: 0.8em;
+        }
 
-    .variation-addons-inline small {
-        font-size: 0.75em;
-        line-height: 1.1;
-    }
+        .variation-addons-inline small {
+            font-size: 0.75em;
+            line-height: 1.1;
+        }
     </style>
 @endpush

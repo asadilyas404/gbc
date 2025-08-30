@@ -60,6 +60,8 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
 use App\Models\RestaurantNotificationSetting;
+use App\Scopes\RestaurantScope;
+use App\Scopes\ZoneScope;
 use MatanYadaev\EloquentSpatial\Objects\Point;
 use App\Models\SubscriptionBillingAndRefundHistory;
 use Laravelpkg\Laravelchk\Http\Controllers\LaravelchkController;
@@ -2242,7 +2244,7 @@ class Helpers
                 if ($add_on_qtys == null) {
                     $add_on_qty = 1;
                 } else {
-                    $add_on_qty = isset($add_on_qtys[$key2]) ? $add_on_qtys[$key2] : 0;
+                                    $add_on_qty = isset($add_on_qtys[$key2]) ? $add_on_qtys[$key2] : 0;
                 }
 
                 // if($add_on_qty > 0 ){
@@ -2272,6 +2274,80 @@ class Helpers
                 $add_ons_cost += $addon['price'] * $add_on_qty;
             }
             return ['addons' => $data, 'total_add_on_price' => $add_ons_cost];
+        }
+        return null;
+    }
+
+    /**
+     * Calculate addon price for waiter app with ID-based quantity mapping
+     * This function is specifically designed for the waiter API to handle
+     * addon quantities mapped by ID instead of array position
+     */
+    public static function calculate_addon_price_for_waiter($addons, $add_on_qtys, $incrementCount = false, $old_selected_addons = [])
+    {
+        $add_ons_cost = 0;
+        $data = [];
+
+        if ($addons) {
+            foreach ($addons as $addon) {
+                // For waiter app, add_on_qtys should be an associative array with ID as key
+                if ($add_on_qtys == null) {
+                    $add_on_qty = 1;
+                } else {
+                    // Expect ID => quantity mapping
+                    $add_on_qty = isset($add_on_qtys[$addon->id]) ? $add_on_qtys[$addon->id] : 0;
+                }
+
+                // Stock checking logic
+                if ($addon->stock_type != 'unlimited') {
+                    $availableStock = $addon->addon_stock;
+
+                    if (data_get($old_selected_addons, $addon->id)) {
+                        $availableStock = $availableStock + data_get($old_selected_addons, $addon->id);
+                    }
+
+                    if ($availableStock <= 0 || $availableStock < $add_on_qty) {
+                        return [
+                            'out_of_stock' => $addon->name . ' ' . translate('Addon_is_out_of_stock_!!!'),
+                            'id' => $addon->id,
+                            'current_stock' => $availableStock > 0 ? $availableStock : 0,
+                            'type' => 'addon'
+                        ];
+                    }
+                }
+
+                if ($incrementCount == true) {
+                    $addon->increment('sell_count', $add_on_qty);
+                }
+
+                $data[] = [
+                    'id' => $addon->id,
+                    'name' => $addon->name,
+                    'price' => $addon->price,
+                    'quantity' => $add_on_qty
+                ];
+                $add_ons_cost += $addon->price * $add_on_qty;
+            }
+            return ['addons' => $data, 'total_add_on_price' => $add_ons_cost];
+        }
+        return null;
+    }
+
+    /**
+     * Stock checking function specifically for waiter app
+     * This function handles addon stock checking with ID-based quantity mapping
+     */
+    public static function addonStockCheckForWaiter($product, $quantity = 1, $add_on_qtys = [], $add_on_ids = [], $incrementCount = false)
+    {
+        if (is_array($add_on_ids) && count($add_on_ids) > 0) {
+            return Helpers::calculate_addon_price_for_waiter(
+                AddOn::withoutGlobalScope(RestaurantScope::class)
+                    ->withoutGlobalScope(ZoneScope::class)
+                    ->whereIn('id', $add_on_ids)
+                    ->get(),
+                $add_on_qtys,
+                $incrementCount
+            );
         }
         return null;
     }

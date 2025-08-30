@@ -14,12 +14,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
+use App\Scopes\RestaurantScope;
+use App\Scopes\ZoneScope;
 
 class WaiterController extends Controller
 {
     public function waiter_place_order(Request $request)
     {
-        dd($request->all());
         try {
             // Validate the request
             $validator = Validator::make($request->all(), [
@@ -82,16 +84,36 @@ class WaiterController extends Controller
 
                 // Calculate addon prices for general addons
                 $addon_data = ['total_add_on_price' => 0, 'addons' => []];
+                $addon_ids = [];
+                $addon_quantity_map = [];
+
                 if (isset($c['add_ons']) && is_array($c['add_ons'])) {
-                    $addon_data = Helpers::calculate_addon_price(
-                        \App\Models\AddOn::whereIn('id', $c['add_ons'])->get(),
-                        $c['add_on_qtys'] ?? []
+                    // Extract just the IDs from the add_ons array
+                    $addon_ids = array_column($c['add_ons'], 'id');
+
+                    // Create a proper mapping of addon ID to quantity
+                    foreach ($c['add_ons'] as $addon) {
+                        $addon_quantity_map[$addon['id']] = $addon['quantity'] ?? 1;
+                    }
+
+                    $addon_data = Helpers::calculate_addon_price_for_waiter(
+                        \App\Models\AddOn::withoutGlobalScope(RestaurantScope::class)->withoutGlobalScope(ZoneScope::class)->whereIn('id', $addon_ids)->get(),
+                        $addon_quantity_map
                     );
                 }
 
                 // Prepare addon data for stock checking (including variation-specific addons)
-                $all_addon_ids = $c['add_ons'] ?? [];
-                $all_addon_qtys = $c['add_on_qtys'] ?? [];
+                $all_addon_ids = [];
+                $all_addon_qtys = [];
+
+                if (isset($c['add_ons']) && is_array($c['add_ons'])) {
+                    $all_addon_ids = array_column($c['add_ons'], 'id');
+
+                    // Create quantity mapping for stock checking
+                    foreach ($c['add_ons'] as $addon) {
+                        $all_addon_qtys[$addon['id']] = $addon['quantity'] ?? 1;
+                    }
+                }
 
                 // Add variation-specific addons to stock checking
                 if (isset($c['variations']) && is_array($c['variations'])) {
@@ -99,27 +121,26 @@ class WaiterController extends Controller
                         if (isset($variation['addons']) && is_array($variation['addons'])) {
                             foreach ($variation['addons'] as $addon) {
                                 $all_addon_ids[] = $addon['id'];
-                                $all_addon_qtys[] = $addon['quantity'];
+                                $all_addon_qtys[$addon['id']] = $addon['quantity'] ?? 1;
                             }
                         }
                     }
                 }
 
-                // Check stock
+                // Check stock using waiter-specific function
                 if (count($all_addon_ids) > 0) {
-                    $addonAndVariationStock = Helpers::addonAndVariationStockCheck(
+                    $addonStock = Helpers::addonStockCheckForWaiter(
                         $product,
                         $c['quantity'],
                         $all_addon_qtys,
-                        [], // No variation option IDs in this format
                         $all_addon_ids,
                         true
                     );
 
-                    if (data_get($addonAndVariationStock, 'out_of_stock') != null) {
+                    if ($addonStock && data_get($addonStock, 'out_of_stock') != null) {
                         return response()->json([
                             'status' => false,
-                            'message' => data_get($addonAndVariationStock, 'out_of_stock')
+                            'message' => data_get($addonStock, 'out_of_stock')
                         ], 400);
                     }
                 }
@@ -145,7 +166,7 @@ class WaiterController extends Controller
                         // Process variation-specific addons
                         if (isset($variation['addons']) && is_array($variation['addons'])) {
                             foreach ($variation['addons'] as $addon) {
-                                $addonModel = \App\Models\AddOn::find($addon['id']);
+                                $addonModel = \App\Models\AddOn::withoutGlobalScope(RestaurantScope::class)->withoutGlobalScope(ZoneScope::class)->find($addon['id']);
                                 if ($addonModel) {
                                     $variationData['addons'][] = [
                                         'id' => $addon['id'],

@@ -19,6 +19,7 @@ class WaiterController extends Controller
 {
     public function waiter_place_order(Request $request)
     {
+        dd($request->all());
         try {
             // Validate the request
             $validator = Validator::make($request->all(), [

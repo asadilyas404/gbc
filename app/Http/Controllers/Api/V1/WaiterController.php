@@ -25,7 +25,7 @@ class WaiterController extends Controller
                 'restaurant_id' => 'required|integer',
                 'table_id' => 'required|integer',
                 'order_type' => 'required|in:indoor,outdoor,take_away,delivery',
-                'waiter_id' => 'required|integer', // This will be stored in order_taken_by
+                'waiter_id' => 'required|string', // This will be stored in order_taken_by
                 'cart' => 'required|array|min:1',
                 'cart.*.id' => 'required|integer',
                 'cart.*.quantity' => 'required|integer|min:1',
@@ -57,14 +57,6 @@ class WaiterController extends Controller
                     'message' => 'Validation failed',
                     'errors' => $validator->errors()
                 ], 422);
-            }
-
-            $restaurant = Helpers::get_restaurant_data();
-            if (!$restaurant || $restaurant->id != $request->restaurant_id) {
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Invalid restaurant'
-                ], 400);
             }
 
             $cart = $request->cart;
@@ -212,8 +204,8 @@ class WaiterController extends Controller
             $order->order_type = $request->order_type;
             $order->table_id = $request->table_id;
             $order->order_taken_by = $request->waiter_id;
-            $order->restaurant_id = $restaurant->id;
-            $order->zone_id = $restaurant->zone_id;
+            $order->restaurant_id = $request->restaurant_id;
+            $order->zone_id = 1;
             $order->delivery_charge = 0; // No delivery charge for indoor orders
             $order->original_delivery_charge = 0;
             $order->delivery_address = null;
@@ -260,7 +252,7 @@ class WaiterController extends Controller
                 // Create POS order additional details
                 $posOrderDtl = new PosOrderAdditionalDtl();
                 $posOrderDtl->order_id = $order->id;
-                $posOrderDtl->restaurant_id = $order->restaurant_id;
+                $posOrderDtl->restaurant_id = $request->restaurant_id;
                 $posOrderDtl->customer_name = $request->customer_name;
                 $posOrderDtl->car_number = $request->car_number;
                 $posOrderDtl->phone = $request->phone;

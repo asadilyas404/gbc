@@ -93,7 +93,12 @@ class WaiterController extends Controller
 
                     // Create a proper mapping of addon ID to quantity
                     foreach ($c['add_ons'] as $addon) {
-                        $addon_quantity_map[$addon['id']] = $addon['quantity'] ?? 1;
+                        $addon_id = (string) $addon['id']; // ID stays as string if you want
+                        $addon_qty = isset($addon['quantity']) && $addon['quantity'] !== null
+                            ? (string) $addon['quantity']
+                            : "1"; // default as string
+
+                        $addon_quantity_map[$addon_id] = $addon_qty;
                     }
 
                     $addon_data = Helpers::calculate_addon_price_for_waiter(
@@ -148,40 +153,41 @@ class WaiterController extends Controller
                 // Increment sell count
                 $product->increment('sell_count', $c['quantity']);
 
-                // Process variations with selected options
+                // ✅ Use Helpers::get_varient to generate proper variation structure
+                $variation_data = Helpers::get_varient($product->variations, $c['variations']);
+                $processed_variations = $variation_data['variations'];
+
                 $complete_variations = [];
                 $total_variation_addon_price = 0;
 
                 if (isset($c['variations']) && is_array($c['variations'])) {
-                    foreach ($c['variations'] as $variation) {
-                        $variationData = [
-                            'heading' => $variation['heading'],
-                            'selected_option' => [
-                                'id' => $variation['selected_option']['id'],
-                                'name' => $variation['selected_option']['name']
-                            ],
-                            'addons' => []
-                        ];
+                    foreach ($c['variations'] as $key => $cartVariation) {
+                        // Start with the processed variation (correct format with values, optionPrice etc.)
+                        $completeVariation = isset($processed_variations[$key]) ? $processed_variations[$key] : $cartVariation;
 
-                        // Process variation-specific addons
-                        if (isset($variation['addons']) && is_array($variation['addons'])) {
-                            foreach ($variation['addons'] as $addon) {
-                                $addonModel = \App\Models\AddOn::withoutGlobalScope(RestaurantScope::class)->withoutGlobalScope(ZoneScope::class)->find($addon['id']);
+                        // If addons exist, attach them and recalc price
+                        if (isset($cartVariation['addons']) && is_array($cartVariation['addons'])) {
+                            $completeVariation['addons'] = [];
+                            foreach ($cartVariation['addons'] as $addon) {
+                                $addonModel = \App\Models\AddOn::withoutGlobalScope(RestaurantScope::class)
+                                    ->withoutGlobalScope(ZoneScope::class)
+                                    ->find($addon['id']);
                                 if ($addonModel) {
-                                    $variationData['addons'][] = [
+                                    $completeVariation['addons'][] = [
                                         'id' => $addon['id'],
                                         'name' => $addonModel->name,
                                         'price' => $addonModel->price,
-                                        'quantity' => $addon['quantity']
+                                        'quantity' => (string) $addon['quantity'], // store as string
                                     ];
                                     $total_variation_addon_price += ($addonModel->price * $addon['quantity']);
                                 }
                             }
                         }
 
-                        $complete_variations[] = $variationData;
+                        $complete_variations[] = $completeVariation;
                     }
                 }
+
 
                 // Calculate total addon price including variation-specific addons
                 $total_addon_price_for_item = $addon_data['total_add_on_price'] + $total_variation_addon_price;

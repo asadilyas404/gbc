@@ -78,7 +78,41 @@ class WaiterController extends Controller
                     ], 400);
                 }
 
-                $price = $c['price'];
+                // Calculate base price and variation price like POS does
+                $base_price = $product->price;
+                $variation_price = 0;
+
+                // Calculate variation price using Helpers::get_varient
+                if (isset($c['variations']) && is_array($c['variations'])) {
+                    $normalized_variations = [];
+                    foreach ($c['variations'] as $v) {
+                        $selectedLabels = [];
+                        if (isset($v['selected_option'])) {
+                            if (is_array($v['selected_option']) && isset($v['selected_option']['name'])) {
+                                $selectedLabels[] = $v['selected_option']['name'];
+                            } elseif (is_array($v['selected_option'])) {
+                                foreach ($v['selected_option'] as $opt) {
+                                    if (isset($opt['name'])) {
+                                        $selectedLabels[] = $opt['name'];
+                                    }
+                                }
+                            } elseif (is_string($v['selected_option'])) {
+                                $selectedLabels[] = $v['selected_option'];
+                            }
+                        }
+                        $normalized_variations[] = [
+                            'name' => $v['heading'] ?? ($v['name'] ?? ''),
+                            'values' => [
+                                'label' => $selectedLabels,
+                            ],
+                        ];
+                    }
+
+                    $variation_data = Helpers::get_varient($product->variations, $normalized_variations);
+                    $variation_price = $variation_data['price'];
+                }
+
+                $price = $base_price + $variation_price;
                 $product->tax = 0;
                 $product = Helpers::product_data_formatting($product);
 
@@ -153,36 +187,7 @@ class WaiterController extends Controller
                 // Increment sell count
                 $product->increment('sell_count', $c['quantity']);
 
-                // Normalize waiter variations to match POS expected structure
-                $normalized_variations = [];
-                if (isset($c['variations']) && is_array($c['variations'])) {
-                    foreach ($c['variations'] as $v) {
-                        $selectedLabels = [];
-                        if (isset($v['selected_option'])) {
-                            // single selected option object {id, name}
-                            if (is_array($v['selected_option']) && isset($v['selected_option']['name'])) {
-                                $selectedLabels[] = $v['selected_option']['name'];
-                            } elseif (is_array($v['selected_option'])) {
-                                // array of selected option objects
-                                foreach ($v['selected_option'] as $opt) {
-                                    if (isset($opt['name'])) {
-                                        $selectedLabels[] = $opt['name'];
-                                    }
-                                }
-                            } elseif (is_string($v['selected_option'])) {
-                                $selectedLabels[] = $v['selected_option'];
-                            }
-                        }
-                        $normalized_variations[] = [
-                            'name' => $v['heading'] ?? ($v['name'] ?? ''),
-                            'values' => [
-                                'label' => $selectedLabels,
-                            ],
-                        ];
-                    }
-                }
-
-                // Use Helpers::get_varient with normalized variations to generate proper variation structure
+                // Use the already normalized variations for processing
                 $variation_data = Helpers::get_varient($product->variations, $normalized_variations);
                 $processed_variations = $variation_data['variations'];
 

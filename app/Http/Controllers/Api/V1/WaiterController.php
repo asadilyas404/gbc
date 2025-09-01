@@ -257,7 +257,7 @@ class WaiterController extends Controller
 
             $order->created_at = now();
             $order->schedule_at = now();
-            $order->payment_status = 'draft';
+            $order->payment_status = 'unpaid';
             $order->kitchen_status = 'pending';
             $order->order_status = 'pending';
             $order->order_type = $request->order_type;

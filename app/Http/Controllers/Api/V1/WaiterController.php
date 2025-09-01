@@ -153,33 +153,64 @@ class WaiterController extends Controller
                 // Increment sell count
                 $product->increment('sell_count', $c['quantity']);
 
-                // ✅ Use Helpers::get_varient to generate proper variation structure
-                $variation_data = Helpers::get_varient($product->variations, $c['variations']);
+                // Normalize waiter variations to match POS expected structure
+                $normalized_variations = [];
+                if (isset($c['variations']) && is_array($c['variations'])) {
+                    foreach ($c['variations'] as $v) {
+                        $selectedLabels = [];
+                        if (isset($v['selected_option'])) {
+                            // single selected option object {id, name}
+                            if (is_array($v['selected_option']) && isset($v['selected_option']['name'])) {
+                                $selectedLabels[] = $v['selected_option']['name'];
+                            } elseif (is_array($v['selected_option'])) {
+                                // array of selected option objects
+                                foreach ($v['selected_option'] as $opt) {
+                                    if (isset($opt['name'])) {
+                                        $selectedLabels[] = $opt['name'];
+                                    }
+                                }
+                            } elseif (is_string($v['selected_option'])) {
+                                $selectedLabels[] = $v['selected_option'];
+                            }
+                        }
+                        $normalized_variations[] = [
+                            'name' => $v['heading'] ?? ($v['name'] ?? ''),
+                            'values' => [
+                                'label' => $selectedLabels,
+                            ],
+                        ];
+                    }
+                }
+
+                // Use Helpers::get_varient with normalized variations to generate proper variation structure
+                $variation_data = Helpers::get_varient($product->variations, $normalized_variations);
                 $processed_variations = $variation_data['variations'];
 
                 $complete_variations = [];
                 $total_variation_addon_price = 0;
 
-                if (isset($c['variations']) && is_array($c['variations'])) {
-                    foreach ($c['variations'] as $key => $cartVariation) {
+                if (isset($normalized_variations) && is_array($normalized_variations)) {
+                    foreach ($normalized_variations as $key => $normalizedVariation) {
                         // Start with the processed variation (correct format with values, optionPrice etc.)
-                        $completeVariation = isset($processed_variations[$key]) ? $processed_variations[$key] : $cartVariation;
+                        $completeVariation = isset($processed_variations[$key]) ? $processed_variations[$key] : $normalizedVariation;
 
-                        // If addons exist, attach them and recalc price
-                        if (isset($cartVariation['addons']) && is_array($cartVariation['addons'])) {
+                        // If addons exist in original cart variation, attach them and recalc price
+                        $cartVariationOriginal = $c['variations'][$key] ?? [];
+                        if (isset($cartVariationOriginal['addons']) && is_array($cartVariationOriginal['addons'])) {
                             $completeVariation['addons'] = [];
-                            foreach ($cartVariation['addons'] as $addon) {
+                            foreach ($cartVariationOriginal['addons'] as $addon) {
                                 $addonModel = \App\Models\AddOn::withoutGlobalScope(RestaurantScope::class)
                                     ->withoutGlobalScope(ZoneScope::class)
                                     ->find($addon['id']);
                                 if ($addonModel) {
+                                    $qty = isset($addon['quantity']) ? (int) $addon['quantity'] : 1;
                                     $completeVariation['addons'][] = [
                                         'id' => $addon['id'],
                                         'name' => $addonModel->name,
                                         'price' => $addonModel->price,
-                                        'quantity' => (string) $addon['quantity'], // store as string
+                                        'quantity' => (string) $qty,
                                     ];
-                                    $total_variation_addon_price += ($addonModel->price * $addon['quantity']);
+                                    $total_variation_addon_price += ($addonModel->price * $qty);
                                 }
                             }
                         }

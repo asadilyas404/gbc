@@ -108,7 +108,7 @@ class WaiterController extends Controller
                         ];
                     }
 
-                    $variation_data = Helpers::get_varient($product->variations, $normalized_variations);
+                    $variation_data = Helpers::get_varient(json_decode($product->variations, true), $normalized_variations);
                     $variation_price = $variation_data['price'];
                 }
 
@@ -188,7 +188,7 @@ class WaiterController extends Controller
                 $product->increment('sell_count', $c['quantity']);
 
                 // Use the already normalized variations for processing
-                $variation_data = Helpers::get_varient($product->variations, $normalized_variations);
+                $variation_data = Helpers::get_varient(json_decode($product->variations, true), $normalized_variations);
                 $processed_variations = $variation_data['variations'];
 
                 $complete_variations = [];

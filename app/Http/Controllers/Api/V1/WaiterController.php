@@ -26,7 +26,7 @@ class WaiterController extends Controller
             // Validate the request
             $validator = Validator::make($request->all(), [
                 'restaurant_id' => 'required|integer',
-                'table_id' => 'required|integer',
+                'table_id' => 'nullable|integer',
                 'order_type' => 'required|in:indoor,outdoor,take_away,delivery',
                 'waiter_id' => 'required|string', // This will be stored in order_taken_by
                 'cart' => 'required|array|min:1',

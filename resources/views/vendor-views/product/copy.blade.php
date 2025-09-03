@@ -21,6 +21,7 @@
 
         <form action="javascript:" method="post" id="product_form" enctype="multipart/form-data">
             @csrf
+            <input type="hidden" name="copied_image" value="{{ $product->image }}">
             <div class="row g-2">
                 <div class="col-lg-6">
                     <div class="card shadow--card-2 border-0">

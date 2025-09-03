@@ -160,7 +160,14 @@ class FoodController extends Controller
         $food->price = $request->price;
         $food->veg = $request->veg;
 
-        $food->image = Helpers::upload('product/', 'png', $request->file('image'));
+        // Handle image upload - if copying and no new image, use the copied image
+        if ($request->hasFile('image')) {
+            $food->image = Helpers::upload('product/', 'png', $request->file('image'));
+        } elseif ($request->has('copied_image') && !empty($request->copied_image)) {
+            $food->image = $request->copied_image;
+        } else {
+            $food->image = 'def.png';
+        }
 
         $food->available_time_starts = DB::raw("TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD') || ' $start_time', 'YYYY-MM-DD HH24:MI')");
         $food->available_time_ends = DB::raw("TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD') || ' $end_time', 'YYYY-MM-DD HH24:MI')");

@@ -16,11 +16,11 @@ class FoodResource extends JsonResource
         $discountAmount = 0;
 
         if ($discount > 0) {
-            if ($discountType === 'percent') {
-                $discountAmount = ($originalPrice * $discount) / 100;
-            } else {
+            // if ($discountType === 'percent') {
+            //     $discountAmount = ($originalPrice * $discount) / 100;
+            // } else {
                 $discountAmount = $discount;
-            }
+            // }
 
             $discountedPrice = max(0, $originalPrice - $discountAmount);
             // $price = round($discountedPrice, 2);

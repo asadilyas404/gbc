@@ -160,7 +160,6 @@ class FoodController extends Controller
         $food->price = $request->price;
         $food->veg = $request->veg;
 
-        // Handle image upload - if copying and no new image, use original image
         if ($request->has('original_image') && !$request->hasFile('image')) {
             $food->image = $request->original_image;
         } else {

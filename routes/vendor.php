@@ -174,6 +174,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('variant-combination', 'FoodController@variant_combination')->name('variant-combination');
             Route::post('store', 'FoodController@store')->name('store');
             Route::get('edit/{id}', 'FoodController@edit')->name('edit');
+            Route::get('copy/{id}', 'FoodController@copy')->name('copy');
             Route::post('update/{id}', 'FoodController@update')->name('update');
             Route::get('list', 'FoodController@list')->name('list');
             Route::delete('delete/{id}', 'FoodController@delete')->name('delete');

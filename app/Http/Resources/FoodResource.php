@@ -23,7 +23,8 @@ class FoodResource extends JsonResource
             }
 
             $discountedPrice = max(0, $originalPrice - $discountAmount);
-            $price = round($discountedPrice, 2);
+            // $price = round($discountedPrice, 2);
+            $price = round($originalPrice, 2);
         } else {
             $price = round($originalPrice, 2);
             $discountType = 'percent'; // default value when no discount

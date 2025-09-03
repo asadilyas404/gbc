@@ -354,6 +354,90 @@ class FoodController extends Controller
         return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload'));
     }
 
+    public function copy($id)
+    {
+        if (!Helpers::get_restaurant_data()->food_section) {
+            Toastr::warning(translate('messages.permission_denied'));
+            return back();
+        }
+
+        $originalProduct = Food::withoutGlobalScope('translate')->findOrFail($id);
+
+        // Create a copy of the product data
+        $product = new Food();
+        $product->name = $originalProduct->name . ' (Copy)';
+        $product->description = $originalProduct->description;
+        $product->image = $originalProduct->image;
+        $product->category_id = $originalProduct->category_id;
+        $product->category_ids = $originalProduct->category_ids;
+        $product->price = $originalProduct->price;
+        $product->discount = $originalProduct->discount;
+        $product->discount_type = $originalProduct->discount_type;
+        $product->veg = $originalProduct->veg;
+        $product->status = 0; // Set as inactive by default for copy
+        $product->restaurant_id = $originalProduct->restaurant_id;
+        $product->available_time_starts = $originalProduct->available_time_starts;
+        $product->available_time_ends = $originalProduct->available_time_ends;
+        $product->maximum_cart_quantity = $originalProduct->maximum_cart_quantity;
+        $product->est_make_time = $originalProduct->est_make_time;
+        $product->is_halal = $originalProduct->is_halal;
+        $product->item_stock = $originalProduct->item_stock;
+        $product->stock_type = $originalProduct->stock_type;
+        $product->attributes = $originalProduct->attributes;
+        $product->add_ons = $originalProduct->add_ons;
+        $product->choice_options = $originalProduct->choice_options;
+        $product->variations = $originalProduct->variations;
+        $product->recommended = 0;
+        $product->order_count = 0;
+        $product->avg_rating = 0;
+        $product->rating_count = 0;
+        $product->sell_count = 0;
+
+        $product_category = json_decode($product->category_ids);
+        $categories = Category::where(['parent_id' => 0])->get();
+        $optionList = DB::table('options_list')->get();
+
+        // Build variations payload from original product for copy view
+        $variationsPayload = [];
+        $dbVariations = Variation::where('food_id', $originalProduct->id)->orderBy('id')->get();
+        if ($dbVariations->count() > 0) {
+            foreach ($dbVariations as $v) {
+                $entry = [
+                    'variation_id' => null, // No variation_id for new product
+                    'name' => $v->name,
+                    'type' => $v->type,
+                    'min' => $v->min,
+                    'max' => $v->max,
+                    'required' => $v->is_required ? 'on' : 'off',
+                    'link_addons' => $v->link_addons ? 'on' : 'off',
+                    'values' => [],
+                ];
+                $dbOptions = VariationOption::where('food_id', $originalProduct->id)
+                    ->where('variation_id', $v->id)
+                    ->orderBy('id')
+                    ->get();
+                foreach ($dbOptions as $opt) {
+                    $entry['values'][] = [
+                        'option_id' => null, // No option_id for new product
+                        'label' => $opt->option_name,
+                        'options_list_id' => $opt->options_list_id,
+                        'optionPrice' => $opt->option_price,
+                        'total_stock' => $opt->total_stock,
+                        'current_stock' => $opt->total_stock,
+                    ];
+                }
+                $variationsPayload[] = $entry;
+            }
+        }
+
+        // Copy tags, nutrition, and allergies
+        $product->tags = $originalProduct->tags;
+        $product->nutritions = $originalProduct->nutritions;
+        $product->allergies = $originalProduct->allergies;
+
+        return view('vendor-views.product.copy', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload', 'originalProduct'));
+    }
+
     public function status(Request $request)
     {
         if (!Helpers::get_restaurant_data()->food_section) {

@@ -334,6 +334,10 @@
                                             href="{{ route('vendor.food.edit', [$food['id']]) }}"
                                             title="{{ translate('messages.edit_food') }}"><i class="tio-edit"></i>
                                         </a>
+                                        <a class="btn action-btn btn--success btn-outline-success"
+                                            href="{{ route('vendor.food.copy', [$food['id']]) }}"
+                                            title="{{ translate('messages.copy_food') }}"><i class="tio-copy"></i>
+                                        </a>
                                         <a class="btn action-btn btn--danger btn-outline-danger form-alert"
                                             href="javascript:" data-id="food-{{ $food['id'] }}"
                                             data-message="{{ translate('Want to delete this item ?') }}"

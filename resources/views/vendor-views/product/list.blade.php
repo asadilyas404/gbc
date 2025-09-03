@@ -334,7 +334,7 @@
                                             href="{{ route('vendor.food.edit', [$food['id']]) }}"
                                             title="{{ translate('messages.edit_food') }}"><i class="tio-edit"></i>
                                         </a>
-                                        <a class="btn action-btn btn--success btn-outline-success"
+                                        <a class="btn action-btn btn--primary btn-outline-primary"
                                             href="{{ route('vendor.food.copy', [$food['id']]) }}"
                                             title="{{ translate('messages.copy_food') }}"><i class="tio-copy"></i>
                                         </a>

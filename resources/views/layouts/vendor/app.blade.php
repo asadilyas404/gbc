@@ -474,7 +474,7 @@
         })
     }
 
-    $('.form-alert').on('click',function (){
+    $(document).on('click', '.form-alert', function (){
         let id = $(this).data('id')
         let message = $(this).data('message')
         Swal.fire({

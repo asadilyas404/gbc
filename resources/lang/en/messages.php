@@ -3380,6 +3380,7 @@
   'product_copied_successfully' => 'Product copied successfully',
   'copying_from' => 'Copying from',
   'create_copy' => 'Create Copy',
+  'image_copy_note' => 'The original image will be used if no new image is selected. Upload a new image to replace it.',
   'Subscription_Payment' => 'Subscription Payment',
   'Payment_Unsccessfull_!!!' => 'Payment Unsccessfull !!!',
   'Payment_error_!' => 'Payment error !',

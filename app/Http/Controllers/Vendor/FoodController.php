@@ -159,7 +159,13 @@ class FoodController extends Controller
         $food->variations = json_encode([]);
         $food->price = $request->price;
         $food->veg = $request->veg;
-        $food->image = Helpers::upload('product/', 'png', $request->file('image'));
+
+        // Handle image upload - if copying and no new image, use original image
+        if ($request->has('original_image') && !$request->hasFile('image')) {
+            $food->image = $request->original_image;
+        } else {
+            $food->image = Helpers::upload('product/', 'png', $request->file('image'));
+        }
 
         $food->available_time_starts = DB::raw("TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD') || ' $start_time', 'YYYY-MM-DD HH24:MI')");
         $food->available_time_ends = DB::raw("TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD') || ' $end_time', 'YYYY-MM-DD HH24:MI')");
@@ -363,7 +369,6 @@ class FoodController extends Controller
 
         $originalProduct = Food::withoutGlobalScope('translate')->findOrFail($id);
 
-        // Create a copy of the product data
         $product = new Food();
         $product->name = $originalProduct->name . ' (Copy)';
         $product->description = $originalProduct->description;
@@ -374,7 +379,7 @@ class FoodController extends Controller
         $product->discount = $originalProduct->discount;
         $product->discount_type = $originalProduct->discount_type;
         $product->veg = $originalProduct->veg;
-        $product->status = 0; // Set as inactive by default for copy
+        $product->status = 1;
         $product->restaurant_id = $originalProduct->restaurant_id;
         $product->available_time_starts = $originalProduct->available_time_starts;
         $product->available_time_ends = $originalProduct->available_time_ends;
@@ -397,13 +402,12 @@ class FoodController extends Controller
         $categories = Category::where(['parent_id' => 0])->get();
         $optionList = DB::table('options_list')->get();
 
-        // Build variations payload from original product for copy view
         $variationsPayload = [];
         $dbVariations = Variation::where('food_id', $originalProduct->id)->orderBy('id')->get();
         if ($dbVariations->count() > 0) {
             foreach ($dbVariations as $v) {
                 $entry = [
-                    'variation_id' => null, // No variation_id for new product
+                    'variation_id' => null,
                     'name' => $v->name,
                     'type' => $v->type,
                     'min' => $v->min,
@@ -418,7 +422,7 @@ class FoodController extends Controller
                     ->get();
                 foreach ($dbOptions as $opt) {
                     $entry['values'][] = [
-                        'option_id' => null, // No option_id for new product
+                        'option_id' => null,
                         'label' => $opt->option_name,
                         'options_list_id' => $opt->options_list_id,
                         'optionPrice' => $opt->option_price,
@@ -430,7 +434,6 @@ class FoodController extends Controller
             }
         }
 
-        // Copy tags, nutrition, and allergies
         $product->tags = $originalProduct->tags;
         $product->nutritions = $originalProduct->nutritions;
         $product->allergies = $originalProduct->allergies;

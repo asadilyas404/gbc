@@ -159,6 +159,7 @@ class FoodController extends Controller
         $food->variations = json_encode([]);
         $food->price = $request->price;
         $food->veg = $request->veg;
+        $food->status = 1;
 
         // Handle image upload - if copying and no new image, use the copied image
         if ($request->hasFile('image')) {

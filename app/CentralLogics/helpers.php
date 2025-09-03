@@ -2113,6 +2113,53 @@ class Helpers
         return true;
     }
 
+    public static function copy_image(string $dir, $old_image, string $format = 'png')
+    {
+        try {
+            if (empty($old_image) || $old_image == 'def.png') {
+                return 'def.png';
+            }
+
+            $disk = self::getDisk();
+            $sourcePath = $dir . $old_image;
+
+            // Check if source image exists
+            if (!Storage::disk($disk)->exists($sourcePath)) {
+                return 'def.png';
+            }
+
+            // Generate new unique filename
+            $newImageName = \Carbon\Carbon::now()->toDateString() . "-" . uniqid() . "." . $format;
+
+            // Copy the file
+            $sourceContent = Storage::disk($disk)->get($sourcePath);
+            Storage::disk($disk)->put($dir . $newImageName, $sourceContent);
+
+            return $newImageName;
+        } catch (\Exception $e) {
+            return 'def.png';
+        }
+    }
+
+    public static function safe_delete_image(string $dir, $image, $model_class, $model_id)
+    {
+        try {
+            if (empty($image) || $image == 'def.png') {
+                return;
+            }
+
+            // Check if any other records are using this image
+            $count = $model_class::where('image', $image)->where('id', '!=', $model_id)->count();
+
+            if ($count == 0) {
+                // No other records are using this image, safe to delete
+                self::check_and_delete($dir, $image);
+            }
+        } catch (\Exception $e) {
+            // If there's an error, don't delete the image to be safe
+        }
+    }
+
     public static function get_full_url($path, $data, $type, $placeholder = null)
     {
         $place_holders = [

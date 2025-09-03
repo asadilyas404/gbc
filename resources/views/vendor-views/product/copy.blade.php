@@ -21,7 +21,6 @@
 
         <form action="javascript:" method="post" id="product_form" enctype="multipart/form-data">
             @csrf
-            <input type="hidden" name="original_image" value="{{ $product->image }}">
             <div class="row g-2">
                 <div class="col-lg-6">
                     <div class="card shadow--card-2 border-0">
@@ -113,7 +112,7 @@
                                         class="text-danger">({{ translate('messages.Ratio_200x200') }})</small></span>
                             </h5>
                             <div class="alert alert-info mb-3">
-                                <small><i class="tio-info"></i> {{ translate('messages.image_copy_note') }}</small>
+                                <small><i class="tio-info"></i> {{ translate('messages.image_copy_note_updated') }}</small>
                             </div>
                             <div class="form-group mb-0 h-100 d-flex flex-column align-items-center justify-content-center">
                                 <label>

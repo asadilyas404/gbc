@@ -160,11 +160,7 @@ class FoodController extends Controller
         $food->price = $request->price;
         $food->veg = $request->veg;
 
-        if ($request->has('original_image') && !$request->hasFile('image')) {
-            $food->image = $request->original_image;
-        } else {
-            $food->image = Helpers::upload('product/', 'png', $request->file('image'));
-        }
+        $food->image = Helpers::upload('product/', 'png', $request->file('image'));
 
         $food->available_time_starts = DB::raw("TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD') || ' $start_time', 'YYYY-MM-DD HH24:MI')");
         $food->available_time_ends = DB::raw("TO_DATE(TO_CHAR(SYSDATE, 'YYYY-MM-DD') || ' $end_time', 'YYYY-MM-DD HH24:MI')");
@@ -371,7 +367,7 @@ class FoodController extends Controller
         $product = new Food();
         $product->name = $originalProduct->name . ' (Copy)';
         $product->description = $originalProduct->description;
-        $product->image = $originalProduct->image;
+        $product->image = Helpers::copy_image('product/', $originalProduct->image);
         $product->category_id = $originalProduct->category_id;
         $product->category_ids = $originalProduct->category_ids;
         $product->price = $originalProduct->price;
@@ -706,7 +702,7 @@ class FoodController extends Controller
         }
 
         if ($product->image) {
-            Helpers::check_and_delete('product/', $product->image);
+            Helpers::safe_delete_image('product/', $product->image, Food::class, $product->id);
         }
 
         $product->carts()->delete();

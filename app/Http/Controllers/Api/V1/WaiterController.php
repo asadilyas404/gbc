@@ -114,6 +114,20 @@ class WaiterController extends Controller
                 }
 
                 $price = $base_price + $variation_price;
+
+                // Apply food discount from Food table
+                $food_discount = $product->discount ?? 0;
+                $food_discount_type = $product->discount_type ?? 'percent';
+
+                if ($food_discount > 0) {
+                    if ($food_discount_type === 'percent') {
+                        $discount_amount = ($price * $food_discount) / 100;
+                    } else {
+                        $discount_amount = $food_discount;
+                    }
+                    $price = max(0, $price - $discount_amount);
+                }
+
                 $product->tax = 0;
                 $product = Helpers::product_data_formatting($product);
 
@@ -230,13 +244,16 @@ class WaiterController extends Controller
                 // Calculate total addon price including variation-specific addons
                 $total_addon_price_for_item = $addon_data['total_add_on_price'] + $total_variation_addon_price;
 
+                // Calculate total discount (food discount + cart discount)
+                $total_discount = ($c['discount'] ?? 0) + (isset($discount_amount) ? $discount_amount : 0);
+
                 $order_details[] = [
                     'food_id' => $c['id'],
                     'food_details' => json_encode($product),
                     'quantity' => $c['quantity'],
                     'price' => $price,
                     'tax_amount' => Helpers::tax_calculate($product, $price),
-                    'discount_on_food' => $c['discount'] ?? 0,
+                    'discount_on_food' => $total_discount,
                     'discount_type' => 'discount_on_product',
                     'variation' => json_encode($complete_variations),
                     'add_ons' => json_encode($addon_data['addons']),
@@ -248,7 +265,7 @@ class WaiterController extends Controller
 
                 $total_addon_price += $total_addon_price_for_item;
                 $product_price += $price * $c['quantity'];
-                $restaurant_discount_amount += ($c['discount'] ?? 0) * $c['quantity'];
+                $restaurant_discount_amount += $total_discount * $c['quantity'];
             }
 
             // Create order

@@ -180,7 +180,7 @@
                                     data-order-id="{{ $order['id'] }}">
                                     <i class="tio-print mr-1"></i> {{ translate('Direct Print') }}
                                 </button>
-                                <button type="button" class="btn btn--success m-2 print--btn api-print-btn"
+                                <button type="button" class="btn btn--primary m-2 print--btn api-print-btn"
                                     data-order-id="{{ $order['id'] }}">
                                     <i class="tio-print mr-1"></i> API Print
                                 </button>

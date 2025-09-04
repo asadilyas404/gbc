@@ -18,7 +18,7 @@ class PrintController extends Controller
                 'order_id' => 'required|string'
             ]);
 
-            $orderId = $request->input('order_id');
+            $orderId = $request->input('order_id') ?: $request->query('order_id');
 
             // Find the order
             $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details'])
@@ -179,16 +179,11 @@ class PrintController extends Controller
             $printer->cut();
             $printer->close();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Order printed successfully!',
-                'order_id' => $order->order_serial
-            ]);
+            // For page reload, redirect back with success message
+            return redirect()->back()->with('success', 'Order printed successfully!');
         } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Print error: ' . $e->getMessage()
-            ], 500);
+            // For page reload, redirect back with error message
+            return redirect()->back()->with('error', 'Print error: ' . $e->getMessage());
         }
     }
 }

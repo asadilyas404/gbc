@@ -34,6 +34,27 @@
 
     <div class="content container-fluid item-box-page">
 
+        {{-- Print Success/Error Messages --}}
+        @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="tio-checkmark-circle mr-1"></i>
+                {{ session('success') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="tio-warning mr-1"></i>
+                {{ session('error') }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        @endif
+
         <div class="page-header d-print-none">
 
             <h1 class="page-header-title text-capitalize">
@@ -158,6 +179,10 @@
                                 <button type="button" class="btn btn--primary m-2 print--btn direct-print-btn"
                                     data-order-id="{{ $order['id'] }}">
                                     <i class="tio-print mr-1"></i> {{ translate('Direct Print') }}
+                                </button>
+                                <button type="button" class="btn btn--success m-2 print--btn api-print-btn"
+                                    data-order-id="{{ $order['id'] }}">
+                                    <i class="tio-print mr-1"></i> API Print
                                 </button>
                             </div>
                             <div class="text-right mt-3 order-invoice-right-contents text-capitalize">
@@ -1763,6 +1788,12 @@
             printOrder(orderId);
         });
 
+        // API Print Functionality
+        $(document).on('click', '.api-print-btn', function() {
+            const orderId = $(this).data('order-id');
+            apiPrintOrder(orderId);
+        });
+
         function printOrder(orderId) {
             // Show loading
             toastr.info('Preparing print...');
@@ -1889,6 +1920,15 @@
                 console.error("Kitchen print failed:", err);
                 toastr.error("Kitchen print failed: " + err);
             });
+        }
+
+        // API Print Order Function
+        function apiPrintOrder(orderId) {
+            // Show loading
+            toastr.info('Sending to printer...');
+
+            // Redirect to print route with order ID
+            window.location.href = '/api/v1/print/order?order_id=' + orderId;
         }
 
         // Initialize QZ Tray connection

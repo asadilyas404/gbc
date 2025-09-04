@@ -13,7 +13,7 @@ use App\Http\Controllers\PrintController;
 Route::post('/push-sale-invoices', [DataPushController::class, 'pushInvoices']);
 
 // Print API routes
-Route::post('/print/order', [PrintController::class, 'printOrder']);
+Route::match(['get', 'post'], '/print/order', [PrintController::class, 'printOrder']);
 
 Route::middleware('api')->group(function () {
     Route::post('order-place', [POSController::class, 'order_place']);

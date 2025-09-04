@@ -40,6 +40,7 @@ class Order extends Model
         'ref_bonus_amount' => 'float',
         'extra_packaging_amount' => 'float',
         'is_pushed' => 'string',
+        'printed' => 'boolean',
     ];
     protected $appends = ['order_proof_full_url'];
 
@@ -388,7 +389,6 @@ class Order extends Model
         ->when($filter == 'this_week', function ($query) {
             return $query->whereBetween('schedule_at', [now()->startOfWeek()->format('Y-m-d H:i:s'), now()->endOfWeek()->format('Y-m-d H:i:s')]);
         });
-        return $query;
     }
     public function tableEmployee()
     {

@@ -8,11 +8,12 @@ use App\Http\Controllers\VendorController;
 use App\Http\Controllers\Api\TableEmployeeController;
 use App\Http\Controllers\Api\V1\Vendor\POSController;
 use App\Http\Controllers\DataPushController;
+use App\Http\Controllers\PrintController;
 
 Route::post('/push-sale-invoices', [DataPushController::class, 'pushInvoices']);
 
-
-
+// Print API routes
+Route::post('/print/order', [PrintController::class, 'printOrder']);
 
 Route::middleware('api')->group(function () {
     Route::post('order-place', [POSController::class, 'order_place']);

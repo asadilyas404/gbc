@@ -30,13 +30,6 @@ class Kernel extends ConsoleKernel
         $schedule->job(new SyncFoodJob)->everyFiveMinutes();
         $schedule->job(new SyncEmployeesJob)->everyFiveMinutes();
 
-        // Auto print orders every 10 seconds if enabled
-        if (config('printing.auto_print.enabled', false)) {
-            $schedule->command('orders:auto-print')
-                ->everyTenSeconds()
-                ->withoutOverlapping()
-                ->runInBackground();
-        }
     }
 
     /**

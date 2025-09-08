@@ -545,6 +545,15 @@
                                         {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y - h:i A') }}
                                     </div>
 
+                                    <div class="text-muted mb-1">
+                                        <strong>{{ translate('messages.restaurant_date') }}:</strong><br>
+                                       @if(!empty($order['order_date']))
+                                            {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                        @else
+                                            -
+                                        @endif
+                                    </div>
+
                                     <!-- Customer Info -->
                                     <div class="text-muted mb-1">
                                         <strong>{{ translate('messages.customer_information') }}:</strong><br>

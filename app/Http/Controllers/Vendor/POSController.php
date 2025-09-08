@@ -928,6 +928,21 @@ class POSController extends Controller
             }
 
             DB::commit();
+
+            // Print order receipts
+            try {
+                $printController = new \App\Http\Controllers\PrintController();
+
+                // Print bill receipt
+                $printController->printOrder(new \Illuminate\Http\Request(['order_id' => $order->id]));
+
+                // Print kitchen receipt
+                $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => $order->id]));
+            } catch (\Exception $printException) {
+                // Log print errors but don't fail the order
+                info('Print error: ' . $printException->getMessage());
+            }
+
             //PlaceOrderMail
             // try {
             //     $notification_status = Helpers::getNotificationStatusData('customer', 'customer_order_notification');

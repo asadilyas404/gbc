@@ -350,7 +350,7 @@
                 </div>
             </div>
             <div class="order--pos-right">
-                <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
+                <a class="btn btn--primary text-right mb-2" href="{{ route('vendor.dashboard') }}"
                             title="{{ translate('messages.Back') }}">
                             {{ translate('messages.Back') }}
                         </a>

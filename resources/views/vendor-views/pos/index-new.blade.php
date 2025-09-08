@@ -1,16 +1,16 @@
 @php
     use App\CentralLogics\Helpers;
-    use App\Models\BusinessSetting;
+    // use App\Models\BusinessSetting;
     use App\Models\Order;
 
-    $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
-    $billPrinter = $kitchenPrinter = null;
+    // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+    // $billPrinter = $kitchenPrinter = null;
 
-    if ($setting) {
-        $printers = json_decode($setting->value, true);
-        $billPrinter = $printers['bill_print'] ?? null;
-        $kitchenPrinter = $printers['kitchen_print'] ?? null;
-    }
+    // if ($setting) {
+    //     $printers = json_decode($setting->value, true);
+    //     $billPrinter = $printers['bill_print'] ?? null;
+    //     $kitchenPrinter = $printers['kitchen_print'] ?? null;
+    // }
 
 @endphp
 @extends('layouts.vendor.app')
@@ -350,7 +350,7 @@
                 </div>
             </div>
             <div class="order--pos-right">
-                <a class="btn btn--primary text-right mb-2" href="{{ route('vendor.dashboard') }}"
+                <a class="btn btn--primary float-end mb-2" href="{{ route('vendor.dashboard') }}"
                             title="{{ translate('messages.Back') }}">
                             {{ translate('messages.Back') }}
                         </a>
@@ -1615,142 +1615,134 @@
 
         // Printers working
 
-        const billPrinterName = @json($billPrinter);
-        const kitchenPrinterName = @json($kitchenPrinter);
+        // const billPrinterName = @json($billPrinter);
+        // const kitchenPrinterName = @json($kitchenPrinter);
 
-        // console.log(billPrinterName);
-        // console.log(kitchenPrinterName);
+        // document.addEventListener("DOMContentLoaded", function() {
 
-        document.addEventListener("DOMContentLoaded", function() {
+        //     qz.security.setCertificatePromise(function(resolve, reject) {
+        //         fetch('/qz/cert')
+        //             .then(res => res.text())
+        //             .then(resolve)
+        //             .catch(reject);
+        //     });
 
-            // Set the certificate
-            qz.security.setCertificatePromise(function(resolve, reject) {
-                fetch('/qz/cert')
-                    .then(res => res.text())
-                    .then(resolve)
-                    .catch(reject);
-            });
+        //     qz.security.setSignatureAlgorithm("SHA512");
 
-            qz.security.setSignatureAlgorithm("SHA512");
-
-            qz.security.setSignaturePromise(function(toSign) {
-                return function(resolve, reject) {
-                    fetch("/qz/sign", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content')
-                            },
-                            body: JSON.stringify({
-                                data: toSign
-                            })
-                        })
-                        .then(res => {
-                            return res.json();
-                        })
-                        .then(data => {
-                            if (data.signature) {
-                                resolve(data.signature);
-                            } else {
-                                console.error("❌ No signature in response");
-                                reject("Invalid signature response");
-                            }
-                        })
-                        .catch(err => {
-                            console.error("❌ Signature fetch error:", err);
-                            reject(err);
-                        });
-                };
-            });
+        //     qz.security.setSignaturePromise(function(toSign) {
+        //         return function(resolve, reject) {
+        //             fetch("/qz/sign", {
+        //                     method: "POST",
+        //                     headers: {
+        //                         "Content-Type": "application/json",
+        //                         "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
+        //                             .getAttribute('content')
+        //                     },
+        //                     body: JSON.stringify({
+        //                         data: toSign
+        //                     })
+        //                 })
+        //                 .then(res => {
+        //                     return res.json();
+        //                 })
+        //                 .then(data => {
+        //                     if (data.signature) {
+        //                         resolve(data.signature);
+        //                     } else {
+        //                         console.error("❌ No signature in response");
+        //                         reject("Invalid signature response");
+        //                     }
+        //                 })
+        //                 .catch(err => {
+        //                     console.error("❌ Signature fetch error:", err);
+        //                     reject(err);
+        //                 });
+        //         };
+        //     });
 
 
-            if (!qz.websocket.isActive()) {
-                qz.websocket.connect().then(() => {
-                    initializePrinters();
-                }).catch(err => {
-                    console.log("QZ Tray connection failed: " + err);
-                });
-            } else {
-                initializePrinters();
-            }
-        });
+        //     if (!qz.websocket.isActive()) {
+        //         qz.websocket.connect().then(() => {
+        //             initializePrinters();
+        //         }).catch(err => {
+        //             console.log("QZ Tray connection failed: " + err);
+        //         });
+        //     } else {
+        //         initializePrinters();
+        //     }
+        // });
 
-        function initializePrinters() {
-            let printersFound = 0;
+        // function initializePrinters() {
+        //     let printersFound = 0;
 
-            qz.printers.find(billPrinterName).then(function(printer) {
-                const config = qz.configs.create(printer);
-                const printableWrapper = document.getElementById('bill-print-content');
-                if (!printableWrapper) {
-                    // alert("Printable wrapper not found.");
-                    return;
-                }
-                const printableDiv = printableWrapper.querySelector('#printableArea');
-                if (!printableDiv) {
-                    // alert("Printable content (#printableArea) not found inside #bill-print-content.");
-                    return;
-                }
+        //     qz.printers.find(billPrinterName).then(function(printer) {
+        //         const config = qz.configs.create(printer);
+        //         const printableWrapper = document.getElementById('bill-print-content');
+        //         if (!printableWrapper) {
+        //             return;
+        //         }
+        //         const printableDiv = printableWrapper.querySelector('#printableArea');
+        //         if (!printableDiv) {
+        //             return;
+        //         }
 
-                const clone = printableDiv.cloneNode(true);
-                clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+        //         const clone = printableDiv.cloneNode(true);
+        //         clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-                let fullHtml = document.documentElement.outerHTML;
+        //         let fullHtml = document.documentElement.outerHTML;
 
-                fullHtml = fullHtml.replace(
-                    /<body[^>]*>[\s\S]*<\/body>/i,
-                    `<body>${clone.innerHTML}</body>`
-                );
+        //         fullHtml = fullHtml.replace(
+        //             /<body[^>]*>[\s\S]*<\/body>/i,
+        //             `<body>${clone.innerHTML}</body>`
+        //         );
 
-                const data = [{
-                    type: 'html',
-                    format: 'plain',
-                    data: fullHtml
-                }];
+        //         const data = [{
+        //             type: 'html',
+        //             format: 'plain',
+        //             data: fullHtml
+        //         }];
 
-                return qz.print(config, data);
-            }).then(() => {
-                console.log("Bill print done");
-            }).catch(err => {
-                alert("Bill print failed: " + err);
-            });
+        //         return qz.print(config, data);
+        //     }).then(() => {
+        //         console.log("Bill print done");
+        //     }).catch(err => {
+        //         alert("Bill print failed: " + err);
+        //     });
 
-            qz.printers.find(kitchenPrinterName).then(function(printer) {
-                const config = qz.configs.create(printer);
-                const printableWrapper = document.getElementById('kitchen-print-content');
-                if (!printableWrapper) {
-                    // alert("Printable wrapper not found.");
-                    return;
-                }
-                const printableDiv = printableWrapper.querySelector('#printableArea');
-                if (!printableDiv) {
-                    // alert("Printable content (#printableArea) not found inside #bill-print-content.");
-                    return;
-                }
+        //     qz.printers.find(kitchenPrinterName).then(function(printer) {
+        //         const config = qz.configs.create(printer);
+        //         const printableWrapper = document.getElementById('kitchen-print-content');
+        //         if (!printableWrapper) {
+        //             return;
+        //         }
+        //         const printableDiv = printableWrapper.querySelector('#printableArea');
+        //         if (!printableDiv) {
+        //             return;
+        //         }
 
-                const clone = printableDiv.cloneNode(true);
-                clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+        //         const clone = printableDiv.cloneNode(true);
+        //         clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-                let fullHtml = document.documentElement.outerHTML;
+        //         let fullHtml = document.documentElement.outerHTML;
 
-                fullHtml = fullHtml.replace(
-                    /<body[^>]*>[\s\S]*<\/body>/i,
-                    `<body>${clone.innerHTML}</body>`
-                );
+        //         fullHtml = fullHtml.replace(
+        //             /<body[^>]*>[\s\S]*<\/body>/i,
+        //             `<body>${clone.innerHTML}</body>`
+        //         );
 
 
-                const data = [{
-                    type: 'html',
-                    format: 'plain',
-                    data: fullHtml
-                }];
+        //         const data = [{
+        //             type: 'html',
+        //             format: 'plain',
+        //             data: fullHtml
+        //         }];
 
-                return qz.print(config, data);
-            }).then(() => {
-                console.log("Kitchen print done");
-            }).catch(err => {
-                alert("Kitchen print failed: " + err);
-            });
-        }
+        //         return qz.print(config, data);
+        //     }).then(() => {
+        //         console.log("Kitchen print done");
+        //     }).catch(err => {
+        //         alert("Kitchen print failed: " + err);
+        //     });
+        // }
     </script>
 @endpush

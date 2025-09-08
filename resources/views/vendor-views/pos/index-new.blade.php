@@ -3,14 +3,14 @@
     use App\Models\BusinessSetting;
     use App\Models\Order;
 
-    // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
-    // $billPrinter = $kitchenPrinter = null;
+    $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+    $billPrinter = $kitchenPrinter = null;
 
-    // if ($setting) {
-    //     $printers = json_decode($setting->value, true);
-    //     $billPrinter = $printers['bill_print'] ?? null;
-    //     $kitchenPrinter = $printers['kitchen_print'] ?? null;
-    // }
+    if ($setting) {
+        $printers = json_decode($setting->value, true);
+        $billPrinter = $printers['bill_print'] ?? null;
+        $kitchenPrinter = $printers['kitchen_print'] ?? null;
+    }
 
 @endphp
 @extends('layouts.vendor.app')

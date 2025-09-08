@@ -193,10 +193,11 @@ class PrintController extends Controller
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
 
-        $printers = ['bill_printer' => null, 'kitchen_printer' => null];
+        $printers = ['bill_printer' => null, 'kitchen_printer' => null, 'order_date' => null];
         if ($branch) {
             $printers['bill_printer'] = $branch->bill_printer ?? null;
             $printers['kitchen_printer'] = $branch->kitchen_printer ?? null;
+            $printers['order_date'] = $branch->order_date ?? null;
         }
 
         return response()->json($printers);
@@ -205,6 +206,7 @@ class PrintController extends Controller
     public function savePrinterSettings(Request $request)
     {
         $bill = $request->input('billPrinter');
+        $orderDate = $request->input('orderDate');
         $kitchen = $request->input('kitchenPrinter');
         $branchId = Helpers::get_restaurant_id();
 
@@ -215,6 +217,7 @@ class PrintController extends Controller
                 ->where('branch_id', $branchId)
                 ->update([
                     'bill_printer' => $bill,
+                    'order_date' => $orderDate,
                     'kitchen_printer' => $kitchen,
                     'updated_at' => now()
                 ]);

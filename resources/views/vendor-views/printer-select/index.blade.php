@@ -1,6 +1,6 @@
 @extends('layouts.vendor.app')
 
-@section('title', 'Select Printers')
+@section('title', 'Settings')
 
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -15,7 +15,7 @@
         <!-- Page Header -->
         <div class="page-header">
             <h1 class="page-header-title">
-                <i class="tio-add-circle-outlined"></i> Select Printers
+                <i class="tio-add-circle-outlined"></i> Settings
             </h1>
         </div>
 
@@ -23,6 +23,11 @@
             <form id="printer-settings-form">
                 @csrf
                 <div class="row">
+                    <div class="col-md-7">
+                        <label for="orderDate">Order Date</label>
+                        <input type="date" id="orderDate" name="orderDate" class="form-control">
+                    </div>
+
                     <div class="col-md-7">
                         <label for="billPrinter">Bill Printer</label>
                         <input type="text" id="billPrinter" name="billPrinter" class="form-control" placeholder="Enter bill printer name">
@@ -53,6 +58,9 @@
                 fetch("{{ route('vendor.printer.settings') }}")
                     .then(res => res.json())
                     .then(data => {
+                        if (data.order_date) {
+                            document.getElementById('orderDate').value = data.order_date;
+                        }
                         if (data.bill_printer) {
                             document.getElementById('billPrinter').value = data.bill_printer;
                         }
@@ -79,14 +87,14 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            alert('Printers saved successfully!');
+                            alert('Settings saved successfully!');
                         } else {
-                            alert('Failed to save printers.');
+                            alert('Failed to save settings.');
                         }
                     })
                     .catch(error => {
                         console.error(error);
-                        alert('Error occurred while saving printers.');
+                        alert('Error occurred while saving settings.');
                     });
             });
         });

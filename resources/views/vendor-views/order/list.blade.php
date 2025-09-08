@@ -344,6 +344,7 @@
                                 </th>
                                 <th class="w-90px table-column-pl-0">{{ translate('messages.Order_ID') }}</th>
                                 <th class="w-140px">{{ translate('messages.order_date') }}</th>
+                                <th class="w-140px">{{ translate('messages.restaurant_date') }}</th>
                                 <th class="w-140px">{{ translate('messages.customer_information') }}</th>
                                 <th class="w-100px">{{ translate('messages.total_amount') }}</th>
                                 <th class="w-100px text-center">{{ translate('messages.order_status') }}</th>
@@ -367,6 +368,11 @@
                                         </span>
                                         <span class="d-block text-uppercase">
                                             {{ Carbon\Carbon::parse($order['created_at'])->locale(app()->getLocale())->translatedFormat(config('timeformat')) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="d-block">
+                                            {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
                                         </span>
                                     </td>
                                     <td>

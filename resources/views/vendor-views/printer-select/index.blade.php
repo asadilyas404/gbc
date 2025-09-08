@@ -75,6 +75,7 @@
 
             document.getElementById('printer-settings-form').addEventListener('submit', function(e) {
                 e.preventDefault();
+                $('#loading').show();
                 const formData = new FormData(this);
 
                 fetch("{{ route('vendor.printer.settings.save') }}", {
@@ -86,10 +87,11 @@
                     })
                     .then(res => res.json())
                     .then(data => {
+                        $('#loading').hide();
                         if (data.success) {
                             alert('Settings saved successfully!');
                         } else {
-                            alert('Failed to save settings.');
+                            alert(data.message || 'Failed to save settings.');
                         }
                     })
                     .catch(error => {

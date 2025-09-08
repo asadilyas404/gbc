@@ -213,6 +213,7 @@ class PrintController extends Controller
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
 
         if ($branch) {
+            // Update existing record
             DB::table('tbl_soft_branch')
                 ->where('branch_id', $branchId)
                 ->update([
@@ -221,10 +222,14 @@ class PrintController extends Controller
                     'kitchen_printer' => $kitchen,
                     'updated_at' => now()
                 ]);
-        } else {
-        return response()->json(['success' => false]);
-        }
 
-        return response()->json(['success' => true]);
+            return response()->json(['success' => true]);
+        } else {
+            // Branch does not exist, notify user
+            return response()->json([
+                'success' => false,
+                'message' => 'Branch not found. Please contact administrator to set up your branch first.'
+            ]);
+        }
     }
 }

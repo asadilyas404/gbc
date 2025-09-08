@@ -350,6 +350,10 @@
                 </div>
             </div>
             <div class="order--pos-right">
+                <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
+                            title="{{ translate('messages.Back') }}">
+                            {{ translate('messages.Back') }}
+                        </a>
                 <div class="card">
                     <div class="card-header bg-light border-0 m-1 d-flex justify-content-between align-items-center">
                         <h5 class="card-title mb-0">

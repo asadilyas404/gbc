@@ -60,7 +60,7 @@
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('pos'))
                         <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/pos/new') ? 'active' : '' }}">
-                            <a class="js-navbar-vertical-aside-menu-link nav-link" target="_blank"
+                            <a class="js-navbar-vertical-aside-menu-link nav-link"
                                 href="{{ route('vendor.pos.index.new') }}" title="{{ translate('POS') }}">
                                 <i class="tio-shopping nav-icon"></i>
                                 <span

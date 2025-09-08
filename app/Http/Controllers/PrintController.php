@@ -211,9 +211,9 @@ class PrintController extends Controller
         $branchId = Helpers::get_restaurant_id();
 
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
-        dd($branch);
+
         if ($branch) {
-            DB::table('tbl_soft_branch')
+           $test = DB::table('tbl_soft_branch')
                 ->where('branch_id', $branchId)
                 ->update([
                     'bill_printer' => $bill,
@@ -221,10 +221,9 @@ class PrintController extends Controller
                     'kitchen_printer' => $kitchen,
                     'updated_at' => now()
                 ]);
-
+dd($test);
             return response()->json(['success' => true]);
         } else {
-            // Branch does not exist, notify user
             return response()->json([
                 'success' => false,
                 'message' => 'Branch not found. Please contact administrator to set up your branch first.'

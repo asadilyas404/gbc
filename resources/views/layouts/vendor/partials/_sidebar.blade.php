@@ -431,10 +431,10 @@
                         class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/printer/selection*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link"
                             href="{{ route('vendor.printer.selection') }}"
-                            title="{{ translate('messages.printer_selection') }}">
+                            title="{{ translate('messages.settings') }}">
                             <i class="tio-incognito nav-icon"></i>
                             <span
-                                class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.printer_selection') }}</span>
+                                class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.settings') }}</span>
                         </a>
                     </li>
 

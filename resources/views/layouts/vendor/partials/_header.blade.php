@@ -11,6 +11,15 @@
                 </a>
                 <!-- End Logo -->
             </div>
+            <!-- Browser Back Button - Visible on all screens -->
+            <div class="navbar-nav-wrap-content-left">
+                <button type="button" class="btn btn-icon btn-soft-secondary rounded-circle mr-2" onclick="history.back()"
+                        data-toggle="tooltip" data-placement="bottom" title="Go Back">
+                    <i class="tio-arrow-backward"></i>
+                </button>
+            </div>
+            <!-- End Browser Back Button -->
+
             <div class="navbar-nav-wrap-content-left ml-auto d--xl-none">
                 <!-- Navbar Vertical Toggle -->
                 <button type="button" class="js-navbar-vertical-aside-toggle-invoker close">
@@ -29,13 +38,6 @@
 
             <!-- Secondary Content -->
             <div class="navbar-nav-wrap-content-right flex-grow-1">
-                <!-- Browser Back Button -->
-                <button type="button" class="btn btn-icon btn-soft-secondary rounded-circle mr-3" onclick="history.back()"
-                        data-toggle="tooltip" data-placement="bottom" title="Go Back">
-                    <i class="tio-arrow-backward"></i>
-                </button>
-                <!-- End Browser Back Button -->
-
                 <!-- Navbar -->
                 <ul class="navbar-nav align-items-center flex-row justify-content-end">
 

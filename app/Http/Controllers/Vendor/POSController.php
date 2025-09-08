@@ -129,8 +129,13 @@ class POSController extends Controller
             $editingOrder = Order::find($editingOrderId);
         }
 
+        // Get order date from printer settings
+        $branchId = Helpers::get_restaurant_id();
+        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+        $orderDate = $branch ? $branch->orders_date : null;
+
         // Standard request
-        return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword', 'draftDetails', 'editingOrder'));
+        return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword', 'draftDetails', 'editingOrder', 'orderDate'));
     }
 
 

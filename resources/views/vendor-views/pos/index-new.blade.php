@@ -350,7 +350,17 @@
                 </div>
             </div>
             <div class="order--pos-right">
-                <div class="d-flex justify-content-end mb-2 mt-1">
+                <div class="d-flex justify-content-between align-items-center mb-2 mt-1">
+                    <div class="order-date-display">
+                        <span class="text-muted">Order Date:</span>
+                        <span class="fw-bold {{ $orderDate ? 'text-primary' : 'text-muted' }}">
+                            @if($orderDate)
+                                {{ \Carbon\Carbon::parse($orderDate)->format('F j, Y') }}
+                            @else
+                                Not set
+                            @endif
+                        </span>
+                    </div>
                     <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
                         title="{{ translate('messages.Back') }}">
                         {{ translate('messages.Back') }}

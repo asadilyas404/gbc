@@ -546,7 +546,7 @@
                                     </div>
 
                                     <div class="text-muted mb-1">
-                                        <strong>{{ translate('messages.restaurant_date') }}:</strong><br>
+                                        <strong>{{ translate('messages.restaurant_date') }}: </strong> &nbsp;
                                        @if(!empty($order['order_date']))
                                             {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
                                         @else

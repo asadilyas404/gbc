@@ -211,7 +211,7 @@ class PrintController extends Controller
         $branchId = Helpers::get_restaurant_id();
 
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
-
+dd($ordersDate);
         if ($branch) {
             // Update existing record
             DB::table('tbl_soft_branch')

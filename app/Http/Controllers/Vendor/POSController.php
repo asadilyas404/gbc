@@ -129,7 +129,7 @@ class POSController extends Controller
             $editingOrder = Order::find($editingOrderId);
         }
 
-        // Get order date from printer settings
+        // Get order date from settings
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
@@ -690,10 +690,12 @@ class POSController extends Controller
         } else {
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
-            // $order->order_serial = 100000 + Order::count() + 1;
-            // if (Order::find($order->order_serial)) {
-            //     $order->order_serial = Order::latest()->first()->order_serial + 1;
-            // }
+
+            // Get order date from settings
+        $branchId = Helpers::get_restaurant_id();
+        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+        $orderDate = $branch ? $branch->orders_date : null;
+        $order->order_date = $orderDate;
 
             $today = Carbon::today();
             $todayOrderCount = Order::whereDate('created_at', $today)->count();
@@ -711,11 +713,7 @@ class POSController extends Controller
             $order->kitchen_status = 'pending';
             $order->order_status = $order->kitchen_status;
         }
-        // if ($request->user_id) {
-        //     $order->order_type = isset($address) ? 'delivery' : 'take_away';
-        // } else {
-        //     $order->order_type = 'take_away';
-        // }
+
         $order->order_type = $request->delivery_type ?? 'delivery';
 
         $order->delivered = $order->order_status == 'delivered' ? now() : null;

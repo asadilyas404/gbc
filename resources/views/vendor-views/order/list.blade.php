@@ -353,7 +353,7 @@
                         </thead>
 
                         <tbody id="set-rows">
-                            @php(dd($order[0]));
+                            @php(dd($orders[0]));
 
                             @foreach ($orders as $key => $order)
                                 <tr class="status-{{ $order['order_status'] }} class-all">

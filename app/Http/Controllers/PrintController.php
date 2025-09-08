@@ -213,7 +213,7 @@ class PrintController extends Controller
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
 
         if ($branch) {
-           $test = DB::table('tbl_soft_branch')
+           DB::table('tbl_soft_branch')
                 ->where('branch_id', $branchId)
                 ->update([
                     'bill_printer' => $bill,
@@ -221,7 +221,6 @@ class PrintController extends Controller
                     'kitchen_printer' => $kitchen,
                     'updated_at' => now()
                 ]);
-dd($test);
             return response()->json(['success' => true]);
         } else {
             return response()->json([

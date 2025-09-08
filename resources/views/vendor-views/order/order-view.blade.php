@@ -108,7 +108,7 @@
                             </span>
                             <br>
                             @if(!empty($order['order_date']))
-                                <span class="mt-2 d-block">
+                                <span class="d-block">
                                     {{ translate('messages.restaurant_date') }}:
                                     {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
                                 </span>

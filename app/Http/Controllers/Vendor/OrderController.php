@@ -119,6 +119,12 @@ class OrderController extends Controller
                 }
             });
         })
+        ->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('tbl_soft_branch')
+                ->whereColumn('tbl_soft_branch.branch_id', 'orders.restaurant_id')
+                ->whereColumn('tbl_soft_branch.orders_date', 'orders.order_date');
+        })
         ->Notpos()
         // ->NotDigitalOrder()
         ->hasSubscriptionToday()

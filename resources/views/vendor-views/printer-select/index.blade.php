@@ -24,8 +24,8 @@
                 @csrf
                 <div class="row">
                     <div class="col-md-7">
-                        <label for="orderDate">Order Date</label>
-                        <input type="date" id="orderDate" name="orderDate" class="form-control">
+                        <label for="ordersDate">Order Date</label>
+                        <input type="date" id="ordersDate" name="ordersDate" class="form-control">
                     </div>
 
                     <div class="col-md-7">
@@ -58,8 +58,8 @@
                 fetch("{{ route('vendor.printer.settings') }}")
                     .then(res => res.json())
                     .then(data => {
-                        if (data.order_date) {
-                            document.getElementById('orderDate').value = data.order_date;
+                        if (data.orders_date) {
+                            document.getElementById('ordersDate').value = data.orders_date;
                         }
                         if (data.bill_printer) {
                             document.getElementById('billPrinter').value = data.bill_printer;

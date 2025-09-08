@@ -353,8 +353,9 @@
                         </thead>
 
                         <tbody id="set-rows">
+                            @php(dd($order[0]));
+
                             @foreach ($orders as $key => $order)
-                            @php(dd($order));
                                 <tr class="status-{{ $order['order_status'] }} class-all">
                                     <td class="">
                                         {{ $key + $orders->firstItem() }}

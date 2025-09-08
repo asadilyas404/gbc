@@ -20,12 +20,6 @@
         </div>
 
         <div class="container mt-4">
-
-            <!-- Success/Error messages -->
-            <div id="message-container" class="mt-3" style="display: none;">
-                <div id="message" class="alert" role="alert"></div>
-            </div>
-
             <form id="printer-settings-form">
                 @csrf
                 <div class="row">
@@ -45,12 +39,7 @@
                     </div>
                 </div>
 
-                <button type="submit" class="btn btn-primary mt-5" id="save-btn">
-                    <span id="save-text">Save Printers</span>
-                    <span id="save-spinner" class="spinner-border spinner-border-sm d-none" role="status">
-                        <span class="sr-only">Loading...</span>
-                    </span>
-                </button>
+                <button type="submit" class="btn btn-primary mt-5">Save Printers</button>
             </form>
 
         </div>
@@ -87,74 +76,28 @@
 
             document.getElementById('printer-settings-form').addEventListener('submit', function(e) {
                 e.preventDefault();
-
-                // Show loading state
-                document.getElementById('loading').style.display = 'block';
-                document.getElementById('save-btn').disabled = true;
-                document.getElementById('save-text').textContent = 'Saving...';
-                document.getElementById('save-spinner').classList.remove('d-none');
-                document.getElementById('message-container').style.display = 'none';
-
+                $('#loading').show();
                 const formData = new FormData(this);
-                const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
                 fetch("{{ route('vendor.printer.settings.save') }}", {
                         method: 'POST',
                         headers: {
-                            'X-CSRF-TOKEN': csrfToken,
-                            'Accept': 'application/json',
-                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRF-TOKEN': formData.get('_token')
                         },
-                        body: new URLSearchParams(formData)
+                        body: formData
                     })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        return response.json();
-                    })
+                    .then(res => res.json())
                     .then(data => {
-                        // Hide loading state
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('save-btn').disabled = false;
-                        document.getElementById('save-text').textContent = 'Save Printers';
-                        document.getElementById('save-spinner').classList.add('d-none');
-
-                        // Show message
-                        const messageContainer = document.getElementById('message-container');
-                        const message = document.getElementById('message');
-
+                        $('#loading').hide();
                         if (data.success) {
-                            message.className = 'alert alert-success';
-                            message.textContent = 'Settings saved successfully!';
+                            alert('Settings saved successfully!');
                         } else {
-                            message.className = 'alert alert-danger';
-                            message.textContent = data.message || 'Failed to save settings.';
-                        }
-                        messageContainer.style.display = 'block';
-
-                        // Auto-hide success message after 3 seconds
-                        if (data.success) {
-                            setTimeout(() => {
-                                messageContainer.style.display = 'none';
-                            }, 3000);
+                            alert(data.message || 'Failed to save settings.');
                         }
                     })
                     .catch(error => {
-                        console.error('Error:', error);
-
-                        // Hide loading state
-                        document.getElementById('loading').style.display = 'none';
-                        document.getElementById('save-btn').disabled = false;
-                        document.getElementById('save-text').textContent = 'Save Printers';
-                        document.getElementById('save-spinner').classList.add('d-none');
-
-                        // Show error message
-                        const messageContainer = document.getElementById('message-container');
-                        const message = document.getElementById('message');
-                        message.className = 'alert alert-danger';
-                        message.textContent = 'Error occurred while saving settings. Please try again.';
-                        messageContainer.style.display = 'block';
+                        console.error(error);
+                        alert('Error occurred while saving settings.');
                     });
             });
         });

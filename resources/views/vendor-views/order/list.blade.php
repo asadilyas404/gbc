@@ -353,7 +353,6 @@
                         </thead>
 
                         <tbody id="set-rows">
-                            @php(dd($orders[0]));
 
                             @foreach ($orders as $key => $order)
                                 <tr class="status-{{ $order['order_status'] }} class-all">
@@ -374,7 +373,11 @@
                                     </td>
                                     <td>
                                         <span class="d-block">
-                                            {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                            @if(!empty($order['order_date']))
+                                                {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                            @else
+                                                -
+                                            @endif
                                         </span>
                                     </td>
                                     <td>

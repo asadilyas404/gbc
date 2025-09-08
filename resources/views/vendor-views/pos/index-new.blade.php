@@ -362,8 +362,8 @@
                         </span>
                     </div>
                     <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
-                        title="{{ translate('messages.Back') }}">
-                        {{ translate('messages.Back') }}
+                        title="{{ translate('messages.Dashboard') }}">
+                        {{ translate('messages.Dashboard') }}
                     </a>
                 </div>
                 <div class="card">

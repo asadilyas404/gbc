@@ -12,6 +12,13 @@
                 <!-- End Logo -->
             </div>
             <div class="navbar-nav-wrap-content-left ml-auto d--xl-none">
+                <!-- Browser Back Button -->
+                <button type="button" class="btn btn-icon btn-soft-secondary rounded-circle mr-2" onclick="history.back()"
+                        data-toggle="tooltip" data-placement="bottom" title="Go Back">
+                    <i class="tio-arrow-backward"></i>
+                </button>
+                <!-- End Browser Back Button -->
+
                 <!-- Navbar Vertical Toggle -->
                 <button type="button" class="js-navbar-vertical-aside-toggle-invoker close">
                     <i class="tio-first-page navbar-vertical-aside-toggle-short-align" data-toggle="tooltip"

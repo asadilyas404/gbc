@@ -98,7 +98,7 @@ class PrintController extends Controller
                             if (isset($variation['name']) && isset($variation['values'])) {
                                 $printer->text("    " . $variation['name'] . ":\n");
                                 foreach ($variation['values'] as $value) {
-                                    $printer->text("      - " . $value['name'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
+                                    $printer->text("      - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
                                 }
                             }
                         }

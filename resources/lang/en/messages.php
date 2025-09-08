@@ -3389,6 +3389,7 @@
   'Login_to_your_restaurant' => 'Login to your restaurant',
   'Payment_Successfull_!' => 'Payment Successfull !',
   'Congratulations!' => 'Congratulations!',
+  'restaurant_date' => 'Restaurant date',
   'Your_Payment_is_Successfull.' => 'Your Payment is Successfull.',
   'unlimited_product_Upload' => 'Unlimited product Upload',
   'Pay_the_amount_digitally' => 'Pay the amount digitally',

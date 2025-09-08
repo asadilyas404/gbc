@@ -354,6 +354,7 @@
 
                         <tbody id="set-rows">
                             @foreach ($orders as $key => $order)
+                            @php(dd($order));
                                 <tr class="status-{{ $order['order_status'] }} class-all">
                                     <td class="">
                                         {{ $key + $orders->firstItem() }}
@@ -505,11 +506,11 @@
                                                 href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}"><i
                                                     class="tio-document"></i></a>
 
-                                            <a type="button" class="btn action-btn btn--primary btn-outline-primary print-order-btn"
+                                            {{-- <a type="button" class="btn action-btn btn--primary btn-outline-primary print-order-btn"
                                                 data-order-id="{{ $order['id'] }}"
                                                 title="{{ translate('Direct Print') }}">
                                                 <i class="tio-print"></i>
-                                            </a>
+                                            </a> --}}
                                         </div>
                                     </td>
                                 </tr>
@@ -613,11 +614,11 @@
                                             <i class="tio-document"></i>
                                         </a>
 
-                                        <a type="button" class="btn btn-sm btn--primary btn-outline-primary print-order-btn"
+                                        {{-- <a type="button" class="btn btn-sm btn--primary btn-outline-primary print-order-btn"
                                             data-order-id="{{ $order['id'] }}"
                                             title="{{ translate('Direct Print') }}">
                                             <i class="tio-print"></i>
-                                        </a>
+                                        </a> --}}
                                     </div>
                                 </div>
                             </div>
@@ -1016,40 +1017,36 @@
             });
 
             // Print Order Functionality
-            $(document).on('click', '.print-order-btn', function() {
-                const orderId = $(this).data('order-id');
-                printOrder(orderId);
-            });
+            // $(document).on('click', '.print-order-btn', function() {
+            //     const orderId = $(this).data('order-id');
+            //     printOrder(orderId);
+            // });
 
-            function printOrder(orderId) {
-                // Show loading
-                toastr.info('Preparing print...');
+            // function printOrder(orderId) {
+            //     toastr.info('Preparing print...');
 
-                // Fetch order data and print content
-                $.ajax({
-                    url: "{{ route('vendor.order.print-order', ['id' => '__id__']) }}".replace('__id__', orderId),
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            // Populate print content
-                            $('#bill-print-content').html(response.bill_content);
-                            $('#kitchen-print-content').html(response.kitchen_content);
+            //     $.ajax({
+            //         url: "{{ route('vendor.order.print-order', ['id' => '__id__']) }}".replace('__id__', orderId),
+            //         method: 'GET',
+            //         dataType: 'json',
+            //         success: function(response) {
+            //             if (response.success) {
+            //                 $('#bill-print-content').html(response.bill_content);
+            //                 $('#kitchen-print-content').html(response.kitchen_content);
 
-                            // Start printing directly like in POS
-                            initializePrinters();
-                        } else {
-                            toastr.error(response.message || 'Failed to prepare print content');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Print preparation error:', error);
-                        toastr.error('Failed to prepare print content');
-                    }
-                });
-            }
+            //                 initializePrinters();
+            //             } else {
+            //                 toastr.error(response.message || 'Failed to prepare print content');
+            //             }
+            //         },
+            //         error: function(xhr, status, error) {
+            //             console.error('Print preparation error:', error);
+            //             toastr.error('Failed to prepare print content');
+            //         }
+            //     });
+            // }
 
-            function initializePrinters() {
+            // function initializePrinters() {
                 if (typeof qz === 'undefined') {
                     toastr.error('QZ Tray is not available. Please install QZ Tray.');
                     return;
@@ -1060,13 +1057,11 @@
                     return;
                 }
 
-                // Get printer names from configuration or use defaults
                 const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
                 const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
 
                 let printersFound = 0;
 
-                // Print Bill
                 qz.printers.find(billPrinterName).then(function(printer) {
                     const config = qz.configs.create(printer);
                     const printableWrapper = document.getElementById('bill-print-content');
@@ -1107,7 +1102,6 @@
                     toastr.error("Bill print failed: " + err);
                 });
 
-                // Print Kitchen Receipt
                 qz.printers.find(kitchenPrinterName).then(function(printer) {
                     const config = qz.configs.create(printer);
                     const printableWrapper = document.getElementById('kitchen-print-content');
@@ -1149,20 +1143,19 @@
                 });
             }
 
-            // Initialize QZ Tray connection
-            if (typeof qz !== 'undefined') {
-                if (!qz.websocket.isActive()) {
-                    qz.websocket.connect().then(() => {
-                        console.log('QZ Tray connected successfully');
-                    }).catch(err => {
-                        console.log("QZ Tray connection failed: " + err);
-                    });
-                } else {
-                    console.log('QZ Tray already connected');
-                }
-            } else {
-                console.log('QZ Tray not available');
-            }
+            // if (typeof qz !== 'undefined') {
+            //     if (!qz.websocket.isActive()) {
+            //         qz.websocket.connect().then(() => {
+            //             console.log('QZ Tray connected successfully');
+            //         }).catch(err => {
+            //             console.log("QZ Tray connection failed: " + err);
+            //         });
+            //     } else {
+            //         console.log('QZ Tray already connected');
+            //     }
+            // } else {
+            //     console.log('QZ Tray not available');
+            // }
 
         });
     </script>

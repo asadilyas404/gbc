@@ -20,22 +20,17 @@
         </div>
 
         <div class="container mt-4">
-            <!-- Printer Settings Form -->
             <form id="printer-settings-form">
                 @csrf
                 <div class="row">
                     <div class="col-md-7">
                         <label for="billPrinter">Bill Printer</label>
-                        <select id="billPrinter" name="billPrinter" class="form-control">
-                            <option value="">-- Select Bill Printer --</option>
-                        </select>
+                        <input type="text" id="billPrinter" name="billPrinter" class="form-control" placeholder="Enter bill printer name">
                     </div>
 
                     <div class="col-md-7 mt-3">
                         <label for="kitchenPrinter">Kitchen Printer</label>
-                        <select id="kitchenPrinter" name="kitchenPrinter" class="form-control">
-                            <option value="">-- Select Kitchen Printer --</option>
-                        </select>
+                        <input type="text" id="kitchenPrinter" name="kitchenPrinter" class="form-control" placeholder="Enter kitchen printer name">
                     </div>
                 </div>
 
@@ -50,94 +45,26 @@
 @endpush
 
 @push('script_2')
-    <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            loadSavedPrinters();
 
-            // Set the certificate
-            qz.security.setCertificatePromise(function(resolve, reject) {
-                fetch('/qz/cert')
-                    .then(res => res.text())
-                    .then(resolve)
-                    .catch(reject);
-            });
-
-            qz.security.setSignatureAlgorithm("SHA512");
-
-            qz.security.setSignaturePromise(function(toSign) {
-                return function(resolve, reject) {
-                    fetch("/qz/sign", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')
-                                    .getAttribute('content')
-                            },
-                            body: JSON.stringify({
-                                data: toSign
-                            })
-                        })
-                        .then(res => {
-                            return res.json();
-                        })
-                        .then(data => {
-                            if (data.signature) {
-                                resolve(data.signature);
-                            } else {
-                                console.error("❌ No signature in response");
-                                reject("Invalid signature response");
-                            }
-                        })
-                        .catch(err => {
-                            console.error("❌ Signature fetch error:", err);
-                            reject(err);
-                        });
-                };
-            });
-
-
-            if (!qz.websocket.isActive()) {
-                qz.websocket.connect().then(() => {
-                    loadPrinters();
-                }).catch(err => {
-                    console.log("QZ Tray connection failed: " + err);
-                });
-            } else {
-                loadPrinters();
-            }
-
-            // Load available printers and preselect saved ones
-            function loadPrinters() {
-                qz.printers.find().then(function(printers) {
-                    const billSelect = document.getElementById('billPrinter');
-                    const kitchenSelect = document.getElementById('kitchenPrinter');
-
-                    // Clear previous options
-                    billSelect.innerHTML = `<option value="">-- Select Bill Printer --</option>`;
-                    kitchenSelect.innerHTML = `<option value="">-- Select Kitchen Printer --</option>`;
-
-                    // Populate options
-                    printers.forEach(function(printer) {
-                        billSelect.innerHTML += `<option value="${printer}">${printer}</option>`;
-                        kitchenSelect.innerHTML += `<option value="${printer}">${printer}</option>`;
+            function loadSavedPrinters() {
+                fetch("{{ route('vendor.printer.settings') }}")
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.bill_printer) {
+                            document.getElementById('billPrinter').value = data.bill_printer;
+                        }
+                        if (data.kitchen_printer) {
+                            document.getElementById('kitchenPrinter').value = data.kitchen_printer;
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error loading saved printers:', error);
                     });
-
-                    // Load already saved printer values via AJAX
-                    fetch("{{ route('vendor.printer.settings') }}")
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data.bill_print) {
-                                billSelect.value = data.bill_print;
-                            }
-                            if (data.kitchen_print) {
-                                kitchenSelect.value = data.kitchen_print;
-                            }
-                        });
-                });
             }
 
-            // Handle form submit
             document.getElementById('printer-settings-form').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const formData = new FormData(this);

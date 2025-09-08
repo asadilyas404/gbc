@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use App\Models\Order;
@@ -185,5 +186,42 @@ class PrintController extends Controller
             // For page reload, redirect back with error message
             return redirect()->back()->with('error', 'Print error: ' . $e->getMessage());
         }
+    }
+
+    public function getPrinterSettings()
+    {
+        $branchId = Helpers::get_restaurant_id();
+        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+
+        $printers = ['bill_printer' => null, 'kitchen_printer' => null];
+        if ($branch) {
+            $printers['bill_printer'] = $branch->bill_printer ?? null;
+            $printers['kitchen_printer'] = $branch->kitchen_printer ?? null;
+        }
+
+        return response()->json($printers);
+    }
+
+    public function savePrinterSettings(Request $request)
+    {
+        $bill = $request->input('billPrinter');
+        $kitchen = $request->input('kitchenPrinter');
+        $branchId = Helpers::get_restaurant_id();
+
+        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+
+        if ($branch) {
+            DB::table('tbl_soft_branch')
+                ->where('branch_id', $branchId)
+                ->update([
+                    'bill_printer' => $bill,
+                    'kitchen_printer' => $kitchen,
+                    'updated_at' => now()
+                ]);
+        } else {
+        return response()->json(['success' => false]);
+        }
+
+        return response()->json(['success' => true]);
     }
 }

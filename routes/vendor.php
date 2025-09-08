@@ -132,35 +132,9 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             return view('vendor-views.printer-select.index');
         })->name('printer.selection');
 
-        Route::get('/printer/settings', function () {
-            $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
+        Route::get('/printer/settings', [App\Http\Controllers\PrintController::class, 'getPrinterSettings'])->name('printer.settings');
 
-            $printers = ['bill_print' => null, 'kitchen_print' => null];
-            if ($setting) {
-                $saved = json_decode($setting->value, true);
-                $printers['bill_print'] = $saved['bill_print'] ?? null;
-                $printers['kitchen_print'] = $saved['kitchen_print'] ?? null;
-            }
-
-            return response()->json($printers);
-        })->name('printer.settings');
-
-        Route::post('/printer/settings/save', function (\Illuminate\Http\Request $request) {
-            $bill = $request->input('billPrinter');
-            $kitchen = $request->input('kitchenPrinter');
-
-            $value = json_encode([
-                'bill_print' => $bill,
-                'kitchen_print' => $kitchen,
-            ]);
-
-            $setting = \App\Models\BusinessSetting::firstOrNew(['key' => 'print_keys']);
-            $setting->value = $value;
-            $setting->updated_at = now();
-            $setting->save();
-
-            return response()->json(['success' => true]);
-        })->name('printer.settings.save');
+        Route::post('/printer/settings/save', [App\Http\Controllers\PrintController::class, 'savePrinterSettings'])->name('printer.settings.save');
 
 
         Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.', 'middleware' => ['module:kitchen_orders', 'subscription:kitchen_orders']], function () {

@@ -59,7 +59,8 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.orders_date) {
-                            document.getElementById('ordersDate').value = data.orders_date;
+                            const dateValue = data.orders_date.split(' ')[0];
+                            document.getElementById('ordersDate').value = dateValue;
                         }
                         if (data.bill_printer) {
                             document.getElementById('billPrinter').value = data.bill_printer;

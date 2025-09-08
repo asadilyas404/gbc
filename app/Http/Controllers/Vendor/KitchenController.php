@@ -33,7 +33,7 @@ class KitchenController extends Controller{
                 Helpers::kitchenStatus('cooking')['key'],
                 Helpers::kitchenStatus('ready')['key']
             ])
-            ->select('id','order_amount','order_type','kitchen_status','order_serial')
+            ->select('id','order_amount','order_type','kitchen_status','order_serial','order_date')
             ->orderBy('created_at', 'desc')->get();
 
         $pending = [];

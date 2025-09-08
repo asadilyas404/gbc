@@ -66,6 +66,13 @@
                                                 <p><strong>Order Type:</strong>
                                                     {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
                                                 </p>
+                                                <p><strong>Restaurant Date:</strong>
+                                                    @if(!empty($order->order_date))
+                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </p>
                                             </div>
                                             <div class="text-right">
                                                 <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
@@ -112,6 +119,13 @@
                                                 <p><strong>Order Type:</strong>
                                                     {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
                                                 </p>
+                                                <p><strong>Restaurant Date:</strong>
+                                                    @if(!empty($order->order_date))
+                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </p>
                                             </div>
                                             <div class="text-right">
                                                 <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
@@ -157,6 +171,13 @@
                                                 </p>
                                                 <p><strong>Order Type:</strong>
                                                     {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
+                                                </p>
+                                                <p><strong>Restaurant Date:</strong>
+                                                    @if(!empty($order->order_date))
+                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                                    @else
+                                                        -
+                                                    @endif
                                                 </p>
                                             </div>
                                             <div class="text-right">
@@ -294,6 +315,21 @@
                     timeHtml = `<p class="timer" data-time="${timer}">Time: ${timer}</p>`;
                 }
             }
+
+            // Format order date for display
+            let orderDateHtml = "";
+            if (item?.order_date) {
+                const orderDate = new Date(item.order_date);
+                const formattedDate = orderDate.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+                orderDateHtml = `<p><strong>Restaurant Date:</strong> ${formattedDate}</p>`;
+            } else {
+                orderDateHtml = `<p><strong>Restaurant Date:</strong> -</p>`;
+            }
+
             return `<div class="col-md-4 mb-2">
                         <div class="card">
                             <div class="card-body">
@@ -301,6 +337,7 @@
                                     <div>
                                         <p><strong>${customer}</strong></p>
                                         <p><strong>Order Type:</strong> ${orderType?.[item.order_type] ? orderType?.[item.order_type] : ""} </p>
+                                        ${orderDateHtml}
                                     </div>
                                     <div class="text-right">
                                         <p><strong>Order No:</strong> ${item.order_serial}</p>
@@ -392,153 +429,144 @@
             window.location.reload();
         }, 600000);
 
-        // Print Order Functionality
-        $(document).on('click', '.direct-print-btn', function() {
-            const orderId = $(this).data('order-id');
-            printOrder(orderId);
-        });
+        // $(document).on('click', '.direct-print-btn', function() {
+        //     const orderId = $(this).data('order-id');
+        //     printOrder(orderId);
+        // });
 
-        function printOrder(orderId) {
-            // Show loading
-            toastr.info('Preparing print...');
+        // function printOrder(orderId) {
+        //     toastr.info('Preparing print...');
 
-            // Fetch order data and print content
-            $.ajax({
-                url: "{{ route('vendor.order.print-order', ['id' => '__id__']) }}".replace('__id__', orderId),
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // Populate print content
-                        $('#bill-print-content').html(response.bill_content);
-                        $('#kitchen-print-content').html(response.kitchen_content);
+        //     $.ajax({
+        //         url: "{{ route('vendor.order.print-order', ['id' => '__id__']) }}".replace('__id__', orderId),
+        //         method: 'GET',
+        //         dataType: 'json',
+        //         success: function(response) {
+        //             if (response.success) {
+        //                 $('#bill-print-content').html(response.bill_content);
+        //                 $('#kitchen-print-content').html(response.kitchen_content);
 
-                        // Start printing directly like in POS
-                        initializePrinters();
-                    } else {
-                        toastr.error(response.message || 'Failed to prepare print content');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Print preparation error:', error);
-                    toastr.error('Failed to prepare print content');
-                }
-            });
-        }
+        //                 initializePrinters();
+        //             } else {
+        //                 toastr.error(response.message || 'Failed to prepare print content');
+        //             }
+        //         },
+        //         error: function(xhr, status, error) {
+        //             console.error('Print preparation error:', error);
+        //             toastr.error('Failed to prepare print content');
+        //         }
+        //     });
+        // }
 
-        function initializePrinters() {
-            if (typeof qz === 'undefined') {
-                toastr.error('QZ Tray is not available. Please install QZ Tray.');
-                return;
-            }
+        // function initializePrinters() {
+        //     if (typeof qz === 'undefined') {
+        //         toastr.error('QZ Tray is not available. Please install QZ Tray.');
+        //         return;
+        //     }
 
-            if (!qz.websocket.isActive()) {
-                toastr.error('QZ Tray is not connected. Please ensure QZ Tray is running and connected.');
-                return;
-            }
+        //     if (!qz.websocket.isActive()) {
+        //         toastr.error('QZ Tray is not connected. Please ensure QZ Tray is running and connected.');
+        //         return;
+        //     }
 
-            // Get printer names from configuration or use defaults
-            const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
-            const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
+        //     const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
+        //     const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
 
-            let printersFound = 0;
+        //     let printersFound = 0;
 
-            // Print Bill
-            qz.printers.find(billPrinterName).then(function(printer) {
-                const config = qz.configs.create(printer);
-                const printableWrapper = document.getElementById('bill-print-content');
-                if (!printableWrapper) {
-                    toastr.error("Bill print content not found");
-                    return;
-                }
-                const printableDiv = printableWrapper.querySelector('#printableArea');
-                if (!printableDiv) {
-                    toastr.error("Printable content (#printableArea) not found");
-                    return;
-                }
+        //     qz.printers.find(billPrinterName).then(function(printer) {
+        //         const config = qz.configs.create(printer);
+        //         const printableWrapper = document.getElementById('bill-print-content');
+        //         if (!printableWrapper) {
+        //             toastr.error("Bill print content not found");
+        //             return;
+        //         }
+        //         const printableDiv = printableWrapper.querySelector('#printableArea');
+        //         if (!printableDiv) {
+        //             toastr.error("Printable content (#printableArea) not found");
+        //             return;
+        //         }
 
-                const clone = printableDiv.cloneNode(true);
-                clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+        //         const clone = printableDiv.cloneNode(true);
+        //         clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-                let fullHtml = document.documentElement.outerHTML;
-                fullHtml = fullHtml.replace(
-                    /<body[^>]*>[\s\S]*<\/body>/i,
-                    `<body>${clone.innerHTML}</body>`
-                );
+        //         let fullHtml = document.documentElement.outerHTML;
+        //         fullHtml = fullHtml.replace(
+        //             /<body[^>]*>[\s\S]*<\/body>/i,
+        //             `<body>${clone.innerHTML}</body>`
+        //         );
 
-                const data = [{
-                    type: 'html',
-                    format: 'plain',
-                    data: fullHtml
-                }];
+        //         const data = [{
+        //             type: 'html',
+        //             format: 'plain',
+        //             data: fullHtml
+        //         }];
 
-                return qz.print(config, data);
-            }).then(() => {
-                console.log("Bill print done");
-                printersFound++;
-                if (printersFound === 2) {
-                    toastr.success('Both prints completed successfully!');
-                }
-            }).catch(err => {
-                console.error("Bill print failed:", err);
-                toastr.error("Bill print failed: " + err);
-            });
+        //         return qz.print(config, data);
+        //     }).then(() => {
+        //         console.log("Bill print done");
+        //         printersFound++;
+        //         if (printersFound === 2) {
+        //             toastr.success('Both prints completed successfully!');
+        //         }
+        //     }).catch(err => {
+        //         console.error("Bill print failed:", err);
+        //         toastr.error("Bill print failed: " + err);
+        //     });
 
-            // Print Kitchen Receipt
-            qz.printers.find(kitchenPrinterName).then(function(printer) {
-                const config = qz.configs.create(printer);
-                const printableWrapper = document.getElementById('kitchen-print-content');
-                if (!printableWrapper) {
-                    toastr.error("Kitchen print content not found");
-                    return;
-                }
-                const printableDiv = printableWrapper.querySelector('#printableArea');
-                if (!printableDiv) {
-                    toastr.error("Printable content (#printableArea) not found");
-                    return;
-                }
+        //     qz.printers.find(kitchenPrinterName).then(function(printer) {
+        //         const config = qz.configs.create(printer);
+        //         const printableWrapper = document.getElementById('kitchen-print-content');
+        //         if (!printableWrapper) {
+        //             toastr.error("Kitchen print content not found");
+        //             return;
+        //         }
+        //         const printableDiv = printableWrapper.querySelector('#printableArea');
+        //         if (!printableDiv) {
+        //             toastr.error("Printable content (#printableArea) not found");
+        //             return;
+        //         }
 
-                const clone = printableDiv.cloneNode(true);
-                clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+        //         const clone = printableDiv.cloneNode(true);
+        //         clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-                let fullHtml = document.documentElement.outerHTML;
-                fullHtml = fullHtml.replace(
-                    /<body[^>]*>[\s\S]*<\/body>/i,
-                    `<body>${clone.innerHTML}</body>`
-                );
+        //         let fullHtml = document.documentElement.outerHTML;
+        //         fullHtml = fullHtml.replace(
+        //             /<body[^>]*>[\s\S]*<\/body>/i,
+        //             `<body>${clone.innerHTML}</body>`
+        //         );
 
-                const data = [{
-                    type: 'html',
-                    format: 'plain',
-                    data: fullHtml
-                }];
+        //         const data = [{
+        //             type: 'html',
+        //             format: 'plain',
+        //             data: fullHtml
+        //         }];
 
-                return qz.print(config, data);
-            }).then(() => {
-                console.log("Kitchen print done");
-                printersFound++;
-                if (printersFound === 2) {
-                    toastr.success('Both prints completed successfully!');
-                }
-            }).catch(err => {
-                console.error("Kitchen print failed:", err);
-                toastr.error("Kitchen print failed: " + err);
-            });
-        }
+        //         return qz.print(config, data);
+        //     }).then(() => {
+        //         console.log("Kitchen print done");
+        //         printersFound++;
+        //         if (printersFound === 2) {
+        //             toastr.success('Both prints completed successfully!');
+        //         }
+        //     }).catch(err => {
+        //         console.error("Kitchen print failed:", err);
+        //         toastr.error("Kitchen print failed: " + err);
+        //     });
+        // }
 
-        // Initialize QZ Tray connection
-        if (typeof qz !== 'undefined') {
-            if (!qz.websocket.isActive()) {
-                qz.websocket.connect().then(() => {
-                    console.log('QZ Tray connected successfully');
-                }).catch(err => {
-                    console.log("QZ Tray connection failed: " + err);
-                });
-            } else {
-                console.log('QZ Tray already connected');
-            }
-        } else {
-            console.log('QZ Tray not available');
-        }
+        // if (typeof qz !== 'undefined') {
+        //     if (!qz.websocket.isActive()) {
+        //         qz.websocket.connect().then(() => {
+        //             console.log('QZ Tray connected successfully');
+        //         }).catch(err => {
+        //             console.log("QZ Tray connection failed: " + err);
+        //         });
+        //     } else {
+        //         console.log('QZ Tray already connected');
+        //     }
+        // } else {
+        //     console.log('QZ Tray not available');
+        // }
     </script>
 @endpush

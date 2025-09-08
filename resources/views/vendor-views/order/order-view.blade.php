@@ -106,6 +106,15 @@
                                 <i class="tio-date-range"></i>
                                 {{ date('d M Y ' . config('timeformat'), strtotime($order['created_at'])) }}
                             </span>
+                            <br>
+                            @if(!empty($order['order_date']))
+                                <span class="mt-2 d-block">
+                                    {{ translate('messages.restaurant_date') }}:
+                                    {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                </span>
+                                <br>
+                            @endif
+
                             @if ($subscription)
                                 <span>
                                     <strong class="text-primary"> {{ translate('messages.subscription_order') }}</strong>
@@ -266,8 +275,6 @@
                                         <strong class="text-danger">{{ translate('messages.unpaid') }}</strong>
                                     @endif
                                 </h6>
-
-
 
                                 @if ($order->offline_payments)
                                     @foreach (json_decode($order->offline_payments->payment_info) as $key => $item)

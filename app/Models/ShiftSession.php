@@ -91,25 +91,21 @@ class ShiftSession extends Model
         static::creating(function ($shiftSession) {
             // Set default values
             $shiftSession->company_id = 1;
-            $shiftSession->business_id = 1; // Fixed as per requirements
+            $shiftSession->business_id = 1;
             $shiftSession->branch_id = $shiftSession->branch_id ?? Helpers::get_restaurant_id();
             $shiftSession->user_id = auth('vendor')->id() ?? auth('vendor_employee')->id();
 
-            // Generate session_id using the same pattern as orders
             $shiftSession->session_id = Helpers::generateGlobalId($shiftSession->branch_id);
 
-            // Generate session number
             $lastSession = static::where('branch_id', $shiftSession->branch_id)
                                 ->orderBy('session_no', 'desc')
                                 ->first();
             $shiftSession->session_no = $lastSession ? $lastSession->session_no + 1 : 1;
 
-            // Set status to open when creating
             $shiftSession->session_status = 'open';
         });
     }
 
-    // Helper method to get shift name from tbl_defi_shift
     public function getShiftNameAttribute()
     {
         $shift = DB::table('tbl_defi_shift')
@@ -118,7 +114,6 @@ class ShiftSession extends Model
         return $shift ? $shift->shift_name : 'Unknown Shift';
     }
 
-    // Helper method to check if session is open
     public function isOpen()
     {
         return $this->session_status === 'open';

@@ -300,6 +300,19 @@ use Illuminate\Support\Facades\DB;
                         </li>
                     @endif
                     <!-- End Options List -->
+                    <!-- Shift Session -->
+                    <li
+                        class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/shift-session*') ? 'active' : '' }}">
+                        <a class="js-navbar-vertical-aside-menu-link nav-link"
+                            href="{{ route('vendor.shift-session.index') }}"
+                            title="Shift Session">
+                            <i class="tio-time nav-icon"></i>
+                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                Shift Session
+                            </span>
+                        </a>
+                    </li>
+                    <!-- End Shift Session -->
                     <!-- Employee-->
                     {{-- <li class="nav-item">
                         <small class="nav-subtitle"

@@ -41,244 +41,144 @@
             font-size: 0.95rem;
         }
 
-        /* Modern Dashboard Statistics */
-        .dashboard-stats {
-            margin-bottom: 2rem;
+        /* Minimal Statistics Cards */
+        .minimal-stats {
+            margin-bottom: 1rem;
         }
 
-        .stats-card {
-            background: #fff;
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            min-height: 200px;
-        }
-
-        .stats-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 20px 20px 0 0;
-        }
-
-        .stats-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
-        }
-
-        .stats-card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .stats-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stats-icon::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%);
-            border-radius: 16px;
-        }
-
-        .orders-card .stats-icon {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
-        .revenue-card .stats-icon {
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-
-        .pos-card .stats-icon {
-            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        }
-
-        .payment-card .stats-icon {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-        }
-
-        .stats-trend {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
-            background: rgba(34, 197, 94, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #22c55e;
-            font-size: 1.2rem;
-        }
-
-        .stats-content {
-            position: relative;
-        }
-
-        .stats-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #1f2937;
-            margin-bottom: 0.5rem;
-            line-height: 1;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stats-title {
-            color: #6b7280;
-            font-size: 0.95rem;
-            font-weight: 600;
-            margin-bottom: 1.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .stats-breakdown {
-            display: flex;
+        .mini-card {
+            display: inline-flex;
             flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .breakdown-item {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            padding: 0.75rem;
-            background: rgba(0, 0, 0, 0.02);
-            border-radius: 12px;
+            padding: 0.5rem 0.75rem;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            min-width: 80px;
+            text-align: center;
             transition: all 0.2s ease;
         }
 
-        .breakdown-item:hover {
-            background: rgba(0, 0, 0, 0.05);
-            transform: translateX(4px);
+        .mini-card:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
         }
 
-        .breakdown-label {
-            font-size: 0.85rem;
-            color: #6b7280;
+        .mini-label {
+            font-size: 0.75rem;
+            color: #6c757d;
             font-weight: 500;
+            margin-bottom: 0.25rem;
+            line-height: 1;
         }
 
-        .breakdown-value {
+        .mini-value {
+            font-size: 1rem;
             font-weight: 700;
-            font-size: 0.9rem;
+            color: #495057;
+            line-height: 1;
         }
 
-        .breakdown-value.paid {
-            color: #22c55e;
+        /* Color variants */
+        .mini-card.paid {
+            background: #d4edda;
+            border-color: #c3e6cb;
         }
 
-        .breakdown-value.unpaid {
-            color: #ef4444;
+        .mini-card.paid .mini-value {
+            color: #155724;
         }
 
-        .breakdown-value.partial {
-            color: #f59e0b;
+        .mini-card.unpaid {
+            background: #f8d7da;
+            border-color: #f5c6cb;
         }
 
-        .breakdown-value.success {
-            color: #10b981;
+        .mini-card.unpaid .mini-value {
+            color: #721c24;
         }
 
-        /* Responsive Design */
-        @media (max-width: 1200px) {
-            .stats-card {
-                padding: 1.5rem;
-                min-height: 180px;
-            }
-
-            .stats-number {
-                font-size: 2.2rem;
-            }
+        .mini-card.partial {
+            background: #fff3cd;
+            border-color: #ffeaa7;
         }
 
-        @media (max-width: 992px) {
-            .stats-card {
-                padding: 1.25rem;
-                min-height: 160px;
-            }
-
-            .stats-number {
-                font-size: 2rem;
-            }
-
-            .stats-icon {
-                width: 50px;
-                height: 50px;
-                font-size: 1.5rem;
-            }
+        .mini-card.partial .mini-value {
+            color: #856404;
         }
 
+        .mini-card.amount {
+            background: #cce5ff;
+            border-color: #b3d9ff;
+        }
+
+        .mini-card.amount .mini-value {
+            color: #004085;
+        }
+
+        .mini-card.paid-amount {
+            background: #d1ecf1;
+            border-color: #bee5eb;
+        }
+
+        .mini-card.paid-amount .mini-value {
+            color: #0c5460;
+        }
+
+        .mini-card.unpaid-amount {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .mini-card.unpaid-amount .mini-value {
+            color: #721c24;
+        }
+
+        .mini-card.pos {
+            background: #e2e3e5;
+            border-color: #d6d8db;
+        }
+
+        .mini-card.pos .mini-value {
+            color: #383d41;
+        }
+
+        .mini-card.pos-unpaid {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .mini-card.pos-unpaid .mini-value {
+            color: #721c24;
+        }
+
+        /* Mobile responsiveness */
         @media (max-width: 768px) {
-            .stats-card {
-                padding: 1rem;
-                min-height: 140px;
+            .mini-card {
+                min-width: 70px;
+                padding: 0.4rem 0.6rem;
             }
 
-            .stats-number {
-                font-size: 1.8rem;
+            .mini-label {
+                font-size: 0.7rem;
             }
 
-            .stats-title {
-                font-size: 0.85rem;
-            }
-
-            .breakdown-item {
-                padding: 0.5rem;
-            }
-
-            .breakdown-label {
-                font-size: 0.8rem;
-            }
-
-            .breakdown-value {
-                font-size: 0.85rem;
+            .mini-value {
+                font-size: 0.9rem;
             }
         }
 
         @media (max-width: 576px) {
-            .stats-card {
-                padding: 0.875rem;
-                min-height: 120px;
+            .mini-card {
+                min-width: 60px;
+                padding: 0.3rem 0.5rem;
             }
 
-            .stats-number {
-                font-size: 1.6rem;
+            .mini-label {
+                font-size: 0.65rem;
             }
 
-            .stats-icon {
-                width: 45px;
-                height: 45px;
-                font-size: 1.3rem;
-            }
-
-            .stats-title {
+            .mini-value {
                 font-size: 0.8rem;
             }
         }
@@ -365,122 +265,61 @@
         <div class="card">
             <!-- Header -->
             <div class="card-header py-3">
-                <!-- Modern Dashboard Statistics -->
-                <div class="dashboard-stats mb-4">
-                    <div class="row g-4">
-                        <!-- Orders Overview -->
-                        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
-                            <div class="stats-card orders-card">
-                                <div class="stats-card-header">
-                                    <div class="stats-icon">
-                                        <i class="tio-shopping-cart"></i>
-                                    </div>
-                                    <div class="stats-trend">
-                                        <i class="tio-trending-up"></i>
-                                    </div>
-                                </div>
-                                <div class="stats-content">
-                                    <h3 class="stats-number">{{ $totalOrders }}</h3>
-                                    <p class="stats-title">{{ translate('Total_Orders') }}</p>
-                                    <div class="stats-breakdown">
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('Paid') }}</span>
-                                            <span class="breakdown-value paid">{{ $paidOrders }}</span>
-                                        </div>
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('Unpaid') }}</span>
-                                            <span class="breakdown-value unpaid">{{ $unpaidOrders }}</span>
-                                        </div>
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('Partial') }}</span>
-                                            <span class="breakdown-value partial">{{ $partiallyPaidOrders }}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                <!-- Minimal Statistics Cards -->
+                <div class="minimal-stats mb-3">
+                    <div class="row g-2">
+                        <div class="col-auto">
+                            <div class="mini-card">
+                                <span class="mini-label">{{ translate('Total_Orders') }}</span>
+                                <span class="mini-value">{{ $totalOrders }}</span>
                             </div>
                         </div>
-
-                        <!-- Revenue Overview -->
-                        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
-                            <div class="stats-card revenue-card">
-                                <div class="stats-card-header">
-                                    <div class="stats-icon">
-                                        <i class="tio-money"></i>
-                                    </div>
-                                    <div class="stats-trend">
-                                        <i class="tio-trending-up"></i>
-                                    </div>
-                                </div>
-                                <div class="stats-content">
-                                    <h3 class="stats-number">{{ \App\CentralLogics\Helpers::format_currency($totalAmount) }}</h3>
-                                    <p class="stats-title">{{ translate('Total_Order_Amount') }}</p>
-                                    <div class="stats-breakdown">
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('Paid_Amount') }}</span>
-                                            <span class="breakdown-value paid">{{ \App\CentralLogics\Helpers::format_currency($paidAmount) }}</span>
-                                        </div>
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('Unpaid_Amount') }}</span>
-                                            <span class="breakdown-value unpaid">{{ \App\CentralLogics\Helpers::format_currency($unpaidAmount) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="col-auto">
+                            <div class="mini-card paid">
+                                <span class="mini-label">{{ translate('Paid') }}</span>
+                                <span class="mini-value">{{ $paidOrders }}</span>
                             </div>
                         </div>
-
-                        <!-- POS Overview -->
-                        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
-                            <div class="stats-card pos-card">
-                                <div class="stats-card-header">
-                                    <div class="stats-icon">
-                                        <i class="tio-pos"></i>
-                                    </div>
-                                    <div class="stats-trend">
-                                        <i class="tio-trending-up"></i>
-                                    </div>
-                                </div>
-                                <div class="stats-content">
-                                    <h3 class="stats-number">{{ \App\CentralLogics\Helpers::format_currency($posPaidAmount) }}</h3>
-                                    <p class="stats-title">{{ translate('POS_Paid_Amount') }}</p>
-                                    <div class="stats-breakdown">
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('POS_Paid') }}</span>
-                                            <span class="breakdown-value paid">{{ \App\CentralLogics\Helpers::format_currency($posPaidAmount) }}</span>
-                                        </div>
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('POS_Unpaid') }}</span>
-                                            <span class="breakdown-value unpaid">{{ \App\CentralLogics\Helpers::format_currency($posUnpaidAmount) }}</span>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="col-auto">
+                            <div class="mini-card unpaid">
+                                <span class="mini-label">{{ translate('Unpaid') }}</span>
+                                <span class="mini-value">{{ $unpaidOrders }}</span>
                             </div>
                         </div>
-
-                        <!-- Payment Status -->
-                        <div class="col-xl-3 col-lg-6 col-md-6 col-sm-12">
-                            <div class="stats-card payment-card">
-                                <div class="stats-card-header">
-                                    <div class="stats-icon">
-                                        <i class="tio-credit-card"></i>
-                                    </div>
-                                    <div class="stats-trend">
-                                        <i class="tio-trending-up"></i>
-                                    </div>
-                                </div>
-                                <div class="stats-content">
-                                    <h3 class="stats-number">{{ round(($paidOrders / max($totalOrders, 1)) * 100, 1) }}%</h3>
-                                    <p class="stats-title">{{ translate('Payment_Completion_Rate') }}</p>
-                                    <div class="stats-breakdown">
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('Partially_Paid_Amount') }}</span>
-                                            <span class="breakdown-value partial">{{ \App\CentralLogics\Helpers::format_currency($partiallyPaidAmount) }}</span>
-                                        </div>
-                                        <div class="breakdown-item">
-                                            <span class="breakdown-label">{{ translate('Completion') }}</span>
-                                            <span class="breakdown-value success">{{ round(($paidOrders / max($totalOrders, 1)) * 100, 1) }}%</span>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="col-auto">
+                            <div class="mini-card partial">
+                                <span class="mini-label">{{ translate('Partial') }}</span>
+                                <span class="mini-value">{{ $partiallyPaidOrders }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card amount">
+                                <span class="mini-label">{{ translate('Total_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($totalAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card paid-amount">
+                                <span class="mini-label">{{ translate('Paid_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($paidAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card unpaid-amount">
+                                <span class="mini-label">{{ translate('Unpaid_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($unpaidAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card pos">
+                                <span class="mini-label">{{ translate('POS_Paid') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($posPaidAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card pos-unpaid">
+                                <span class="mini-label">{{ translate('POS_Unpaid') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($posUnpaidAmount) }}</span>
                             </div>
                         </div>
                     </div>

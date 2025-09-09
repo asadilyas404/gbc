@@ -53,7 +53,7 @@ class ShiftSession extends Model
 
     public function restaurant()
     {
-        return $this->belongsTo(Restaurant::class, 'business_id');
+        return $this->belongsTo(Restaurant::class, 'branch_id');
     }
 
     public function user()
@@ -69,14 +69,17 @@ class ShiftSession extends Model
     public function scopeCurrent($query)
     {
         return $query->where('session_status', 'open')
-                    ->where('business_id', Helpers::get_restaurant_id());
+                    ->where('branch_id', Helpers::get_restaurant_id());
     }
 
     protected static function booted()
     {
+        // Apply restaurant filtering manually since we use branch_id instead of restaurant_id
         if(auth('vendor')->check() || auth('vendor_employee')->check())
         {
-            static::addGlobalScope(new RestaurantScope);
+            static::addGlobalScope('restaurant', function (Builder $builder) {
+                $builder->where('branch_id', Helpers::get_restaurant_id());
+            });
         }
         static::addGlobalScope(new ZoneScope);
     }
@@ -86,16 +89,17 @@ class ShiftSession extends Model
         parent::boot();
 
         static::creating(function ($shiftSession) {
-            // Generate session_id using the same pattern as orders
-            $shiftSession->session_id = Helpers::generateGlobalId($shiftSession->business_id);
-
             // Set default values
             $shiftSession->company_id = 1;
-            $shiftSession->business_id = $shiftSession->business_id ?? Helpers::get_restaurant_id();
+            $shiftSession->business_id = 1; // Fixed as per requirements
+            $shiftSession->branch_id = $shiftSession->branch_id ?? Helpers::get_restaurant_id();
             $shiftSession->user_id = auth('vendor')->id() ?? auth('vendor_employee')->id();
 
+            // Generate session_id using the same pattern as orders
+            $shiftSession->session_id = Helpers::generateGlobalId($shiftSession->branch_id);
+
             // Generate session number
-            $lastSession = static::where('business_id', $shiftSession->business_id)
+            $lastSession = static::where('branch_id', $shiftSession->branch_id)
                                 ->orderBy('session_no', 'desc')
                                 ->first();
             $shiftSession->session_no = $lastSession ? $lastSession->session_no + 1 : 1;

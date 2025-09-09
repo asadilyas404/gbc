@@ -53,7 +53,7 @@ class ShiftSessionController extends Controller
             $shiftSession->start_date = now();
             $shiftSession->opening_cash = $request->opening_cash;
             $shiftSession->opening_visa = $request->opening_visa;
-            $shiftSession->business_id = Helpers::get_restaurant_id();
+            $shiftSession->branch_id = Helpers::get_restaurant_id();
             $shiftSession->save();
 
             Toastr::success('Shift session started successfully!');

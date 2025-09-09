@@ -9,6 +9,7 @@ use App\Models\OrderPayment;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\CentralLogics\OrderLogic;
+use Illuminate\Support\Facades\Log;
 use App\Exports\OrderRefundExport;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -32,7 +33,7 @@ class OrderController extends Controller
 
         Order::where(['checked' => 0])->where('restaurant_id',Helpers::get_restaurant_id())->update(['checked' => 1]);
 
-        $orders = Order::with(['customer'])
+        $orders = Order::with(['customer', 'pos_details'])
         ->when($status == 'searching_for_deliverymen', function($query){
             return $query->SearchingForDeliveryman();
         })
@@ -132,9 +133,34 @@ class OrderController extends Controller
         ->orderBy('schedule_at', 'desc')
         ->paginate(config('default_pagination'));
 
+        // Calculate order statistics
+        $totalOrders = $orders->total();
+        $paidOrders = $orders->where('payment_status', 'paid')->count();
+        $unpaidOrders = $orders->where('payment_status', 'unpaid')->count();
+        $partiallyPaidOrders = $orders->where('payment_status', 'partially_paid')->count();
+
+        // Calculate amounts
+        $totalAmount = $orders->sum('order_amount');
+        $paidAmount = $orders->where('payment_status', 'paid')->sum('order_amount');
+        $unpaidAmount = $orders->where('payment_status', 'unpaid')->sum('order_amount');
+        $partiallyPaidAmount = $orders->where('payment_status', 'partially_paid')->sum('order_amount');
+
+        // Calculate POS payment details
+        $posPaidAmount = 0;
+        $posUnpaidAmount = 0;
+
+        foreach ($orders as $order) {
+            if ($order->pos_details) {
+                $posPaidAmount += ($order->pos_details->cash_paid ?? 0) + ($order->pos_details->card_paid ?? 0);
+                if ($order->payment_status == 'unpaid') {
+                    $posUnpaidAmount += $order->order_amount;
+                }
+            }
+        }
+
         $st=$status;
         $status = translate('messages.'.$status);
-        return view('vendor-views.order.list', compact('orders', 'status','st'));
+        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders', 'partiallyPaidOrders', 'totalAmount', 'paidAmount', 'unpaidAmount', 'partiallyPaidAmount', 'posPaidAmount', 'posUnpaidAmount'));
     }
 
     public function search(Request $request){
@@ -293,7 +319,7 @@ class OrderController extends Controller
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
         return response()->json(['error' => 'Order not found.'], 404);
     } catch (\Throwable $e) {
-        \Log::error('Error in getPaymentData: ' . $e->getMessage(), [
+        Log::error('Error in getPaymentData: ' . $e->getMessage(), [
             'order_id' => $id,
             'trace' => $e->getTraceAsString()
         ]);
@@ -502,7 +528,7 @@ class OrderController extends Controller
     {
         $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])->with(['payments', 'details.food'])->first();
         $maxMakeTime = $order->details
-        ->map(fn($detail) => $detail->food->est_make_time ?? 0)
+        ->map(function($detail) { return $detail->food->est_make_time ?? 0; })
         ->max();
         return view('vendor-views.order.receipt', compact('order', 'maxMakeTime'));
     }

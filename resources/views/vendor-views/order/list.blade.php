@@ -269,7 +269,7 @@
                 <div class="minimal-stats mb-1">
                     <div class="row g-2">
                         <div class="col-auto">
-                            <div class="mini-card">
+                            <div class="mini-card amount">
                                 <span class="mini-label">{{ translate('Total_Orders') }}</span>
                                 <span class="mini-value">{{ $totalOrders }}</span>
                             </div>

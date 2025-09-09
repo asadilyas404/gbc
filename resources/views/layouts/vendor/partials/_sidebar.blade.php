@@ -1,3 +1,6 @@
+@php
+use Illuminate\Support\Facades\DB;
+@endphp
 <div id="sidebarMain" class="d-none">
     <aside
         class="js-navbar-vertical-aside navbar navbar-vertical-aside navbar-vertical navbar-vertical-fixed navbar-expand-xl navbar-bordered">
@@ -120,7 +123,7 @@
                                         <span class="text-truncate sidebar--badge-container">
                                             {{ translate('messages.all') }}
                                             <span class="badge badge-soft-info badge-pill ml-1">
-                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->count() }}
+                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->whereExists(function ($query) { $query->select(DB::raw(1))->from('tbl_soft_branch')->whereColumn('tbl_soft_branch.branch_id', 'orders.restaurant_id')->whereColumn('tbl_soft_branch.orders_date', 'orders.order_date'); })->Notpos()->hasSubscriptionToday()->count() }}
 
                                                 {{-- ->where(function ($query) use ($data) {
                                                         return $query->whereNotIn(
@@ -147,7 +150,7 @@
                                         <span class="text-truncate sidebar--badge-container">
                                             {{ translate('messages.Unpaid') }}
                                             <span class="badge badge-soft-info badge-pill ml-1">
-                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->where('payment_status', 'unpaid')->count() }}
+                                                {{ \App\Models\Order::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->where('payment_status', 'unpaid')->whereExists(function ($query) { $query->select(DB::raw(1))->from('tbl_soft_branch')->whereColumn('tbl_soft_branch.branch_id', 'orders.restaurant_id')->whereColumn('tbl_soft_branch.orders_date', 'orders.order_date'); })->Notpos()->hasSubscriptionToday()->count() }}
                                             </span>
                                         </span>
                                     </a>

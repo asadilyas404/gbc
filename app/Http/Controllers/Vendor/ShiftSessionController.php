@@ -83,7 +83,7 @@ class ShiftSessionController extends Controller
             'closing_visa.min' => 'Closing visa amount must be at least 0.',
         ]);
 
-        // try {
+        try {
             $closingData = [
                 'closing_cash' => $request->closing_cash,
                 'closing_visa' => $request->closing_visa,
@@ -93,10 +93,10 @@ class ShiftSessionController extends Controller
 
             Toastr::success('Shift session closed successfully!');
             return back();
-        // } catch (\Exception $e) {
-        //     Toastr::error('Failed to close shift session. Please try again.');
-        //     return back();
-        // }
+        } catch (\Exception $e) {
+            Toastr::error('Failed to close shift session. Please try again.');
+            return back();
+        }
     }
 
     public function getShiftDetails($shiftId)

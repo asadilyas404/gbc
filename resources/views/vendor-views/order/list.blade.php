@@ -312,7 +312,7 @@
                 </div>
 
                 <!-- Search and Actions Row -->
-                <div class="row w-75 align-items-center">
+                <div class="row w-70 align-items-center">
                     <!-- Search Bar -->
                     <div class="col-12">
                         <div class="search--button-wrapper justify-content-end max-sm-flex-100">

@@ -1934,7 +1934,6 @@
             // Show loading
             toastr.info('Sending to printer...');
 
-            // Redirect to print route with order ID
             window.location.href = '/api/v1/print/order?order_id=' + orderId;
         }
 

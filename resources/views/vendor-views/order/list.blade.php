@@ -11,6 +11,9 @@
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
 
     <style>
+        .col-auto {
+            padding: 0.25rem !important;
+        }
         .order-card {
             transition: all 0.2s ease-in-out;
             border-radius: 0.5rem;

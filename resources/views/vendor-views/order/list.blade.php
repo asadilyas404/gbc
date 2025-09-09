@@ -45,38 +45,65 @@
         .stat-card {
             transition: all 0.3s ease;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            min-height: 70px;
+            min-height: 90px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .stat-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
         }
 
         .stat-number {
             font-weight: 700;
-            line-height: 1.2;
+            line-height: 1.1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         .stat-label {
             font-weight: 500;
             opacity: 0.9;
             line-height: 1.2;
+            text-align: center;
+            word-wrap: break-word;
+            hyphens: auto;
+            white-space: normal;
+            max-width: 100%;
+            font-size: 0.85rem;
+        }
+
+        /* Ensure proper spacing between cards */
+        .row.g-2 > [class*="col-"] {
+            padding-left: 8px;
+            padding-right: 8px;
         }
 
         /* Mobile Responsiveness */
-        @media (max-width: 768px) {
+        @media (max-width: 1200px) {
             .stat-card {
-                min-height: 60px;
+                min-height: 85px;
+            }
+
+            .stat-label {
+                font-size: 0.8rem;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .stat-card {
+                min-height: 80px;
                 padding: 0.75rem !important;
             }
 
             .stat-number {
-                font-size: 1rem !important;
+                font-size: 1.1rem !important;
             }
 
             .stat-label {
@@ -84,9 +111,24 @@
             }
         }
 
+        @media (max-width: 768px) {
+            .stat-card {
+                min-height: 75px;
+                padding: 0.6rem !important;
+            }
+
+            .stat-number {
+                font-size: 1rem !important;
+            }
+
+            .stat-label {
+                font-size: 0.7rem !important;
+            }
+        }
+
         @media (max-width: 576px) {
             .stat-card {
-                min-height: 55px;
+                min-height: 70px;
                 padding: 0.5rem !important;
             }
 
@@ -95,7 +137,22 @@
             }
 
             .stat-label {
-                font-size: 0.7rem !important;
+                font-size: 0.65rem !important;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stat-card {
+                min-height: 65px;
+                padding: 0.4rem !important;
+            }
+
+            .stat-number {
+                font-size: 0.85rem !important;
+            }
+
+            .stat-label {
+                font-size: 0.6rem !important;
             }
         }
     </style>
@@ -186,50 +243,50 @@
                     <div class="col-12">
                         <div class="row g-2">
                             <!-- Total Orders -->
-                            <div class="col-lg-2 col-md-4 col-sm-6 col-6">
-                                <div class="stat-card bg-primary text-white p-2 rounded text-center">
-                                    <div class="stat-number h5 mb-1">{{ $totalOrders }}</div>
-                                    <div class="stat-label small">{{ translate('Total Orders') }}</div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-primary text-white p-3 rounded text-center">
+                                    <div class="stat-number h4 mb-2">{{ $totalOrders }}</div>
+                                    <div class="stat-label">{{ translate('Total_Orders') }}</div>
                                 </div>
                             </div>
 
                             <!-- Paid Orders -->
-                            <div class="col-lg-2 col-md-4 col-sm-6 col-6">
-                                <div class="stat-card bg-success text-white p-2 rounded text-center">
-                                    <div class="stat-number h5 mb-1">{{ $paidOrders }}</div>
-                                    <div class="stat-label small">{{ translate('Paid Orders') }}</div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-success text-white p-3 rounded text-center">
+                                    <div class="stat-number h4 mb-2">{{ $paidOrders }}</div>
+                                    <div class="stat-label">{{ translate('Paid_Orders') }}</div>
                                 </div>
                             </div>
 
                             <!-- Unpaid Orders -->
-                            <div class="col-lg-2 col-md-4 col-sm-6 col-6">
-                                <div class="stat-card bg-danger text-white p-2 rounded text-center">
-                                    <div class="stat-number h5 mb-1">{{ $unpaidOrders }}</div>
-                                    <div class="stat-label small">{{ translate('Unpaid Orders') }}</div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-danger text-white p-3 rounded text-center">
+                                    <div class="stat-number h4 mb-2">{{ $unpaidOrders }}</div>
+                                    <div class="stat-label">{{ translate('Unpaid_Orders') }}</div>
                                 </div>
                             </div>
 
                             <!-- Partially Paid Orders -->
-                            <div class="col-lg-2 col-md-4 col-sm-6 col-6">
-                                <div class="stat-card bg-warning text-white p-2 rounded text-center">
-                                    <div class="stat-number h5 mb-1">{{ $partiallyPaidOrders }}</div>
-                                    <div class="stat-label small">{{ translate('Partially Paid') }}</div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-warning text-white p-3 rounded text-center">
+                                    <div class="stat-number h4 mb-2">{{ $partiallyPaidOrders }}</div>
+                                    <div class="stat-label">{{ translate('Partially_Paid') }}</div>
                                 </div>
                             </div>
 
                             <!-- Total Amount -->
-                            <div class="col-lg-2 col-md-4 col-sm-6 col-6">
-                                <div class="stat-card bg-info text-white p-2 rounded text-center">
-                                    <div class="stat-number h6 mb-1">{{ \App\CentralLogics\Helpers::format_currency($totalAmount) }}</div>
-                                    <div class="stat-label small">{{ translate('Total Amount') }}</div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-info text-white p-3 rounded text-center">
+                                    <div class="stat-number h6 mb-2">{{ \App\CentralLogics\Helpers::format_currency($totalAmount) }}</div>
+                                    <div class="stat-label">{{ translate('Total_Order_Amount') }}</div>
                                 </div>
                             </div>
 
                             <!-- Paid Amount -->
-                            <div class="col-lg-2 col-md-4 col-sm-6 col-6">
-                                <div class="stat-card bg-success text-white p-2 rounded text-center">
-                                    <div class="stat-number h6 mb-1">{{ \App\CentralLogics\Helpers::format_currency($paidAmount) }}</div>
-                                    <div class="stat-label small">{{ translate('Paid Amount') }}</div>
+                            <div class="col-lg-2 col-md-4 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-success text-white p-3 rounded text-center">
+                                    <div class="stat-number h6 mb-2">{{ \App\CentralLogics\Helpers::format_currency($paidAmount) }}</div>
+                                    <div class="stat-label">{{ translate('Paid_Amount') }}</div>
                                 </div>
                             </div>
                         </div>
@@ -241,34 +298,34 @@
                     <div class="col-12">
                         <div class="row g-2">
                             <!-- Unpaid Amount -->
-                            <div class="col-lg-3 col-md-6 col-sm-6 col-6">
-                                <div class="stat-card bg-danger text-white p-2 rounded text-center">
-                                    <div class="stat-number h6 mb-1">{{ \App\CentralLogics\Helpers::format_currency($unpaidAmount) }}</div>
-                                    <div class="stat-label small">{{ translate('Unpaid Amount') }}</div>
+                            <div class="col-lg-3 col-md-6 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-danger text-white p-3 rounded text-center">
+                                    <div class="stat-number h6 mb-2">{{ \App\CentralLogics\Helpers::format_currency($unpaidAmount) }}</div>
+                                    <div class="stat-label">{{ translate('Unpaid_Amount') }}</div>
                                 </div>
                             </div>
 
                             <!-- Partially Paid Amount -->
-                            <div class="col-lg-3 col-md-6 col-sm-6 col-6">
-                                <div class="stat-card bg-warning text-white p-2 rounded text-center">
-                                    <div class="stat-number h6 mb-1">{{ \App\CentralLogics\Helpers::format_currency($partiallyPaidAmount) }}</div>
-                                    <div class="stat-label small">{{ translate('Partially Paid Amount') }}</div>
+                            <div class="col-lg-3 col-md-6 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-warning text-white p-3 rounded text-center">
+                                    <div class="stat-number h6 mb-2">{{ \App\CentralLogics\Helpers::format_currency($partiallyPaidAmount) }}</div>
+                                    <div class="stat-label">{{ translate('Partially_Paid_Amount') }}</div>
                                 </div>
                             </div>
 
                             <!-- POS Paid Amount -->
-                            <div class="col-lg-3 col-md-6 col-sm-6 col-6">
-                                <div class="stat-card bg-dark text-white p-2 rounded text-center">
-                                    <div class="stat-number h6 mb-1">{{ \App\CentralLogics\Helpers::format_currency($posPaidAmount) }}</div>
-                                    <div class="stat-label small">{{ translate('POS Paid Amount') }}</div>
+                            <div class="col-lg-3 col-md-6 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-dark text-white p-3 rounded text-center">
+                                    <div class="stat-number h6 mb-2">{{ \App\CentralLogics\Helpers::format_currency($posPaidAmount) }}</div>
+                                    <div class="stat-label">{{ translate('POS_Paid_Amount') }}</div>
                                 </div>
                             </div>
 
                             <!-- POS Unpaid Amount -->
-                            <div class="col-lg-3 col-md-6 col-sm-6 col-6">
-                                <div class="stat-card bg-secondary text-white p-2 rounded text-center">
-                                    <div class="stat-number h6 mb-1">{{ \App\CentralLogics\Helpers::format_currency($posUnpaidAmount) }}</div>
-                                    <div class="stat-label small">{{ translate('POS Unpaid Amount') }}</div>
+                            <div class="col-lg-3 col-md-6 col-sm-6 col-6 mb-2">
+                                <div class="stat-card bg-secondary text-white p-3 rounded text-center">
+                                    <div class="stat-number h6 mb-2">{{ \App\CentralLogics\Helpers::format_currency($posUnpaidAmount) }}</div>
+                                    <div class="stat-label">{{ translate('POS_Unpaid_Amount') }}</div>
                                 </div>
                             </div>
                         </div>

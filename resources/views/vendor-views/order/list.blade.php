@@ -264,9 +264,9 @@
         <!-- Card -->
         <div class="card">
             <!-- Header -->
-            <div class="card-header py-3">
+            <div class="card-header py-1">
                 <!-- Minimal Statistics Cards -->
-                <div class="minimal-stats mb-3">
+                <div class="minimal-stats mb-1">
                     <div class="row g-2">
                         <div class="col-auto">
                             <div class="mini-card">
@@ -326,7 +326,7 @@
                 </div>
 
                 <!-- Search and Actions Row -->
-                <div class="row w-100 align-items-center">
+                <div class="row w-70 align-items-center">
                     <!-- Search Bar -->
                     <div class="col-12">
                         <div class="search--button-wrapper justify-content-end max-sm-flex-100">

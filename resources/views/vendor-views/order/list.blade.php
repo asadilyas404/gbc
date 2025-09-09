@@ -286,12 +286,12 @@
                                 <span class="mini-value">{{ $unpaidOrders }}</span>
                             </div>
                         </div>
-                        <div class="col-auto">
+                        {{-- <div class="col-auto">
                             <div class="mini-card partial">
                                 <span class="mini-label">{{ translate('Partial') }}</span>
                                 <span class="mini-value">{{ $partiallyPaidOrders }}</span>
                             </div>
-                        </div>
+                        </div> --}}
                         <div class="col-auto">
                             <div class="mini-card amount">
                                 <span class="mini-label">{{ translate('Total_Amount') }}</span>
@@ -310,7 +310,7 @@
                                 <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($unpaidAmount) }}</span>
                             </div>
                         </div>
-                        <div class="col-auto">
+                        {{-- <div class="col-auto">
                             <div class="mini-card pos">
                                 <span class="mini-label">{{ translate('POS_Paid') }}</span>
                                 <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($posPaidAmount) }}</span>
@@ -321,7 +321,7 @@
                                 <span class="mini-label">{{ translate('POS_Unpaid') }}</span>
                                 <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($posUnpaidAmount) }}</span>
                             </div>
-                        </div>
+                        </div> --}}
                     </div>
                 </div>
 

@@ -4451,6 +4451,7 @@
   'POS_Paid' => 'POS Paid',
   'POS_Unpaid' => 'POS Unpaid',
   'Payment_Completion_Rate' => 'Payment Completion Rate',
+  'Completion' => 'Completion',
   'Restaurant_Earned' => 'Restaurant Earned',
   'Admin_Earned' => 'Admin Earned',
   'can_not_disable_both_take_away_and_delivery' => 'Can not disable both take away and delivery',

@@ -602,6 +602,13 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
+        // Check for active shift session
+        $activeSession = \App\Models\ShiftSession::current()->first();
+        if (!$activeSession) {
+            Toastr::error('No active shift session found. Please start a shift session before placing orders.');
+            return back();
+        }
+
         $cart = $request->session()->get('cart');
 
         // dd($cart);
@@ -740,6 +747,7 @@ class POSController extends Controller
         $order->user_id = $request->user_id;
         $order->order_taken_by = Auth::guard('vendor_employee')->user()->id ?? '';
         $order->zone_id = $restaurant->zone_id;
+        $order->session_id = $activeSession->session_id;
         $order->delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
         $order->delivery_charge += isset($cart['delivery_fee']) ? $cart['delivery_fee'] : 0;
         $order->original_delivery_charge = isset($address) ? $address['delivery_fee'] : 0;

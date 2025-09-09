@@ -61,6 +61,11 @@ class ShiftSession extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'session_id');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('session_status', 'open');

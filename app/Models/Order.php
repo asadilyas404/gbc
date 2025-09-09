@@ -41,6 +41,7 @@ class Order extends Model
         'extra_packaging_amount' => 'float',
         'is_pushed' => 'string',
         'printed' => 'boolean',
+        'session_id' => 'string',
     ];
     protected $appends = ['order_proof_full_url'];
 
@@ -141,6 +142,11 @@ class Order extends Model
     public function customer()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function shiftSession()
+    {
+        return $this->belongsTo(\App\Models\ShiftSession::class, 'session_id');
     }
 
     public function kitchen_log()

@@ -286,7 +286,7 @@ use Illuminate\Support\Facades\DB;
                     @endif
                     <!-- End AddOn -->
                     <!-- Options List -->
-                    @if (\App\CentralLogics\Helpers::employee_module_permission_check('addon'))
+                    @if (\App\CentralLogics\Helpers::employee_module_permission_check('options_list'))
                         <li
                             class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/options-list*') ? 'active' : '' }}">
                             <a class="js-navbar-vertical-aside-menu-link nav-link"
@@ -301,6 +301,7 @@ use Illuminate\Support\Facades\DB;
                     @endif
                     <!-- End Options List -->
                     <!-- Shift Session -->
+                    @if (\App\CentralLogics\Helpers::employee_module_permission_check('shift_session'))
                     <li
                         class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/shift-session*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link"
@@ -312,6 +313,7 @@ use Illuminate\Support\Facades\DB;
                             </span>
                         </a>
                     </li>
+                    @endif
                     <!-- End Shift Session -->
                     <!-- Employee-->
                     {{-- <li class="nav-item">

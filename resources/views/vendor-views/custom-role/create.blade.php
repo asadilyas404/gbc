@@ -222,6 +222,30 @@
                                                 for="report">{{ translate('messages.report') }}</label>
                                         </div>
                                     </div>
+                                    <div class="check-item">
+                                        <div class="form-group form-check form--check">
+                                            <input type="checkbox" name="modules[]" value="custom_role"
+                                                class="form-check-input system-checkbox" id="custom_role">
+                                            <label class="form-check-label input-label qcont"
+                                                for="custom_role">{{ translate('messages.custom_role') }}</label>
+                                        </div>
+                                    </div>
+                                    <div class="check-item">
+                                        <div class="form-group form-check form--check">
+                                            <input type="checkbox" name="modules[]" value="options_list"
+                                                class="form-check-input system-checkbox" id="options_list">
+                                            <label class="form-check-label input-label qcont"
+                                                for="options_list">{{ translate('messages.options_list') }}</label>
+                                        </div>
+                                    </div>
+                                    <div class="check-item">
+                                        <div class="form-group form-check form--check">
+                                            <input type="checkbox" name="modules[]" value="shift_session"
+                                                class="form-check-input system-checkbox" id="shift_session">
+                                            <label class="form-check-label input-label qcont"
+                                                for="shift_session">{{ translate('messages.shift_session') }}</label>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="btn--container mt-4 justify-content-end">
                                     <button type="reset"

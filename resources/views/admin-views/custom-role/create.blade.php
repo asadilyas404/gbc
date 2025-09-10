@@ -256,6 +256,20 @@
                             <label class="form-check-label ml-2 ml-sm-3  text-dark" for="chat">{{translate('messages.chat')}}</label>
                         </div>
                     </div>
+                    <div class="check-item">
+                        <div class="form-group form-check form--check">
+                            <input type="checkbox" name="modules[]" value="custom_role" class="form-check-input"
+                                    id="custom_role">
+                            <label class="form-check-label ml-2 ml-sm-3  text-dark" for="custom_role">{{translate('messages.custom_role')}}</label>
+                        </div>
+                    </div>
+                    <div class="check-item">
+                        <div class="form-group form-check form--check">
+                            <input type="checkbox" name="modules[]" value="shift" class="form-check-input"
+                                    id="shift">
+                            <label class="form-check-label ml-2 ml-sm-3  text-dark" for="shift">{{translate('messages.shift_setup')}}</label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="mt-4 pb-3">

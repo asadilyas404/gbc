@@ -998,6 +998,7 @@ $order = \App\Models\Order::Notpos()
                             </span>
                         </a>
                     </li>
+                    @if (Helpers::module_permission_check('shift'))
                     <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/shift*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link"
                             href="{{ route('admin.shift.list') }}"
@@ -1008,6 +1009,7 @@ $order = \App\Models\Order::Notpos()
                             </span>
                         </a>
                     </li>
+                    @endif
 
                     <li
                         class="navbar-vertical-aside-has-menu {{ Request::is('admin/delivery-man*') ? 'active' : '' }}">

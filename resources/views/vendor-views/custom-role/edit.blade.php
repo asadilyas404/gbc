@@ -262,6 +262,33 @@
                                         for="report">{{ translate('messages.report') }}</label>
                                 </div>
                             </div>
+                            <div class="check-item">
+                                <div class="form-group form-check form--check">
+                                    <input type="checkbox" name="modules[]" value="custom_role"
+                                        class="form-check-input system-checkbox" id="custom_role"
+                                        {{ in_array('custom_role', (array) json_decode($role['modules'])) ? 'checked' : '' }}>
+                                    <label class="form-check-label qcont"
+                                        for="custom_role">{{ translate('messages.custom_role') }}</label>
+                                </div>
+                            </div>
+                            <div class="check-item">
+                                <div class="form-group form-check form--check">
+                                    <input type="checkbox" name="modules[]" value="options_list"
+                                        class="form-check-input system-checkbox" id="options_list"
+                                        {{ in_array('options_list', (array) json_decode($role['modules'])) ? 'checked' : '' }}>
+                                    <label class="form-check-label qcont"
+                                        for="options_list">{{ translate('messages.options_list') }}</label>
+                                </div>
+                            </div>
+                            <div class="check-item">
+                                <div class="form-group form-check form--check">
+                                    <input type="checkbox" name="modules[]" value="shift_session"
+                                        class="form-check-input system-checkbox" id="shift_session"
+                                        {{ in_array('shift_session', (array) json_decode($role['modules'])) ? 'checked' : '' }}>
+                                    <label class="form-check-label qcont"
+                                        for="shift_session">{{ translate('messages.shift_session') }}</label>
+                                </div>
+                            </div>
                         </div>
                         <div class="btn--container mt-4 justify-content-end">
                             <button type="reset" class="btn btn--reset">{{ translate('messages.reset') }}</button>

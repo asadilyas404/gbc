@@ -910,6 +910,7 @@ class POSController extends Controller
             }
 
             foreach ($order_details as $key => $item) {
+                $order_details[$key]['id'] = $order->id.$key;
                 $order_details[$key]['order_id'] = $order->id;
             }
             OrderDetail::insert($order_details);
@@ -939,13 +940,11 @@ class POSController extends Controller
 
             // Print order receipts
             // try {
-                $printController = new \App\Http\Controllers\PrintController();
+                // $printController = new \App\Http\Controllers\PrintController();
 
-                // Print bill receipt
-                $printController->printOrder(new \Illuminate\Http\Request(['order_id' => $order->id]));
+                // $printController->printOrder(new \Illuminate\Http\Request(['order_id' => $order->id]));
 
-                // Print kitchen receipt
-                $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => $order->id]));
+                // $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => $order->id]));
             // } catch (\Exception $printException) {
             //     info('Print error: ' . $printException->getMessage());
             // }

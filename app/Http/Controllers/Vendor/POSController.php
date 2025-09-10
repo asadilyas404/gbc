@@ -901,7 +901,8 @@ class POSController extends Controller
             if (!$editing_order_id) {
                 KitchenOrderStatusLog::create([
                     "status" => 'pending',
-                    "order_id" => $order->id
+                    "order_id" => $order->id,
+                    "id" => $order->id.'1',
                 ]);
             }
             if ($editing_order_id) {
@@ -915,6 +916,7 @@ class POSController extends Controller
             }
             OrderDetail::insert($order_details);
             $posOrderDtl = PosOrderAdditionalDtl::firstOrNew(['order_id' => $order->id]);
+            $posOrderDtl->id = $order->id.'1';
             $posOrderDtl->restaurant_id = $order->restaurant_id;
             $posOrderDtl->customer_name = $request->customer_name;
             $posOrderDtl->car_number = $request->car_number;

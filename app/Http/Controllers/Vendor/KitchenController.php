@@ -77,9 +77,17 @@ class KitchenController extends Controller{
 
             $order = Order::where('id', $request->id)->first();
             if($order) {
+
+                $idSuffix = match ($request->type) {
+                    'cooking' => '2',
+                    'ready'   => '3',
+                    default   => '1',
+                };
+
                 KitchenOrderStatusLog::create([
                     "status" => $request->type,
                     "order_id" => $order->id,
+                    "id" => $order->id.$idSuffix,
                 ]);
 
                 $order->kitchen_status = $request->type;

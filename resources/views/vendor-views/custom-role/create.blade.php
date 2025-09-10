@@ -246,6 +246,14 @@
                                                 for="shift_session">{{ translate('messages.shift_session') }}</label>
                                         </div>
                                     </div>
+                                    <div class="check-item">
+                                        <div class="form-group form-check form--check">
+                                            <input type="checkbox" name="modules[]" value="printer_settings"
+                                                class="form-check-input system-checkbox" id="printer_settings">
+                                            <label class="form-check-label input-label qcont"
+                                                for="printer_settings">{{ translate('messages.printer_settings') }}</label>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="btn--container mt-4 justify-content-end">
                                     <button type="reset"

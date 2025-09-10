@@ -130,11 +130,11 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
         Route::get('/printer/selection', function () {
             return view('vendor-views.printer-select.index');
-        })->name('printer.selection');
+        })->middleware(['module:printer_settings'])->name('printer.selection');
 
-        Route::get('/printer/settings', [App\Http\Controllers\PrintController::class, 'getPrinterSettings'])->name('printer.settings');
+        Route::get('/printer/settings', [App\Http\Controllers\PrintController::class, 'getPrinterSettings'])->middleware(['module:printer_settings'])->name('printer.settings');
 
-        Route::post('/printer/settings/save', [App\Http\Controllers\PrintController::class, 'savePrinterSettings'])->name('printer.settings.save');
+        Route::post('/printer/settings/save', [App\Http\Controllers\PrintController::class, 'savePrinterSettings'])->middleware(['module:printer_settings'])->name('printer.settings.save');
 
 
         Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.', 'middleware' => ['module:kitchen_orders', 'subscription:kitchen_orders']], function () {

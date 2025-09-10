@@ -445,6 +445,7 @@ use Illuminate\Support\Facades\DB;
                     @endif
                     <!-- End Employee -->
 
+                    @if (\App\CentralLogics\Helpers::employee_module_permission_check('printer_settings'))
                     <li
                         class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/printer/selection*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link"
@@ -455,6 +456,7 @@ use Illuminate\Support\Facades\DB;
                                 class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{ translate('messages.settings') }}</span>
                         </a>
                     </li>
+                    @endif
 
                     {{-- @if (\App\CentralLogics\Helpers::employee_module_permission_check('employee'))
                         <li

@@ -71,7 +71,6 @@ class KitchenController extends Controller
     public function getAllOrders(Request $request)
     {
 
-
         if ($request->type && $request->id) {
             if (!isset(Helpers::kitchenStatus()[$request->type])) {
                 return response()->json([
@@ -84,10 +83,12 @@ class KitchenController extends Controller
             $order = Order::where('id', $request->id)->first();
             if ($order) {
 
-                $idSuffix = '2'; // default
+                $idSuffix = '1'; // default
                 if ($request->type === 'cooking') {
-                    $idSuffix = '3';
+                    $idSuffix = '2';
                 } elseif ($request->type === 'ready') {
+                    $idSuffix = '3';
+                } elseif ($request->type === 'completed') {
                     $idSuffix = '4';
                 }
 

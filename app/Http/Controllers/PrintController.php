@@ -17,7 +17,7 @@ class PrintController extends Controller
             $request->validate([
                 'order_id' => 'required|string'
             ]);
-
+dd($request->all());
             $orderId = $request->input('order_id') ?: $request->query('order_id');
 
             // Find the order

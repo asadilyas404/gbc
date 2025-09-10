@@ -13,6 +13,7 @@ class KitchenOrderStatusLog extends Model
 {
 
     protected $fillable = [
+        'id',
         'status',
         'order_id'
     ];

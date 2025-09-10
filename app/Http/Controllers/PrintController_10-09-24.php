@@ -8,7 +8,6 @@ use Mike42\Escpos\Printer;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
 use App\Models\Order;
 use App\CentralLogics\Helpers;
-use Illuminate\Support\Facades\Auth;
 
 class PrintController extends Controller
 {
@@ -18,7 +17,6 @@ class PrintController extends Controller
             $request->validate([
                 'order_id' => 'required|string'
             ]);
-
             $orderId = $request->input('order_id') ?: $request->query('order_id');
 
             // Find the order
@@ -33,13 +31,11 @@ class PrintController extends Controller
                 ], 404);
             }
 
-            // Get printer name from database
-            $user = Auth::user();
-
-            $branchId = $order->restaurant_id;
+            $branchId = Helpers::get_restaurant_id();
+            dd($branchId);
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
             $printerName = $branch->bill_printer ?? 'BillPrinter';
-
+dd($printerName);
             // Connect to printer
             $connector = new WindowsPrintConnector($printerName);
             $printer = new Printer($connector);
@@ -56,7 +52,7 @@ class PrintController extends Controller
             // Order details
             $printer->setJustification(Printer::JUSTIFY_LEFT);
             $printer->text("Order ID: " . $order->order_serial . "\n");
-            $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
+            $printer->text("Date: " . $order->created_at->format('d/M/Y H:i') . "\n");
             $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
 
             // Customer info
@@ -216,7 +212,7 @@ class PrintController extends Controller
             }
 
             // Get printer name from database
-            $branchId = $order->restaurant_id;
+            $branchId = Helpers::get_restaurant_id();
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
             $printerName = $branch->kitchen_printer ?? 'KitchenPrinter';
 
@@ -236,7 +232,7 @@ class PrintController extends Controller
             // Order details
             $printer->setJustification(Printer::JUSTIFY_LEFT);
             $printer->text("Order ID: " . $order->order_serial . "\n");
-            $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
+            $printer->text("Date: " . $order->created_at->format('d/M/Y H:i') . "\n");
             $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
 
             // Customer info

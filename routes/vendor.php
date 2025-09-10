@@ -223,7 +223,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::delete('delete/{id}', 'AddOnController@delete')->name('delete');
         });
 
-        Route::group(['prefix' => 'options-list', 'as' => 'options-list.', 'middleware' => ['module:addon', 'subscription:addon']], function () {
+        Route::group(['prefix' => 'options-list', 'as' => 'options-list.', 'middleware' => ['module:options_list', 'subscription:addon']], function () {
             Route::get('add-new', 'OptionsListController@index')->name('add-new');
             Route::post('store', 'OptionsListController@store')->name('store');
             Route::get('edit/{id}', 'OptionsListController@edit')->name('edit');
@@ -232,7 +232,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         });
 
         // Shift Session Management
-        Route::group(['prefix' => 'shift-session', 'as' => 'shift-session.'], function () {
+        Route::group(['prefix' => 'shift-session', 'as' => 'shift-session.', 'middleware' => ['module:shift_session']], function () {
             Route::get('/', 'ShiftSessionController@index')->name('index');
             Route::post('store', 'ShiftSessionController@store')->name('store');
             Route::post('close', 'ShiftSessionController@close')->name('close');

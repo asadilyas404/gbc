@@ -842,7 +842,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
                 Route::delete('subscription/pause_log_delete/{subscription}', 'OrderSubscriptionController@pause_log_delete')->name('pause_log_delete');
             });
         });
-        Route::group(['prefix' => 'shift', 'as' => 'shift.'], function () {
+        Route::group(['prefix' => 'shift', 'as' => 'shift.', 'middleware' => ['module:shift']], function () {
             Route::get('/', 'ShiftController@list')->name('list');
             Route::post('store', 'ShiftController@store')->name('store');
             Route::get('edit/{id}', 'ShiftController@edit')->name('edit');

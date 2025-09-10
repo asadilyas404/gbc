@@ -309,7 +309,7 @@ use Illuminate\Support\Facades\DB;
                             title="Shift Session">
                             <i class="tio-time nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                Shift Session
+                                {{ translate('messages.shift_session') }}
                             </span>
                         </a>
                     </li>

@@ -37,6 +37,7 @@
   'sign_out' => 'Sign out',
   'Search_Menu...' => 'Search Menu...',
   'dashboard' => 'Dashboard',
+  'shift_session' => 'Shift Session',
   'pos' => 'Pos',
   'Promotion_management' => 'Promotion management',
   'Promotions_management' => 'Promotions management',

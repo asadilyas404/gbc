@@ -31,8 +31,8 @@ class PrintController extends Controller
                 ], 404);
             }
 
-            // Get printer name from database
             $branchId = Helpers::get_restaurant_id();
+            dd($branchId);
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
             $printerName = $branch->bill_printer ?? 'BillPrinter';
 dd($printerName);

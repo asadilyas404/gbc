@@ -84,11 +84,11 @@ class KitchenController extends Controller
             $order = Order::where('id', $request->id)->first();
             if ($order) {
 
-                $idSuffix = '1'; // default
+                $idSuffix = '2'; // default
                 if ($request->type === 'cooking') {
-                    $idSuffix = '2';
-                } elseif ($request->type === 'ready') {
                     $idSuffix = '3';
+                } elseif ($request->type === 'ready') {
+                    $idSuffix = '4';
                 }
 
                 KitchenOrderStatusLog::create([

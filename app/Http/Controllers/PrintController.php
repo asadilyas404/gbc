@@ -17,7 +17,6 @@ class PrintController extends Controller
             $request->validate([
                 'order_id' => 'required|string'
             ]);
-dd($request->all());
             $orderId = $request->input('order_id') ?: $request->query('order_id');
 
             // Find the order
@@ -36,7 +35,7 @@ dd($request->all());
             $branchId = Helpers::get_restaurant_id();
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
             $printerName = $branch->bill_printer ?? 'BillPrinter';
-
+dd($printerName);
             // Connect to printer
             $connector = new WindowsPrintConnector($printerName);
             $printer = new Printer($connector);

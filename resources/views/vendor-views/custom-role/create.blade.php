@@ -251,7 +251,7 @@
                                             <input type="checkbox" name="modules[]" value="printer_settings"
                                                 class="form-check-input system-checkbox" id="printer_settings">
                                             <label class="form-check-label input-label qcont"
-                                                for="printer_settings">{{ translate('messages.printer_settings') }}</label>
+                                                for="printer_settings">{{ translate('messages.settings') }}</label>
                                         </div>
                                     </div>
                                 </div>

@@ -33,10 +33,10 @@
             <div class="details pl-2">
                 <a href="{{ route('vendor.food.view', $product->id) }}"
                     class="h3 mb-2 product-title text-capitalize text-break">{{ $product->name }}</a>
-                    
+
                 <div class="mb-3 text-dark">
                     <span class="h3 font-weight-normal text-accent mr-1" id="product-price">
-                        {{ Helpers::get_price_range($product, false) }}
+                        {{ Helpers::get_price_range($product, true) }}
                     </span>
                     {{-- @if ($product->discount > 0 || Helpers::get_restaurant_discount($product->restaurant))
                     <span class="fz-12px line-through" id="original-price">
@@ -374,18 +374,7 @@
         $(document).on('change.variationAddon', 'input[name^="variation_addon_id"]', function() {
             getVariantPrice();
         });
-        
-        
-        //16-09-2025 starts
-        $(document).on('change.variationAddon', 'input[name^="addon_id"]', function() {
-            getVariantPrice();
-        });
-        $(document).on('change.input-element', 'input[name^="variations"]', function() {
-            getVariantPrice();
-        });
 
-        //16-09-2025 ends        
-        
         // Handle variation addon quantity input changes
         $(document).on('change.variationAddon', 'input[name^="variation_addon_quantity"]', function() {
             getVariantPrice();
@@ -430,7 +419,6 @@
 
     // Enhanced getVariantPrice function to handle variation-specific addons
     function getVariantPrice() {
-        console.log('in getvarient function!');
         getCheckedInputs();
         if ($('#add-to-cart-form input[name=quantity]').val() > 0 ) {
             $.ajaxSetup({
@@ -458,7 +446,6 @@
                     }
                     else {
                         // Update the price display
-                        console.log('*******data*******',data);
                         $('#add-to-cart-form #chosen_price_div').removeClass('d-none');
                         $('#add-to-cart-form #chosen_price_div #chosen_price').html(data.price);
                         $('.add-To-Cart').removeAttr("disabled");
@@ -479,6 +466,7 @@
         checkedElements.forEach(function(element) {
             checkedInputs.push(element.getAttribute('data-option_id'));
         });
+
         $('#option_ids').val(checkedInputs.join(','));
     }
 

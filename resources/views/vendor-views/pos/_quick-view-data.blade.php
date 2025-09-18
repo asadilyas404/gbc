@@ -475,9 +475,23 @@
             checkedInputs.push(element.getAttribute('data-option_id'));
         });
 
-e('data-option_id'));
-        });
-ft: 4px solid #17a2b8;
+        $('#option_ids').val(checkedInputs.join(','));
+    }
+
+    var inputElements = document.querySelectorAll('.input-element');
+    inputElements.forEach(function(element) {
+        element.addEventListener('change', getCheckedInputs);
+    });
+</script>
+
+<style>
+/* Variation-specific addon styling */
+.variation-addon-container {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+    border-left: 4px solid #17a2b8;
 }
 
 .variation-addon-label {

@@ -131,8 +131,14 @@
                                 <div class="d-flex justify-content-left flex-wrap">
                                     {{-- @php(dd($choice->values)); --}}
                                     @foreach ($choice->values as $k => $option)
-
-                                        {{-- @if ($showOption) --}}
+                                        <?php
+                                        $showOption = true;
+                                        if (isset($option->options_list_id) && $option->options_list_id) {
+                                            $optionsList = OptionsList::find($option->options_list_id);
+                                            $showOption = $optionsList && $optionsList->status == 1;
+                                        }
+                                        ?>
+                                        @if ($showOption)
                                             <div class="flex-column pb-2">
                                                 <input
                                                     class="btn-check input-element {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out' : '' }}"
@@ -183,7 +189,7 @@
                                                     </label>
                                                 @endif
                                             </div>
-                                        {{-- @endif --}}
+                                        @endif
                                     @endforeach
                                 </div>
 

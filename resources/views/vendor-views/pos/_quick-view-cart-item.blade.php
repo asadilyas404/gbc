@@ -132,13 +132,13 @@
 
                             <div class="d-flex justify-content-left flex-wrap">
                                 @foreach ($choice->values as $k => $option)
-                                    @php
-                                        $showOption = true;
-                                        if (isset($option->options_list_id) && $option->options_list_id) {
-                                            $optionsList = OptionsList::find($option->options_list_id);
-                                            $showOption = $optionsList && $optionsList->status == 1;
-                                        }
-                                    @endphp
+                                    <?php
+                                    $showOption = true;
+                                    if (isset($option->options_list_id) && $option->options_list_id) {
+                                        $optionsList = OptionsList::find($option->options_list_id);
+                                        $showOption = $optionsList && $optionsList->status == 1;
+                                    }
+                                    ?>
                                     @if ($showOption)
                                         <div class="flex-column pb-2">
                                             <input

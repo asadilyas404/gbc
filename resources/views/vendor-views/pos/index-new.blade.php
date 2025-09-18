@@ -1130,6 +1130,7 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
+                    $('.call-when-done').click();
 
                         return false;
                     } else if (data.data === 'stock_out') {

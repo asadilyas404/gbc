@@ -229,6 +229,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('edit/{id}', 'OptionsListController@edit')->name('edit');
             Route::post('update/{id}', 'OptionsListController@update')->name('update');
             Route::delete('delete/{id}', 'OptionsListController@delete')->name('delete');
+            Route::get('status/{id}/{status}', 'OptionsListController@status')->name('status');
         });
 
         // Shift Session Management

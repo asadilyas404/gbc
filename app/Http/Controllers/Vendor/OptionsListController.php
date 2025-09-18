@@ -13,16 +13,19 @@ class OptionsListController extends Controller
 {
     public function index(Request $request)
     {
-        $key = explode(' ', $request['search']) ?? null;
+        $key = $request->filled('search')
+            ? explode(' ', strtolower($request->input('search')))
+            : null;
+
         $options = OptionsList::orderBy('name')
-        ->when(isset($key) , function($query) use($key){
-            $query->where(function ($q) use ($key) {
-                foreach ($key as $value) {
-                    $q->orWhere('name', 'like', "%{$value}%");
-                }
-            });
-        })
-        ->paginate(config('default_pagination'));
+            ->when($key, function ($query) use ($key) {
+                $query->where(function ($q) use ($key) {
+                    foreach ($key as $value) {
+                        $q->whereRaw('LOWER(name) LIKE ?', ["%{$value}%"]);
+                    }
+                });
+            })
+            ->paginate(100);
         return view('vendor-views.options-list.index', compact('options'));
     }
 
@@ -31,7 +34,7 @@ class OptionsListController extends Controller
         $request->validate([
             'name' => 'required|array',
             'name.*' => 'max:191',
-        ],[
+        ], [
             'name.required' => translate('messages.Name is required!'),
         ]);
 
@@ -41,7 +44,7 @@ class OptionsListController extends Controller
         $option->id = $newId;
         $option->name = $request->name[array_search('default', $request->lang)];
         $option->save();
-        Helpers::add_or_update_translations($request,'name' ,'name' , 'OptionsList' , $option->id, $option->name);
+        Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
 
         Toastr::success(translate('messages.option_added_successfully'));
         return back();
@@ -64,7 +67,7 @@ class OptionsListController extends Controller
         $option = OptionsList::find($id);
         $option->name = $request->name[array_search('default', $request->lang)];
         $option->save();
-        Helpers::add_or_update_translations( $request,'name' ,'name' , 'OptionsList' , $option->id, $option->name);
+        Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
         Toastr::success(translate('messages.option_updated_successfully'));
         return redirect(route('vendor.options-list.add-new'));
     }
@@ -74,6 +77,15 @@ class OptionsListController extends Controller
         $option = OptionsList::findOrFail($request->id);
         $option->delete();
         Toastr::success(translate('messages.option_deleted_successfully'));
+        return back();
+    }
+
+    public function status(Request $request)
+    {
+        $option = OptionsList::find($request->id);
+        $option->status = $request->status;
+        $option->save();
+        Toastr::success(translate('messages.option_status_updated_successfully'));
         return back();
     }
 }

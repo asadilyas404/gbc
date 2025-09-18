@@ -97,6 +97,7 @@
                     <tr>
                         <th class="w-100px">{{translate('messages.sl')}}</th>
                         <th class="w-70p">{{translate('messages.name')}}</th>
+                        <th class="text-center w-100px">{{translate('messages.status')}}</th>
                         <th class="text-center w-100px">{{translate('messages.action')}}</th>
                     </tr>
                     </thead>
@@ -109,6 +110,27 @@
                             <span class="d-block font-size-sm text-body">
                                 {{Str::limit($option['name'], 50, '...')}}
                             </span>
+                            </td>
+                            <td>
+                                @if(isset($option['id']) && !empty($option['id']))
+                                <div class="d-flex">
+                                    <div class="mx-auto">
+                                        <label class="toggle-switch toggle-switch-sm mr-2" data-toggle="tooltip"
+                                            data-placement="top"
+                                            title="{{ translate('messages.Change_option_status') }}"
+                                            for="statusCheckbox{{ $option->id }}">
+                                            <input type="checkbox"
+                                                data-url="{{ route('vendor.options-list.status', [$option['id'], $option->status ? 0 : 1]) }}"
+                                                class="toggle-switch-input redirect-url"
+                                                id="statusCheckbox{{ $option->id }}"
+                                                {{ $option->status ? 'checked' : '' }}>
+                                            <span class="toggle-switch-label">
+                                                <span class="toggle-switch-indicator"></span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                                @endif
                             </td>
                             <td>
                                 @if(isset($option['id']) && !empty($option['id']))

@@ -15,9 +15,10 @@ class OptionsList extends Model
     protected $casts = [
         'id' => 'integer',
         'name' => 'string',
+        'status' => 'integer',
     ];
 
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'status'];
 
     protected $primaryKey   = 'id';
 

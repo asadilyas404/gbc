@@ -295,7 +295,7 @@
                                         class="form-check-input system-checkbox" id="printer_settings"
                                         {{ in_array('printer_settings', (array) json_decode($role['modules'])) ? 'checked' : '' }}>
                                     <label class="form-check-label qcont"
-                                        for="printer_settings">{{ translate('messages.printer_settings') }}</label>
+                                        for="printer_settings">{{ translate('messages.settings') }}</label>
                                 </div>
                             </div>
                         </div>

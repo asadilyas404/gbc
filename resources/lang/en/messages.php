@@ -29,6 +29,8 @@
   'earning_balance' => 'Earning balance',
   'transaction_saved' => 'Transaction saved',
   'settings' => 'Settings',
+  'Ex : Search by Option Name' => 'Ex : Search by Option Name',
+  'Change_option_status' => 'Change option status',
   'Do you want to logout?' => 'Do you want to logout ',
   'Yes' => 'Yes',
   'cancel' => 'Cancel',

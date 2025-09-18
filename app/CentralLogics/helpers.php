@@ -3982,28 +3982,50 @@ class Helpers
                 if ($default_lang == $key && !($request->{$name_field}[$index])) {
                     if ($key != 'default') {
                         $encodedValue = $ensureUnicodeEncoding($data_value);
-                        Translation::updateorcreate(
-                            [
+
+                        // Check if translation already exists
+                        $existing = Translation::where([
+                            'translationable_type' => $model,
+                            'translationable_id' => $data_id,
+                            'locale' => $key,
+                            'key' => $key_data
+                        ])->first();
+
+                        if ($existing) {
+                            $existing->updateWithClob(['value' => $encodedValue]);
+                        } else {
+                            Translation::createWithClob([
                                 'translationable_type' => $model,
                                 'translationable_id' => $data_id,
                                 'locale' => $key,
-                                'key' => $key_data
-                            ],
-                            ['value' => $encodedValue]
-                        );
+                                'key' => $key_data,
+                                'value' => $encodedValue
+                            ]);
+                        }
                     }
                 } else {
                     if ($request->{$name_field}[$index] && $key != 'default') {
                         $encodedValue = $ensureUnicodeEncoding($request->{$name_field}[$index]);
-                        Translation::updateorcreate(
-                            [
+
+                        // Check if translation already exists
+                        $existing = Translation::where([
+                            'translationable_type' => $model,
+                            'translationable_id' => $data_id,
+                            'locale' => $key,
+                            'key' => $key_data
+                        ])->first();
+
+                        if ($existing) {
+                            $existing->updateWithClob(['value' => $encodedValue]);
+                        } else {
+                            Translation::createWithClob([
                                 'translationable_type' => $model,
                                 'translationable_id' => $data_id,
                                 'locale' => $key,
-                                'key' => $key_data
-                            ],
-                            ['value' => $encodedValue]
-                        );
+                                'key' => $key_data,
+                                'value' => $encodedValue
+                            ]);
+                        }
                     }
                 }
             }

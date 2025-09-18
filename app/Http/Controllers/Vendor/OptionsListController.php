@@ -76,9 +76,17 @@ class OptionsListController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|max:191',
+            'name' => 'required|array',
+            'name.*' => 'max:191',
         ], [
             'name.required' => translate('messages.Name is required!'),
+        ]);
+
+        // Debug: Log the incoming data
+        \Log::info('Update request data:', [
+            'name' => $request->name,
+            'lang' => $request->lang,
+            'id' => $id
         ]);
 
         // Ensure proper Unicode encoding for all name inputs
@@ -101,7 +109,20 @@ class OptionsListController extends Controller
         $option = OptionsList::find($id);
         $option->name = $request->name[array_search('default', $request->lang)];
         $option->save();
-        Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
+
+        // Debug: Log before calling translations
+        \Log::info('Before calling translations:', [
+            'option_id' => $option->id,
+            'option_name' => $option->name,
+            'request_name' => $request->name,
+            'request_lang' => $request->lang
+        ]);
+
+        $result = Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
+
+        // Debug: Log translation result
+        \Log::info('Translation result:', ['result' => $result]);
+
         Toastr::success(translate('messages.option_updated_successfully'));
         return redirect(route('vendor.options-list.add-new'));
     }

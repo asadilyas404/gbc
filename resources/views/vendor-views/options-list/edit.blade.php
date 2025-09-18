@@ -87,6 +87,20 @@
 @push('script_2')
 <script>
         "use strict";
-        // Add any additional JavaScript if needed
+        $(document).on('ready', function () {
+            // Language switching functionality
+            $(".lang_link").click(function(e) {
+                e.preventDefault();
+                $(".lang_link").removeClass('active');
+                $(".lang_form").addClass('d-none');
+                $(this).addClass('active');
+                let form_id = this.id;
+                let lang = form_id.substring(0, form_id.length - 5);
+                $("#" + lang + "-form").removeClass('d-none');
+                if (lang === "default") {
+                    $(".default-form").removeClass("d-none");
+                }
+            });
+        });
 </script>
 @endpush

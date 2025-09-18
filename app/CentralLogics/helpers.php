@@ -3963,16 +3963,6 @@ class Helpers
             $model = 'App\\Models\\' . $model_name;
             $default_lang = str_replace('_', '-', app()->getLocale());
 
-            // Debug: Log the translation data
-            \Log::info('Translation helper called:', [
-                'model' => $model,
-                'data_id' => $data_id,
-                'data_value' => $data_value,
-                'request_lang' => $request->lang,
-                'request_name' => $request->{$name_field},
-                'default_lang' => $default_lang
-            ]);
-
             // Helper function to ensure proper Unicode encoding for Oracle
             $ensureUnicodeEncoding = function($value) {
                 if (empty($value)) return $value;
@@ -3989,16 +3979,9 @@ class Helpers
             };
 
             foreach ($request->lang as $index => $key) {
-                \Log::info("Processing translation for key: {$key}, index: {$index}", [
-                    'name_value' => $request->{$name_field}[$index] ?? 'not set',
-                    'is_default_lang' => $default_lang == $key,
-                    'is_empty_name' => empty($request->{$name_field}[$index])
-                ]);
-
                 if ($default_lang == $key && !($request->{$name_field}[$index])) {
                     if ($key != 'default') {
                         $encodedValue = $ensureUnicodeEncoding($data_value);
-                        \Log::info("Creating translation for default lang {$key} with value: {$encodedValue}");
                         Translation::updateorcreate(
                             [
                                 'translationable_type' => $model,
@@ -4012,7 +3995,6 @@ class Helpers
                 } else {
                     if ($request->{$name_field}[$index] && $key != 'default') {
                         $encodedValue = $ensureUnicodeEncoding($request->{$name_field}[$index]);
-                        \Log::info("Creating translation for lang {$key} with value: {$encodedValue}");
                         Translation::updateorcreate(
                             [
                                 'translationable_type' => $model,

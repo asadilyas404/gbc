@@ -202,7 +202,7 @@
                                             class="text-primary">{{ $choice->name }}</span>
                                     </div>
                                     <div class="d-flex justify-content-left flex-wrap variation-addon-container">
-                                        @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $addon_key => $add_on)
+                                        @foreach (AddOn::whereIn('id', $add_ons)->active()->orderBy('name', 'asc')->get() as $addon_key => $add_on)
                                             <div class="flex-column pb-1">
                                                 <input type="hidden"
                                                     name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"

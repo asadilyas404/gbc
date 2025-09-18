@@ -33,7 +33,7 @@
             <div class="details pl-2">
                 <a href="{{ route('vendor.food.view', $product->id) }}"
                     class="h3 mb-2 product-title text-capitalize text-break">{{ $product->name }}</a>
-                    
+
                 <div class="mb-3 text-dark">
                     <span class="h3 font-weight-normal text-accent mr-1" id="product-price">
                         {{ Helpers::get_price_range($product, false) }}
@@ -131,13 +131,12 @@
                                 <div class="d-flex justify-content-left flex-wrap">
                                     {{-- @php(dd($choice->values)); --}}
                                     @foreach ($choice->values as $k => $option)
-                                        @php
+                                        @php(
                                             $showOption = true;
                                             if(isset($option->options_list_id) && $option->options_list_id) {
                                                 $optionsList = OptionsList::find($option->options_list_id);
                                                 $showOption = $optionsList && $optionsList->status == 1;
-                                            }
-                                        @endphp
+                                            })
                                         @if($showOption)
                                         <div class="flex-column pb-2">
                                             <input
@@ -382,8 +381,8 @@
         $(document).on('change.variationAddon', 'input[name^="variation_addon_id"]', function() {
             getVariantPrice();
         });
-        
-        
+
+
         //16-09-2025 starts
         $(document).on('change.variationAddon', 'input[name^="addon_id"]', function() {
             getVariantPrice();
@@ -392,8 +391,8 @@
             getVariantPrice();
         });
 
-        //16-09-2025 ends        
-        
+        //16-09-2025 ends
+
         // Handle variation addon quantity input changes
         $(document).on('change.variationAddon', 'input[name^="variation_addon_quantity"]', function() {
             getVariantPrice();

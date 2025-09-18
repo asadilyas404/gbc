@@ -413,6 +413,36 @@
         }, 100);
     });
 
+    // Add event handlers for all input changes to update price
+    $(document).on('change', '#add-to-cart-form input[type="radio"], #add-to-cart-form input[type="checkbox"]', function() {
+        getVariantPrice();
+    });
+
+    // Handle quantity changes
+    $(document).on('change', '#add-to-cart-form input[name="quantity"]', function() {
+        getVariantPrice();
+    });
+
+    // Handle discount changes
+    $(document).on('change', '#add-to-cart-form input[name="product_discount"], #add-to-cart-form select[name="product_discount_type"]', function() {
+        getVariantPrice();
+    });
+
+    // Handle addon changes
+    $(document).on('change', '#add-to-cart-form input[name="addon_id[]"]', function() {
+        getVariantPrice();
+    });
+
+    // Handle addon quantity changes
+    $(document).on('change', '#add-to-cart-form input[name^="addon-quantity"]', function() {
+        getVariantPrice();
+    });
+
+    // Handle choice quantity changes for multi-select variations
+    $(document).on('change', '#add-to-cart-form input[name^="choice-quantity"]', function() {
+        getVariantPrice();
+    });
+
     // Note: getVariantPrice is already called by specific event handlers above
     // This prevents duplicate calls when variation addons change
 

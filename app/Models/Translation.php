@@ -42,6 +42,37 @@ class Translation extends Model
         'translationable_id' => 'integer',
     ];
 
+    // Accessor to ensure proper Unicode decoding when retrieving values
+    public function getValueAttribute($value)
+    {
+        if (!empty($value)) {
+            // Check if the value is properly encoded
+            if (!mb_check_encoding($value, 'UTF-8')) {
+                $value = mb_convert_encoding($value, 'UTF-8', 'auto');
+            }
+
+            // Handle any HTML entities that might have been encoded
+            $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        return $value;
+    }
+
+    // Mutator to ensure proper Unicode encoding when setting values
+    public function setValueAttribute($value)
+    {
+        if (!empty($value)) {
+            // Ensure the string is properly encoded as UTF-8
+            if (!mb_check_encoding($value, 'UTF-8')) {
+                $value = mb_convert_encoding($value, 'UTF-8', 'auto');
+            }
+
+            // For Oracle, ensure proper Unicode handling
+            $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        }
+
+        $this->attributes['value'] = $value;
+    }
 
     public function translationable()
     {

@@ -214,35 +214,37 @@
                                         <input type="hidden"
                                             name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"
                                             value="{{ $add_on->price }}">
-                                        <input class="btn-check variation-addon-checkbox" type="checkbox"
-                                            id="variation_addon_{{ $key }}_{{ $add_on->id }}"
+                                        <input class="btn-check addon-chek addon-quantity-input-toggle variation-addon-checkbox" type="checkbox"
+                                            id="variation_addon{{ $key }}_{{ $add_on->id }}"
                                             name="variation_addon_id[{{ $key }}][]"
                                             value="{{ $add_on->id }}"
                                             {{ in_array($add_on->id, $selected_addon_ids) ? 'checked' : '' }}
                                             autocomplete="off">
                                         <label
-                                            class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
-                                            for="variation_addon_{{ $key }}_{{ $add_on->id }}">
+                                            class="d-flex flex-column justify-content-center align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
+                                            for="variation_addon{{ $key }}_{{ $add_on->id }}">
                                             {{ Str::limit($add_on->name, 20, '...') }}
                                             <br>
                                             <span
-                                                class="text-success font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
+                                                class="text-warning font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
                                         </label>
                                         <label
                                             class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1 variation-addon-quantity"
                                             @if (in_array($add_on->id, $selected_addon_ids)) style="visibility:visible;" @else style="visibility:hidden;" @endif
-                                            for="variation_addon_{{ $key }}_{{ $add_on->id }}">
-                                            <button class="btn btn-sm h-100 text-dark px-0 variation-decrease-btn"
-                                                type="button">
+                                            for="variation_addon{{ $key }}_{{ $add_on->id }}">
+                                            <button class="btn btn-sm h-100 text-dark px-0 decrease-button variation-decrease-btn"
+                                                data-id="{{ $add_on->id }}" type="button">
                                                 <i class="tio-remove font-weight-bold"></i>
                                             </button>
                                             <input type="number"
                                                 name="variation_addon_quantity[{{ $key }}][{{ $add_on->id }}]"
+                                                id="variation_addon_quantity_input{{ $key }}_{{ $add_on->id }}"
                                                 class="form-control text-center border-0 h-100 variation-addon-input"
                                                 placeholder="1" value="{{ $selected_addon_qtys[$add_on->id] ?? 1 }}"
                                                 min="1" max="9999999999" readonly>
-                                            <button class="btn btn-sm h-100 text-dark px-0 variation-increase-btn"
-                                                type="button">
+                                            <button class="btn btn-sm h-100 text-dark px-0 increase-button variation-increase-btn"
+                                                id="variation_addon_quantity_button{{ $key }}_{{ $add_on->id }}"
+                                                data-id="{{ $add_on->id }}" type="button">
                                                 <i class="tio-add font-weight-bold"></i>
                                             </button>
                                         </label>

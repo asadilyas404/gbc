@@ -353,7 +353,7 @@
                     <div class="order-date-display">
                         <span class="text-muted">Order Date:</span>
                         <span class="fw-bold {{ $orderDate ? 'text-primary' : 'text-muted' }}">
-                            @if($orderDate)
+                            @if ($orderDate)
                                 {{ \Carbon\Carbon::parse($orderDate)->format('F j, Y') }}
                             @else
                                 Not set
@@ -1119,10 +1119,16 @@
                         return false;
                     } else if (data.data === 2) {
                         updateCart();
-                        Swal.fire({
-                            icon: 'info',
-                            title: 'Cart',
-                            text: "{{ translate('messages.product_has_been_updated_in_cart') }}"
+                        // Swal.fire({
+                        //     icon: 'info',
+                        //     title: 'Cart',
+                        //     text: "{{ translate('messages.product_has_been_updated_in_cart') }}"
+                        // });
+
+                        toastr.success(
+                        '{{ translate('messages.product_has_been_updated_in_cart') }}', {
+                            CloseButton: true,
+                            ProgressBar: true
                         });
 
                         return false;

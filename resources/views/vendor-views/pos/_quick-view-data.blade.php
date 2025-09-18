@@ -285,7 +285,7 @@
                         <div class="h3 p-0 pt-2">{{ translate('messages.addon') }}</div>
 
                         <div class="d-flex justify-content-left flex-wrap">
-                            @foreach (AddOn::whereIn('id', $add_ons)->active()->get() as $key => $add_on)
+                            @foreach (AddOn::whereIn('id', $add_ons)->active()->orderBy('name', 'asc')->get() as $key => $add_on)
                                 <div class="flex-column pb-2">
                                     <input type="hidden" name="addon-price{{ $add_on->id }}"
                                         value="{{ $add_on->price }}">

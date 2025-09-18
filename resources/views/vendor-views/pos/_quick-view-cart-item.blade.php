@@ -210,7 +210,6 @@
                                 @php($selected_addon_qtys = collect($selected_variation_addons)->pluck('quantity', 'id')->toArray())
 
                                 @foreach (AddOn::whereIn('id', $add_ons)->active()->orderBy('name', 'asc')->get() as $add_on)
-                                @php(dd($add_on));
                                     <div class="flex-column pb-2">
                                         <input type="hidden"
                                             name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"

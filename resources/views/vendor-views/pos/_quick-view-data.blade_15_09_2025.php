@@ -33,10 +33,10 @@
             <div class="details pl-2">
                 <a href="{{ route('vendor.food.view', $product->id) }}"
                     class="h3 mb-2 product-title text-capitalize text-break">{{ $product->name }}</a>
-                    
+
                 <div class="mb-3 text-dark">
                     <span class="h3 font-weight-normal text-accent mr-1" id="product-price">
-                        {{ Helpers::get_price_range($product, false) }}
+                        {{ Helpers::get_price_range($product, true) }}
                     </span>
                     {{-- @if ($product->discount > 0 || Helpers::get_restaurant_discount($product->restaurant))
                     <span class="fz-12px line-through" id="original-price">
@@ -101,6 +101,7 @@
                         </div>
                     </div>
 
+                    {{-- Define add_ons variable at the top --}}
                     @php($add_ons = json_decode($product->add_ons))
 
                                     {{-- @php(dd($product->variations)); --}}
@@ -131,14 +132,6 @@
                                 <div class="d-flex justify-content-left flex-wrap">
                                     {{-- @php(dd($choice->values)); --}}
                                     @foreach ($choice->values as $k => $option)
-                                        @php
-                                            $showOption = true;
-                                            if(isset($option->options_list_id) && $option->options_list_id) {
-                                                $optionsList = OptionsList::find($option->options_list_id);
-                                                $showOption = $optionsList && $optionsList->status == 1;
-                                            }
-                                        @endphp
-                                        @if($showOption)
                                         <div class="flex-column pb-2">
                                             <input
                                                 class="btn-check input-element {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out' : '' }}"
@@ -188,7 +181,6 @@
                                                 </label>
                                             @endif
                                         </div>
-                                        @endif
                                     @endforeach
                                 </div>
 
@@ -382,18 +374,7 @@
         $(document).on('change.variationAddon', 'input[name^="variation_addon_id"]', function() {
             getVariantPrice();
         });
-        
-        
-        //16-09-2025 starts
-        $(document).on('change.variationAddon', 'input[name^="addon_id"]', function() {
-            getVariantPrice();
-        });
-        $(document).on('change.input-element', 'input[name^="variations"]', function() {
-            getVariantPrice();
-        });
 
-        //16-09-2025 ends        
-        
         // Handle variation addon quantity input changes
         $(document).on('change.variationAddon', 'input[name^="variation_addon_quantity"]', function() {
             getVariantPrice();
@@ -438,7 +419,6 @@
 
     // Enhanced getVariantPrice function to handle variation-specific addons
     function getVariantPrice() {
-        console.log('in getvarient function!');
         getCheckedInputs();
         if ($('#add-to-cart-form input[name=quantity]').val() > 0 ) {
             $.ajaxSetup({
@@ -466,7 +446,6 @@
                     }
                     else {
                         // Update the price display
-                        console.log('*******data*******',data);
                         $('#add-to-cart-form #chosen_price_div').removeClass('d-none');
                         $('#add-to-cart-form #chosen_price_div #chosen_price').html(data.price);
                         $('.add-To-Cart').removeAttr("disabled");
@@ -487,6 +466,7 @@
         checkedElements.forEach(function(element) {
             checkedInputs.push(element.getAttribute('data-option_id'));
         });
+
         $('#option_ids').val(checkedInputs.join(','));
     }
 

@@ -11,6 +11,7 @@
         $billPrinter = $printers['bill_print'] ?? null;
         $kitchenPrinter = $printers['kitchen_print'] ?? null;
     }
+
 @endphp
 @extends('layouts.vendor.app')
 
@@ -1055,7 +1056,6 @@
                             }
                             getVariantPrice();
                         } else {
-                            console.log('in else part');
                             var currentDiscountAmount = parseFloat($('#set-discount-amount').text().replace(
                                 /[^0-9.-]+/g, '').trim()) || 0;
                             var currentPrice = data.price;

@@ -3962,80 +3962,36 @@ class Helpers
         try {
             $model = 'App\\Models\\' . $model_name;
             $default_lang = str_replace('_', '-', app()->getLocale());
-
-            // Helper function to ensure proper Unicode encoding for Oracle
-            $ensureUnicodeEncoding = function($value) {
-                if (empty($value)) return $value;
-
-                // Ensure the string is properly encoded as UTF-8
-                if (!mb_check_encoding($value, 'UTF-8')) {
-                    $value = mb_convert_encoding($value, 'UTF-8', 'auto');
-                }
-
-                // For Oracle, ensure proper Unicode handling
-                $value = html_entity_decode($value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
-
-                return $value;
-            };
-
             foreach ($request->lang as $index => $key) {
                 if ($default_lang == $key && !($request->{$name_field}[$index])) {
                     if ($key != 'default') {
-                        $encodedValue = $ensureUnicodeEncoding($data_value);
-
-                        // Check if translation already exists
-                        $existing = Translation::where([
-                            'translationable_type' => $model,
-                            'translationable_id' => $data_id,
-                            'locale' => $key,
-                            'key' => $key_data
-                        ])->first();
-
-                        if ($existing) {
-                            $existing->updateWithClob(['value' => $encodedValue]);
-                        } else {
-                            Translation::createWithClob([
+                        Translation::updateorcreate(
+                            [
                                 'translationable_type' => $model,
                                 'translationable_id' => $data_id,
                                 'locale' => $key,
-                                'key' => $key_data,
-                                'value' => $encodedValue
-                            ]);
-                        }
+                                'key' => $key_data
+                            ],
+                            ['value' => $data_value]
+                        );
                     }
                 } else {
                     if ($request->{$name_field}[$index] && $key != 'default') {
-                        $encodedValue = $ensureUnicodeEncoding($request->{$name_field}[$index]);
-
-                        // Check if translation already exists
-                        $existing = Translation::where([
-                            'translationable_type' => $model,
-                            'translationable_id' => $data_id,
-                            'locale' => $key,
-                            'key' => $key_data
-                        ])->first();
-
-                        if ($existing) {
-                            $existing->updateWithClob(['value' => $encodedValue]);
-                        } else {
-                            Translation::createWithClob([
+                        Translation::updateorcreate(
+                            [
                                 'translationable_type' => $model,
                                 'translationable_id' => $data_id,
                                 'locale' => $key,
-                                'key' => $key_data,
-                                'value' => $encodedValue
-                            ]);
-                        }
+                                'key' => $key_data
+                            ],
+                            ['value' => $request->{$name_field}[$index]]
+                        );
                     }
                 }
             }
             return true;
         } catch (\Exception $e) {
-            \Log::error("Translation error: " . $e->getMessage(), [
-                'line' => $e->getLine(),
-                'file' => $e->getFile(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            info(["line___{$e->getLine()}", $e->getMessage()]);
             return false;
         }
     }

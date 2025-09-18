@@ -38,23 +38,6 @@ class OptionsListController extends Controller
             'name.required' => translate('messages.Name is required!'),
         ]);
 
-        // Ensure proper Unicode encoding for all name inputs
-        $encodedNames = [];
-        foreach ($request->name as $index => $name) {
-            if (!empty($name)) {
-                // Ensure proper UTF-8 encoding
-                if (!mb_check_encoding($name, 'UTF-8')) {
-                    $name = mb_convert_encoding($name, 'UTF-8', 'auto');
-                }
-                $encodedNames[$index] = $name;
-            } else {
-                $encodedNames[$index] = $name;
-            }
-        }
-
-        // Update the request with encoded names
-        $request->merge(['name' => $encodedNames]);
-
         $maxId = OptionsList::max('id') ?? 0;
         $newId = $maxId + 1;
         $option = new OptionsList();
@@ -76,35 +59,15 @@ class OptionsListController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|array',
-            'name.*' => 'max:191',
+            'name' => 'required|max:191',
         ], [
             'name.required' => translate('messages.Name is required!'),
         ]);
 
-        // Ensure proper Unicode encoding for all name inputs
-        $encodedNames = [];
-        foreach ($request->name as $index => $name) {
-            if (!empty($name)) {
-                // Ensure proper UTF-8 encoding
-                if (!mb_check_encoding($name, 'UTF-8')) {
-                    $name = mb_convert_encoding($name, 'UTF-8', 'auto');
-                }
-                $encodedNames[$index] = $name;
-            } else {
-                $encodedNames[$index] = $name;
-            }
-        }
-
-        // Update the request with encoded names
-        $request->merge(['name' => $encodedNames]);
-
         $option = OptionsList::find($id);
         $option->name = $request->name[array_search('default', $request->lang)];
         $option->save();
-
         Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
-
         Toastr::success(translate('messages.option_updated_successfully'));
         return redirect(route('vendor.options-list.add-new'));
     }

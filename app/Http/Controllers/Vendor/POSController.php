@@ -940,15 +940,16 @@ class POSController extends Controller
             DB::commit();
 
             // Print order receipts
-            // try {
-                // $printController = new \App\Http\Controllers\PrintController();
+            try {
+                $printController = new \App\Http\Controllers\PrintController();
 
-                // $printController->printOrder(new \Illuminate\Http\Request(['order_id' => $order->id]));
+                $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string) $order->id]));
 
-                // $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => $order->id]));
-            // } catch (\Exception $printException) {
-            //     info('Print error: ' . $printException->getMessage());
-            // }
+
+               $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+            } catch (\Exception $printException) {
+                info('Print error: ' . $printException->getMessage());
+            }
 
             //PlaceOrderMail
             // try {
@@ -1041,9 +1042,9 @@ class POSController extends Controller
     {
         $request->validate([
             'f_name' => 'required',
-            'l_name' => 'required',
-            'email' => 'required|email|unique:users',
-            'phone' => 'required|unique:users',
+            'l_name' => 'nullable',
+            'email' => 'nullable|email',
+            'phone' => 'required',
         ]);
         User::create([
             'f_name' => $request['f_name'],
@@ -1052,16 +1053,16 @@ class POSController extends Controller
             'phone' => $request['phone'],
             'password' => bcrypt('password')
         ]);
-        try {
-            $notification_status = Helpers::getNotificationStatusData('customer', 'customer_pos_registration');
+        // try {
+        //     $notification_status = Helpers::getNotificationStatusData('customer', 'customer_pos_registration');
 
-            if ($notification_status->mail_status == 'active' && config('mail.status') && $request->email && Helpers::get_mail_status('pos_registration_mail_status_user') == '1') {
-                Mail::to($request->email)->send(new \App\Mail\CustomerRegistrationPOS($request->f_name . ' ' . $request->l_name, $request['email'], 'password'));
-                Toastr::success(translate('mail_sent_to_the_user'));
-            }
-        } catch (\Exception $ex) {
-            info($ex->getMessage());
-        }
+        //     if ($notification_status->mail_status == 'active' && config('mail.status') && $request->email && Helpers::get_mail_status('pos_registration_mail_status_user') == '1') {
+        //         Mail::to($request->email)->send(new \App\Mail\CustomerRegistrationPOS($request->f_name . ' ' . $request->l_name, $request['email'], 'password'));
+        //         Toastr::success(translate('mail_sent_to_the_user'));
+        //     }
+        // } catch (\Exception $ex) {
+        //     info($ex->getMessage());
+        // }
         Toastr::success(translate('customer_added_successfully'));
         return back();
     }

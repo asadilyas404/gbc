@@ -84,15 +84,18 @@
                                     value="" placeholder="{{ translate('Car Number') }}">
                             </div>
                         </div>
-                        <div class="col-12 col-lg-4">
-                            <div class="form-group">
-                                <label for="phone" class="input-label">
-                                    {{ translate('Phone') }}
-                                </label>
-                                <input id="phone" type="tel" name="phone" class="form-control" value=""
-                                    placeholder="{{ translate('Phone') }}">
-                            </div>
+                    <div class="col-12 col-lg-4">
+                        <div class="form-group">
+                            <label for="phone" class="input-label">
+                                {{ translate('Phone') }}
+                            </label>
+                            <input id="phone" type="tel" name="phone" class="form-control" value=""
+                                placeholder="{{ translate('Phone') }}">
                         </div>
+                    </div>
+                    <div class="col-12">
+                        <button type="button" id="testFill" class="btn btn-sm btn-info">Test Fill Customer Data</button>
+                    </div>
                     </div>
 
                     <!-- Payment Details Section -->
@@ -200,15 +203,25 @@
 $(document).ready(function() {
     // Auto-fill customer details when modal opens
     $('#orderFinalModal').on('show.bs.modal', function() {
+        console.log('Modal opening, selectedCustomer:', window.selectedCustomer); // Debug log
+
         if (window.selectedCustomer) {
             $('#customer_id').val(window.selectedCustomer.id);
             $('#customer_name').val(window.selectedCustomer.name);
             $('#phone').val(window.selectedCustomer.phone);
+
+            console.log('Fields filled:', {
+                id: $('#customer_id').val(),
+                name: $('#customer_name').val(),
+                phone: $('#phone').val()
+            }); // Debug log
         } else {
             // Clear fields if no customer selected
             $('#customer_id').val('');
             $('#customer_name').val('');
             $('#phone').val('');
+
+            console.log('Fields cleared'); // Debug log
         }
     });
 
@@ -233,6 +246,20 @@ $(document).ready(function() {
     $('.keypad-clear').on('click', function() {
         if (activeInput) {
             activeInput.val('');
+        }
+    });
+
+    // Test button functionality
+    $('#testFill').on('click', function() {
+        console.log('Test button clicked, selectedCustomer:', window.selectedCustomer);
+
+        if (window.selectedCustomer) {
+            $('#customer_id').val(window.selectedCustomer.id);
+            $('#customer_name').val(window.selectedCustomer.name);
+            $('#phone').val(window.selectedCustomer.phone);
+            alert('Customer data filled: ' + window.selectedCustomer.name + ' (' + window.selectedCustomer.phone + ')');
+        } else {
+            alert('No customer selected');
         }
     });
 });

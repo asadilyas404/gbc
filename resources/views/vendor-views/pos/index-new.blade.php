@@ -1365,10 +1365,13 @@
             }
         });
 
-        // Handle customer selection change
-        $('#customer').on('change', function() {
-            let customerId = $(this).val();
-            let customerText = $(this).find('option:selected').text();
+        // Handle customer selection change for Select2
+        $('#customer').on('select2:select', function(e) {
+            let data = e.params.data;
+            let customerId = data.id;
+            let customerText = data.text;
+
+            console.log('Customer selected:', customerId, customerText); // Debug log
 
             if (customerId && customerId !== 'false') {
                 // Extract customer name and phone from the text (format: "Name (Phone)")
@@ -1383,10 +1386,43 @@
                         name: customerName,
                         phone: customerPhone
                     };
+
+                    console.log('Customer details stored:', window.selectedCustomer); // Debug log
                 }
             } else {
                 // Clear customer details if walk-in customer is selected
                 window.selectedCustomer = null;
+                console.log('Customer cleared'); // Debug log
+            }
+        });
+
+        // Fallback: Also listen for regular change event
+        $('#customer').on('change', function() {
+            let customerId = $(this).val();
+            let customerText = $(this).find('option:selected').text();
+
+            console.log('Customer changed (fallback):', customerId, customerText); // Debug log
+
+            if (customerId && customerId !== 'false') {
+                // Extract customer name and phone from the text (format: "Name (Phone)")
+                let match = customerText.match(/^(.+?)\s*\((.+?)\)$/);
+                if (match) {
+                    let customerName = match[1].trim();
+                    let customerPhone = match[2].trim();
+
+                    // Store customer details for the modal
+                    window.selectedCustomer = {
+                        id: customerId,
+                        name: customerName,
+                        phone: customerPhone
+                    };
+
+                    console.log('Customer details stored (fallback):', window.selectedCustomer); // Debug log
+                }
+            } else {
+                // Clear customer details if walk-in customer is selected
+                window.selectedCustomer = null;
+                console.log('Customer cleared (fallback)'); // Debug log
             }
         });
 

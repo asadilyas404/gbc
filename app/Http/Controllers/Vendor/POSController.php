@@ -580,24 +580,35 @@ class POSController extends Controller
 
     public function get_customers(Request $request)
     {
-        $key = explode(' ', $request['q']);
-        $data = SaleCustomer::where(function ($q) use ($key) {
-            foreach ($key as $value) {
-                $q->orWhere('customer_name', 'like', "%{$value}%")
-                    ->orWhere('customer_mobile_no', 'like', "%{$value}%")
-                    ->orWhere('customer_email', 'like', "%{$value}%");
-            }
-        })
-            ->limit(8)
-            ->get([DB::raw('customer_id as id, CONCAT(customer_name, " (", customer_mobile_no, ")") as text')]);
+        try {
+            $key = explode(' ', $request['q']);
 
-        $data[] = (object) ['id' => false, 'text' => translate('messages.walk_in_customer')];
+            $data = SaleCustomer::where(function ($q) use ($key) {
+                foreach ($key as $value) {
+                    $q->orWhere('customer_name', 'like', "%{$value}%")
+                        ->orWhere('customer_mobile_no', 'like', "%{$value}%")
+                        ->orWhere('customer_email', 'like', "%{$value}%");
+                }
+            })
+                ->limit(8)
+                ->get(['customer_id as id', 'customer_name', 'customer_mobile_no']);
 
-        $reversed = $data->toArray();
+            // Format the data for select2
+            $formattedData = $data->map(function ($customer) {
+                return [
+                    'id' => $customer->id,
+                    'text' => $customer->customer_name . ' (' . $customer->customer_mobile_no . ')'
+                ];
+            });
 
-        $data = array_reverse($reversed);
+            $formattedData[] = (object) ['id' => false, 'text' => translate('messages.walk_in_customer')];
 
-        return response()->json($data);
+            return response()->json($formattedData);
+        } catch (\Exception $e) {
+            return response()->json([
+                (object) ['id' => false, 'text' => translate('messages.walk_in_customer')]
+            ]);
+        }
     }
 
     public function place_order(Request $request)

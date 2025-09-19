@@ -1215,11 +1215,23 @@
         });
 
         function updateCart() {
+            // Store current customer selection before updating
+            let currentCustomerId = $('#customer').val();
+            let currentCustomerText = $('#customer').find('option:selected').text();
+
             $.post('<?php echo e(route('vendor.pos.cart_items')); ?>', {
                 _token: '<?php echo e(csrf_token()); ?>'
             }, function(data) {
                 $('#cart').empty().html(data);
                 console.log('Cart updated successfully');
+
+                // Restore customer selection after cart update
+                if (currentCustomerId && currentCustomerId !== 'false') {
+                    setTimeout(function() {
+                        $('#customer').val(currentCustomerId).trigger('change');
+                        console.log('Customer selection restored after cart update');
+                    }, 100);
+                }
             });
         }
 
@@ -1366,7 +1378,7 @@
             }
         });
 
-        // Function to store customer details
+        // Function to store customer details in multiple ways for persistence
         function storeCustomerDetails(customerId, customerText) {
             if (customerId && customerId !== 'false') {
                 // Extract customer name and phone from the text (format: "Name (Phone)")
@@ -1375,19 +1387,35 @@
                     let customerName = match[1].trim();
                     let customerPhone = match[2].trim();
 
-                    // Store customer details for the modal
+                    // Store customer details in multiple ways for persistence
                     window.selectedCustomer = {
                         id: customerId,
                         name: customerName,
                         phone: customerPhone
                     };
 
-                    console.log('Customer details stored:', window.selectedCustomer); // Debug log
+                    // Also store in localStorage for persistence across page refreshes
+                    localStorage.setItem('posSelectedCustomer', JSON.stringify({
+                        id: customerId,
+                        name: customerName,
+                        phone: customerPhone
+                    }));
+
+                    // Store in data attributes on the customer select for easy access
+                    $('#customer').data('selected-customer', {
+                        id: customerId,
+                        name: customerName,
+                        phone: customerPhone
+                    });
+
+                    console.log('Customer details stored in multiple ways:', window.selectedCustomer); // Debug log
                 }
             } else {
                 // Clear customer details if walk-in customer is selected
                 window.selectedCustomer = null;
-                console.log('Customer cleared'); // Debug log
+                localStorage.removeItem('posSelectedCustomer');
+                $('#customer').removeData('selected-customer');
+                console.log('Customer cleared from all storage methods'); // Debug log
             }
         }
 
@@ -1410,54 +1438,100 @@
             storeCustomerDetails(customerId, customerText);
         });
 
-        // Modal auto-fill functionality - refetch customer data when modal opens
+        // Modal auto-fill functionality - multiple event handlers for reliability
         $('#orderFinalModal').on('show.bs.modal', function() {
-            console.log('Modal opening, checking customer selection...');
-
-            // Small delay to ensure DOM is ready
-            setTimeout(function() {
-                fillModalWithCustomerData();
-            }, 100);
+            console.log('Modal show event triggered');
         });
 
-        // Function to fill modal with customer data
+        $('#orderFinalModal').on('shown.bs.modal', function() {
+            console.log('Modal shown event triggered - filling customer data');
+            fillModalWithCustomerData();
+        });
+
+        // Also listen for when the modal content is loaded
+        $(document).on('DOMNodeInserted', '#orderFinalModal', function() {
+            console.log('Modal content inserted - checking for customer data');
+            setTimeout(function() {
+                fillModalWithCustomerData();
+            }, 50);
+        });
+
+        // Function to fill modal with customer data - multiple fallback approaches
         function fillModalWithCustomerData() {
-            // Get current customer selection from dropdown
+            console.log('=== FILLING MODAL WITH CUSTOMER DATA ===');
+
+            let customerData = null;
+
+            // Approach 1: Try to get from dropdown selection
             let selectedCustomerId = $('#customer').val();
             let selectedCustomerText = $('#customer').find('option:selected').text();
 
-            console.log('Current selection - ID:', selectedCustomerId, 'Text:', selectedCustomerText);
+            console.log('Approach 1 - Dropdown selection:', {
+                id: selectedCustomerId,
+                text: selectedCustomerText
+            });
 
             if (selectedCustomerId && selectedCustomerId !== 'false' && selectedCustomerText) {
-                // Extract customer details from the selected text
                 let match = selectedCustomerText.match(/^(.+?)\s*\((.+?)\)$/);
                 if (match) {
-                    let customerName = match[1].trim();
-                    let customerPhone = match[2].trim();
-
-                    // Fill the modal fields
-                    $('#customer_id').val(selectedCustomerId);
-                    $('#customer_name').val(customerName);
-                    $('#phone').val(customerPhone);
-
-                    // Update the global variable for consistency
-                    window.selectedCustomer = {
+                    customerData = {
                         id: selectedCustomerId,
-                        name: customerName,
-                        phone: customerPhone
+                        name: match[1].trim(),
+                        phone: match[2].trim()
                     };
-
-                    console.log('Modal fields filled with fresh data:', {
-                        id: selectedCustomerId,
-                        name: customerName,
-                        phone: customerPhone
-                    });
-                } else {
-                    console.log('Could not parse customer text:', selectedCustomerText);
-                    clearModalFields();
+                    console.log('Approach 1 SUCCESS:', customerData);
                 }
+            }
+
+            // Approach 2: Try to get from data attribute
+            if (!customerData) {
+                let dataCustomer = $('#customer').data('selected-customer');
+                if (dataCustomer) {
+                    customerData = dataCustomer;
+                    console.log('Approach 2 SUCCESS - Data attribute:', customerData);
+                }
+            }
+
+            // Approach 3: Try to get from localStorage
+            if (!customerData) {
+                try {
+                    let storedCustomer = localStorage.getItem('posSelectedCustomer');
+                    if (storedCustomer) {
+                        customerData = JSON.parse(storedCustomer);
+                        console.log('Approach 3 SUCCESS - localStorage:', customerData);
+                    }
+                } catch (e) {
+                    console.log('Approach 3 FAILED - localStorage error:', e);
+                }
+            }
+
+            // Approach 4: Try to get from global variable
+            if (!customerData && window.selectedCustomer) {
+                customerData = window.selectedCustomer;
+                console.log('Approach 4 SUCCESS - Global variable:', customerData);
+            }
+
+            // Fill the modal fields if we have customer data
+            if (customerData && customerData.id && customerData.name && customerData.phone) {
+                // Wait a bit for modal to be fully rendered
+                setTimeout(function() {
+                    $('#customer_id').val(customerData.id);
+                    $('#customer_name').val(customerData.name);
+                    $('#phone').val(customerData.phone);
+
+                    console.log('Modal fields filled:', {
+                        customer_id: $('#customer_id').val(),
+                        customer_name: $('#customer_name').val(),
+                        phone: $('#phone').val()
+                    });
+
+                    // Update all storage methods for consistency
+                    window.selectedCustomer = customerData;
+                    localStorage.setItem('posSelectedCustomer', JSON.stringify(customerData));
+                    $('#customer').data('selected-customer', customerData);
+                }, 200);
             } else {
-                console.log('No customer selected or walk-in customer');
+                console.log('No valid customer data found, clearing fields');
                 clearModalFields();
             }
         }
@@ -1473,18 +1547,28 @@
 
         // Test button functionality
         $(document).on('click', '#testFill', function() {
-            console.log('Test button clicked');
+            console.log('Test button clicked - forcing customer data fill');
             fillModalWithCustomerData();
 
-            let selectedCustomerId = $('#customer').val();
-            let selectedCustomerText = $('#customer').find('option:selected').text();
+            // Check if fields were filled
+            setTimeout(function() {
+                let customerId = $('#customer_id').val();
+                let customerName = $('#customer_name').val();
+                let phone = $('#phone').val();
 
-            if (selectedCustomerId && selectedCustomerId !== 'false') {
-                alert('Customer data filled: ' + selectedCustomerText);
-            } else {
-                alert('No customer selected');
-            }
+                if (customerId && customerName && phone) {
+                    alert('SUCCESS: Customer data filled - ID: ' + customerId + ', Name: ' + customerName + ', Phone: ' + phone);
+                } else {
+                    alert('FAILED: Fields not filled - ID: ' + customerId + ', Name: ' + customerName + ', Phone: ' + phone);
+                }
+            }, 500);
         });
+
+        // Global function for manual testing
+        window.testCustomerFill = function() {
+            console.log('Manual test called');
+            fillModalWithCustomerData();
+        };
 
         // Numeric keypad functionality for modal
         let activeInput = null;

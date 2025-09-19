@@ -1365,6 +1365,31 @@
             }
         });
 
+        // Handle customer selection change
+        $('#customer').on('change', function() {
+            let customerId = $(this).val();
+            let customerText = $(this).find('option:selected').text();
+
+            if (customerId && customerId !== 'false') {
+                // Extract customer name and phone from the text (format: "Name (Phone)")
+                let match = customerText.match(/^(.+?)\s*\((.+?)\)$/);
+                if (match) {
+                    let customerName = match[1].trim();
+                    let customerPhone = match[2].trim();
+
+                    // Store customer details for the modal
+                    window.selectedCustomer = {
+                        id: customerId,
+                        name: customerName,
+                        phone: customerPhone
+                    };
+                }
+            } else {
+                // Clear customer details if walk-in customer is selected
+                window.selectedCustomer = null;
+            }
+        });
+
         $(document).on('change', '#discount_input_type', function() {
             let discountInput = $('#discount_input');
             let discountInputType = $(this);

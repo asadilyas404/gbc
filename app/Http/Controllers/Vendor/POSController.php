@@ -585,13 +585,13 @@ class POSController extends Controller
 
             $data = SaleCustomer::where(function ($q) use ($key) {
                 foreach ($key as $value) {
-                    $q->orWhere('customer_name', 'like', "%{$value}%")
-                        ->orWhere('customer_mobile_no', 'like', "%{$value}%")
-                        ->orWhere('customer_email', 'like', "%{$value}%");
+                    $q->orWhere(DB::raw('UPPER(customer_name)'), 'like', strtoupper("%{$value}%"))
+                        ->orWhere(DB::raw('UPPER(customer_mobile_no)'), 'like', strtoupper("%{$value}%"))
+                        ->orWhere(DB::raw('UPPER(customer_email)'), 'like', strtoupper("%{$value}%"));
                 }
             })
                 ->limit(8)
-                ->get(['customer_id as id', 'customer_name', 'customer_mobile_no']);
+                ->get([DB::raw('customer_id as id'), DB::raw('customer_name'), DB::raw('customer_mobile_no')]);
 
             // Format the data for select2
             $formattedData = $data->map(function ($customer) {

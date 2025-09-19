@@ -37,7 +37,7 @@ class SaleCustomer extends Model
      */
     public static function generateCustomerCode()
     {
-        $lastCustomer = self::orderBy('customer_code', 'desc')->first();
+        $lastCustomer = self::orderBy(DB::raw('customer_code'), 'desc')->first();
 
         if ($lastCustomer && $lastCustomer->customer_code) {
             // Extract number from existing code (e.g., CU-0002877 -> 2877)

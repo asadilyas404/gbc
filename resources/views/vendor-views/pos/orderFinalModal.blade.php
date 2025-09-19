@@ -87,7 +87,7 @@
                         <div class="col-12 col-lg-4">
                             <div class="form-group">
                                 <label for="phone" class="input-label">
-                                    {{ translate('Phone') }} ({{ translate('with_country_code') }})
+                                    {{ translate('Phone') }}
                                 </label>
                                 <input id="phone" type="tel" name="phone" class="form-control" value=""
                                     placeholder="{{ translate('Phone') }}">
@@ -195,3 +195,45 @@
         </div>
     </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    // Auto-fill customer details when modal opens
+    $('#orderFinalModal').on('show.bs.modal', function() {
+        if (window.selectedCustomer) {
+            $('#customer_id').val(window.selectedCustomer.id);
+            $('#customer_name').val(window.selectedCustomer.name);
+            $('#phone').val(window.selectedCustomer.phone);
+        } else {
+            // Clear fields if no customer selected
+            $('#customer_id').val('');
+            $('#customer_name').val('');
+            $('#phone').val('');
+        }
+    });
+
+    // Numeric keypad functionality
+    let activeInput = null;
+
+    // Set active input when clicking on cash or card input fields
+    $('#cash_paid, #card_paid').on('focus', function() {
+        activeInput = $(this);
+    });
+
+    // Handle keypad button clicks
+    $('.keypad-btn').on('click', function() {
+        if (activeInput) {
+            let currentValue = activeInput.val();
+            let newValue = $(this).data('value');
+            activeInput.val(currentValue + newValue);
+        }
+    });
+
+    // Handle clear button
+    $('.keypad-clear').on('click', function() {
+        if (activeInput) {
+            activeInput.val('');
+        }
+    });
+});
+</script>

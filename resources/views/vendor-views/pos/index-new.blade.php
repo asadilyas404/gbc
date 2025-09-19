@@ -539,31 +539,11 @@
                             <div class="row pl-2">
                                 <div class="col-12 col-lg-6">
                                     <div class="form-group">
-                                        <label for="f_name" class="input-label">{{ translate('first_name') }} <span
+                                        <label for="f_name" class="input-label">{{ translate('Customer Name') }} <span
                                                 class="input-label-secondary text-danger">*</span></label>
                                         <input id="f_name" type="text" name="f_name" class="form-control"
-                                            value="{{ old('f_name') }}" placeholder="{{ translate('first_name') }}"
+                                            value="{{ old('f_name') }}" placeholder="{{ translate('Customer Name') }}"
                                             required>
-                                    </div>
-                                </div>
-                                <div class="col-12 col-lg-6">
-                                    <div class="form-group">
-                                        <label for="l_name" class="input-label">{{ translate('last_name') }} <span
-                                                class="input-label-secondary text-danger">*</span></label>
-                                        <input id="l_name" type="text" name="l_name" class="form-control"
-                                            value="{{ old('l_name') }}" placeholder="{{ translate('last_name') }}"
-                                            required>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="row pl-2">
-                                <div class="col-12 col-lg-6">
-                                    <div class="form-group">
-                                        <label for="email" class="input-label">{{ translate('email') }}<span
-                                                class="input-label-secondary text-danger">*</span></label>
-                                        <input id="email" type="email" name="email" class="form-control"
-                                            value="{{ old('email') }}"
-                                            placeholder="{{ translate('Ex_:_ex@example.com') }}" required>
                                     </div>
                                 </div>
                                 <div class="col-12 col-lg-6">
@@ -573,6 +553,16 @@
                                                 class="input-label-secondary text-danger">*</span></label>
                                         <input id="phone" type="tel" name="phone" class="form-control"
                                             value="{{ old('phone') }}" placeholder="{{ translate('phone') }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row pl-2">
+                                <div class="col-12 col-lg-6">
+                                    <div class="form-group">
+                                        <label for="email" class="input-label">{{ translate('email') }}</label>
+                                        <input id="email" type="email" name="email" class="form-control"
+                                            value="{{ old('email') }}"
+                                            placeholder="{{ translate('Ex_:_ex@example.com') }}">
                                     </div>
                                 </div>
                             </div>

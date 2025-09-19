@@ -10,6 +10,7 @@ use App\Mail\PlaceOrder;
 use App\Models\Category;
 use App\Models\OrderDetail;
 use App\Models\PosOrderAdditionalDtl;
+use App\Models\SaleCustomer;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
@@ -580,22 +581,21 @@ class POSController extends Controller
     public function get_customers(Request $request)
     {
         $key = explode(' ', $request['q']);
-        $data = User::where(function ($q) use ($key) {
+        $data = SaleCustomer::where(function ($q) use ($key) {
             foreach ($key as $value) {
-                $q->orWhere('f_name', 'like', "%{$value}%")
-                    ->orWhere('l_name', 'like', "%{$value}%")
-                    ->orWhere('phone', 'like', "%{$value}%");
+                $q->orWhere('customer_name', 'like', "%{$value}%")
+                    ->orWhere('customer_mobile_no', 'like', "%{$value}%")
+                    ->orWhere('customer_email', 'like', "%{$value}%");
             }
         })
             ->limit(8)
-            ->get([DB::raw('id, CONCAT(f_name, " ", l_name, " (", phone ,")") as text')]);
+            ->get([DB::raw('customer_id as id, CONCAT(customer_name, " (", customer_mobile_no, ")") as text')]);
 
         $data[] = (object) ['id' => false, 'text' => translate('messages.walk_in_customer')];
 
         $reversed = $data->toArray();
 
         $data = array_reverse($reversed);
-
 
         return response()->json($data);
     }
@@ -1042,16 +1042,21 @@ class POSController extends Controller
     {
         $request->validate([
             'f_name' => 'required',
-            'l_name' => 'nullable',
-            'email' => 'nullable|email',
             'phone' => 'required',
+            'email' => 'nullable|email',
         ]);
-        User::create([
-            'f_name' => $request['f_name'],
-            'l_name' => $request['l_name'],
-            'email' => $request['email'],
-            'phone' => $request['phone'],
-            'password' => bcrypt('password')
+        $branchId = Helpers::get_restaurant_id();
+
+        $customer = SaleCustomer::create([
+            'customer_code' => SaleCustomer::generateCustomerCode(),
+            'customer_type' => '10223122121801',
+            'customer_name' => $request['f_name'],
+            'customer_mobile_no' => $request['phone'],
+            'customer_email' => $request['email'],
+            'business_id' => 1,
+            'company_id' => 1,
+            'branch_id' => $branchId,
+            'customer_id' => SaleCustomer::generateCustomerId($branchId)
         ]);
         // try {
         //     $notification_status = Helpers::getNotificationStatusData('customer', 'customer_pos_registration');

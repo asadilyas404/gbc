@@ -149,6 +149,37 @@ class SyncFoodJob implements ShouldQueue
                 }
             }
 
+            // Sync options_list
+            $options_list = DB::connection('oracle_live')
+                ->table('options_list')
+                ->where('is_pushed', '!=', 'Y')
+                ->orWhereNull('is_pushed')
+                ->get();
+
+            foreach ($options_list as $option_list) {
+                try {
+                    DB::connection('oracle')
+                        ->table('options_list')
+                        ->updateOrInsert(
+                            ['id' => $option_list->id],
+                            (array) $option_list
+                        );
+
+                    // SYNC ADDON TRANSLATIONS
+                    // $this->syncTranslations('oracle_live', 'App\\Models\\AddOn', $addon->id);
+
+                    DB::connection('oracle_live')
+                        ->table('options_list')
+                        ->where('id', $option_list->id)
+                        ->update(['is_pushed' => 'Y']);
+
+                    // Log::info("AddOn ID {$addon->id} synced successfully.");
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing options_list ID {$option_list->id}: " . $e->getMessage());
+                }
+            }
+
+
             \Log::info('SyncFoodJob completed successfully.');
         } catch (\Exception $e) {
             Log::error("SyncFoodJob failed: " . $e->getMessage());

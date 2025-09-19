@@ -548,8 +548,7 @@
                                 </div>
                                 <div class="col-12 col-lg-6">
                                     <div class="form-group">
-                                        <label for="phone" class="input-label">{{ translate('phone') }}
-                                            ({{ translate('with_country_code') }})<span
+                                        <label for="phone" class="input-label">{{ translate('phone') }}<span
                                                 class="input-label-secondary text-danger">*</span></label>
                                         <input id="phone" type="tel" name="phone" class="form-control"
                                             value="{{ old('phone') }}" placeholder="{{ translate('phone') }}" required>

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\DB;
 class SaleCustomer extends Model
 {
     protected $table = 'tbl_sale_customer';
+    protected $primaryKey = 'customer_id';
+    public $incrementing = false;
 
     protected $fillable = [
         'customer_code',
@@ -25,17 +27,17 @@ class SaleCustomer extends Model
         'business_id' => 'integer',
         'company_id' => 'integer',
         'branch_id' => 'integer',
-        'customer_id' => 'integer',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime'
+        'customer_id' => 'integer'
     ];
+
+    public $timestamps = false;
 
     /**
      * Generate the next customer code
      */
     public static function generateCustomerCode()
     {
-        $lastCustomer = self::orderBy('id', 'desc')->first();
+        $lastCustomer = self::orderBy('customer_code', 'desc')->first();
 
         if ($lastCustomer && $lastCustomer->customer_code) {
             // Extract number from existing code (e.g., CU-0002877 -> 2877)

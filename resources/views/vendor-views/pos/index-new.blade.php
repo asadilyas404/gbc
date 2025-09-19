@@ -1426,6 +1426,68 @@
             }
         });
 
+        // Modal auto-fill functionality
+        $('#orderFinalModal').on('show.bs.modal', function() {
+            console.log('Modal opening, selectedCustomer:', window.selectedCustomer); // Debug log
+
+            if (window.selectedCustomer) {
+                $('#customer_id').val(window.selectedCustomer.id);
+                $('#customer_name').val(window.selectedCustomer.name);
+                $('#phone').val(window.selectedCustomer.phone);
+
+                console.log('Fields filled:', {
+                    id: $('#customer_id').val(),
+                    name: $('#customer_name').val(),
+                    phone: $('#phone').val()
+                }); // Debug log
+            } else {
+                // Clear fields if no customer selected
+                $('#customer_id').val('');
+                $('#customer_name').val('');
+                $('#phone').val('');
+
+                console.log('Fields cleared'); // Debug log
+            }
+        });
+
+        // Test button functionality
+        $(document).on('click', '#testFill', function() {
+            console.log('Test button clicked, selectedCustomer:', window.selectedCustomer);
+
+            if (window.selectedCustomer) {
+                $('#customer_id').val(window.selectedCustomer.id);
+                $('#customer_name').val(window.selectedCustomer.name);
+                $('#phone').val(window.selectedCustomer.phone);
+                alert('Customer data filled: ' + window.selectedCustomer.name + ' (' + window.selectedCustomer.phone + ')');
+            } else {
+                alert('No customer selected');
+            }
+        });
+
+        // Numeric keypad functionality for modal
+        let activeInput = null;
+
+        // Set active input when clicking on cash or card input fields
+        $(document).on('focus', '#cash_paid, #card_paid', function() {
+            activeInput = $(this);
+        });
+
+        // Handle keypad button clicks
+        $(document).on('click', '.keypad-btn', function() {
+            if (activeInput) {
+                let currentValue = activeInput.val();
+                let newValue = $(this).data('value');
+                activeInput.val(currentValue + newValue);
+            }
+        });
+
+        // Handle clear button
+        $(document).on('click', '.keypad-clear', function() {
+            if (activeInput) {
+                activeInput.val('');
+            }
+        });
+
         $(document).on('change', '#discount_input_type', function() {
             let discountInput = $('#discount_input');
             let discountInputType = $(this);

@@ -1383,10 +1383,8 @@
             }
         });
 
-        // Global customer data storage
         window.selectedCustomer = null;
 
-        // Function to extract customer data from select2 text format
         function parseCustomerData(customerId, customerText) {
             if (!customerId || customerId === 'false' || !customerText) {
                 return null;
@@ -1476,7 +1474,6 @@
 
         // Function to fill modal with customer data
         function fillModalWithCustomerData() {
-            // Check if modal fields exist
             let customerIdField = $('#customer_id');
             let customerNameField = $('#customer_name');
             let phoneField = $('#phone');
@@ -1484,33 +1481,30 @@
             let customerData = getCurrentCustomerData();
 
             if (customerData && customerData.id && customerData.name && customerData.phone) {
-                // Fill the modal fields
+
                 customerIdField.val(customerData.id);
                 customerNameField.val(customerData.name);
                 phoneField.val(customerData.phone);
             } else {
-                // Clear fields if no customer selected (walk-in customer)
+
                 customerIdField.val('');
                 customerNameField.val('');
                 phoneField.val('');
             }
         }
 
-        // Function to clear modal fields
         function clearModalFields() {
             $('#customer_id').val('');
             $('#customer_name').val('');
             $('#phone').val('');
         }
 
-        // Function to try filling modal with retries
         function tryFillModalWithRetries(maxRetries = 5, delay = 200) {
             let attempts = 0;
 
             function attemptFill() {
                 attempts++;
 
-                // Check if modal fields exist
                 if ($('#customer_id').length && $('#customer_name').length && $('#phone').length) {
                     fillModalWithCustomerData();
                     return;
@@ -1524,28 +1518,22 @@
             attemptFill();
         }
 
-        // Modal event handlers - using event delegation for dynamically loaded content
         $(document).on('shown.bs.modal', '#orderFinalModal', function() {
-            // Use a longer delay since the modal content is loaded dynamically
             setTimeout(() => tryFillModalWithRetries(10, 100), 300);
         });
 
-        // Reset active input when modal is hidden
         $(document).on('hidden.bs.modal', '#orderFinalModal', function() {
             activeInput = null;
         });
 
-        // Also try to fill when modal content is loaded
         $(document).on('DOMNodeInserted', '#orderFinalModal', function() {
             setTimeout(() => tryFillModalWithRetries(5, 100), 100);
         });
 
-        // Use MutationObserver to watch for modal content changes
         if (typeof MutationObserver !== 'undefined') {
             const observer = new MutationObserver(function(mutations) {
                 mutations.forEach(function(mutation) {
                     if (mutation.type === 'childList') {
-                        // Check if modal content was added
                         const addedNodes = Array.from(mutation.addedNodes);
                         const hasModalContent = addedNodes.some(node =>
                             node.nodeType === 1 &&
@@ -1561,19 +1549,16 @@
                 });
             });
 
-            // Start observing
             observer.observe(document.body, {
                 childList: true,
                 subtree: true
             });
         }
 
-        // Global function to fill modal - can be called from anywhere
         window.fillOrderModal = function() {
             tryFillModalWithRetries(10, 100);
         };
 
-        // Handle new customer addition
         $(document).on('click', '#submit_new_customer', function(e) {
             e.preventDefault();
 
@@ -1585,16 +1570,12 @@
                 type: 'POST',
                 data: formData,
                 success: function(response) {
-                    // Close the modal
                     $('#add-customer').modal('hide');
 
-                    // Clear the form
                     form[0].reset();
 
-                    // Show success message
                     toastr.success('Customer added successfully');
 
-                    // Refresh the customer dropdown to include the new customer
                     $('#customer').select2('destroy');
                     $('.js-data-example-ajax').select2({
                         ajax: {
@@ -1619,7 +1600,6 @@
                         }
                     });
 
-                    // Re-attach customer selection handlers
                     $('#customer').off('select2:select change').on('select2:select', function(e) {
                         let data = e.params.data;
                         storeCustomerDetails(data.id, data.text);
@@ -1642,7 +1622,6 @@
             });
         });
 
-        // Numeric keypad functionality is handled in the main keypad implementation below
 
         $(document).on('change', '#discount_input_type', function() {
             let discountInput = $('#discount_input');
@@ -1650,7 +1629,7 @@
             let maxLimit = (discountInputType.val() === 'percent') ? 100 : 1000000000;
             discountInput.attr('max', maxLimit);
         });
-        // Customer change handler is now handled above in the main customer selection logic
+
         document.addEventListener('DOMContentLoaded', function() {
             let selectElement = document.querySelector('.discount-type');
             selectElement.addEventListener('change', function() {

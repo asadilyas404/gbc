@@ -330,9 +330,6 @@ if (isset($cart['paid'])) {
                                     placeholder="{{ translate('Phone') }}">
                             </div>
                         </div>
-                        <div class="col-12">
-                            <button type="button" id="testFill" class="btn btn-sm btn-info">Test Fill Customer Data</button>
-                        </div>
                     </div>
 
                     <!-- Payment Details Section -->

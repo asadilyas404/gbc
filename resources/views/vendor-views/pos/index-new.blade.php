@@ -1223,7 +1223,6 @@
                 _token: '<?php echo e(csrf_token()); ?>'
             }, function(data) {
                 $('#cart').empty().html(data);
-                console.log('Cart updated successfully');
 
                 // Restore customer selection after cart update
                 if (currentCustomerId && currentCustomerId !== 'false') {
@@ -1231,11 +1230,9 @@
                         $('#customer').val(currentCustomerId).trigger('change');
                         // Also restore the stored customer data
                         storeCustomerDetails(currentCustomerId, currentCustomerText);
-                        console.log('Customer selection restored after cart update');
 
                         // Try to fill modal if it's open
                         if ($('#orderFinalModal').hasClass('show') || $('#orderFinalModal').is(':visible')) {
-                            console.log('Modal is open, filling customer data after cart update');
                             setTimeout(() => tryFillModalWithRetries(5, 100), 200);
                         }
                     }, 100);
@@ -1420,14 +1417,11 @@
 
                 // Store in data attribute
                 $('#customer').data('selected-customer', customerData);
-
-                console.log('Customer details stored:', customerData);
             } else {
                 // Clear customer details if walk-in customer is selected
                 window.selectedCustomer = null;
                 localStorage.removeItem('posSelectedCustomer');
                 $('#customer').removeData('selected-customer');
-                console.log('Customer cleared - walk-in customer selected');
             }
         }
 
@@ -1482,39 +1476,23 @@
 
         // Function to fill modal with customer data
         function fillModalWithCustomerData() {
-            console.log('=== FILLING MODAL WITH CUSTOMER DATA ===');
-
             // Check if modal fields exist
             let customerIdField = $('#customer_id');
             let customerNameField = $('#customer_name');
             let phoneField = $('#phone');
 
-            console.log('Modal fields found:', {
-                customer_id: customerIdField.length,
-                customer_name: customerNameField.length,
-                phone: phoneField.length
-            });
-
             let customerData = getCurrentCustomerData();
-            console.log('Current customer data:', customerData);
 
             if (customerData && customerData.id && customerData.name && customerData.phone) {
                 // Fill the modal fields
                 customerIdField.val(customerData.id);
                 customerNameField.val(customerData.name);
                 phoneField.val(customerData.phone);
-
-                console.log('Modal fields filled with customer data:', {
-                    customer_id: customerIdField.val(),
-                    customer_name: customerNameField.val(),
-                    phone: phoneField.val()
-                });
             } else {
                 // Clear fields if no customer selected (walk-in customer)
                 customerIdField.val('');
                 customerNameField.val('');
                 phoneField.val('');
-                console.log('Modal fields cleared - walk-in customer or no customer selected');
             }
         }
 
@@ -1523,7 +1501,6 @@
             $('#customer_id').val('');
             $('#customer_name').val('');
             $('#phone').val('');
-            console.log('Modal fields manually cleared');
         }
 
         // Function to try filling modal with retries
@@ -1532,7 +1509,6 @@
 
             function attemptFill() {
                 attempts++;
-                console.log(`Attempt ${attempts} to fill modal fields`);
 
                 // Check if modal fields exist
                 if ($('#customer_id').length && $('#customer_name').length && $('#phone').length) {
@@ -1541,10 +1517,7 @@
                 }
 
                 if (attempts < maxRetries) {
-                    console.log(`Modal fields not found, retrying in ${delay}ms...`);
                     setTimeout(attemptFill, delay);
-                } else {
-                    console.log('Max retries reached, modal fields not found');
                 }
             }
 
@@ -1552,25 +1525,14 @@
         }
 
         // Modal event handlers - using event delegation for dynamically loaded content
-        $(document).on('show.bs.modal', '#orderFinalModal', function() {
-            console.log('Order final modal opening - preparing customer data');
-        });
-
         $(document).on('shown.bs.modal', '#orderFinalModal', function() {
-            console.log('Order final modal opened - filling customer data');
             // Use a longer delay since the modal content is loaded dynamically
             setTimeout(() => tryFillModalWithRetries(10, 100), 300);
         });
 
         // Also try to fill when modal content is loaded
         $(document).on('DOMNodeInserted', '#orderFinalModal', function() {
-            console.log('Modal content inserted - checking for customer data');
             setTimeout(() => tryFillModalWithRetries(5, 100), 100);
-        });
-
-        // Additional handler for when the modal is clicked/opened
-        $(document).on('click', '[data-target="#orderFinalModal"]', function() {
-            console.log('Modal trigger clicked - will fill customer data when modal opens');
         });
 
         // Use MutationObserver to watch for modal content changes
@@ -1588,7 +1550,6 @@
                         );
 
                         if (hasModalContent) {
-                            console.log('Modal content detected via MutationObserver');
                             setTimeout(() => tryFillModalWithRetries(5, 100), 200);
                         }
                     }
@@ -1602,51 +1563,8 @@
             });
         }
 
-        // Test button functionality
-        $(document).on('click', '#testFill', function() {
-            console.log('Test button clicked - filling customer data');
-            fillModalWithCustomerData();
-
-            // Show result
-            setTimeout(function() {
-                let customerId = $('#customer_id').val();
-                let customerName = $('#customer_name').val();
-                let phone = $('#phone').val();
-
-                if (customerId && customerName && phone) {
-                    alert('SUCCESS: Customer data filled - ID: ' + customerId + ', Name: ' + customerName + ', Phone: ' + phone);
-                } else {
-                    alert('FAILED: Fields not filled - ID: ' + customerId + ', Name: ' + customerName + ', Phone: ' + phone);
-                }
-            }, 200);
-        });
-
-        // Global function for manual testing
-        window.testCustomerFill = function() {
-            console.log('Manual test called');
-            fillModalWithCustomerData();
-        };
-
-        // Global function to force fill modal
-        window.forceFillModal = function() {
-            console.log('Force fill modal called');
-            tryFillModalWithRetries(10, 100);
-        };
-
-        // Global function to check current customer data
-        window.checkCustomerData = function() {
-            console.log('Current customer data:', getCurrentCustomerData());
-            console.log('Stored customer data:', window.selectedCustomer);
-            console.log('Modal fields exist:', {
-                customer_id: $('#customer_id').length,
-                customer_name: $('#customer_name').length,
-                phone: $('#phone').length
-            });
-        };
-
         // Global function to fill modal - can be called from anywhere
         window.fillOrderModal = function() {
-            console.log('fillOrderModal called globally');
             tryFillModalWithRetries(10, 100);
         };
 

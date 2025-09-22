@@ -1229,6 +1229,8 @@
                 if (currentCustomerId && currentCustomerId !== 'false') {
                     setTimeout(function() {
                         $('#customer').val(currentCustomerId).trigger('change');
+                        // Also restore the stored customer data
+                        storeCustomerDetails(currentCustomerId, currentCustomerText);
                         console.log('Customer selection restored after cart update');
                     }, 100);
                 }
@@ -1378,161 +1380,117 @@
             }
         });
 
-        // Function to store customer details in multiple ways for persistence
+        // Global customer data storage
+        window.selectedCustomer = null;
+
+        // Function to extract customer data from select2 text format
+        function parseCustomerData(customerId, customerText) {
+            if (!customerId || customerId === 'false' || !customerText) {
+                return null;
+            }
+
+            // Extract customer name and phone from the text (format: "Name (Phone)")
+            let match = customerText.match(/^(.+?)\s*\((.+?)\)$/);
+            if (match) {
+                return {
+                    id: customerId,
+                    name: match[1].trim(),
+                    phone: match[2].trim()
+                };
+            }
+            return null;
+        }
+
+        // Function to store customer details consistently
         function storeCustomerDetails(customerId, customerText) {
-            if (customerId && customerId !== 'false') {
-                // Extract customer name and phone from the text (format: "Name (Phone)")
-                let match = customerText.match(/^(.+?)\s*\((.+?)\)$/);
-                if (match) {
-                    let customerName = match[1].trim();
-                    let customerPhone = match[2].trim();
+            let customerData = parseCustomerData(customerId, customerText);
 
-                    // Store customer details in multiple ways for persistence
-                    window.selectedCustomer = {
-                        id: customerId,
-                        name: customerName,
-                        phone: customerPhone
-                    };
+            if (customerData) {
+                // Store in global variable
+                window.selectedCustomer = customerData;
 
-                    // Also store in localStorage for persistence across page refreshes
-                    localStorage.setItem('posSelectedCustomer', JSON.stringify({
-                        id: customerId,
-                        name: customerName,
-                        phone: customerPhone
-                    }));
+                // Store in localStorage for persistence
+                localStorage.setItem('posSelectedCustomer', JSON.stringify(customerData));
 
-                    // Store in data attributes on the customer select for easy access
-                    $('#customer').data('selected-customer', {
-                        id: customerId,
-                        name: customerName,
-                        phone: customerPhone
-                    });
+                // Store in data attribute
+                $('#customer').data('selected-customer', customerData);
 
-                    console.log('Customer details stored in multiple ways:', window.selectedCustomer); // Debug log
-                }
+                console.log('Customer details stored:', customerData);
             } else {
                 // Clear customer details if walk-in customer is selected
                 window.selectedCustomer = null;
                 localStorage.removeItem('posSelectedCustomer');
                 $('#customer').removeData('selected-customer');
-                console.log('Customer cleared from all storage methods'); // Debug log
+                console.log('Customer cleared - walk-in customer selected');
             }
         }
 
         // Handle customer selection change for Select2
         $('#customer').on('select2:select', function(e) {
             let data = e.params.data;
-            let customerId = data.id;
-            let customerText = data.text;
+            storeCustomerDetails(data.id, data.text);
+        });
 
-            console.log('Customer selected:', customerId, customerText); // Debug log
-            storeCustomerDetails(customerId, customerText);
+        // Handle customer selection clear for Select2
+        $('#customer').on('select2:clear', function(e) {
+            storeCustomerDetails(null, null);
         });
 
         // Fallback: Also listen for regular change event
         $('#customer').on('change', function() {
             let customerId = $(this).val();
             let customerText = $(this).find('option:selected').text();
-
-            console.log('Customer changed (fallback):', customerId, customerText); // Debug log
             storeCustomerDetails(customerId, customerText);
         });
 
-        // Modal auto-fill functionality - multiple event handlers for reliability
-        $('#orderFinalModal').on('show.bs.modal', function() {
-            console.log('Modal show event triggered');
-        });
-
-        $('#orderFinalModal').on('shown.bs.modal', function() {
-            console.log('Modal shown event triggered - filling customer data');
-            fillModalWithCustomerData();
-        });
-
-        // Also listen for when the modal content is loaded
-        $(document).on('DOMNodeInserted', '#orderFinalModal', function() {
-            console.log('Modal content inserted - checking for customer data');
-            setTimeout(function() {
-                fillModalWithCustomerData();
-            }, 50);
-        });
-
-        // Function to fill modal with customer data - multiple fallback approaches
-        function fillModalWithCustomerData() {
-            console.log('=== FILLING MODAL WITH CUSTOMER DATA ===');
-
-            let customerData = null;
-
-            // Approach 1: Try to get from dropdown selection
+        // Function to get current customer data from any available source
+        function getCurrentCustomerData() {
+            // Try to get from current selection first
             let selectedCustomerId = $('#customer').val();
             let selectedCustomerText = $('#customer').find('option:selected').text();
 
-            console.log('Approach 1 - Dropdown selection:', {
-                id: selectedCustomerId,
-                text: selectedCustomerText
-            });
-
-            if (selectedCustomerId && selectedCustomerId !== 'false' && selectedCustomerText) {
-                let match = selectedCustomerText.match(/^(.+?)\s*\((.+?)\)$/);
-                if (match) {
-                    customerData = {
-                        id: selectedCustomerId,
-                        name: match[1].trim(),
-                        phone: match[2].trim()
-                    };
-                    console.log('Approach 1 SUCCESS:', customerData);
+            if (selectedCustomerId && selectedCustomerId !== 'false') {
+                let customerData = parseCustomerData(selectedCustomerId, selectedCustomerText);
+                if (customerData) {
+                    return customerData;
                 }
             }
 
-            // Approach 2: Try to get from data attribute
-            if (!customerData) {
-                let dataCustomer = $('#customer').data('selected-customer');
-                if (dataCustomer) {
-                    customerData = dataCustomer;
-                    console.log('Approach 2 SUCCESS - Data attribute:', customerData);
+            // Fallback to stored data
+            if (window.selectedCustomer) {
+                return window.selectedCustomer;
+            }
+
+            // Try localStorage
+            try {
+                let storedCustomer = localStorage.getItem('posSelectedCustomer');
+                if (storedCustomer) {
+                    return JSON.parse(storedCustomer);
                 }
+            } catch (e) {
+                console.log('Error parsing stored customer data:', e);
             }
 
-            // Approach 3: Try to get from localStorage
-            if (!customerData) {
-                try {
-                    let storedCustomer = localStorage.getItem('posSelectedCustomer');
-                    if (storedCustomer) {
-                        customerData = JSON.parse(storedCustomer);
-                        console.log('Approach 3 SUCCESS - localStorage:', customerData);
-                    }
-                } catch (e) {
-                    console.log('Approach 3 FAILED - localStorage error:', e);
-                }
-            }
+            return null;
+        }
 
-            // Approach 4: Try to get from global variable
-            if (!customerData && window.selectedCustomer) {
-                customerData = window.selectedCustomer;
-                console.log('Approach 4 SUCCESS - Global variable:', customerData);
-            }
+        // Function to fill modal with customer data
+        function fillModalWithCustomerData() {
+            let customerData = getCurrentCustomerData();
 
-            // Fill the modal fields if we have customer data
             if (customerData && customerData.id && customerData.name && customerData.phone) {
-                // Wait a bit for modal to be fully rendered
-                setTimeout(function() {
-                    $('#customer_id').val(customerData.id);
-                    $('#customer_name').val(customerData.name);
-                    $('#phone').val(customerData.phone);
+                // Fill the modal fields
+                $('#customer_id').val(customerData.id);
+                $('#customer_name').val(customerData.name);
+                $('#phone').val(customerData.phone);
 
-                    console.log('Modal fields filled:', {
-                        customer_id: $('#customer_id').val(),
-                        customer_name: $('#customer_name').val(),
-                        phone: $('#phone').val()
-                    });
-
-                    // Update all storage methods for consistency
-                    window.selectedCustomer = customerData;
-                    localStorage.setItem('posSelectedCustomer', JSON.stringify(customerData));
-                    $('#customer').data('selected-customer', customerData);
-                }, 200);
+                console.log('Modal fields filled with customer data:', customerData);
             } else {
-                console.log('No valid customer data found, clearing fields');
-                clearModalFields();
+                // Clear fields if no customer selected (walk-in customer)
+                $('#customer_id').val('');
+                $('#customer_name').val('');
+                $('#phone').val('');
+                console.log('Modal fields cleared - walk-in customer or no customer selected');
             }
         }
 
@@ -1541,16 +1499,26 @@
             $('#customer_id').val('');
             $('#customer_name').val('');
             $('#phone').val('');
-            window.selectedCustomer = null;
-            console.log('Modal fields cleared');
+            console.log('Modal fields manually cleared');
         }
+
+        // Modal event handlers
+        $('#orderFinalModal').on('show.bs.modal', function() {
+            console.log('Order final modal opening - preparing customer data');
+        });
+
+        $('#orderFinalModal').on('shown.bs.modal', function() {
+            console.log('Order final modal opened - filling customer data');
+            // Small delay to ensure modal is fully rendered
+            setTimeout(fillModalWithCustomerData, 100);
+        });
 
         // Test button functionality
         $(document).on('click', '#testFill', function() {
-            console.log('Test button clicked - forcing customer data fill');
+            console.log('Test button clicked - filling customer data');
             fillModalWithCustomerData();
 
-            // Check if fields were filled
+            // Show result
             setTimeout(function() {
                 let customerId = $('#customer_id').val();
                 let customerName = $('#customer_name').val();
@@ -1561,7 +1529,7 @@
                 } else {
                     alert('FAILED: Fields not filled - ID: ' + customerId + ', Name: ' + customerName + ', Phone: ' + phone);
                 }
-            }, 500);
+            }, 200);
         });
 
         // Global function for manual testing
@@ -1569,6 +1537,75 @@
             console.log('Manual test called');
             fillModalWithCustomerData();
         };
+
+        // Handle new customer addition
+        $(document).on('click', '#submit_new_customer', function(e) {
+            e.preventDefault();
+
+            let form = $('#product_form');
+            let formData = form.serialize();
+
+            $.ajax({
+                url: form.attr('action'),
+                type: 'POST',
+                data: formData,
+                success: function(response) {
+                    // Close the modal
+                    $('#add-customer').modal('hide');
+
+                    // Clear the form
+                    form[0].reset();
+
+                    // Show success message
+                    toastr.success('Customer added successfully');
+
+                    // Refresh the customer dropdown to include the new customer
+                    $('#customer').select2('destroy');
+                    $('.js-data-example-ajax').select2({
+                        ajax: {
+                            url: '{{ route('vendor.pos.customers') }}',
+                            data: function(params) {
+                                return {
+                                    q: params.term,
+                                    page: params.page
+                                };
+                            },
+                            processResults: function(data) {
+                                return {
+                                    results: data
+                                };
+                            },
+                            __port: function(params, success, failure) {
+                                let $request = $.ajax(params);
+                                $request.then(success);
+                                $request.fail(failure);
+                                return $request;
+                            }
+                        }
+                    });
+
+                    // Re-attach customer selection handlers
+                    $('#customer').off('select2:select change').on('select2:select', function(e) {
+                        let data = e.params.data;
+                        storeCustomerDetails(data.id, data.text);
+                    }).on('change', function() {
+                        let customerId = $(this).val();
+                        let customerText = $(this).find('option:selected').text();
+                        storeCustomerDetails(customerId, customerText);
+                    });
+                },
+                error: function(xhr) {
+                    if (xhr.status === 422) {
+                        let errors = xhr.responseJSON.errors;
+                        for (let field in errors) {
+                            toastr.error(errors[field][0]);
+                        }
+                    } else {
+                        toastr.error('An error occurred while adding the customer');
+                    }
+                }
+            });
+        });
 
         // Numeric keypad functionality for modal
         let activeInput = null;
@@ -1600,11 +1637,7 @@
             let maxLimit = (discountInputType.val() === 'percent') ? 100 : 1000000000;
             discountInput.attr('max', maxLimit);
         });
-        $("#customer").change(function() {
-            if ($(this).val()) {
-                $('#customer_id').val($(this).val());
-            }
-        });
+        // Customer change handler is now handled above in the main customer selection logic
         document.addEventListener('DOMContentLoaded', function() {
             let selectElement = document.querySelector('.discount-type');
             selectElement.addEventListener('change', function() {

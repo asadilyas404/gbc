@@ -244,7 +244,7 @@ if (isset($cart['paid'])) {
         <div class="row button--bottom-fixed g-1 bg-white">
             <div class="col-sm-6">
                 <button type="button" data-toggle="modal" data-target="#orderFinalModal"
-                    class="btn btn--primary btn-sm btn-block">{{ translate('proceed') }} </button>
+                    class="btn btn--primary btn-sm btn-block" onclick="setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);">{{ translate('proceed') }} </button>
             </div>
 
             {{-- <div class="col-sm-6">
@@ -329,6 +329,9 @@ if (isset($cart['paid'])) {
                                     value="{{ old('phone', $draftDetails->phone ?? '') }}"
                                     placeholder="{{ translate('Phone') }}">
                             </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="button" id="testFill" class="btn btn-sm btn-info">Test Fill Customer Data</button>
                         </div>
                     </div>
 

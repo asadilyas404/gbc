@@ -1124,6 +1124,7 @@
             $(document).on('click', '.quick-view-btn', function() {
                 const orderId = $(this).data('order-id');
                 const orderNumber = $(this).data('order-number');
+                console.log(orderNumber);
                 $('#modal-order-number').text(orderNumber);
 
                 const modalBody = $('#quick-view-items-body');

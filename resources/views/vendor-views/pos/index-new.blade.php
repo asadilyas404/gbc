@@ -1402,48 +1402,38 @@
             return null;
         }
 
-        // Function to store customer details consistently
         function storeCustomerDetails(customerId, customerText) {
             let customerData = parseCustomerData(customerId, customerText);
 
             if (customerData) {
-                // Store in global variable
                 window.selectedCustomer = customerData;
 
-                // Store in localStorage for persistence
                 localStorage.setItem('posSelectedCustomer', JSON.stringify(customerData));
 
-                // Store in data attribute
                 $('#customer').data('selected-customer', customerData);
             } else {
-                // Clear customer details if walk-in customer is selected
                 window.selectedCustomer = null;
                 localStorage.removeItem('posSelectedCustomer');
                 $('#customer').removeData('selected-customer');
             }
         }
 
-        // Handle customer selection change for Select2
         $('#customer').on('select2:select', function(e) {
             let data = e.params.data;
             storeCustomerDetails(data.id, data.text);
         });
 
-        // Handle customer selection clear for Select2
         $('#customer').on('select2:clear', function(e) {
             storeCustomerDetails(null, null);
         });
 
-        // Fallback: Also listen for regular change event
         $('#customer').on('change', function() {
             let customerId = $(this).val();
             let customerText = $(this).find('option:selected').text();
             storeCustomerDetails(customerId, customerText);
         });
 
-        // Function to get current customer data from any available source
         function getCurrentCustomerData() {
-            // Try to get from current selection first
             let selectedCustomerId = $('#customer').val();
             let selectedCustomerText = $('#customer').find('option:selected').text();
 
@@ -1454,12 +1444,10 @@
                 }
             }
 
-            // Fallback to stored data
             if (window.selectedCustomer) {
                 return window.selectedCustomer;
             }
 
-            // Try localStorage
             try {
                 let storedCustomer = localStorage.getItem('posSelectedCustomer');
                 if (storedCustomer) {
@@ -1472,7 +1460,6 @@
             return null;
         }
 
-        // Function to fill modal with customer data
         function fillModalWithCustomerData() {
             let customerIdField = $('#customer_id');
             let customerNameField = $('#customer_name');

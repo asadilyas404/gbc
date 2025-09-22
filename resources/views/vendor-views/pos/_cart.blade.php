@@ -323,7 +323,7 @@ if (isset($cart['paid'])) {
                         <div class="col-12 col-lg-4">
                             <div class="form-group">
                                 <label for="phone" class="input-label">
-                                    {{ translate('Phone') }} ({{ translate('with_country_code') }})
+                                    {{ translate('Phone') }}
                                 </label>
                                 <input id="phone" type="tel" name="phone" class="form-control"
                                     value="{{ old('phone', $draftDetails->phone ?? '') }}"

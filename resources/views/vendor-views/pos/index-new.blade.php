@@ -1530,6 +1530,11 @@
             setTimeout(() => tryFillModalWithRetries(10, 100), 300);
         });
 
+        // Reset active input when modal is hidden
+        $(document).on('hidden.bs.modal', '#orderFinalModal', function() {
+            activeInput = null;
+        });
+
         // Also try to fill when modal content is loaded
         $(document).on('DOMNodeInserted', '#orderFinalModal', function() {
             setTimeout(() => tryFillModalWithRetries(5, 100), 100);
@@ -1637,29 +1642,7 @@
             });
         });
 
-        // Numeric keypad functionality for modal
-        let activeInput = null;
-
-        // Set active input when clicking on cash or card input fields
-        $(document).on('focus', '#cash_paid, #card_paid', function() {
-            activeInput = $(this);
-        });
-
-        // Handle keypad button clicks
-        $(document).on('click', '.keypad-btn', function() {
-            if (activeInput) {
-                let currentValue = activeInput.val();
-                let newValue = $(this).data('value');
-                activeInput.val(currentValue + newValue);
-            }
-        });
-
-        // Handle clear button
-        $(document).on('click', '.keypad-clear', function() {
-            if (activeInput) {
-                activeInput.val('');
-            }
-        });
+        // Numeric keypad functionality is handled in the main keypad implementation below
 
         $(document).on('change', '#discount_input_type', function() {
             let discountInput = $('#discount_input');
@@ -1851,13 +1834,16 @@
 
             let activeInput = null;
 
-            $(document).on('focus', '#orderFinalModal input', function() {
+            $(document).on('focus', '#orderFinalModal input, #cash_paid, #card_paid', function() {
                 activeInput = $(this);
             });
 
-            $(document).on('click', '.keypad-btn', function() {
+            $(document).on('click', '.keypad-btn', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
                 const value = $(this).data('value');
-                if (activeInput) {
+                if (activeInput && activeInput.length) {
                     let currentVal = activeInput.val();
 
                     if (value === '.') {
@@ -1879,15 +1865,18 @@
             });
 
             // Clear the input field
-            $(document).on('click', '.keypad-clear', function() {
-                if (activeInput) {
+            $(document).on('click', '.keypad-clear', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (activeInput && activeInput.length) {
                     activeInput.val('');
                     activeInput.trigger('input');
                 }
             });
 
             // Sanitize and validate input on blur
-            $('#orderFinalModal').on('blur', '#cash_paid, #card_paid', function() {
+            $(document).on('blur', '#cash_paid, #card_paid', function() {
                 const currentVal = this.value;
 
                 // Check if the value is a valid number

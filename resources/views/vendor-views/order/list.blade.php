@@ -1240,101 +1240,101 @@
             // }
 
             // function initializePrinters() {
-                if (typeof qz === 'undefined') {
-                    toastr.error('QZ Tray is not available. Please install QZ Tray.');
-                    return;
-                }
+            //     if (typeof qz === 'undefined') {
+            //         toastr.error('QZ Tray is not available. Please install QZ Tray.');
+            //         return;
+            //     }
 
-                if (!qz.websocket.isActive()) {
-                    toastr.error('QZ Tray is not connected. Please ensure QZ Tray is running and connected.');
-                    return;
-                }
+            //     if (!qz.websocket.isActive()) {
+            //         toastr.error('QZ Tray is not connected. Please ensure QZ Tray is running and connected.');
+            //         return;
+            //     }
 
-                const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
-                const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
+            //     const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
+            //     const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
 
-                let printersFound = 0;
+            //     let printersFound = 0;
 
-                qz.printers.find(billPrinterName).then(function(printer) {
-                    const config = qz.configs.create(printer);
-                    const printableWrapper = document.getElementById('bill-print-content');
-                    if (!printableWrapper) {
-                        toastr.error("Bill print content not found");
-                        return;
-                    }
-                    const printableDiv = printableWrapper.querySelector('#printableArea');
-                    if (!printableDiv) {
-                        toastr.error("Printable content (#printableArea) not found");
-                        return;
-                    }
+            //     qz.printers.find(billPrinterName).then(function(printer) {
+            //         const config = qz.configs.create(printer);
+            //         const printableWrapper = document.getElementById('bill-print-content');
+            //         if (!printableWrapper) {
+            //             toastr.error("Bill print content not found");
+            //             return;
+            //         }
+            //         const printableDiv = printableWrapper.querySelector('#printableArea');
+            //         if (!printableDiv) {
+            //             toastr.error("Printable content (#printableArea) not found");
+            //             return;
+            //         }
 
-                    const clone = printableDiv.cloneNode(true);
-                    clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+            //         const clone = printableDiv.cloneNode(true);
+            //         clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-                    let fullHtml = document.documentElement.outerHTML;
-                    fullHtml = fullHtml.replace(
-                        /<body[^>]*>[\s\S]*<\/body>/i,
-                        `<body>${clone.innerHTML}</body>`
-                    );
+            //         let fullHtml = document.documentElement.outerHTML;
+            //         fullHtml = fullHtml.replace(
+            //             /<body[^>]*>[\s\S]*<\/body>/i,
+            //             `<body>${clone.innerHTML}</body>`
+            //         );
 
-                    const data = [{
-                        type: 'html',
-                        format: 'plain',
-                        data: fullHtml
-                    }];
+            //         const data = [{
+            //             type: 'html',
+            //             format: 'plain',
+            //             data: fullHtml
+            //         }];
 
-                    return qz.print(config, data);
-                }).then(() => {
-                    console.log("Bill print done");
-                    printersFound++;
-                    if (printersFound === 2) {
-                        toastr.success('Both prints completed successfully!');
-                    }
-                }).catch(err => {
-                    console.error("Bill print failed:", err);
-                    toastr.error("Bill print failed: " + err);
-                });
+            //         return qz.print(config, data);
+            //     }).then(() => {
+            //         console.log("Bill print done");
+            //         printersFound++;
+            //         if (printersFound === 2) {
+            //             toastr.success('Both prints completed successfully!');
+            //         }
+            //     }).catch(err => {
+            //         console.error("Bill print failed:", err);
+            //         toastr.error("Bill print failed: " + err);
+            //     });
 
-                qz.printers.find(kitchenPrinterName).then(function(printer) {
-                    const config = qz.configs.create(printer);
-                    const printableWrapper = document.getElementById('kitchen-print-content');
-                    if (!printableWrapper) {
-                        toastr.error("Kitchen print content not found");
-                        return;
-                    }
-                    const printableDiv = printableWrapper.querySelector('#printableArea');
-                    if (!printableDiv) {
-                        toastr.error("Printable content (#printableArea) not found");
-                        return;
-                    }
+            //     qz.printers.find(kitchenPrinterName).then(function(printer) {
+            //         const config = qz.configs.create(printer);
+            //         const printableWrapper = document.getElementById('kitchen-print-content');
+            //         if (!printableWrapper) {
+            //             toastr.error("Kitchen print content not found");
+            //             return;
+            //         }
+            //         const printableDiv = printableWrapper.querySelector('#printableArea');
+            //         if (!printableDiv) {
+            //             toastr.error("Printable content (#printableArea) not found");
+            //             return;
+            //         }
 
-                    const clone = printableDiv.cloneNode(true);
-                    clone.querySelectorAll('.non-printable').forEach(el => el.remove());
+            //         const clone = printableDiv.cloneNode(true);
+            //         clone.querySelectorAll('.non-printable').forEach(el => el.remove());
 
-                    let fullHtml = document.documentElement.outerHTML;
-                    fullHtml = fullHtml.replace(
-                        /<body[^>]*>[\s\S]*<\/body>/i,
-                        `<body>${clone.innerHTML}</body>`
-                    );
+            //         let fullHtml = document.documentElement.outerHTML;
+            //         fullHtml = fullHtml.replace(
+            //             /<body[^>]*>[\s\S]*<\/body>/i,
+            //             `<body>${clone.innerHTML}</body>`
+            //         );
 
-                    const data = [{
-                        type: 'html',
-                        format: 'plain',
-                        data: fullHtml
-                    }];
+            //         const data = [{
+            //             type: 'html',
+            //             format: 'plain',
+            //             data: fullHtml
+            //         }];
 
-                    return qz.print(config, data);
-                }).then(() => {
-                    console.log("Kitchen print done");
-                    printersFound++;
-                    if (printersFound === 2) {
-                        toastr.success('Both prints completed successfully!');
-                    }
-                }).catch(err => {
-                    console.error("Kitchen print failed:", err);
-                    toastr.error("Kitchen print failed: " + err);
-                });
-            }
+            //         return qz.print(config, data);
+            //     }).then(() => {
+            //         console.log("Kitchen print done");
+            //         printersFound++;
+            //         if (printersFound === 2) {
+            //             toastr.success('Both prints completed successfully!');
+            //         }
+            //     }).catch(err => {
+            //         console.error("Kitchen print failed:", err);
+            //         toastr.error("Kitchen print failed: " + err);
+            //     });
+            // }
 
             // if (typeof qz !== 'undefined') {
             //     if (!qz.websocket.isActive()) {

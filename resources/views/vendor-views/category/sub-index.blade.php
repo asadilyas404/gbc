@@ -1,6 +1,6 @@
 @extends('layouts.vendor.app')
 
-@section('title',translate('messages.sub_category'))
+@section('title', translate('messages.sub_category'))
 
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -25,7 +25,8 @@
         <div class="card resturant--cate-form">
             <div class="card-body">
                 <form
-                    action="{{ isset($category) ? route('vendor.category.update', [$category['id']]) : route('vendor.category.store') }}" method="post" enctype="multipart/form-data">
+                    action="{{ isset($category) ? route('vendor.category.update', [$category['id']]) : route('vendor.category.store') }}"
+                    method="post" enctype="multipart/form-data">
                     @csrf
                     @php($language = \App\Models\BusinessSetting::where('key', 'language')->first())
                     @php($language = $language->value ?? null)
@@ -77,7 +78,8 @@
                                     <div class="form-group d-none lang_form" id="{{ $lang }}-form">
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.name') }}
-                                            ({{ strtoupper($lang) }})</label>
+                                            ({{ strtoupper($lang) }})
+                                        </label>
                                         <input type="text" name="name[]" class="form-control"
                                             placeholder="{{ translate('Ex:_Sub_Category_Name') }}" maxlength="191">
                                     </div>
@@ -98,10 +100,11 @@
                 <div class="d-flex flex-column align-items-center gap-3">
                     <p class="mb-0">{{ translate('Sub Category image') }}</p>
                     <div class="image-box">
-                        <label for="image-input" class="d-flex flex-column align-items-center justify-content-center h-100 cursor-pointer gap-2">
+                        <label for="image-input"
+                            class="d-flex flex-column align-items-center justify-content-center h-100 cursor-pointer gap-2">
                             <img class="upload-icon initial-10"
-                            src="{{dynamicAsset('public/assets/admin/img/upload-icon.png')}}" alt="Upload Icon">
-                            <span class="upload-text">{{ translate('Upload Image')}}</span>
+                                src="{{ dynamicAsset('public/assets/admin/img/upload-icon.png') }}" alt="Upload Icon">
+                            <span class="upload-text">{{ translate('Upload Image') }}</span>
                             <img src="#" alt="Preview Image" class="preview-image">
                         </label>
                         <button type="button" class="delete_image">
@@ -111,7 +114,7 @@
                     </div>
 
                     <p class="opacity-75 max-w220 mx-auto text-center">
-                        {{ translate('Image format - jpg png jpeg gif Image Size -maximum size 2 MB Image Ratio - 1:1')}}
+                        {{ translate('Image format - jpg png jpeg gif Image Size -maximum size 2 MB Image Ratio - 1:1') }}
                     </p>
                 </div>
             </div>
@@ -136,8 +139,8 @@
                 <form>
                     <!-- Search -->
                     <div class="input--group input-group input-group-merge input-group-flush">
-                        <input id="datatableSearch" name="search" value="{{ request()->search ?? null }}" type="search"
-                            class="form-control" placeholder="{{ translate('Ex_:_Sub_Categories') }}"
+                        <input id="datatableSearch" name="search" value="{{ request()->search ?? null }}"
+                            type="search" class="form-control" placeholder="{{ translate('Ex_:_Sub_Categories') }}"
                             aria-label="{{ translate('messages.search_sub_categories') }}">
                         <input type="hidden" name="sub_category" value="1">
                         <button type="submit" class="btn btn--secondary">
@@ -170,7 +173,9 @@
                                 <div class="ml-3"> {{ translate('messages.priority') }}</div>
                             </th>
                             <th class="w-100px">{{ translate('messages.status') }}</th>
-                            <th class="text-center">{{ translate('messages.action') }}</th>
+                            @if (!app()->environment('local'))
+                                <th class="text-center">{{ translate('messages.action') }}</th>
+                            @endif
                         </tr>
                     </thead>
 
@@ -180,9 +185,8 @@
                                 <td>{{ $key + $categories->firstItem() }}</td>
                                 <td>
                                     <div class="">
-                                        <img class="avatar border"
-                                        src="{{ $category['image_full_url'] }}"
-                                      alt="{{Str::limit($category['name'], 20,'...')}}">
+                                        <img class="avatar border" src="{{ $category['image_full_url'] }}"
+                                            alt="{{ Str::limit($category['name'], 20, '...') }}">
                                     </div>
                                 </td>
                                 <td>
@@ -216,30 +220,34 @@
                                         <input type="checkbox"
                                             data-url="{{ route('vendor.category.status', [$category['id'], $category->status ? 0 : 1]) }}"
                                             class="toggle-switch-input redirect-url"
-                                            id="stocksCheckbox{{ $category->id }}" {{ $category->status ? 'checked' : '' }}>
+                                            id="stocksCheckbox{{ $category->id }}"
+                                            {{ $category->status ? 'checked' : '' }}>
                                         <span class="toggle-switch-label">
                                             <span class="toggle-switch-indicator"></span>
                                         </span>
                                     </label>
                                 </td>
-                                <td>
-                                    <div class="btn--container justify-content-center">
-                                        <a class="btn btn-sm btn--primary btn-outline-primary action-btn"
-                                            href="{{ route('vendor.category.edit', [$category['id']]) }}"
-                                            title="{{ translate('messages.edit_category') }}"><i class="tio-edit"></i>
-                                        </a>
-                                        <a class="btn btn-sm btn--danger btn-outline-danger action-btn form-alert"
-                                            href="javascript:" data-id="category-{{ $category['id'] }}"
-                                            data-message="{{ translate('Want_to_delete_this_sub_category_?') }}"
-                                            title="{{ translate('messages.delete_sub_category') }}"><i
-                                                class="tio-delete-outlined"></i>
-                                        </a>
-                                    </div>
-                                    <form action="{{ route('vendor.category.delete', [$category['id']]) }}" method="post"
-                                        id="category-{{ $category['id'] }}">
-                                        @csrf @method('delete')
-                                    </form>
-                                </td>
+                                @if (!app()->environment('local'))
+                                    <td>
+                                        <div class="btn--container justify-content-center">
+                                            <a class="btn btn-sm btn--primary btn-outline-primary action-btn"
+                                                href="{{ route('vendor.category.edit', [$category['id']]) }}"
+                                                title="{{ translate('messages.edit_category') }}"><i
+                                                    class="tio-edit"></i>
+                                            </a>
+                                            <a class="btn btn-sm btn--danger btn-outline-danger action-btn form-alert"
+                                                href="javascript:" data-id="category-{{ $category['id'] }}"
+                                                data-message="{{ translate('Want_to_delete_this_sub_category_?') }}"
+                                                title="{{ translate('messages.delete_sub_category') }}"><i
+                                                    class="tio-delete-outlined"></i>
+                                            </a>
+                                        </div>
+                                        <form action="{{ route('vendor.category.delete', [$category['id']]) }}"
+                                            method="post" id="category-{{ $category['id'] }}">
+                                            @csrf @method('delete')
+                                        </form>
+                                    </td>
+                                @endif
                             </tr>
                         @endforeach
                     </tbody>
@@ -269,11 +277,12 @@
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/view-pages/sub-category-index.js"></script>
     <script>
         "use strict";
+
         function readURL(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
 
-                reader.onload = function (e) {
+                reader.onload = function(e) {
                     $('#viewer').attr('src', e.target.result);
                 }
 
@@ -281,13 +290,13 @@
             }
         }
 
-        $("#customFileEg1").change(function () {
+        $("#customFileEg1").change(function() {
             readURL(this);
         });
-        $('#reset_btn').on('click',function (){
+        $('#reset_btn').on('click', function() {
 
-            $('.preview-image').attr('src', "{{dynamicAsset('public/assets/admin/img/aspect-1.png')}}");
+            $('.preview-image').attr('src', "{{ dynamicAsset('public/assets/admin/img/aspect-1.png') }}");
             $('#image').val(null);
-    });
+        });
     </script>
 @endpush

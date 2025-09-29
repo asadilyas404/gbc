@@ -203,7 +203,9 @@
                             <th class="text-center">{{ translate('messages.price') }}</th>
                             <th class="text-center">{{ translate('messages.Recommended') }}</th>
                             <th class="text-center">{{ translate('messages.status') }}</th>
-                            <th class="text-center">{{ translate('messages.action') }}</th>
+                            @if (!app()->environment('local'))
+                                <th class="text-center">{{ translate('messages.action') }}</th>
+                            @endif
                         </tr>
                     </thead>
 
@@ -321,35 +323,37 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>
-                                    <div class="btn--container justify-content-center">
-                                        @if ($stock_out)
-                                            <a class="btn btn-sm btn--primary btn-outline-primary action-btn "
-                                                href="#update-stock{{ $food['id'] }}"
-                                                title="{{ translate('update_stock') }}" data-toggle="modal">
-                                                <i class="tio-autorenew"></i>
+                                @if (!app()->environment('local'))
+                                    <td>
+                                        <div class="btn--container justify-content-center">
+                                            @if ($stock_out)
+                                                <a class="btn btn-sm btn--primary btn-outline-primary action-btn "
+                                                    href="#update-stock{{ $food['id'] }}"
+                                                    title="{{ translate('update_stock') }}" data-toggle="modal">
+                                                    <i class="tio-autorenew"></i>
+                                                </a>
+                                            @endif
+                                            <a class="btn action-btn btn--primary btn-outline-primary"
+                                                href="{{ route('vendor.food.edit', [$food['id']]) }}"
+                                                title="{{ translate('messages.edit_food') }}"><i class="tio-edit"></i>
                                             </a>
-                                        @endif
-                                        <a class="btn action-btn btn--primary btn-outline-primary"
-                                            href="{{ route('vendor.food.edit', [$food['id']]) }}"
-                                            title="{{ translate('messages.edit_food') }}"><i class="tio-edit"></i>
-                                        </a>
-                                        <a class="btn action-btn btn--primary btn-outline-primary"
-                                            href="{{ route('vendor.food.copy', [$food['id']]) }}"
-                                            title="{{ translate('messages.copy_food') }}"><i class="tio-copy"></i>
-                                        </a>
-                                        <a class="btn action-btn btn--danger btn-outline-danger form-alert"
-                                            href="javascript:" data-id="food-{{ $food['id'] }}"
-                                            data-message="{{ translate('Want to delete this item ?') }}"
-                                            title="{{ translate('messages.delete_food') }}"><i
-                                                class="tio-delete-outlined"></i>
-                                        </a>
-                                        <form action="{{ route('vendor.food.delete', [$food['id']]) }}" method="post"
-                                            id="food-{{ $food['id'] }}">
-                                            @csrf @method('delete')
-                                        </form>
-                                    </div>
-                                </td>
+                                            <a class="btn action-btn btn--primary btn-outline-primary"
+                                                href="{{ route('vendor.food.copy', [$food['id']]) }}"
+                                                title="{{ translate('messages.copy_food') }}"><i class="tio-copy"></i>
+                                            </a>
+                                            <a class="btn action-btn btn--danger btn-outline-danger form-alert"
+                                                href="javascript:" data-id="food-{{ $food['id'] }}"
+                                                data-message="{{ translate('Want to delete this item ?') }}"
+                                                title="{{ translate('messages.delete_food') }}"><i
+                                                    class="tio-delete-outlined"></i>
+                                            </a>
+                                            <form action="{{ route('vendor.food.delete', [$food['id']]) }}"
+                                                method="post" id="food-{{ $food['id'] }}">
+                                                @csrf @method('delete')
+                                            </form>
+                                        </div>
+                                    </td>
+                                @endif
                             </tr>
 
 

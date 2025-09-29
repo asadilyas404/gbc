@@ -149,7 +149,9 @@
                                 </div>
                             </th>
                             <th>{{translate('messages.status')}}</th>
+                            @if (!app()->environment('local'))
                             <th class="text-cetner w-130px">{{translate('messages.action')}}</th>
+                            @endif
                         </tr>
                     </thead>
 
@@ -194,6 +196,7 @@
                                     </span>
                                 </label>
                             </td>
+                            @if (!app()->environment('local'))
                             <td>
                                 <div class="btn--container">
                                     <a class="btn btn-sm btn--primary btn-outline-primary action-btn"
@@ -208,6 +211,7 @@
                                     @csrf @method('delete')
                                 </form>
                             </td>
+                            @endif
                         </tr>
                     @endforeach
                     </tbody>

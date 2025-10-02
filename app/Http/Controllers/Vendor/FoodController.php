@@ -72,11 +72,11 @@ class FoodController extends Controller
             $dis = $request['discount'];
         }
 
-        if ($request['price'] <= $dis) {
+        if ($request['price'] < $dis) {
             $validator->getMessageBag()->add('unit_price', translate('messages.discount_can_not_be_more_than_or_equal'));
         }
 
-        if ($request['price'] <= $dis || $validator->fails()) {
+        if ($request['price'] < $dis || $validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)]);
         }
 

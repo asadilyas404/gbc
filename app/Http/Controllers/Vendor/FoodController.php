@@ -71,7 +71,6 @@ class FoodController extends Controller
         } else {
             $dis = $request['discount'];
         }
-        dd($request['price'], $dis);
 
         if ($request['price'] < $dis) {
             $validator->getMessageBag()->add('unit_price', translate('messages.discount_can_not_be_more_than_or_equal'));
@@ -488,7 +487,7 @@ class FoodController extends Controller
             'name.0' => 'required',
             'name.*' => 'max:191',
             'category_id' => 'required',
-            'price' => 'required|numeric|between:0.01,999999999999.99',
+            'price' => 'required|numeric|min:0',
             'description.*' => 'max:1000',
             'discount' => 'required|numeric|min:0',
             'image' => 'nullable|max:2048',
@@ -505,11 +504,11 @@ class FoodController extends Controller
             $dis = $request['discount'];
         }
 
-        if ($request['price'] <= $dis) {
+        if ($request['price'] < $dis) {
             $validator->getMessageBag()->add('unit_price', translate('messages.discount_can_not_be_more_than_or_equal'));
         }
 
-        if ($request['price'] <= $dis || $validator->fails()) {
+        if ($request['price'] < $dis || $validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)]);
         }
 

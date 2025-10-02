@@ -147,11 +147,13 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('add-new', 'FoodController@index')->name('add-new');
             Route::post('variant-combination', 'FoodController@variant_combination')->name('variant-combination');
             Route::post('store', 'FoodController@store')->name('store');
+            if (!app()->environment('local')) {
             Route::get('edit/{id}', 'FoodController@edit')->name('edit');
             Route::get('copy/{id}', 'FoodController@copy')->name('copy');
             Route::post('update/{id}', 'FoodController@update')->name('update');
-            Route::get('list', 'FoodController@list')->name('list');
             Route::delete('delete/{id}', 'FoodController@delete')->name('delete');
+            }
+            Route::get('list', 'FoodController@list')->name('list');
             Route::get('status/{id}/{status}', 'FoodController@status')->name('status');
             Route::get('recommended/{id}/{status}', 'FoodController@recommended')->name('recommended');
             Route::post('search', 'FoodController@search')->name('search');

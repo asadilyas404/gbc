@@ -18,9 +18,11 @@
                     @endif
 
                 </h1>
+                @if (!app()->environment('local'))
                 <a href="{{route('vendor.food.edit',[$product['id']])}}" class="btn btn--primary">
                     <i class="tio-edit"></i> {{translate('messages.edit')}} {{ translate('Info') }}
                 </a>
+                @endif
             </div>
         </div>
         <!-- End Page Header -->

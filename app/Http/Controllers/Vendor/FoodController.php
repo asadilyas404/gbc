@@ -55,7 +55,7 @@ class FoodController extends Controller
             'name.*' => 'max:191',
             'category_id' => 'required',
             'image' => 'nullable|max:2048',
-            'price' => 'required|numeric|regex:/^(\d+)?(\.\d+)?$/',
+            'price' => 'required|numeric|min:0',
             'description.*' => 'max:1000',
             'discount' => 'required|numeric|min:0',
         ], [

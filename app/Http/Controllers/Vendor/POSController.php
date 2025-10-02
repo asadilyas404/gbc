@@ -639,13 +639,13 @@ class POSController extends Controller
         if ($request->order_draft == 'final') {
 
             // If no amount is provided at all (neither cash nor card)
-            if (
-                ($request->cash_paid === null || $request->cash_paid <= 0) &&
-                ($request->card_paid === null || $request->card_paid <= 0)
-            ) {
-                Toastr::error(translate('No payment amount added'));
-                return back();
-            }
+            // if (
+            //     ($request->cash_paid === null || $request->cash_paid <= 0) &&
+            //     ($request->card_paid === null || $request->card_paid <= 0)
+            // ) {
+            //     Toastr::error(translate('No payment amount added'));
+            //     return back();
+            // }
 
             // Determine payment type
             if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {

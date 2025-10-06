@@ -35,6 +35,7 @@
   'Yes' => 'Yes',
   'cancel' => 'Cancel',
   'canceled' => 'Canceled',
+  'Order Notes' => 'Order Notes',
   'ok' => 'Ok',
   'sign_out' => 'Sign out',
   'Search_Menu...' => 'Search Menu...',

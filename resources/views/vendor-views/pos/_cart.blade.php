@@ -388,12 +388,10 @@ if (isset($cart['paid'])) {
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-12">
-                                <div class="form-group">
-                                    <label for="order_notes" class="input-label">{{ translate('Order Notes') }}</label>
-                                    <input id="order_notes" type="text" name="order_notes" class="form-control"
-                                        value="{{ old('order_notes', $draftDetails->order_notes ?? '') }}" placeholder="{{ translate('Order Notes') }}">
-                                </div>
+                            <div class="form-group">
+                                <label for="order_notes" class="input-label">{{ translate('Order Notes') }}</label>
+                                <input id="order_notes" type="text" name="order_notes" class="form-control"
+                                    value="{{ old('order_notes', $draftDetails->order_notes ?? '') }}" placeholder="{{ translate('Order Notes') }}">
                             </div>
                             <input type="hidden" name="order_draft" id="order_draft" value="final">
                             <div class="col-12">

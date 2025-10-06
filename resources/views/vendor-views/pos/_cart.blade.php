@@ -190,21 +190,20 @@ if (isset($cart['paid'])) {
                     $(document).ready(function() {
                         $('button[data-target="#add-delivery-fee"]').on('click', function() {
                             setTimeout(function() {
-                                console.log('add-delivery-fee');
                                 $('#delivery_fee_input').focus();
-                            }, 300);
+                            }, 500);
                         });
 
                         $('button[data-target="#add-discount"]').on('click', function() {
                             setTimeout(function() {
                                 $('#discount_input').focus();
-                            }, 300);
+                            }, 500);
                         });
 
                         $('button[data-target="#add-tax"]').on('click', function() {
                             setTimeout(function() {
                                 $('#tax').focus();
-                            }, 300);
+                            }, 500);
                         });
                     });
                 });

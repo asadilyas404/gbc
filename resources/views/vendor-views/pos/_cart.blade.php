@@ -176,7 +176,6 @@ if (isset($cart['paid'])) {
             @endif
 
             <script>
-                // Wait for jQuery to be available
                 function waitForJQuery(callback) {
                     if (typeof jQuery !== 'undefined') {
                         callback(jQuery);
@@ -189,24 +188,23 @@ if (isset($cart['paid'])) {
 
                 waitForJQuery(function($) {
                     $(document).ready(function() {
-                        // Auto-focus input fields when modal buttons are clicked
                         $('button[data-target="#add-delivery-fee"]').on('click', function() {
                             setTimeout(function() {
                                 console.log('add-delivery-fee');
                                 $('#delivery_fee_input').focus();
-                            }, 500);
+                            }, 300);
                         });
 
                         $('button[data-target="#add-discount"]').on('click', function() {
                             setTimeout(function() {
                                 $('#discount_input').focus();
-                            }, 500);
+                            }, 300);
                         });
 
                         $('button[data-target="#add-tax"]').on('click', function() {
                             setTimeout(function() {
                                 $('#tax').focus();
-                            }, 500);
+                            }, 300);
                         });
                     });
                 });

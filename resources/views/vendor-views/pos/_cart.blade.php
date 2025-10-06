@@ -176,27 +176,39 @@ if (isset($cart['paid'])) {
             @endif
 
             <script>
-                $(document).ready(function() {
-                    // Auto-focus input fields when modal buttons are clicked
-                    $('button[data-target="#add-delivery-fee"]').on('click', function() {
+                // Wait for jQuery to be available
+                function waitForJQuery(callback) {
+                    if (typeof jQuery !== 'undefined') {
+                        callback(jQuery);
+                    } else {
                         setTimeout(function() {
-                            console.log('add-delivery-fee');
-                            $('#delivery_fee_input').focus();
-                        }, 500);
-                    });
+                            waitForJQuery(callback);
+                        }, 100);
+                    }
+                }
 
-                    $('button[data-target="#add-discount"]').on('click', function() {
-                        setTimeout(function() {
-                            $('#discount_input').focus();
-                        }, 500);
-                    });
+                waitForJQuery(function($) {
+                    $(document).ready(function() {
+                        // Auto-focus input fields when modal buttons are clicked
+                        $('button[data-target="#add-delivery-fee"]').on('click', function() {
+                            setTimeout(function() {
+                                console.log('add-delivery-fee');
+                                $('#delivery_fee_input').focus();
+                            }, 500);
+                        });
 
-                    $('button[data-target="#add-tax"]').on('click', function() {
-                        setTimeout(function() {
-                            $('#tax').focus();
-                        }, 500);
-                    });
+                        $('button[data-target="#add-discount"]').on('click', function() {
+                            setTimeout(function() {
+                                $('#discount_input').focus();
+                            }, 500);
+                        });
 
+                        $('button[data-target="#add-tax"]').on('click', function() {
+                            setTimeout(function() {
+                                $('#tax').focus();
+                            }, 500);
+                        });
+                    });
                 });
             </script>
 

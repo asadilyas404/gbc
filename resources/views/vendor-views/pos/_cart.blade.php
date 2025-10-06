@@ -177,15 +177,33 @@ if (isset($cart['paid'])) {
 
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
-                    // Auto-focus function using vanilla JavaScript
+                    let focusRetryCount = 0;
+                    const maxRetries = 10;
+
+                    // Persistent auto-focus function
                     function autoFocusInput(targetId) {
                         const input = document.getElementById(targetId);
                         if (input) {
-                            // Use requestAnimationFrame for better timing
-                            requestAnimationFrame(function() {
+                            // Try multiple times to ensure focus sticks
+                            function attemptFocus(attempts = 0) {
+                                if (attempts >= maxRetries) return;
+
                                 input.focus();
-                                input.select(); // Select existing text if any
-                            });
+                                input.select();
+
+                                // Check if focus was successful
+                                setTimeout(function() {
+                                    if (document.activeElement !== input) {
+                                        // Focus was lost, try again
+                                        attemptFocus(attempts + 1);
+                                    }
+                                }, 50);
+                            }
+
+                            // Start focusing attempts
+                            setTimeout(function() {
+                                attemptFocus();
+                            }, 100);
                         }
                     }
 
@@ -195,17 +213,37 @@ if (isset($cart['paid'])) {
                         if (e.target.closest('button[data-target="#add-delivery-fee"]')) {
                             setTimeout(function() {
                                 autoFocusInput('delivery_fee_input');
-                            }, 300);
+                            }, 400);
                         }
                         else if (e.target.closest('button[data-target="#add-discount"]')) {
                             setTimeout(function() {
                                 autoFocusInput('discount_input');
-                            }, 300);
+                            }, 400);
                         }
                         else if (e.target.closest('button[data-target="#add-tax"]')) {
                             setTimeout(function() {
                                 autoFocusInput('tax');
-                            }, 300);
+                            }, 400);
+                        }
+                    });
+
+                    // Additional backup: Listen for modal shown events
+                    document.addEventListener('shown.bs.modal', function(e) {
+                        const modalId = e.target.id;
+                        let inputId = '';
+
+                        if (modalId === 'add-delivery-fee') {
+                            inputId = 'delivery_fee_input';
+                        } else if (modalId === 'add-discount') {
+                            inputId = 'discount_input';
+                        } else if (modalId === 'add-tax') {
+                            inputId = 'tax';
+                        }
+
+                        if (inputId) {
+                            setTimeout(function() {
+                                autoFocusInput(inputId);
+                            }, 200);
                         }
                     });
 

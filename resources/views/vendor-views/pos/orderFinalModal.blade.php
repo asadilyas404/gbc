@@ -93,9 +93,6 @@
                                 placeholder="{{ translate('Phone') }}">
                         </div>
                     </div>
-                    <div class="col-12">
-                        <button type="button" id="testFill" class="btn btn-sm btn-info">Test Fill Customer Data</button>
-                    </div>
                     </div>
 
                     <!-- Payment Details Section -->
@@ -113,10 +110,10 @@
                                     <div class="form-group mt-3">
                                         <label for="delivery_type" class="input-label">Delivery Type</label>
                                         <select id="delivery_type" name="delivery_type" class="form-control">
+                                        <option value="take_away">
+                                                Take away</option>
                                             <option value="dine_in">
                                                 Dine In</option>
-                                            <option value="take_away">
-                                                Take away</option>
                                             <option value="delivery">
                                                 Delivery</option>
                                         </select>
@@ -143,6 +140,13 @@
                                                 {{ translate('Bank 3') }}</option>
                                         </select>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="order_notes" class="input-label">{{ translate('Order Notes') }}</label>
+                                    <input id="order_notes" type="text" name="order_notes" class="form-control"
+                                        value="" placeholder="{{ translate('Order Notes') }}">
                                 </div>
                             </div>
                             <input type="hidden" name="order_draft" id="order_draft" value="final">

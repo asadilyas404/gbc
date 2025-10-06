@@ -935,6 +935,7 @@ class POSController extends Controller
             $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
             $posOrderDtl->card_paid = $request->card_paid ?? 0;
             $posOrderDtl->bank_account = $request->bank_account;
+            $posOrderDtl->order_notes = $request->order_notes;
             $posOrderDtl->save();
 
             session()->forget('cart');

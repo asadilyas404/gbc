@@ -348,12 +348,12 @@ if (isset($cart['paid'])) {
                                     <div class="form-group mt-3">
                                         <label for="delivery_type" class="input-label">Delivery Type</label>
                                         <select id="delivery_type" name="delivery_type" class="form-control">
-                                            <option value="dine_in"
-                                                {{ old('delivery_type', $editingOrder->order_type ?? '') == 'dine_in' ? 'selected' : '' }}>
-                                                Dine In</option>
                                             <option value="take_away"
                                                 {{ old('delivery_type', $editingOrder->order_type ?? '') == 'take_away' ? 'selected' : '' }}>
                                                 Take away</option>
+                                            <option value="dine_in"
+                                                {{ old('delivery_type', $editingOrder->order_type ?? '') == 'dine_in' ? 'selected' : '' }}>
+                                                Dine In</option>
                                             <option value="delivery"
                                                 {{ old('delivery_type', $editingOrder->order_type ?? '') == 'delivery' ? 'selected' : '' }}>
                                                 Delivery</option>
@@ -386,6 +386,13 @@ if (isset($cart['paid'])) {
                                                 {{ translate('Bank 3') }}</option>
                                         </select>
                                     </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <div class="form-group">
+                                    <label for="order_notes" class="input-label">{{ translate('Order Notes') }}</label>
+                                    <input id="order_notes" type="text" name="order_notes" class="form-control"
+                                        value="{{ old('order_notes', $draftDetails->order_notes ?? '') }}" placeholder="{{ translate('Order Notes') }}">
                                 </div>
                             </div>
                             <input type="hidden" name="order_draft" id="order_draft" value="final">

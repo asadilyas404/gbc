@@ -209,36 +209,6 @@ if (isset($cart['paid'])) {
                         }
                     });
 
-                    // Alternative approach: Monitor for modal visibility changes
-                    const observer = new MutationObserver(function(mutations) {
-                        mutations.forEach(function(mutation) {
-                            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                                const target = mutation.target;
-
-                                // Check if modal is shown (Bootstrap adds 'show' class)
-                                if (target.classList.contains('show')) {
-                                    if (target.id === 'add-delivery-fee') {
-                                        autoFocusInput('delivery_fee_input');
-                                    }
-                                    else if (target.id === 'add-discount') {
-                                        autoFocusInput('discount_input');
-                                    }
-                                    else if (target.id === 'add-tax') {
-                                        autoFocusInput('tax');
-                                    }
-                                }
-                            }
-                        });
-                    });
-
-                    // Observe modal elements for class changes
-                    const modals = ['add-delivery-fee', 'add-discount', 'add-tax'];
-                    modals.forEach(function(modalId) {
-                        const modal = document.getElementById(modalId);
-                        if (modal) {
-                            observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
-                        }
-                    });
                 });
             </script>
 

@@ -176,35 +176,68 @@ if (isset($cart['paid'])) {
             @endif
 
             <script>
-                function waitForJQuery(callback) {
-                    if (typeof jQuery !== 'undefined') {
-                        callback(jQuery);
-                    } else {
-                        setTimeout(function() {
-                            waitForJQuery(callback);
-                        }, 100);
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Auto-focus function using vanilla JavaScript
+                    function autoFocusInput(targetId) {
+                        const input = document.getElementById(targetId);
+                        if (input) {
+                            // Use requestAnimationFrame for better timing
+                            requestAnimationFrame(function() {
+                                input.focus();
+                                input.select(); // Select existing text if any
+                            });
+                        }
                     }
-                }
 
-                waitForJQuery(function($) {
-                    $(document).ready(function() {
-                        $('button[data-target="#add-delivery-fee"]').on('click', function() {
+                    // Handle modal button clicks
+                    document.addEventListener('click', function(e) {
+                        // Check if clicked element is a modal trigger button
+                        if (e.target.closest('button[data-target="#add-delivery-fee"]')) {
                             setTimeout(function() {
-                                $('#delivery_fee_input').focus();
-                            }, 500);
-                        });
+                                autoFocusInput('delivery_fee_input');
+                            }, 300);
+                        }
+                        else if (e.target.closest('button[data-target="#add-discount"]')) {
+                            setTimeout(function() {
+                                autoFocusInput('discount_input');
+                            }, 300);
+                        }
+                        else if (e.target.closest('button[data-target="#add-tax"]')) {
+                            setTimeout(function() {
+                                autoFocusInput('tax');
+                            }, 300);
+                        }
+                    });
 
-                        $('button[data-target="#add-discount"]').on('click', function() {
-                            setTimeout(function() {
-                                $('#discount_input').focus();
-                            }, 500);
-                        });
+                    // Alternative approach: Monitor for modal visibility changes
+                    const observer = new MutationObserver(function(mutations) {
+                        mutations.forEach(function(mutation) {
+                            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                                const target = mutation.target;
 
-                        $('button[data-target="#add-tax"]').on('click', function() {
-                            setTimeout(function() {
-                                $('#tax').focus();
-                            }, 500);
+                                // Check if modal is shown (Bootstrap adds 'show' class)
+                                if (target.classList.contains('show')) {
+                                    if (target.id === 'add-delivery-fee') {
+                                        autoFocusInput('delivery_fee_input');
+                                    }
+                                    else if (target.id === 'add-discount') {
+                                        autoFocusInput('discount_input');
+                                    }
+                                    else if (target.id === 'add-tax') {
+                                        autoFocusInput('tax');
+                                    }
+                                }
+                            }
                         });
+                    });
+
+                    // Observe modal elements for class changes
+                    const modals = ['add-delivery-fee', 'add-discount', 'add-tax'];
+                    modals.forEach(function(modalId) {
+                        const modal = document.getElementById(modalId);
+                        if (modal) {
+                            observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+                        }
                     });
                 });
             </script>

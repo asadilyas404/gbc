@@ -178,6 +178,7 @@ if (isset($cart['paid'])) {
             <script>
                 $(document).ready(function() {
                     $('#add-delivery-fee').on('shown.bs.modal', function () {
+                        console.log('add-delivery-fee');
                         $('#delivery_fee_input').focus();
                     });
 

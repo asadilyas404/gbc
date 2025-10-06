@@ -1042,23 +1042,18 @@ class POSController extends Controller
             ];
         }
 
-        // Load additional order-level fields to session
         $cartSession = collect($cart);
 
-        // Add delivery fee if it exists
         if ($order->delivery_charge > 0) {
             $cartSession['delivery_fee'] = $order->delivery_charge;
         }
 
-        // Add discount if it exists (order-level discount)
         if ($order->restaurant_discount_amount > 0) {
             $cartSession['discount'] = $order->restaurant_discount_amount;
-            $cartSession['discount_type'] = 'amount'; // Default to amount type
+            $cartSession['discount_type'] = 'amount';
         }
 
-        // Add tax if it exists
         if ($order->total_tax_amount > 0) {
-            // Calculate tax percentage from total tax amount
             $subtotal = $order->order_amount - $order->total_tax_amount - $order->delivery_charge;
             if ($subtotal > 0) {
                 $tax_percentage = ($order->total_tax_amount / $subtotal) * 100;
@@ -1077,16 +1072,16 @@ class POSController extends Controller
     public function customer_store(Request $request)
     {
         $request->validate([
-            'f_name' => 'required',
+            'f_name' => 'nullable',
             'phone' => 'required',
             'email' => 'nullable|email',
         ]);
         $branchId = Helpers::get_restaurant_id();
-
+        $customerName = $request['f_name'] ?? 'Customer';
         $customer = SaleCustomer::create([
             'customer_code' => SaleCustomer::generateCustomerCode(),
             'customer_type' => '10223122121801',
-            'customer_name' => $request['f_name'],
+            'customer_name' => $customerName,
             'customer_mobile_no' => $request['phone'],
             'customer_email' => $request['email'],
             'business_id' => 1,

@@ -175,6 +175,22 @@ if (isset($cart['paid'])) {
                 </dd>
             @endif
 
+            <script>
+                $(document).ready(function() {
+                    $('#add-delivery-fee').on('shown.bs.modal', function () {
+                        $('#delivery_fee_input').focus();
+                    });
+
+                    $('#add-discount').on('shown.bs.modal', function () {
+                        $('#discount_input').focus();
+                    });
+
+                    $('#add-tax').on('shown.bs.modal', function () {
+                        $('#tax').focus();
+                    });
+                });
+            </script>
+
 
             <dd class="col-12">
                 <hr class="m-0">
@@ -346,7 +362,7 @@ if (isset($cart['paid'])) {
                                             value="{{ old('cash_paid', $draftDetails->cash_paid ?? '') }}">
                                     </div>
                                     <div class="form-group mt-3">
-                                        <label for="delivery_type" class="input-label">Delivery Type</label>
+                                        <label for="delivery_type" class="input-label">Order Type</label>
                                         <select id="delivery_type" name="delivery_type" class="form-control">
                                             <option value="take_away"
                                                 {{ old('delivery_type', $editingOrder->order_type ?? '') == 'take_away' ? 'selected' : '' }}>

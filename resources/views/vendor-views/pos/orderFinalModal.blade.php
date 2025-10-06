@@ -108,7 +108,7 @@
                                             placeholder="{{ translate('Enter cash amount') }}" value="">
                                     </div>
                                     <div class="form-group mt-3">
-                                        <label for="delivery_type" class="input-label">Delivery Type</label>
+                                        <label for="delivery_type" class="input-label">Order Type</label>
                                         <select id="delivery_type" name="delivery_type" class="form-control">
                                         <option value="take_away">
                                                 Take away</option>

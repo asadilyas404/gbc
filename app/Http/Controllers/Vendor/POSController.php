@@ -1042,7 +1042,31 @@ class POSController extends Controller
             ];
         }
 
-        session()->put('cart', collect($cart));
+        // Load additional order-level fields to session
+        $cartSession = collect($cart);
+
+        // Add delivery fee if it exists
+        if ($order->delivery_charge > 0) {
+            $cartSession['delivery_fee'] = $order->delivery_charge;
+        }
+
+        // Add discount if it exists (order-level discount)
+        if ($order->restaurant_discount_amount > 0) {
+            $cartSession['discount'] = $order->restaurant_discount_amount;
+            $cartSession['discount_type'] = 'amount'; // Default to amount type
+        }
+
+        // Add tax if it exists
+        if ($order->total_tax_amount > 0) {
+            // Calculate tax percentage from total tax amount
+            $subtotal = $order->order_amount - $order->total_tax_amount - $order->delivery_charge;
+            if ($subtotal > 0) {
+                $tax_percentage = ($order->total_tax_amount / $subtotal) * 100;
+                $cartSession['tax'] = round($tax_percentage, 2);
+            }
+        }
+
+        session()->put('cart', $cartSession);
         session()->put('editing_order_id', $order->id);
 
         Toastr::success('Unpaid order loaded to cart.');

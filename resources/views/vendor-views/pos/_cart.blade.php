@@ -178,42 +178,42 @@ if (isset($cart['paid'])) {
             <script>
                 $(document).ready(function() {
                     // Auto-focus input fields when modal buttons are clicked
-                    // $('button[data-target="#add-delivery-fee"]').on('click', function() {
-                    //     setTimeout(function() {
-                    //         $('#delivery_fee_input').focus();
-                    //     }, 300);
-                    // });
-
-                    // $('button[data-target="#add-discount"]').on('click', function() {
-                    //     setTimeout(function() {
-                    //         $('#discount_input').focus();
-                    //     }, 300);
-                    // });
-
-                    // $('button[data-target="#add-tax"]').on('click', function() {
-                    //     setTimeout(function() {
-                    //         $('#tax').focus();
-                    //     }, 300);
-                    // });
-
-                    // Alternative approach using modal events with different timing
-                    $('#add-delivery-fee').on('shown.bs.modal', function () {
+                    $('button[data-target="#add-delivery-fee"]').on('click', function() {
                         setTimeout(function() {
                             $('#delivery_fee_input').focus();
-                        }, 100);
+                        }, 300);
                     });
 
-                    $('#add-discount').on('shown.bs.modal', function () {
+                    $('button[data-target="#add-discount"]').on('click', function() {
                         setTimeout(function() {
                             $('#discount_input').focus();
-                        }, 100);
+                        }, 300);
                     });
 
-                    $('#add-tax').on('shown.bs.modal', function () {
+                    $('button[data-target="#add-tax"]').on('click', function() {
                         setTimeout(function() {
                             $('#tax').focus();
-                        }, 100);
+                        }, 300);
                     });
+
+                    // Alternative approach using modal events with different timing
+                    // $('#add-delivery-fee').on('shown.bs.modal', function () {
+                    //     setTimeout(function() {
+                    //         $('#delivery_fee_input').focus();
+                    //     }, 100);
+                    // });
+
+                    // $('#add-discount').on('shown.bs.modal', function () {
+                    //     setTimeout(function() {
+                    //         $('#discount_input').focus();
+                    //     }, 100);
+                    // });
+
+                    // $('#add-tax').on('shown.bs.modal', function () {
+                    //     setTimeout(function() {
+                    //         $('#tax').focus();
+                    //     }, 100);
+                    // });
                 });
             </script>
 

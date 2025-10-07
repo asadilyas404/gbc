@@ -582,7 +582,7 @@
 
 @push('script_2')
     <script
-        src="https://maps.googleapis.com/maps/api/js?key={{ BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&callback=initMap&v=3.49">
+        src="https://maps.googleapis.com/maps/api/js?key={{ BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places,geometry&callback=initMap&v=3.49">
     </script>
     <script src="{{ dynamicAsset('public/assets/admin/js/view-pages/pos.js') }}"></script>
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>

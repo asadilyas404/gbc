@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Models\KitchenOrderStatusLog;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class POSController extends Controller
 {
@@ -1074,6 +1075,17 @@ class POSController extends Controller
         if ($order->delivery_address) {
             $deliveryAddress = json_decode($order->delivery_address, true);
             if ($deliveryAddress && is_array($deliveryAddress)) {
+                // Debug: Log the delivery address structure
+                \Log::info('Loading Delivery Address from Draft Order:', $deliveryAddress);
+
+                // Ensure longitude and latitude are present
+                if (!isset($deliveryAddress['longitude'])) {
+                    $deliveryAddress['longitude'] = '';
+                }
+                if (!isset($deliveryAddress['latitude'])) {
+                    $deliveryAddress['latitude'] = '';
+                }
+
                 session()->put('address', $deliveryAddress);
             }
         }

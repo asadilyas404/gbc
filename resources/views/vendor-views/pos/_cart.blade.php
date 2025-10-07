@@ -659,6 +659,10 @@ if (isset($cart['paid'])) {
                 <?php
                 if (session()->has('address')) {
                     $old = session()->get('address');
+                    // Debug: Log the address data
+                    if (is_array($old)) {
+                        \Log::info('Delivery Address Data:', $old);
+                    }
                 } else {
                     $old = null;
                 }
@@ -703,13 +707,13 @@ if (isset($cart['paid'])) {
                             <label for="longitude" class="input-label"
                                 for="">{{ translate('messages.longitude') }}</label>
                             <input type="text" class="form-control" id="longitude" name="longitude"
-                                value="{{ $old ? $old['longitude'] : '' }}" readonly>
+                                value="{{ $old && isset($old['longitude']) ? $old['longitude'] : '' }}" readonly>
                         </div>
                         <div class="col-md-6">
                             <label for="latitude" class="input-label"
                                 for="">{{ translate('messages.latitude') }}</label>
                             <input type="text" class="form-control" id="latitude" name="latitude"
-                                value="{{ $old ? $old['latitude'] : '' }}" readonly>
+                                value="{{ $old && isset($old['latitude']) ? $old['latitude'] : '' }}" readonly>
                         </div>
                         <div class="col-md-12">
                             <label for="address" class="input-label"

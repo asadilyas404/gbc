@@ -1241,6 +1241,13 @@
         }
 
         $(document).on('click', '.delivery-Address-Store', function() {
+            const button = $(this);
+
+            // Don't proceed if already processing
+            if (button.prop('disabled')) {
+                return false;
+            }
+
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -1252,6 +1259,11 @@
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
                     $('#loading').show();
+                    button.prop('disabled', true);
+                    if (!button.data('original-text')) {
+                        button.data('original-text', button.html());
+                    }
+                    button.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing...');
                 },
                 success: function(data) {
                     if (data.errors) {
@@ -1270,11 +1282,26 @@
                 complete: function() {
                     $('#loading').hide();
                     $('#paymentModal').modal('hide');
+                    // Re-enable button
+                    button.prop('disabled', false);
+                    button.html(button.data('original-text'));
+                },
+                error: function() {
+                    // Re-enable button on error
+                    button.prop('disabled', false);
+                    button.html(button.data('original-text'));
                 }
             });
         });
 
         $(document).on('click', '.payable-Amount', function() {
+            const button = $(this);
+
+            // Don't proceed if already processing
+            if (button.prop('disabled')) {
+                return false;
+            }
+
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
@@ -1286,6 +1313,11 @@
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
                     $('#loading').show();
+                    button.prop('disabled', true);
+                    if (!button.data('original-text')) {
+                        button.data('original-text', button.html());
+                    }
+                    button.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing...');
                 },
                 success: function() {
                     updateCart();
@@ -1294,6 +1326,14 @@
                 complete: function() {
                     $('#loading').hide();
                     $('#insertPayableAmount').modal('hide');
+                    // Re-enable button
+                    button.prop('disabled', false);
+                    button.html(button.data('original-text'));
+                },
+                error: function() {
+                    // Re-enable button on error
+                    button.prop('disabled', false);
+                    button.html(button.data('original-text'));
                 }
             });
         });
@@ -1568,6 +1608,13 @@
         $(document).on('click', '#submit_new_customer', function(e) {
             e.preventDefault();
 
+            const button = $(this);
+
+            // Don't proceed if already processing
+            if (button.prop('disabled')) {
+                return false;
+            }
+
             let form = $('#product_form');
             let formData = form.serialize();
 
@@ -1575,6 +1622,13 @@
                 url: form.attr('action'),
                 type: 'POST',
                 data: formData,
+                beforeSend: function() {
+                    button.prop('disabled', true);
+                    if (!button.data('original-text')) {
+                        button.data('original-text', button.html());
+                    }
+                    button.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Saving...');
+                },
                 success: function(response) {
                     $('#add-customer').modal('hide');
 
@@ -1624,6 +1678,11 @@
                     } else {
                         toastr.error('An error occurred while adding the customer');
                     }
+                },
+                complete: function() {
+                    // Re-enable button
+                    button.prop('disabled', false);
+                    button.html(button.data('original-text'));
                 }
             });
         });
@@ -1697,6 +1756,47 @@
         });
 
         $(document).ready(function() {
+            // Prevent multiple form submissions
+            let isFormSubmitting = false;
+
+            // Handle all form submissions globally
+            $('form').on('submit', function(e) {
+                const submitButton = $(this).find('button[type="submit"]:focus, button[type="submit"].clicked');
+
+                if (isFormSubmitting) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Set flag to prevent multiple submissions
+                isFormSubmitting = true;
+
+                // Disable all submit buttons in the form
+                $(this).find('button[type="submit"]').each(function() {
+                    $(this).prop('disabled', true);
+
+                    // Store original text if not already stored
+                    if (!$(this).data('original-text')) {
+                        $(this).data('original-text', $(this).html());
+                    }
+
+                    // Show loading state
+                    $(this).html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing...');
+                });
+
+                // Re-enable after 5 seconds as a safety measure (in case of errors)
+                setTimeout(function() {
+                    isFormSubmitting = false;
+                }, 5000);
+            });
+
+            // Track which button was clicked
+            $(document).on('click', 'button[type="submit"]', function() {
+                // Remove clicked class from all buttons
+                $('button[type="submit"]').removeClass('clicked');
+                // Add clicked class to this button
+                $(this).addClass('clicked');
+            });
 
             function fetchData(categoryId = '', subcategoryId = '', keyword = '') {
                 $.ajax({

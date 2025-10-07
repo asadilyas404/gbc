@@ -718,7 +718,8 @@ if (isset($cart['paid'])) {
                                 placeholder="{{ translate('Ex: address') }}">{{ $old ? $old['address'] : '' }}</textarea>
                         </div>
                         <div class="col-12">
-                            <div class="d-flex justify-content-between">
+                            {{-- Commented out - Not needed for now --}}
+                            {{-- <div class="d-flex justify-content-between">
                                 <span class="text-primary">
                                     {{ translate('* pin the address in the map to calculate delivery fee') }}
                                 </span>
@@ -730,7 +731,7 @@ if (isset($cart['paid'])) {
                                     <strong>{{ $old ? $old['delivery_fee'] : 0 }}
                                         {{ Helpers::currency_symbol() }}</strong>
                                 </div>
-                            </div>
+                            </div> --}}
                             <input id="pac-input" class="controls rounded initial-8"
                                 title="{{ translate('messages.search_your_location_here') }}" type="text"
                                 placeholder="{{ translate('messages.search_here') }}" />

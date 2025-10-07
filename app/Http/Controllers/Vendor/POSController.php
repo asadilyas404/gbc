@@ -765,7 +765,8 @@ class POSController extends Controller
         $order->session_id = $activeSession->session_id;
         $order->delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
         $order->delivery_charge += isset($cart['delivery_fee']) ? $cart['delivery_fee'] : 0;
-        $order->original_delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
+        // $order->original_delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
+        $order->original_delivery_charge = 0;
         $order->delivery_address = isset($address) ? json_encode($address) : null;
         $order->checked = 1;
         $order->updated_at = now();

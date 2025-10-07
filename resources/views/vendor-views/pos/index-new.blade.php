@@ -619,6 +619,10 @@
                 handleLocationError(false, infoWindow, map.getCenter());
             }
             const input = document.getElementById("pac-input");
+            if (!input) {
+                console.log("pac-input element not found");
+                return;
+            }
             const searchBox = new google.maps.places.SearchBox(input);
             map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
             let markers = [];
@@ -639,15 +643,21 @@
                         return;
                     }
                     console.log(place.geometry.location);
-                    if (!google.maps.geometry.poly.containsLocation(
-                            place.geometry.location,
-                            zonePolygon
-                        )) {
-                        toastr.error('{{ translate('messages.out_of_coverage') }}', {
-                            CloseButton: true,
-                            ProgressBar: true
-                        });
-                        return false;
+
+                    // Check if zone polygon is loaded before validating location
+                    if (zonePolygon) {
+                        if (!google.maps.geometry.poly.containsLocation(
+                                place.geometry.location,
+                                zonePolygon
+                            )) {
+                            toastr.error('{{ translate('messages.out_of_coverage') }}', {
+                                CloseButton: true,
+                                ProgressBar: true
+                            });
+                            return false;
+                        }
+                    } else {
+                        console.log("Zone polygon not loaded yet, skipping coverage check");
                     }
                     document.getElementById('latitude').value = place.geometry.location.lat();
                     document.getElementById('longitude').value = place.geometry.location.lng();

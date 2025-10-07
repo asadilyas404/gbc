@@ -124,10 +124,15 @@ class POSController extends Controller
         $editingOrderId = session('editing_order_id');
         $draftDetails = null;
         $editingOrder = null;
+        $draftCustomer = null;
 
         if ($editingOrderId) {
             $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
             $editingOrder = Order::find($editingOrderId);
+
+            if ($editingOrder && $editingOrder->user_id) {
+                $draftCustomer = SaleCustomer::where('customer_id', $editingOrder->user_id)->first();
+            }
         }
 
         // Get order date from settings
@@ -136,7 +141,7 @@ class POSController extends Controller
         $orderDate = $branch ? $branch->orders_date : null;
 
         // Standard request
-        return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword', 'draftDetails', 'editingOrder', 'orderDate'));
+        return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword', 'draftDetails', 'editingOrder', 'orderDate', 'draftCustomer'));
     }
 
 

@@ -582,7 +582,7 @@
 
 @push('script_2')
     <script
-        src="https://maps.googleapis.com/maps/api/js?key={{ BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&callback=initMap">
+        src="https://maps.googleapis.com/maps/api/js?key={{ BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&callback=initMap&v=3.49">
     </script>
     <script src="{{ dynamicAsset('public/assets/admin/js/view-pages/pos.js') }}"></script>
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
@@ -1382,6 +1382,25 @@
                 }
             }
         });
+
+        // Auto-fill customer dropdown when loading draft order
+        @if(isset($draftCustomer) && $draftCustomer)
+            $(document).ready(function() {
+                let customerId = '{{ $draftCustomer->customer_id }}';
+                let customerName = '{{ $draftCustomer->customer_name }}';
+                let customerPhone = '{{ $draftCustomer->customer_mobile_no }}';
+                let customerText = customerName + ' (' + customerPhone + ')';
+
+                // Create option and append to select
+                let newOption = new Option(customerText, customerId, true, true);
+                $('#customer').append(newOption).trigger('change');
+
+                // Store customer details
+                storeCustomerDetails(customerId, customerText);
+
+                console.log('Draft order customer auto-filled: ' + customerText);
+            });
+        @endif
 
         window.selectedCustomer = null;
 

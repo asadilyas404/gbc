@@ -669,52 +669,45 @@ if (isset($cart['paid'])) {
                     <div class="row g-2" id="delivery_address">
                         <div class="col-md-6">
                             <label for="contact_person_name" class="input-label"
-                                for="">{{ translate('messages.contact_person_name') }}<span
-                                    class="input-label-secondary text-danger">*</span></label>
+                                for="">{{ translate('messages.contact_person_name') }}</label>
                             <input id="contact_person_name" type="text" class="form-control"
                                 name="contact_person_name" value="{{ $old ? $old['contact_person_name'] : '' }}"
                                 placeholder="{{ translate('Ex: Jhone') }}">
                         </div>
                         <div class="col-md-6">
                             <label for="contact_person_number" class="input-label"
-                                for="">{{ translate('Contact Number') }}<span
-                                    class="input-label-secondary text-danger">*</span></label>
+                                for="">{{ translate('Contact Number') }}</label>
                             <input id="contact_person_number" type="tel" class="form-control"
                                 name="contact_person_number" value="{{ $old ? $old['contact_person_number'] : '' }}"
                                 placeholder="{{ translate('Ex: +3264124565') }}">
                         </div>
                         <div class="col-md-4">
                             <label for="road" class="input-label"
-                                for="">{{ translate('messages.Road') }}<span
-                                    class="input-label-secondary text-danger">*</span></label>
+                                for="">{{ translate('messages.Road') }}</label>
                             <input id="road" type="text" class="form-control" name="road"
                                 value="{{ $old ? $old['road'] : '' }}" placeholder="{{ translate('Ex: 4th') }}">
                         </div>
                         <div class="col-md-4">
                             <label for="house" class="input-label"
-                                for="">{{ translate('messages.House') }}<span
-                                    class="input-label-secondary text-danger">*</span></label>
+                                for="">{{ translate('messages.House') }}</label>
                             <input id="house" type="text" class="form-control" name="house"
                                 value="{{ $old ? $old['house'] : '' }}" placeholder="{{ translate('Ex: 45/C') }}">
                         </div>
                         <div class="col-md-4">
                             <label for="floor" class="input-label"
-                                for="">{{ translate('messages.Floor') }}<span
-                                    class="input-label-secondary text-danger">*</span></label>
+                                for="">{{ translate('messages.Floor') }}</label>
                             <input id="floor" type="text" class="form-control" name="floor"
                                 value="{{ $old ? $old['floor'] : '' }}" placeholder="{{ translate('Ex: 1A') }}">
                         </div>
                         <div class="col-md-6">
                             <label for="longitude" class="input-label"
-                                for="">{{ translate('messages.longitude') }}<span
-                                    class="input-label-secondary text-danger">*</span></label>
+                                for="">{{ translate('messages.longitude') }}</label>
                             <input type="text" class="form-control" id="longitude" name="longitude"
                                 value="{{ $old ? $old['longitude'] : '' }}" readonly>
                         </div>
                         <div class="col-md-6">
                             <label for="latitude" class="input-label"
-                                for="">{{ translate('messages.latitude') }}<span
-                                    class="input-label-secondary text-danger">*</span></label>
+                                for="">{{ translate('messages.latitude') }}</label>
                             <input type="text" class="form-control" id="latitude" name="latitude"
                                 value="{{ $old ? $old['latitude'] : '' }}" readonly>
                         </div>

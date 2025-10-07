@@ -299,14 +299,14 @@ class POSController extends Controller
     public function addDeliveryInfo(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'contact_person_name' => 'required',
-            'contact_person_number' => 'required',
-            'floor' => 'required',
-            'road' => 'required',
-            'house' => 'required',
-            'delivery_fee' => 'required',
-            'longitude' => 'required',
-            'latitude' => 'required',
+            'contact_person_name' => 'nullable',
+            'contact_person_number' => 'nullable',
+            'floor' => 'nullable',
+            'road' => 'nullable',
+            'house' => 'nullable',
+            'delivery_fee' => 'nullable',
+            'longitude' => 'nullable',
+            'latitude' => 'nullable',
         ]);
 
         if ($validator->fails()) {

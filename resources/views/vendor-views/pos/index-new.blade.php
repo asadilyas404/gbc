@@ -1542,16 +1542,28 @@
         $('#customer').on('select2:select', function(e) {
             let data = e.params.data;
             storeCustomerDetails(data.id, data.text);
+            // Also fill delivery address modal if it's open
+            if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
+                setTimeout(() => fillDeliveryAddressModal(), 100);
+            }
         });
 
         $('#customer').on('select2:clear', function(e) {
             storeCustomerDetails(null, null);
+            // Clear delivery address modal if it's open
+            if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
+                setTimeout(() => fillDeliveryAddressModal(), 100);
+            }
         });
 
         $('#customer').on('change', function() {
             let customerId = $(this).val();
             let customerText = $(this).find('option:selected').text();
             storeCustomerDetails(customerId, customerText);
+            // Also fill delivery address modal if it's open
+            if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
+                setTimeout(() => fillDeliveryAddressModal(), 100);
+            }
         });
 
         function getCurrentCustomerData() {
@@ -1604,6 +1616,24 @@
             }
         }
 
+        function fillDeliveryAddressModal() {
+            let contactPersonNameField = $('#contact_person_name');
+            let contactPersonNumberField = $('#contact_person_number');
+
+            let customerData = getCurrentCustomerData();
+
+            if (customerData && customerData.name && customerData.phone) {
+                contactPersonNameField.val(customerData.name);
+                contactPersonNumberField.val(customerData.phone);
+
+                console.log('Delivery address modal filled with customer data: ' + customerData.name);
+            } else {
+                // Clear fields if no customer selected
+                contactPersonNameField.val('');
+                contactPersonNumberField.val('');
+            }
+        }
+
         function clearModalFields() {
             $('#customer_id').val('');
             $('#customer_name').val('');
@@ -1635,6 +1665,11 @@
 
         $(document).on('hidden.bs.modal', '#orderFinalModal', function() {
             activeInput = null;
+        });
+
+        // Fill delivery address modal when it's opened
+        $(document).on('shown.bs.modal', '#paymentModal, #delivery-address', function() {
+            setTimeout(() => fillDeliveryAddressModal(), 300);
         });
 
         $(document).on('DOMNodeInserted', '#orderFinalModal', function() {

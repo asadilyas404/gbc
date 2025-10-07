@@ -1070,6 +1070,14 @@ class POSController extends Controller
         session()->put('cart', $cartSession);
         session()->put('editing_order_id', $order->id);
 
+        // Load delivery address if exists
+        if ($order->delivery_address) {
+            $deliveryAddress = json_decode($order->delivery_address, true);
+            if ($deliveryAddress && is_array($deliveryAddress)) {
+                session()->put('address', $deliveryAddress);
+            }
+        }
+
         Toastr::success('Unpaid order loaded to cart.');
         return redirect()->route('vendor.pos.index.new');
     }

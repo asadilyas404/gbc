@@ -895,7 +895,7 @@ class POSController extends Controller
 
         $total_tax_amount = Helpers::product_tax($total_price, $tax, $order->tax_status == 'included');
         $tax_a = $order->tax_status == 'included' ? 0 : $total_tax_amount;
-        try {
+        // try {
             $order->restaurant_discount_amount = $restaurant_discount_amount;
             $order->total_tax_amount = $total_tax_amount;
 
@@ -988,10 +988,10 @@ class POSController extends Controller
             }
 
             return back();
-        } catch (\Exception $exception) {
-            DB::rollBack();
-            info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
-        }
+        // } catch (\Exception $exception) {
+        //     DB::rollBack();
+        //     info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);
+        // }
 
         Toastr::warning(translate('messages.failed_to_place_order'));
         return back();

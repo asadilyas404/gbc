@@ -1263,7 +1263,7 @@
                     if (!button.data('original-text')) {
                         button.data('original-text', button.html());
                     }
-                    button.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing...');
+                    button.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing');
                 },
                 success: function(data) {
                     if (data.errors) {
@@ -1317,7 +1317,7 @@
                     if (!button.data('original-text')) {
                         button.data('original-text', button.html());
                     }
-                    button.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing...');
+                    button.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing');
                 },
                 success: function() {
                     updateCart();
@@ -1781,7 +1781,7 @@
                     }
 
                     // Show loading state
-                    $(this).html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing...');
+                    $(this).html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Processing');
                 });
 
                 // Re-enable after 5 seconds as a safety measure (in case of errors)

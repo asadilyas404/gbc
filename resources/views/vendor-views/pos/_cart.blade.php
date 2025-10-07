@@ -180,36 +180,29 @@ if (isset($cart['paid'])) {
                     let focusRetryCount = 0;
                     const maxRetries = 10;
 
-                    // Persistent auto-focus function
                     function autoFocusInput(targetId) {
                         const input = document.getElementById(targetId);
                         if (input) {
-                            // Try multiple times to ensure focus sticks
                             function attemptFocus(attempts = 0) {
                                 if (attempts >= maxRetries) return;
 
                                 input.focus();
                                 input.select();
 
-                                // Check if focus was successful
                                 setTimeout(function() {
                                     if (document.activeElement !== input) {
-                                        // Focus was lost, try again
                                         attemptFocus(attempts + 1);
                                     }
                                 }, 50);
                             }
 
-                            // Start focusing attempts
                             setTimeout(function() {
                                 attemptFocus();
                             }, 100);
                         }
                     }
 
-                    // Handle modal button clicks
                     document.addEventListener('click', function(e) {
-                        // Check if clicked element is a modal trigger button
                         if (e.target.closest('button[data-target="#add-delivery-fee"]')) {
                             setTimeout(function() {
                                 autoFocusInput('delivery_fee_input');
@@ -227,7 +220,6 @@ if (isset($cart['paid'])) {
                         }
                     });
 
-                    // Additional backup: Listen for modal shown events
                     document.addEventListener('shown.bs.modal', function(e) {
                         const modalId = e.target.id;
                         let inputId = '';

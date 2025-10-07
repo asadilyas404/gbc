@@ -1206,6 +1206,9 @@
                 _token: '{{ csrf_token() }}'
             }, function() {
                 $('#del-add').empty();
+                // Clear customer selection from localStorage when cart is cleared
+                localStorage.removeItem('posSelectedCustomer');
+                window.selectedCustomer = null;
                 updateCart();
                 toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
                     CloseButton: true,
@@ -1236,6 +1239,11 @@
                             setTimeout(() => tryFillModalWithRetries(5, 100), 200);
                         }
                     }, 100);
+                } else {
+                    // If no current selection, try to restore from localStorage
+                    setTimeout(function() {
+                        restoreCustomerFromStorage();
+                    }, 100);
                 }
             });
         }
@@ -1243,7 +1251,6 @@
         $(document).on('click', '.delivery-Address-Store', function() {
             const button = $(this);
 
-            // Don't proceed if already processing
             if (button.prop('disabled')) {
                 return false;
             }
@@ -1282,12 +1289,11 @@
                 complete: function() {
                     $('#loading').hide();
                     $('#paymentModal').modal('hide');
-                    // Re-enable button
+
                     button.prop('disabled', false);
                     button.html(button.data('original-text'));
                 },
                 error: function() {
-                    // Re-enable button on error
                     button.prop('disabled', false);
                     button.html(button.data('original-text'));
                 }
@@ -1326,12 +1332,11 @@
                 complete: function() {
                     $('#loading').hide();
                     $('#insertPayableAmount').modal('hide');
-                    // Re-enable button
+
                     button.prop('disabled', false);
                     button.html(button.data('original-text'));
                 },
                 error: function() {
-                    // Re-enable button on error
                     button.prop('disabled', false);
                     button.html(button.data('original-text'));
                 }
@@ -1440,6 +1445,11 @@
 
                 console.log('Draft order customer auto-filled: ' + customerText);
             });
+        @else
+            // Restore customer selection from localStorage on page load
+            $(document).ready(function() {
+                restoreCustomerFromStorage();
+            });
         @endif
 
         window.selectedCustomer = null;
@@ -1467,13 +1477,55 @@
             if (customerData) {
                 window.selectedCustomer = customerData;
 
-                localStorage.setItem('posSelectedCustomer', JSON.stringify(customerData));
+                // Store in localStorage with timestamp for persistence
+                const customerWithTimestamp = {
+                    ...customerData,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem('posSelectedCustomer', JSON.stringify(customerWithTimestamp));
 
                 $('#customer').data('selected-customer', customerData);
             } else {
                 window.selectedCustomer = null;
                 localStorage.removeItem('posSelectedCustomer');
                 $('#customer').removeData('selected-customer');
+            }
+        }
+
+        function restoreCustomerFromStorage() {
+            try {
+                const storedCustomer = localStorage.getItem('posSelectedCustomer');
+                if (storedCustomer) {
+                    const customerData = JSON.parse(storedCustomer);
+
+                    // Check if data is not too old (24 hours)
+                    const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+                    if (customerData.timestamp && (Date.now() - customerData.timestamp) < maxAge) {
+                        // Remove timestamp before using
+                        const { timestamp, ...customerInfo } = customerData;
+
+                        // Wait for select2 to be initialized
+                        setTimeout(function() {
+                            if ($('#customer').length && typeof $('#customer').select2 === 'function') {
+                                // Create option and append to select
+                                let customerText = customerInfo.name + ' (' + customerInfo.phone + ')';
+                                let newOption = new Option(customerText, customerInfo.id, true, true);
+                                $('#customer').append(newOption).trigger('change');
+
+                                // Store customer details again to update timestamp
+                                storeCustomerDetails(customerInfo.id, customerText);
+
+                                console.log('Customer restored from localStorage: ' + customerText);
+                            }
+                        }, 1000); // Wait 1 second for select2 initialization
+                    } else {
+                        // Data is too old, remove it
+                        localStorage.removeItem('posSelectedCustomer');
+                    }
+                }
+            } catch (e) {
+                console.log('Error restoring customer from localStorage:', e);
+                localStorage.removeItem('posSelectedCustomer');
             }
         }
 
@@ -1510,7 +1562,10 @@
             try {
                 let storedCustomer = localStorage.getItem('posSelectedCustomer');
                 if (storedCustomer) {
-                    return JSON.parse(storedCustomer);
+                    const customerData = JSON.parse(storedCustomer);
+                    // Remove timestamp before returning
+                    const { timestamp, ...customerInfo } = customerData;
+                    return customerInfo;
                 }
             } catch (e) {
                 console.log('Error parsing stored customer data:', e);
@@ -1756,10 +1811,8 @@
         });
 
         $(document).ready(function() {
-            // Prevent multiple form submissions
             let isFormSubmitting = false;
 
-            // Handle all form submissions globally
             $('form').on('submit', function(e) {
                 const submitButton = $(this).find('button[type="submit"]:focus, button[type="submit"].clicked');
 
@@ -1768,33 +1821,27 @@
                     return false;
                 }
 
-                // Set flag to prevent multiple submissions
                 isFormSubmitting = true;
 
-                // Disable all submit buttons in the form
                 $(this).find('button[type="submit"]').each(function() {
                     $(this).prop('disabled', true);
 
-                    // Store original text if not already stored
                     if (!$(this).data('original-text')) {
                         $(this).data('original-text', $(this).html());
                     }
 
-                    // Show loading state
                     $(this).html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait');
                 });
 
-                // Re-enable after 5 seconds as a safety measure (in case of errors)
                 setTimeout(function() {
                     isFormSubmitting = false;
-                }, 5000);
+                }, 10000);
             });
 
-            // Track which button was clicked
             $(document).on('click', 'button[type="submit"]', function() {
-                // Remove clicked class from all buttons
+
                 $('button[type="submit"]').removeClass('clicked');
-                // Add clicked class to this button
+
                 $(this).addClass('clicked');
             });
 

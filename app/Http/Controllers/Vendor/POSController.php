@@ -680,7 +680,7 @@ class POSController extends Controller
                 ($request->cash_paid === null || $request->cash_paid < 0) &&
                 ($request->card_paid === null || $request->card_paid < 0)
             ) {
-                Toastr::error(translate('No payment amount added'));
+                Toastr::error(translate('Payment amount cannot be negative'));
                 return back();
             }
 

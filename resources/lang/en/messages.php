@@ -6541,7 +6541,7 @@
   'Please select deliveryman type' => 'Please select deliveryman type',
   'Ex:_+17********' => 'Ex: +17********',
   'Status updated' => 'Status updated',
-  'No payment amount added' => 'No payment amount added',
+  'Payment amount cannot be negative' => 'Payment amount cannot be negative',
   'Food Bulk Export' => 'Food Bulk Export',
   'Export Foods' => 'Export Foods',
   'Add New Food Offer' => 'Add New Food Offer',

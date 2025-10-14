@@ -561,6 +561,38 @@ class POSController extends Controller
     public function update_discount(Request $request)
     {
         $cart = $request->session()->get('cart', collect([]));
+
+        // Calculate cart totals
+        $subtotal = 0;
+        $addon_price = 0;
+        $discount_on_product = 0;
+
+        foreach ($cart as $key => $cartItem) {
+            if (is_array($cartItem)) {
+                $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
+                $discount_on_product += $cartItem['discount'] * $cartItem['quantity'];
+                $subtotal += $product_subtotal;
+                $addon_price += $cartItem['addon_price'];
+            }
+        }
+
+        $total = $subtotal + $addon_price;
+
+        // Calculate the discount amount based on type
+        $discount = $request->discount;
+        $discount_type = $request->type;
+        $discount_amount = $discount_type == 'percent' && $discount > 0
+            ? (($total - $discount_on_product) * $discount) / 100
+            : $discount;
+
+        // Check if discount would make the total negative
+        $final_total = $total - $discount_amount - $discount_on_product;
+
+        if ($final_total < 0) {
+            Toastr::error(translate('messages.discount_cannot_exceed_order_amount'));
+            return back();
+        }
+
         $cart['discount'] = $request->discount;
         $cart['discount_type'] = $request->type;
         $request->session()->put('cart', $cart);
@@ -644,13 +676,13 @@ class POSController extends Controller
         if ($request->order_draft == 'final') {
 
             // If no amount is provided at all (neither cash nor card)
-            // if (
-            //     ($request->cash_paid === null || $request->cash_paid <= 0) &&
-            //     ($request->card_paid === null || $request->card_paid <= 0)
-            // ) {
-            //     Toastr::error(translate('No payment amount added'));
-            //     return back();
-            // }
+            if (
+                ($request->cash_paid === null || $request->cash_paid < 0) &&
+                ($request->card_paid === null || $request->card_paid < 0)
+            ) {
+                Toastr::error(translate('No payment amount added'));
+                return back();
+            }
 
             // Determine payment type
             if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {

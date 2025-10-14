@@ -4440,6 +4440,7 @@
   'food_status_updated' => 'Food status updated',
   'product_deleted_successfully' => 'Product deleted successfully',
   'discount_cleared' => 'Discount cleared',
+  'discount_cannot_exceed_order_amount' => 'Discount cannot exceed order amount',
   'Total_Order_Amount' => 'Total Order Amount',
   'Total_Orders' => 'Total Orders',
   'Paid_Orders' => 'Paid Orders',

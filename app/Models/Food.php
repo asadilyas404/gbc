@@ -225,6 +225,12 @@ class Food extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // Auto-delete translations when food is deleted
+        static::deleting(function ($food) {
+            $food->translations()->delete();
+        });
+
         static::created(function ($food) {
             $food->slug = $food->generateSlug($food->name);
             $food->save();

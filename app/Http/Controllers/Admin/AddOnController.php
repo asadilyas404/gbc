@@ -107,7 +107,7 @@ class AddOnController extends Controller
     public function delete(Request $request)
     {
         $addon = AddOn::withoutGlobalScope(RestaurantScope::class)->find($request->id);
-        $addon?->translations()?->delete();
+        // Note: Translations are auto-deleted via AddOn model's deleting event
         $addon->delete();
         Toastr::success(translate('messages.addon_deleted_successfully'));
         return back();

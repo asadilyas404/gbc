@@ -671,18 +671,17 @@ class POSController extends Controller
         //     return back();
         // }
 
+        // If no amount is provided at all (neither cash nor card)
+        if (
+            ($request->cash_paid === null || $request->cash_paid < 0) &&
+            ($request->card_paid === null || $request->card_paid < 0)
+        ) {
+            Toastr::error(translate('Payment amount cannot be negative'));
+            return back();
+        }
 
         $payment_type = '';
         if ($request->order_draft == 'final') {
-
-            // If no amount is provided at all (neither cash nor card)
-            if (
-                ($request->cash_paid === null || $request->cash_paid < 0) &&
-                ($request->card_paid === null || $request->card_paid < 0)
-            ) {
-                Toastr::error(translate('Payment amount cannot be negative'));
-                return back();
-            }
 
             // Determine payment type
             if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {

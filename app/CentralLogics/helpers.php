@@ -3965,7 +3965,7 @@ class Helpers
             foreach ($request->lang as $index => $key) {
                 if ($default_lang == $key && !($request->{$name_field}[$index])) {
                     if ($key != 'default') {
-                        Translation::updateorcreate(
+                        Translation::updateOrCreate(
                             [
                                 'translationable_type' => $model,
                                 'translationable_id' => $data_id,
@@ -3977,7 +3977,7 @@ class Helpers
                     }
                 } else {
                     if ($request->{$name_field}[$index] && $key != 'default') {
-                        Translation::updateorcreate(
+                        Translation::updateOrCreate(
                             [
                                 'translationable_type' => $model,
                                 'translationable_id' => $data_id,

@@ -32,6 +32,7 @@
   'Ex : Search by Option Name' => 'Ex : Search by Option Name',
   'Change_option_status' => 'Change option status',
   'Do you want to logout?' => 'Do you want to logout ',
+  'Want to delete this option?' => 'Want to delete this option?',
   'Yes' => 'Yes',
   'cancel' => 'Cancel',
   'canceled' => 'Canceled',

@@ -95,6 +95,12 @@ class Category extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // Auto-delete translations when food is deleted
+        static::deleting(function ($category) {
+            $category->translations()->delete();
+        });
+
         static::created(function ($category) {
             $category->slug = $category->generateSlug($category->name);
             $category->save();

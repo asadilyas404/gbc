@@ -84,6 +84,12 @@ class AddOn extends Model
     protected static function boot()
     {
         parent::boot();
+
+        // Auto-delete translations when addon is deleted
+        static::deleting(function ($addon) {
+            $addon->translations()->delete();
+        });
+
         static::retrieved(function ($addon) {
             $current_date = date('Y-m-d');
             $check_daily_stock_on= BusinessSetting::where('key', 'check_daily_stock_on')->first();

@@ -3962,10 +3962,20 @@ class Helpers
         try {
             $model = 'App\\Models\\' . $model_name;
             $default_lang = str_replace('_', '-', app()->getLocale());
+
+            // Debug logging
+            \Log::info("=== Translation Debug Start ===");
+            \Log::info("Model: {$model}, Data ID: {$data_id}, Field: {$name_field}");
+            \Log::info("Languages: " . json_encode($request->lang));
+            \Log::info("Name values: " . json_encode($request->{$name_field}));
+
             foreach ($request->lang as $index => $key) {
+                \Log::info("Processing index {$index}, lang: {$key}");
+
                 if ($default_lang == $key && !($request->{$name_field}[$index])) {
                     if ($key != 'default') {
-                        Translation::updateorcreate(
+                        \Log::info("Saving default lang translation for {$key}");
+                        Translation::updateOrCreate(
                             [
                                 'translationable_type' => $model,
                                 'translationable_id' => $data_id,
@@ -3977,7 +3987,8 @@ class Helpers
                     }
                 } else {
                     if ($request->{$name_field}[$index] && $key != 'default') {
-                        Translation::updateorcreate(
+                        \Log::info("Saving translation for {$key}: " . $request->{$name_field}[$index]);
+                        Translation::updateOrCreate(
                             [
                                 'translationable_type' => $model,
                                 'translationable_id' => $data_id,
@@ -3986,11 +3997,17 @@ class Helpers
                             ],
                             ['value' => $request->{$name_field}[$index]]
                         );
+                        \Log::info("Successfully saved translation for {$key}");
+                    } else {
+                        \Log::info("Skipping {$key} - empty value or is default");
                     }
                 }
             }
+            \Log::info("=== Translation Debug End ===");
             return true;
         } catch (\Exception $e) {
+            \Log::error("Translation Error at line {$e->getLine()}: {$e->getMessage()}");
+            \Log::error("Stack trace: " . $e->getTraceAsString());
             info(["line___{$e->getLine()}", $e->getMessage()]);
             return false;
         }

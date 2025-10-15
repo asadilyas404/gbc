@@ -165,8 +165,8 @@ class SyncFoodJob implements ShouldQueue
                             (array) $option_list
                         );
 
-                    // SYNC ADDON TRANSLATIONS
-                    // $this->syncTranslations('oracle_live', 'App\\Models\\AddOn', $addon->id);
+                    // SYNC OPTIONS_LIST TRANSLATIONS
+                    $this->syncTranslations('oracle_live', 'App\\Models\\OptionsList', $option_list->id);
 
                     DB::connection('oracle_live')
                         ->table('options_list')

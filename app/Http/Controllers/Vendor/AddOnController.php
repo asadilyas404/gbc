@@ -76,7 +76,8 @@ class AddOnController extends Controller
             return back();
         }
         $request->validate([
-            'name' => 'required|max:191',
+            'name' => 'required|array',
+            'name.*' => 'max:191',
             'price' => 'required|numeric|between:0,999999999999.99',
         ], [
             'name.required' => translate('messages.Name is required!'),

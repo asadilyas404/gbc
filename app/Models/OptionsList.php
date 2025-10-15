@@ -61,4 +61,14 @@ class OptionsList extends Model
         });
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Auto-delete translations when option is deleted
+        static::deleting(function ($option) {
+            $option->translations()->delete();
+        });
+    }
+
 }

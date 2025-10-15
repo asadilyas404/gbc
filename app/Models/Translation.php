@@ -26,16 +26,9 @@ class Translation extends Model
     {
         parent::boot();
 
-        static::creating(function (self $model) {
-            if (empty($model->id)) {
-                $nextId = DB::table('translations')
-                    ->select(DB::raw('NVL(MAX(id),0) + 1 as next_id'))
-                    ->lockForUpdate()
-                    ->value('next_id');
-
-                $model->id = $nextId;
-            }
-        });
+        // Removed ID assignment - Oracle trigger handles this via translations_id_seq
+        // Laravel was causing conflicts by also trying to assign IDs
+        // Oracle trigger: TRANSLATIONS_ID_TRG sets ID using sequence
     }
 
     protected $casts = [

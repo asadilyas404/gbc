@@ -59,7 +59,8 @@ class OptionsListController extends Controller
     public function update(Request $request, $id)
     {
         $request->validate([
-            'name' => 'required|max:191',
+            'name' => 'required|array',
+            'name.*' => 'max:191',
         ], [
             'name.required' => translate('messages.Name is required!'),
         ]);

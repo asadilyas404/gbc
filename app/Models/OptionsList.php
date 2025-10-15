@@ -27,6 +27,17 @@ class OptionsList extends Model
         return $this->morphMany(\App\Models\Translation::class, 'translationable');
     }
 
+    public function getTranslationValue($key, $locale = 'ar')
+    {
+        return Translation::where('translationable_type', self::class)
+        ->where('translationable_id', $this->id)
+        ->where('key', $key)
+        ->where('locale', $locale)
+        ->value('value');
+    }
+
+
+
     public function getNameAttribute($value){
         if (count($this->translations) > 0) {
             foreach ($this->translations as $translation) {

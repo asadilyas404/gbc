@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Mike42\Escpos\Printer;
-use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
-use App\Models\Order;
-use App\CentralLogics\Helpers;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-
-use Intervention\Image\ImageManager;
-use Mike42\Escpos\EscposImage;
+use App\Models\OptionsList;
 use I18N_Arabic;
-
-
-
-
+use App\Models\Order;
+use Mike42\Escpos\Printer;
+use Illuminate\Http\Request;
+use App\CentralLogics\Helpers;
+use Mike42\Escpos\EscposImage;
+use Illuminate\Support\Facades\DB;
+use App\Helpers\ReceiptImageHelper;
+use App\Models\AddOn;
+use App\Models\Food;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+use Intervention\Image\ImageManager;
+use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use PhpParser\Node\Stmt\TryCatch;
 
 class PrintController extends Controller
 {
@@ -87,278 +87,286 @@ class PrintController extends Controller
         }
 
         try {
-        $request->validate([
-            'order_id' => 'required|string'
-        ]);
+            $request->validate([
+                'order_id' => 'required|string'
+            ]);
 
-        $orderId = $request->input('order_id') ?: $request->query('order_id');
+            $orderId = $request->input('order_id') ?: $request->query('order_id');
 
-        // Find the order
-        $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details'])
-            ->where('id', $orderId)
-            ->first();
+            // Find the order
+            $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details'])
+                ->where('id', $orderId)
+                ->first();
 
-        if (!$order) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order not found'
-            ], 404);
-        }
-
-        // Get printer name from database
-        $user = Auth::user();
-
-        $branchId = $order->restaurant_id;
-        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
-        $printerName = $branch->bill_printer ?? 'BillPrinter';
-
-        // Connect to printer
-        $connector = new WindowsPrintConnector($printerName);
-        $printer = new Printer($connector);
-
-
-        //image print
-
-        // Arabic text
-        $arabicText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
-
-        // 🔹 Create Arabic PNG
-//     $filePath = $this->createArabicImage($arabicText);
-//   $logo = \Mike42\Escpos\EscposImage::load($filePath, false);
-//   $printer->setEmphasis(true);
-
-        // Set double height and double width (bigger font)
-        // $printer->graphics($logo);
-
-        // // Load image and send to printer
-// $escposImg = \Mike42\Escpos\EscposImage::load($imagePath, false);
-// $printer->bitImage($escposImg);
-
-
-        // $img = EscposImage::load($imagePath, false);
-// $printer->bitImage($img);
-
-        // End of image print
-        $linedash = "------------------------------------------------\n";
-        // Print order header
-        $printer->setEmphasis(true);
-        $printer->setJustification(Printer::JUSTIFY_CENTER);
-
-        $printer->setTextSize(2, 2);
-        $printer->text($order->restaurant->name . "\n");
-
-        $printer->setTextSize(1, 1);
-        $printer->text($order->restaurant->address . "\n");
-        $printer->text("Phone: " . $order->restaurant->phone . "\n");
-        $printer->text($linedash);
-        //  $printer->feed(1);
-
-        // Order details
-        $printer->setJustification(Printer::JUSTIFY_LEFT);
-        //                         $printer->setTextSize(2, 2);
-
-        //                         $lineWidth = 42; // adjust to your printer (try 32 if text gets cut)
-
-        // // Left + right texts
-// $left = "Order #: " . $order->order_serial ;
-// $right  = "Date: " . date('Y-m-d H:i', strtotime($order->created_at));
-
-        // Create one line with padding
-// $line = $left . str_repeat(" ", max(0, $lineWidth - strlen($left) - strlen($right))) . $right;
-
-        //$printer->text($line . "\n");
-        $printer->setTextSize(2, 2);
-        $printer->text("Order # " . $order->order_serial . "\n");
-        $printer->setTextSize(1, 1);
-
-        $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
-        $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
-
-        // Customer info
-        if ($order->pos_details) {
-            $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
-            $printer->text("Customer: " . $customerName . "\n");
-
-            if ($order->pos_details->phone) {
-                $printer->text("Phone: " . $order->pos_details->phone . "\n");
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
             }
 
-            if ($order->pos_details->car_number) {
-                $printer->text("Car No: " . $order->pos_details->car_number . "\n");
+            // Get printer name from database
+            $user = Auth::user();
+
+            $branchId = $order->restaurant_id;
+            $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+            $printerName = $branch->bill_printer ?? 'BillPrinter';
+
+            // Connect to printer
+            $connector = new WindowsPrintConnector($printerName);
+            $printer = new Printer($connector);
+
+            // Arabic text
+            $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
+            $currencyImagePath = storage_path('app/public/prints/arabic_currency_text.png');
+            ReceiptImageHelper::createArabicImageForPrinter($currencyText, $currencyImagePath, 16);
+            $currencyTextimage = EscposImage::load($currencyImagePath);
+
+            // End of image print
+            $linedash = "------------------------------------------------\n";
+            // Print order header
+            $printer->setEmphasis(true);
+            $printer->setJustification(Printer::JUSTIFY_CENTER);
+            $printer->setTextSize(2, 2);
+            $printer->text($order->restaurant->name . "\n");
+            // $printer->text(mb_convert_encoding("مرحبا مرحبا مرحبا", "CP864", "UTF-8"));
+            $printer->setTextSize(1, 1);
+            $printer->text($order->restaurant->address . "\n");
+            $printer->text("Phone: " . $order->restaurant->phone . "\n");
+            $printer->text($linedash);
+            //  $printer->feed(1);
+
+            // Order details
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            //                         $printer->setTextSize(2, 2);
+
+            //                         $lineWidth = 42; // adjust to your printer (try 32 if text gets cut)
+
+            // // Left + right texts
+            // $left = "Order #: " . $order->order_serial ;
+            // $right  = "Date: " . date('Y-m-d H:i', strtotime($order->created_at));
+
+            // Create one line with padding
+            // $line = $left . str_repeat(" ", max(0, $lineWidth - strlen($left) - strlen($right))) . $right;
+
+            //$printer->text($line . "\n");
+            $printer->setTextSize(2, 2);
+            $printer->text("Order # " . $order->order_serial . "\n");
+            $printer->setTextSize(1, 1);
+
+            $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
+            $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
+
+            // Customer info
+            if ($order->pos_details) {
+                $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
+                $printer->text("Customer: " . $customerName . "\n");
+
+                if ($order->pos_details->phone) {
+                    $printer->text("Phone: " . $order->pos_details->phone . "\n");
+                }
+
+                if ($order->pos_details->car_number) {
+                    $printer->text("Car No: " . $order->pos_details->car_number . "\n");
+                }
             }
-        }
 
-        if ($order->takenBy) {
-            $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
-        }
+            if ($order->takenBy) {
+                $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
+            }
 
-        $printer->text($linedash);
-        // $printer->feed(1);
+            $printer->text($linedash);
 
-        // Order items
-        //  $printer->text("Qty" . "   " . "Item" . str_repeat(" ", 32)  . "Amount\n");
+            // Define column widths (adjust for your printer, usually 42 for 80mm)
+            $colWidths = [5, 30, 12];           // Qty, Name, Amount
+            $colAligns = ['left', 'left', 'right'];  // Amount right-aligned
 
-        // Define column widths (adjust for your printer, usually 42 for 80mm)
-        $colWidths = [5, 30, 12];           // Qty, Name, Amount
-        $colAligns = ['left', 'left', 'right'];  // Amount right-aligned
+            $colArabicImagePath = public_path('assets/pos_printer_arabic_header_text.png');
+            $headerFilePath = EscposImage::load($colArabicImagePath, false);
 
-        // $colArabic= formatRow(["كمية",  "اسم", "الكمية"], $colWidths, $colAligns);
+            // Items
 
-        // $bmpFile = $this->createArabicPngTight($colArabic, 'arabic-text.png');
-// $image = \Mike42\Escpos\EscposImage::load($bmpFile);
+            $printer->text(formatRow(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
+            $printer->bitImageColumnFormat($headerFilePath);
+            $qtyImage = ReceiptImageHelper::createArabicImageForPrinter("كمية", storage_path('app/public/prints/food_qty_arabic.png'), 20);
+            $qtyImage = EscposImage::load($qtyImage, false);
+            $nameImage = ReceiptImageHelper::createArabicImageForPrinter("اسم", storage_path('app/public/prints/food_name_arabic.png'), 20);
+            $nameImage = EscposImage::load($nameImage, false);
+            $priceImage = ReceiptImageHelper::createArabicImageForPrinter("الكمية", storage_path('app/public/prints/food_price_arabic.png'), 20);
+            $priceImage = EscposImage::load($priceImage, false);
 
-        //$printer->graphics($image);
+            $printer->text($linedash);
 
+            $subTotal = 0;
+            $addOnsCost = 0;
+            $count = 0;
+            foreach ($order->details as $detail) {
+                if ($detail->food_id || $detail->campaign == null) {
+                    $foodDetails = json_decode($detail->food_details, true);
 
-        // Items
-        $printer->text(formatRow(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
-        //$printer->text(formatRow(["1", "Pizza Margherita", "2.500"], $colWidths, $colAligns) . "\n");
+                    $foodName = $foodDetails['name'] ?? 'Unknown Item';
+                    $foodArabicName = Food::where('id', $detail->food_id)->first()->getTranslationValue('name', 'ar');
+                    $foodArabicName = ReceiptImageHelper::createArabicImageForPrinter($foodArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                    $foodArabicNameImage = EscposImage::load($foodArabicName, false);
 
-        $printer->text($linedash);
+                    $printer->setEmphasis(true);
+                    $printer->text(formatRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
 
-        $subTotal = 0;
-        $addOnsCost = 0;
+                    // Arabic price line
+                    // $printer->setJustification(Printer::JUSTIFY_RIGHT);
+                    $printer->setPrintLeftMargin(55);
+                    $printer->bitImageColumnFormat($foodArabicNameImage);
+                    $printer->setPrintLeftMargin(0);
+                    // Variations
+                    $variations = json_decode($detail->variation, true);
+                    if (count($variations) > 0) {
+                        //$printer->text("  Variations:\n");
 
-        foreach ($order->details as $detail) {
-            if ($detail->food_id || $detail->campaign == null) {
-                $foodDetails = json_decode($detail->food_details, true);
+                        foreach ($variations as $variation) {
+                            if (isset($variation['name']) && isset($variation['values'])) {
+                                $printer->text("  " . $variation['name'] . ":" . "\n");
+                                // $printer->text("  " . $variation['options_list_id'] . ":");
+                                foreach ($variation['values'] as $value) {
+                                    //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
+                                    //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
+                                    $options_listname = DB::table('options_list')
+                                        ->where('id', $value['options_list_id'])
+                                        ->value('name');
+                                    $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n") ;
+                                    // Get Option Translation
+                                    
+                                    $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
-                $foodName = $foodDetails['name'] ?? 'Unknown Item';
-
-                //  $printer->text($detail->quantity . "x " . $foodName . "\n");
-
-                // Price per item
-                // $printer->text("  Price: " . Helpers::format_currency($detail->price) . "\n");
-                //  $printer->text("  G Price: " . $detail->price . "\n" );
-
-                $printer->setEmphasis(true);
-                $printer->text(formatRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
-
-                //  $arabicText = " ر.ع". "  MG Price: " . $detail->price  ;
-                //   $filePath = $this->createArabicImage($arabicText);
-
-                //                        $bmpFile = $this->createArabicPngTight('ملك البيتزا', 'arabic-text.png');
-// $image = \Mike42\Escpos\EscposImage::load($bmpFile);
-// $printer->graphics($image);
-
-
-                //dd($filePath);
-//  $logo = \Mike42\Escpos\EscposImage::load($filePath, false);
-//                     $printer->graphics($logo);
-
-                $printer->setEmphasis(false);
-                // Variations
-                $variations = json_decode($detail->variation, true);
-                if (count($variations) > 0) {
-                    //$printer->text("  Variations:\n");
-
-                    foreach ($variations as $variation) {
-                        if (isset($variation['name']) && isset($variation['values'])) {
-                            $printer->text("  " . $variation['name'] . ":");
-                            // $printer->text("  " . $variation['options_list_id'] . ":");
-
-
-                            foreach ($variation['values'] as $value) {
-                                //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
-                                //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-                                $options_listname = DB::table('options_list')
-                                    ->where('id', $value['options_list_id'])
-                                    ->value('name');
-                                $printer->text(" - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-
-
+                                    if($arabicOptionName){
+                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                        $arabicOptionName = EscposImage::load($arabicOptionName, false);
+                                        $printer->setPrintLeftMargin(40);
+                                        $printer->bitImageColumnFormat($arabicOptionName);
+                                        $printer->setPrintLeftMargin(0);
+                                    }
+                                }
                             }
-                        }
 
-                        //variation addon
+                            //variation addon
 
-                        // Print addons if available
-                        if (isset($variation['addons']) && count($variation['addons']) > 0) {
-                            foreach ($variation['addons'] as $addon) {
-                                $printer->text("     V Addon: " . $addon['name']
-                                    . " | (" . number_format($addon['price'], 3, '.', '')
-                                    . " x " . $addon['quantity'] . ")\n");
+                            // Print addons if available
+                            if (isset($variation['addons']) && count($variation['addons']) > 0) {
+                                foreach ($variation['addons'] as $addon) {
+                                    $printer->text("     V Addon: " . $addon['name']
+                                        . " | (" . number_format($addon['price'], 3, '.', '')
+                                        . " x " . $addon['quantity'] . ")\n");
 
-                                $addOnsCost += $addon['price'] * $addon['quantity'];
+                                    $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
+
+                                    if($addOnArabicName){
+                                        $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                        $addOnArabicName = EscposImage::load($addOnArabicName, false);
+                                        $printer->setPrintLeftMargin(40);
+                                        $printer->bitImageColumnFormat($addOnArabicName);
+                                        $printer->setPrintLeftMargin(0);
+                                    }
+
+                                    $addOnsCost += $addon['price'] * $addon['quantity'];
+                                }
                             }
                         }
                     }
-                }
 
 
-                $printer->setEmphasis(false);
-                // Add-ons
-                $addOns = json_decode($detail->add_ons, true);
-                if (count($addOns) > 0) {
-                    $printer->text("  Add-ons:");
-                    foreach ($addOns as $addon) {
-                        // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
-                        $printer->text("-" . $addon['name'] . " (" . $addon['quantity'] . "x" . number_format($addon['price'], 3, '.', '') . ")\n");
+                    $printer->setEmphasis(false);
+                    // Add-ons
+                    $addOns = json_decode($detail->add_ons, true);
+                    if (count($addOns) > 0) {
+                        $printer->text("  Add-ons:" . "\n");
+                        foreach ($addOns as $addon) {
+                            // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
+                            $printer->text("  -" . $addon['name'] . " (" . $addon['quantity'] . "x" . number_format($addon['price'], 3, '.', '') . ")\n");
 
-                        $addOnsCost += $addon['price'] * $addon['quantity'];
+                            // Get Addon Translation
+                            $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
+                            if($addOnArabicName){
+                                $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                $addOnArabicName = EscposImage::load($addOnArabicName, false);
+                                $printer->setPrintLeftMargin(40);
+                                $printer->bitImageColumnFormat($addOnArabicName);
+                                $printer->setPrintLeftMargin(0);
+                            }
+
+                            $addOnsCost += $addon['price'] * $addon['quantity'];
+                        }
                     }
+
+                    // Notes
+                    if ($detail->notes) {
+                        $printer->text("  Note: \n");
+                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                        $notes = EscposImage::load($notes, false);
+                        $printer->setPrintLeftMargin(40);
+                        $printer->bitImageColumnFormat($notes);
+                        $printer->setPrintLeftMargin(0);
+                    }
+
+                    $itemTotal = $detail->price * $detail->quantity;
+                    $subTotal += $itemTotal;
+
+                    //$printer->text("  Total: " . Helpers::format_currency($itemTotal) . "\n");
+                    $printer->setJustification(Printer::JUSTIFY_RIGHT);
+                    $printer->setEmphasis(true);
+                    $printer->text("  Total: " . number_format($itemTotal, 3, '.', '') . "\n");
+                    $printer->setJustification(Printer::JUSTIFY_LEFT);
+
+                    $printer->text($linedash);
                 }
+            }
 
-                // Notes
-                if ($detail->notes) {
-                    $printer->text("  Note: " . $detail->notes . "\n");
+            // Order summary
+            $printer->text("Items Price: " . number_format($subTotal, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
+            // $printer->text("\n");
+            $printer->text("Add-ons: " . number_format($addOnsCost, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
+            $subTotalWithAddons = $subTotal + $addOnsCost;
+            $printer->text("Subtotal: " . number_format($subTotalWithAddons, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
+            if ($order->restaurant_discount_amount > 0) {
+                $printer->text("Discount: -" . number_format($order->restaurant_discount_amount, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
+            }
+
+            if ($order->tax_status == 'excluded' || $order->tax_status == null) {
+                $printer->text("Tax: " . number_format($order->total_tax_amount, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
+            }
+
+            $printer->text("Delivery: " . number_format($order->delivery_charge, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
+            if ($order->additional_charge > 0) {
+                $printer->text("Additional: " . number_format($order->additional_charge, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
+            }
+
+            $printer->text($linedash);
+            $printer->setJustification(Printer::JUSTIFY_CENTER);
+            $printer->text("TOTAL: " . number_format($order->order_amount, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
+            $printer->text($linedash);
+
+            // Payment info
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            $printer->text("Payment: " . ucfirst(str_replace('_', ' ', $order->payment_method)) . "\n");
+
+            if ($order->pos_details) {
+                $printer->text("Cash: " . number_format($order->pos_details->cash_paid, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
+                $printer->text("Card: " . number_format($order->pos_details->card_paid, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
+
+                $change = $order->pos_details->cash_paid + $order->pos_details->card_paid - $order->pos_details->invoice_amount;
+                if ($change > 0) {
+                    $printer->text("Change: " . number_format($change, 3, '.', ''));
+                    $printer->bitImageColumnFormat($currencyTextimage);
                 }
-
-                $itemTotal = $detail->price * $detail->quantity;
-                $subTotal += $itemTotal;
-
-                //$printer->text("  Total: " . Helpers::format_currency($itemTotal) . "\n");
-                $printer->setJustification(Printer::JUSTIFY_RIGHT);
-                $printer->setEmphasis(true);
-                $printer->text("  Total: " . number_format($itemTotal, 3, '.', '') . "\n");
-                $printer->setJustification(Printer::JUSTIFY_LEFT);
-
-                $printer->text($linedash);
             }
-        }
-
-        //$printer->feed(1);
-        //$printer->text($linedash);
-
-        // Order summary
-        $printer->text("Items Price: " . Helpers::format_currency($subTotal) . "\n");
-        $printer->text("Add-ons: " . Helpers::format_currency($addOnsCost) . "\n");
-
-        $subTotalWithAddons = $subTotal + $addOnsCost;
-        $printer->text("Subtotal: " . Helpers::format_currency($subTotalWithAddons) . "\n");
-
-        if ($order->restaurant_discount_amount > 0) {
-            $printer->text("Discount: -" . Helpers::format_currency($order->restaurant_discount_amount) . "\n");
-        }
-
-        if ($order->tax_status == 'excluded' || $order->tax_status == null) {
-            $printer->text("Tax: " . Helpers::format_currency($order->total_tax_amount) . "\n");
-        }
-
-        $printer->text("Delivery: " . Helpers::format_currency($order->delivery_charge) . "\n");
-
-        if ($order->additional_charge > 0) {
-            $printer->text("Additional: " . Helpers::format_currency($order->additional_charge) . "\n");
-        }
-
-        $printer->text($linedash);
-        $printer->setJustification(Printer::JUSTIFY_CENTER);
-        $printer->text("TOTAL: " . Helpers::format_currency($order->order_amount) . "\n");
-        $printer->text($linedash);
-
-        // Payment info
-        $printer->setJustification(Printer::JUSTIFY_LEFT);
-        $printer->text("Payment: " . ucfirst(str_replace('_', ' ', $order->payment_method)) . "\n");
-
-        if ($order->pos_details) {
-            $printer->text("Cash: " . Helpers::format_currency($order->pos_details->cash_paid) . "\n");
-            $printer->text("Card: " . Helpers::format_currency($order->pos_details->card_paid) . "\n");
-
-            $change = $order->pos_details->cash_paid + $order->pos_details->card_paid - $order->pos_details->invoice_amount;
-            if ($change > 0) {
-                $printer->text("Change: " . Helpers::format_currency($change) . "\n");
-            }
-        }
 
             $printer->feed(2);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
@@ -449,288 +457,264 @@ class PrintController extends Controller
         }
 
         try {
-        $request->validate([
-            'order_id' => 'required|string'
-        ]);
+            $request->validate([
+                'order_id' => 'required|string'
+            ]);
 
-        $orderId = $request->input('order_id') ?: $request->query('order_id');
+            $orderId = $request->input('order_id') ?: $request->query('order_id');
 
-        // Find the order
-        $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details'])
-            ->where('id', $orderId)
-            ->first();
+            // Find the order
+            $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details'])
+                ->where('id', $orderId)
+                ->first();
 
-        if (!$order) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order not found'
-            ], 404);
-        }
-
-        // Get printer name from database
-        $user = Auth::user();
-
-        $branchId = $order->restaurant_id;
-        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
-        $printerName = $branch->kitchen_printer ?? 'KitchenPrinter';
-
-        // Connect to printer
-        $connector = new WindowsPrintConnector($printerName);
-        $printer = new Printer($connector);
-
-
-        //image print
-
-        // Arabic text
-        $arabicText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
-
-        // 🔹 Create Arabic PNG
-//     $filePath = $this->createArabicImage($arabicText);
-//   $logo = \Mike42\Escpos\EscposImage::load($filePath, false);
-//   $printer->setEmphasis(true);
-
-        // Set double height and double width (bigger font)
-        // $printer->graphics($logo);
-
-        // // Load image and send to printer
-// $escposImg = \Mike42\Escpos\EscposImage::load($imagePath, false);
-// $printer->bitImage($escposImg);
-
-
-        // $img = EscposImage::load($imagePath, false);
-// $printer->bitImage($img);
-
-        // End of image print
-        $linedash = "------------------------------------------------\n";
-        // Print order header
-        $printer->setEmphasis(true);
-        $printer->setJustification(Printer::JUSTIFY_CENTER);
-
-        $printer->setTextSize(2, 2);
-        $printer->text($order->restaurant->name . "\n");
-
-        $printer->setTextSize(1, 1);
-        $printer->text($order->restaurant->address . "\n");
-        $printer->text("Phone: " . $order->restaurant->phone . "\n");
-        $printer->text($linedash);
-
-        $printer->text("KITCHEN COPY\n");
-        //  $printer->feed(1);
-
-        // Order details
-        $printer->setJustification(Printer::JUSTIFY_LEFT);
-        //                         $printer->setTextSize(2, 2);
-
-        //                         $lineWidth = 42; // adjust to your printer (try 32 if text gets cut)
-
-        // // Left + right texts
-// $left = "Order #: " . $order->order_serial ;
-// $right  = "Date: " . date('Y-m-d H:i', strtotime($order->created_at));
-
-        // Create one line with padding
-// $line = $left . str_repeat(" ", max(0, $lineWidth - strlen($left) - strlen($right))) . $right;
-
-        //$printer->text($line . "\n");
-        $printer->setTextSize(2, 2);
-        $printer->text("Order # " . $order->order_serial . "\n");
-        $printer->setTextSize(1, 1);
-
-        $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
-        $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
-
-        // Customer info
-        if ($order->pos_details) {
-            $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
-            $printer->text("Customer: " . $customerName . "\n");
-
-            if ($order->pos_details->phone) {
-                $printer->text("Phone: " . $order->pos_details->phone . "\n");
+            if (!$order) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Order not found'
+                ], 404);
             }
 
-            if ($order->pos_details->car_number) {
-                $printer->text("Car No: " . $order->pos_details->car_number . "\n");
-            }
-        }
+            // Get printer name from database
+            $user = Auth::user();
 
-        if ($order->takenBy) {
-            $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
-        }
+            $branchId = $order->restaurant_id;
+            $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+            $printerName = $branch->kitchen_printer ?? 'KitchenPrinter';
 
-        $printer->text($linedash);
-        // $printer->feed(1);
+            // Connect to printer
+            $connector = new WindowsPrintConnector($printerName);
+            $printer = new Printer($connector);
 
-        // Order items
-        //  $printer->text("Qty" . "   " . "Item" . str_repeat(" ", 32)  . "Amount\n");
+            // Arabic text
+            $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
+            $currencyImagePath = storage_path('app/public/prints/arabic_currency_text.png');
+            ReceiptImageHelper::createArabicImageForPrinter($currencyText, $currencyImagePath, 16);
+            $currencyTextimage = EscposImage::load($currencyImagePath);
 
-        // Define column widths (adjust for your printer, usually 42 for 80mm)
-        $colWidths = [5, 30, 12];           // Qty, Name, Amount
-        $colAligns = ['left', 'left', 'right'];  // Amount right-aligned
-
-        // $colArabic= formatRow(["كمية",  "اسم", "الكمية"], $colWidths, $colAligns);
-
-        // $bmpFile = $this->createArabicPngTight($colArabic, 'arabic-text.png');
-// $image = \Mike42\Escpos\EscposImage::load($bmpFile);
-
-        //$printer->graphics($image);
-
-
-        // Items
-        $printer->text(formatRowK(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
-        //$printer->text(formatRow(["1", "Pizza Margherita", "2.500"], $colWidths, $colAligns) . "\n");
-
-        $printer->text($linedash);
-
-        $subTotal = 0;
-        $addOnsCost = 0;
-
-        foreach ($order->details as $detail) {
-            if ($detail->food_id || $detail->campaign == null) {
-                $foodDetails = json_decode($detail->food_details, true);
-
-                $foodName = $foodDetails['name'] ?? 'Unknown Item';
-
-                //  $printer->text($detail->quantity . "x " . $foodName . "\n");
-
-                // Price per item
-                // $printer->text("  Price: " . Helpers::format_currency($detail->price) . "\n");
-                //  $printer->text("  G Price: " . $detail->price . "\n" );
-
-                $printer->setEmphasis(true);
-                $printer->text(formatRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
-
-                //  $arabicText = " ر.ع". "  MG Price: " . $detail->price  ;
-                //   $filePath = $this->createArabicImage($arabicText);
-
-                //                        $bmpFile = $this->createArabicPngTight('ملك البيتزا', 'arabic-text.png');
-// $image = \Mike42\Escpos\EscposImage::load($bmpFile);
-// $printer->graphics($image);
-
-
-                //dd($filePath);
-//  $logo = \Mike42\Escpos\EscposImage::load($filePath, false);
-//                     $printer->graphics($logo);
-
-                $printer->setEmphasis(false);
-                // Variations
-                $variations = json_decode($detail->variation, true);
-                if (count($variations) > 0) {
-                    //$printer->text("  Variations:\n");
-
-                    foreach ($variations as $variation) {
-                        if (isset($variation['name']) && isset($variation['values'])) {
-                            $printer->text("  " . $variation['name'] . ":");
-                            // $printer->text("  " . $variation['options_list_id'] . ":");
-
-
-                            foreach ($variation['values'] as $value) {
-                                //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
-                                //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-                                $options_listname = DB::table('options_list')
-                                    ->where('id', $value['options_list_id'])
-                                    ->value('name');
-                                $printer->text(" - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-
-
-                            }
-                        }
-
-                        //variation addon
-
-                        // Print addons if available
-                        if (isset($variation['addons']) && count($variation['addons']) > 0) {
-                            foreach ($variation['addons'] as $addon) {
-                                $printer->text("     V Addon: " . $addon['name']
-                                    . " | (" . number_format($addon['price'], 3, '.', '')
-                                    . " x " . $addon['quantity'] . ")\n");
-
-                                $addOnsCost += $addon['price'] * $addon['quantity'];
-                            }
-                        }
-                    }
-                }
-
-
-                $printer->setEmphasis(false);
-                // Add-ons
-                $addOns = json_decode($detail->add_ons, true);
-                if (count($addOns) > 0) {
-                    $printer->text("  Add-ons:");
-                    foreach ($addOns as $addon) {
-                        // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
-                        $printer->text("-" . $addon['name'] . " (" . $addon['quantity'] . "x" . number_format($addon['price'], 3, '.', '') . ")\n");
-
-                        $addOnsCost += $addon['price'] * $addon['quantity'];
-                    }
-                }
-
-                // Notes
-                if ($detail->notes) {
-                    $printer->text("  Note: " . $detail->notes . "\n");
-                }
-
-                $itemTotal = $detail->price * $detail->quantity;
-                $subTotal += $itemTotal;
-
-                //$printer->text("  Total: " . Helpers::format_currency($itemTotal) . "\n");
-                $printer->setJustification(Printer::JUSTIFY_RIGHT);
-                $printer->setEmphasis(true);
-                $printer->text("  Total: " . number_format($itemTotal, 3, '.', '') . "\n");
-                $printer->setJustification(Printer::JUSTIFY_LEFT);
-
-                $printer->text($linedash);
-            }
-        }
-
-        //$printer->feed(1);
-        //$printer->text($linedash);
-
-        // Order summary
-        $printer->text("Items Price: " . Helpers::format_currency($subTotal) . "\n");
-        $printer->text("Add-ons: " . Helpers::format_currency($addOnsCost) . "\n");
-
-        $subTotalWithAddons = $subTotal + $addOnsCost;
-        $printer->text("Subtotal: " . Helpers::format_currency($subTotalWithAddons) . "\n");
-
-        if ($order->restaurant_discount_amount > 0) {
-            $printer->text("Discount: -" . Helpers::format_currency($order->restaurant_discount_amount) . "\n");
-        }
-
-        if ($order->tax_status == 'excluded' || $order->tax_status == null) {
-            $printer->text("Tax: " . Helpers::format_currency($order->total_tax_amount) . "\n");
-        }
-
-        $printer->text("Delivery: " . Helpers::format_currency($order->delivery_charge) . "\n");
-
-        if ($order->additional_charge > 0) {
-            $printer->text("Additional: " . Helpers::format_currency($order->additional_charge) . "\n");
-        }
-
-        $printer->text($linedash);
-        $printer->setJustification(Printer::JUSTIFY_CENTER);
-        $printer->text("TOTAL: " . Helpers::format_currency($order->order_amount) . "\n");
-        $printer->text($linedash);
-
-        // Payment info
-        $printer->setJustification(Printer::JUSTIFY_LEFT);
-        $printer->text("Payment: " . ucfirst(str_replace('_', ' ', $order->payment_method)) . "\n");
-
-        if ($order->pos_details) {
-            $printer->text("Cash: " . Helpers::format_currency($order->pos_details->cash_paid) . "\n");
-            $printer->text("Card: " . Helpers::format_currency($order->pos_details->card_paid) . "\n");
-
-            $change = $order->pos_details->cash_paid + $order->pos_details->card_paid - $order->pos_details->invoice_amount;
-            if ($change > 0) {
-                $printer->text("Change: " . Helpers::format_currency($change) . "\n");
-            }
-        }
-
-            $printer->feed(2);
+            // End of image print
+            $linedash = "------------------------------------------------\n";
+            // Print order header
+            $printer->setEmphasis(true);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
-            $printer->text("Thank you for your order!\n");
+
+            $printer->setTextSize(2, 2);
+            $printer->text($order->restaurant->name . "\n");
+
+            $printer->setTextSize(1, 1);
+            $printer->text($order->restaurant->address . "\n");
+            $printer->text("Phone: " . $order->restaurant->phone . "\n");
+            $printer->text($linedash);
+
+            $printer->text("KITCHEN COPY\n");
+            //  $printer->feed(1);
+
+            // Order details
+            $printer->setJustification(Printer::JUSTIFY_LEFT);
+            //                         $printer->setTextSize(2, 2);
+
+            //                         $lineWidth = 42; // adjust to your printer (try 32 if text gets cut)
+
+            // // Left + right texts
+            // $left = "Order #: " . $order->order_serial ;
+            // $right  = "Date: " . date('Y-m-d H:i', strtotime($order->created_at));
+
+            // Create one line with padding
+            // $line = $left . str_repeat(" ", max(0, $lineWidth - strlen($left) - strlen($right))) . $right;
+
+            //$printer->text($line . "\n");
+            $printer->setTextSize(2, 2);
+            $printer->text("Order # " . $order->order_serial . "\n");
+            $printer->setTextSize(1, 1);
+
+            $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
+            $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
+
+            // Customer info
+            if ($order->pos_details) {
+                $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
+                $printer->text("Customer: " . $customerName . "\n");
+
+                if ($order->pos_details->phone) {
+                    $printer->text("Phone: " . $order->pos_details->phone . "\n");
+                }
+
+                if ($order->pos_details->car_number) {
+                    $printer->text("Car No: " . $order->pos_details->car_number . "\n");
+                }
+            }
+
+            if ($order->takenBy) {
+                $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
+            }
+
+            $printer->text($linedash);
+            // $printer->feed(1);
+
+            // Order items
+            //  $printer->text("Qty" . "   " . "Item" . str_repeat(" ", 32)  . "Amount\n");
+
+            // Define column widths (adjust for your printer, usually 42 for 80mm)
+            $colWidths = [5, 30, 12];           // Qty, Name, Amount
+            $colAligns = ['left', 'left', 'right'];  // Amount right-aligned
+
+            // $colArabic= formatRow(["كمية",  "اسم", "الكمية"], $colWidths, $colAligns);
+
+            // $bmpFile = $this->createArabicPngTight($colArabic, 'arabic-text.png');
+            // $image = \Mike42\Escpos\EscposImage::load($bmpFile);
+
+            //$printer->graphics($image);
+
+            // Items
+            $colArabicImagePath = public_path('assets/pos_printer_arabic_header_text.png');
+            $headerFilePath = EscposImage::load($colArabicImagePath, false);
+
+            // Items
+
+            $printer->text(formatRow(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
+            $printer->bitImageColumnFormat($headerFilePath);
+            //$printer->text(formatRow(["1", "Pizza Margherita", "2.500"], $colWidths, $colAligns) . "\n");
+
+            $printer->text($linedash);
+
+            $subTotal = 0;
+            $addOnsCost = 0;
+            $count = 0;
+            foreach ($order->details as $detail) {
+                if ($detail->food_id || $detail->campaign == null) {
+                    $foodDetails = json_decode($detail->food_details, true);
+
+                    $foodName = $foodDetails['name'] ?? 'Unknown Item';
+                    $foodArabicName = Food::where('id', $detail->food_id)->first()->getTranslationValue('name', 'ar');
+                    $foodArabicName = ReceiptImageHelper::createArabicImageForPrinter($foodArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                    $foodArabicNameImage = EscposImage::load($foodArabicName, false);
+                    //  $printer->text($detail->quantity . "x " . $foodName . "\n");
+
+                    // Price per item
+                    // $printer->text("  Price: " . Helpers::format_currency($detail->price) . "\n");
+                    //  $printer->text("  G Price: " . $detail->price . "\n" );
+
+                    $printer->setEmphasis(true);
+                    $printer->text(formatRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
+
+                    $printer->setPrintLeftMargin(55);
+                    $printer->bitImageColumnFormat($foodArabicNameImage);
+                    $printer->setPrintLeftMargin(0);
+                    //  $arabicText = " ر.ع". "  MG Price: " . $detail->price  ;
+                    //   $filePath = $this->createArabicImage($arabicText);
+
+                    //                        $bmpFile = $this->createArabicPngTight('ملك البيتزا', 'arabic-text.png');
+                    // $image = \Mike42\Escpos\EscposImage::load($bmpFile);
+                    // $printer->graphics($image);
+
+
+                    //dd($filePath);
+                    //  $logo = \Mike42\Escpos\EscposImage::load($filePath, false);
+                    //                     $printer->graphics($logo);
+
+                    $printer->setEmphasis(false);
+                    // Variations
+                    $variations = json_decode($detail->variation, true);
+                    if (count($variations) > 0) {
+                        //$printer->text("  Variations:\n");
+
+                        foreach ($variations as $variation) {
+                            if (isset($variation['name']) && isset($variation['values'])) {
+                                $printer->text("  " . $variation['name'] . ":" . "\n");
+                                // $printer->text("  " . $variation['options_list_id'] . ":");
+
+
+                                foreach ($variation['values'] as $value) {
+                                    //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
+                                    //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
+                                    $options_listname = DB::table('options_list')
+                                        ->where('id', $value['options_list_id'])
+                                        ->value('name');
+                                    $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
+                                
+                                    $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
+
+                                    if($arabicOptionName){
+                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                        $arabicOptionName = EscposImage::load($arabicOptionName, false);
+                                        $printer->setPrintLeftMargin(40);
+                                        $printer->bitImageColumnFormat($arabicOptionName);
+                                        $printer->setPrintLeftMargin(0);
+                                    }
+                                }
+                            }
+
+                            //variation addon
+
+                            // Print addons if available
+                            if (isset($variation['addons']) && count($variation['addons']) > 0) {
+                                foreach ($variation['addons'] as $addon) {
+                                    $printer->text("     V Addon: " . $addon['name']
+                                        . " | (" . number_format($addon['price'], 3, '.', '')
+                                        . " x " . $addon['quantity'] . ")\n");
+
+                                    $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
+
+                                    if($addOnArabicName){
+                                        $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                        $addOnArabicName = EscposImage::load($addOnArabicName, false);
+                                        $printer->setPrintLeftMargin(40);
+                                        $printer->bitImageColumnFormat($addOnArabicName);
+                                        $printer->setPrintLeftMargin(0);
+                                    }
+
+                                    $addOnsCost += $addon['price'] * $addon['quantity'];
+                                }
+                            }
+                        }
+                    }
+
+
+                    $printer->setEmphasis(false);
+                    // Add-ons
+                    $addOns = json_decode($detail->add_ons, true);
+                    if (count($addOns) > 0) {
+                        $printer->text("  Add-ons:" . "\n");
+                        foreach ($addOns as $addon) {
+                            // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
+                            $printer->text("  -" . $addon['name'] . " (" . $addon['quantity'] . "x" . number_format($addon['price'], 3, '.', '') . ")\n");
+
+                            // Get Addon Translation
+                            $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
+                            if($addOnArabicName){
+                                $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                $addOnArabicName = EscposImage::load($addOnArabicName, false);
+                                $printer->setPrintLeftMargin(40);
+                                $printer->bitImageColumnFormat($addOnArabicName);
+                                $printer->setPrintLeftMargin(0);
+                            }
+
+                            $addOnsCost += $addon['price'] * $addon['quantity'];
+                        }
+                    }
+
+                    // Notes
+                    if ($detail->notes) {
+                        $printer->text("  Note: " . $detail->notes . "\n");
+                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                        $notes = EscposImage::load($notes, false);
+                        $printer->setPrintLeftMargin(40);
+                        $printer->bitImageColumnFormat($notes);
+                        $printer->setPrintLeftMargin(0);
+                    }
+
+                    $itemTotal = $detail->price * $detail->quantity;
+                    $subTotal += $itemTotal;
+                }
+            }
+
+            $printer->text($linedash);
+            $printer->setJustification(Printer::JUSTIFY_CENTER);
+            $printer->text("TOTAL: " . number_format($order->order_amount, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
             $printer->text($linedash);
 
             // Feed & cut
-            $printer->feed(2);
             $printer->cut();
             $printer->close();
 
@@ -743,11 +727,6 @@ class PrintController extends Controller
             return redirect()->back()->with('warning', 'Order placed successfully, but kitchen printing failed: ' . $e->getMessage());
         }
     }
-
-
-
-
-
 
     private function createArabicPngTight($arabicText, $fileName = 'arabic-tight.png')
     {

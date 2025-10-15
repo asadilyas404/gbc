@@ -23,6 +23,7 @@
         "guzzlehttp/guzzle": "^7.0.1",
         "intervention/image": "^2.5",
         "iyzico/iyzipay-php": "^2.0",
+        "khaled.alshamaa/ar-php": "^7.0",
         "kreait/firebase-php": "^5.26",
         "laravel/framework": "^8.0",
         "laravel/passport": "^10.0",

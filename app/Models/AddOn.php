@@ -30,6 +30,15 @@ class AddOn extends Model
         return $this->morphMany(Translation::class, 'translationable');
     }
 
+    public function getTranslationValue($key, $locale = 'ar')
+    {
+        return Translation::where('translationable_type', self::class)
+        ->where('translationable_id', $this->id)
+        ->where('key', $key)
+        ->where('locale', $locale)
+        ->value('value');
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 1);

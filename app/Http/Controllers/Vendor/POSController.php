@@ -994,8 +994,10 @@ class POSController extends Controller
 
                 $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string) $order->id]));
 
-
                $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                
+               $order->printed = 1;
+               $order->save();
             } catch (\Exception $printException) {
                 info('Print error: ' . $printException->getMessage());
             }

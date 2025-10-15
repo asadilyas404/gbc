@@ -187,7 +187,7 @@
                                 </a>
                                 <button type="button" class="btn btn--primary m-2 print--btn direct-print-btn"
                                     data-order-id="{{ $order['id'] }}">
-                                    <i class="tio-print mr-1"></i> {{ translate('Direct Print') }}
+                                    <i class="tio-print mr-1"></i> {{ translate('Kitchen Print') }}
                                 </button>
                                 <button type="button" class="btn btn--primary m-2 print--btn api-print-btn"
                                     data-order-id="{{ $order['id'] }}">
@@ -1792,13 +1792,13 @@
         // Print Order Functionality
         $(document).on('click', '.direct-print-btn', function() {
             const orderId = $(this).data('order-id');
-            printOrder(orderId);
+            apiPrintOrder(orderId, 'kitchen');
         });
 
         // API Print Functionality
         $(document).on('click', '.api-print-btn', function() {
             const orderId = $(this).data('order-id');
-            apiPrintOrder(orderId);
+            apiPrintOrder(orderId, 'api');
         });
 
         function printOrder(orderId) {
@@ -1930,11 +1930,16 @@
         }
 
         // API Print Order Function
-        function apiPrintOrder(orderId) {
+        function apiPrintOrder(orderId, location = 'api') {
             // Show loading
             toastr.info('Sending to printer...');
 
-            window.location.href = '/api/v1/print/order?order_id=' + orderId;
+            if(location == 'kitchen'){
+                window.location.href = '/api/v1/print/kitchen-order?order_id=' + orderId;
+            }
+            else{
+                window.location.href = '/api/v1/print/order?order_id=' + orderId;
+            }
         }
 
         // Initialize QZ Tray connection

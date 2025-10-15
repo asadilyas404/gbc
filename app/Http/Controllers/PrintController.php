@@ -378,6 +378,8 @@ class PrintController extends Controller
             $printer->cut();
             $printer->close();
 
+            $this->printOrderKitchen($request);
+
             return redirect()->back()->with('success', 'Order printed successfully!');
         } catch (\Exception $e) {
             // Log the error but don't prevent order placement
@@ -495,7 +497,12 @@ class PrintController extends Controller
             // End of image print
             $linedash = "------------------------------------------------\n";
             // Print order header
+
             $printer->setEmphasis(true);
+            if($order->printed == '1'){
+                $printer->text("REPRINTED\n\n");
+            }
+
             $printer->setJustification(Printer::JUSTIFY_CENTER);
 
             $printer->setTextSize(2, 2);
@@ -571,7 +578,7 @@ class PrintController extends Controller
 
             // Items
 
-            $printer->text(formatRow(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
+            $printer->text(formatRowK(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
             $printer->bitImageColumnFormat($headerFilePath);
             //$printer->text(formatRow(["1", "Pizza Margherita", "2.500"], $colWidths, $colAligns) . "\n");
 
@@ -595,7 +602,7 @@ class PrintController extends Controller
                     //  $printer->text("  G Price: " . $detail->price . "\n" );
 
                     $printer->setEmphasis(true);
-                    $printer->text(formatRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
+                    $printer->text(formatRowK([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
 
                     $printer->setPrintLeftMargin(55);
                     $printer->bitImageColumnFormat($foodArabicNameImage);

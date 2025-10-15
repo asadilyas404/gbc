@@ -6576,4 +6576,5 @@
   'Want to delete this option ?' => 'Want to delete this option ?',
   'Ex : Option Name ' => 'Ex : Option Name ',
   'Option Name' => 'Option Name',
+  'Kitchen Print' => 'Kitchen Print',
 );

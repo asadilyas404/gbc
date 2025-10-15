@@ -14,6 +14,7 @@ Route::post('/push-sale-invoices', [DataPushController::class, 'pushInvoices']);
 
 // Print API routes
 Route::match(['get', 'post'], '/print/order', [PrintController::class, 'printOrder']);
+Route::match(['get', 'post'], '/print/kitchen-order', [PrintController::class, 'printOrderKitchen']);
 
 Route::middleware('api')->group(function () {
     Route::post('order-place', [POSController::class, 'order_place']);

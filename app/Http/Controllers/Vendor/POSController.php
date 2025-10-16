@@ -81,16 +81,13 @@ class POSController extends Controller
         $keyword = $request->query('keyword', false);
         $key = explode(' ', strtolower($keyword));
 
-        // Fetch main categories
         $categories = Category::active()->where('parent_id', 0)->get();
 
-        // Fetch subcategories based on selected category
         $subcategories = Category::active()
             ->where('parent_id', $category)
             ->where('parent_id', '!=', 0)
             ->get();
 
-        // Fetch products based on selected category, subcategory, and keyword
         $products = Food::active()
             ->when($category, function ($query) use ($category) {
                 $query->whereHas('category', function ($q) use ($category) {
@@ -113,7 +110,6 @@ class POSController extends Controller
             ->latest()->get();
         // ->paginate(10);
 
-        // Check if the request is AJAX
         if ($request->ajax()) {
             return response()->json([
                 'subcategoryHtml' => view('vendor-views.pos._subcategory_list', compact('subcategories'))->render(),
@@ -135,12 +131,10 @@ class POSController extends Controller
             }
         }
 
-        // Get order date from settings
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
 
-        // Standard request
         return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword', 'draftDetails', 'editingOrder', 'orderDate', 'draftCustomer'));
     }
 
@@ -218,7 +212,6 @@ class POSController extends Controller
             }
         }
 
-        // NEW: Calculate variation-specific addon prices
         if ($request->has('variation_addon_id')) {
             foreach ($request->variation_addon_id as $variation_key => $addon_ids) {
                 if (is_array($addon_ids)) {
@@ -256,7 +249,6 @@ class POSController extends Controller
 
         $original_price = $price_total;
 
-        // Apply product discount based on discount type
         if ($request->product_discount_type && $request->has('product_discount')) {
             $discountAmount = $request->product_discount;
             $discountType = $request->product_discount_type;
@@ -271,21 +263,7 @@ class POSController extends Controller
             $price_total = $price_total - Helpers::product_discount_calculate($product, $price_total, Helpers::get_restaurant_data());
         }
 
-        // Calculate total price: (base price + variations) * quantity + all addon costs
         $total_price = ($price_total * $request->quantity) + $addon_price;
-
-        // Debug logging
-        error_log("=== VARIANT PRICE DEBUG ===");
-        error_log("Base price: " . $price);
-        error_log("Variations: " . json_encode($request->variations));
-        error_log("Price total (base + variations): " . $price_total);
-        error_log("Quantity: " . $request->quantity);
-        error_log("Addon price: " . $addon_price);
-        error_log("Total price calculation: (" . $price_total . " * " . $request->quantity . ") + " . $addon_price . " = " . $total_price);
-        error_log("Variation addon data: " . json_encode($request->variation_addon_id ?? []));
-        error_log("Variation addon quantities: " . json_encode($request->variation_addon_quantity ?? []));
-        error_log("Variation addon prices: " . json_encode($request->variation_addon_price ?? []));
-        error_log("==========================");
 
         return response()->json([
             'price' => Helpers::format_currency($total_price),
@@ -377,7 +355,6 @@ class POSController extends Controller
             $variation_price = $variation_data['price'];
             $variations = $request->variations;
 
-            // NEW: Add addon information to each variation
             if ($request->has('variation_addon_id')) {
                 foreach ($variations as $key => $variation) {
                     if (isset($request->variation_addon_id[$key]) && is_array($request->variation_addon_id[$key])) {
@@ -393,7 +370,6 @@ class POSController extends Controller
                                 'quantity' => $quantity
                             ];
 
-                            // Add to total addon price
                             $addon_price += $price * $quantity;
                         }
                     }
@@ -440,11 +416,9 @@ class POSController extends Controller
             $data['add_ons'] = $request['addon_id'];
         }
 
-        // Prepare addon data for stock checking (including variation-specific addons)
         $all_addon_ids = $add_on_ids;
         $all_addon_qtys = $add_on_qtys;
 
-        // Add variation-specific addons to stock checking
         if ($request->has('variation_addon_id')) {
             foreach ($request->variation_addon_id as $variation_key => $addon_ids) {
                 if (is_array($addon_ids)) {
@@ -501,7 +475,6 @@ class POSController extends Controller
         return view('vendor-views.pos._cart', compact('draftDetails', 'editingOrder'));
     }
 
-    //removes from Cart
     public function removeFromCart(Request $request)
     {
         if ($request->session()->has('cart')) {
@@ -513,7 +486,6 @@ class POSController extends Controller
         return response()->json([], 200);
     }
 
-    //updated the quantity for a cart item
     public function updateQuantity(Request $request)
     {
         $product = Food::find($request->food_id);
@@ -541,7 +513,6 @@ class POSController extends Controller
         return response()->json([], 200);
     }
 
-    //empty Cart
     public function emptyCart(Request $request)
     {
         session()->forget('cart');
@@ -562,7 +533,6 @@ class POSController extends Controller
     {
         $cart = $request->session()->get('cart', collect([]));
 
-        // Calculate cart totals
         $subtotal = 0;
         $addon_price = 0;
         $discount_on_product = 0;
@@ -578,14 +548,12 @@ class POSController extends Controller
 
         $total = $subtotal + $addon_price;
 
-        // Calculate the discount amount based on type
         $discount = $request->discount;
         $discount_type = $request->type;
         $discount_amount = $discount_type == 'percent' && $discount > 0
             ? (($total - $discount_on_product) * $discount) / 100
             : $discount;
 
-        // Check if discount would make the total negative
         $final_total = $total - $discount_amount - $discount_on_product;
 
         if ($final_total < 0) {
@@ -683,7 +651,6 @@ class POSController extends Controller
         $payment_type = '';
         if ($request->order_draft == 'final') {
 
-            // Determine payment type
             if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
                 $payment_type = 'cash';
             } elseif ($request->card_paid > 0 && ($request->cash_paid === null || $request->cash_paid <= 0)) {
@@ -744,7 +711,6 @@ class POSController extends Controller
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
 
-            // Get order date from settings
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
@@ -814,11 +780,9 @@ class POSController extends Controller
                     $product = Helpers::product_data_formatting($product);
                     $addon_data = Helpers::calculate_addon_price(\App\Models\AddOn::whereIn('id', $c['add_ons'])->get(), $c['add_on_qtys']);
 
-                    // Prepare addon data for stock checking (including variation-specific addons)
                     $all_addon_ids = $c['add_ons'] ?? [];
                     $all_addon_qtys = $c['add_on_qtys'] ?? [];
 
-                    // Add variation-specific addons to stock checking
                     if (isset($c['variations']) && is_array($c['variations'])) {
                         foreach ($c['variations'] as $variation) {
                             if (isset($variation['addons']) && is_array($variation['addons'])) {
@@ -845,10 +809,8 @@ class POSController extends Controller
                     $variation_data = Helpers::get_varient($product->variations, $c['variations']);
                     $processed_variations = $variation_data['variations'];
 
-                    // Calculate total addon price including variation-specific addons
                     $total_addon_price_for_item = $addon_data['total_add_on_price'];
 
-                    // Add variation-specific addon prices
                     if (isset($c['variations']) && is_array($c['variations'])) {
                         foreach ($c['variations'] as $variation) {
                             if (isset($variation['addons']) && is_array($variation['addons'])) {
@@ -859,14 +821,11 @@ class POSController extends Controller
                         }
                     }
 
-                    // Prepare complete variation data for storage
                     $complete_variations = [];
                     if (isset($c['variations']) && is_array($c['variations'])) {
                         foreach ($c['variations'] as $key => $cartVariation) {
-                            // Start with the processed variation data (for price calculation compatibility)
                             $completeVariation = isset($processed_variations[$key]) ? $processed_variations[$key] : $cartVariation;
 
-                            // Add addons if they exist
                             if (isset($cartVariation['addons'])) {
                                 $completeVariation['addons'] = $cartVariation['addons'];
                             }
@@ -891,7 +850,6 @@ class POSController extends Controller
                         'updated_at' => now(),
                     ];
 
-                    // Debug: Log what's being stored in order details
                     error_log('Cart variations structure: ' . json_encode($c['variations']));
                     error_log('Cart variations keys: ' . json_encode(array_keys($c['variations'] ?? [])));
                     if (isset($c['variations'][0]['values'])) {
@@ -953,7 +911,6 @@ class POSController extends Controller
                 ]);
             }
             if ($editing_order_id) {
-                // Delete old order details
                 OrderDetail::where('order_id', $order->id)->delete();
             }
 
@@ -1043,7 +1000,6 @@ class POSController extends Controller
         foreach ($order->details as $item) {
             $food = json_decode($item->food_details, true);
 
-            // Safe defaults
             $variation_price = 0;
             $variations = json_decode($item->variation, true) ?? [];
 
@@ -1051,7 +1007,6 @@ class POSController extends Controller
                 $variation_price += $variation['optionPrice'] ?? 0;
             }
 
-            // Simplify variations
             $simplified_variations = Helpers::simplifyVariationsToLabels($variations);
             $rawAddOns = json_decode($item->add_ons, true) ?? [];
             $addon_ids = collect($rawAddOns)->pluck('id')->toArray();
@@ -1101,7 +1056,6 @@ class POSController extends Controller
         session()->put('cart', $cartSession);
         session()->put('editing_order_id', $order->id);
 
-        // Load delivery address if exists
         if ($order->delivery_address) {
             $deliveryAddress = json_decode($order->delivery_address, true);
             if ($deliveryAddress && is_array($deliveryAddress)) {

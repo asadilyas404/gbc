@@ -998,15 +998,11 @@
         function getVariantPrice() {
             getCheckedInputs();
 
-            // Get discount values from the input fields
             var discountAmount = $('#product_discount').val() || 0;
             var discountType = $('#product_discount_type').val();
 
-            // Debug: Log form data to console
             var formData = $('#add-to-cart-form').serializeArray();
-            console.log('Form data being sent to variant_price:', formData);
 
-            // Check for variation addon data
             var variationAddonData = {};
             formData.forEach(function(item) {
                 if (item.name.startsWith('variation_addon_')) {
@@ -1018,7 +1014,6 @@
             });
             console.log('Variation addon data:', variationAddonData);
 
-            // Ensure the quantity is greater than zero
             if ($('#add-to-cart-form input[name=quantity]').val() > 0) {
                 $.ajaxSetup({
                     headers: {
@@ -1216,7 +1211,6 @@
                 _token: '{{ csrf_token() }}'
             }, function() {
                 $('#del-add').empty();
-                // Clear customer selection from localStorage when cart is cleared
                 localStorage.removeItem('posSelectedCustomer');
                 window.selectedCustomer = null;
                 updateCart();
@@ -1228,7 +1222,6 @@
         });
 
         function updateCart() {
-            // Store current customer selection before updating
             let currentCustomerId = $('#customer').val();
             let currentCustomerText = $('#customer').find('option:selected').text();
 
@@ -1237,20 +1230,17 @@
             }, function(data) {
                 $('#cart').empty().html(data);
 
-                // Restore customer selection after cart update
                 if (currentCustomerId && currentCustomerId !== 'false') {
                     setTimeout(function() {
                         $('#customer').val(currentCustomerId).trigger('change');
-                        // Also restore the stored customer data
+
                         storeCustomerDetails(currentCustomerId, currentCustomerText);
 
-                        // Try to fill modal if it's open
                         if ($('#orderFinalModal').hasClass('show') || $('#orderFinalModal').is(':visible')) {
                             setTimeout(() => tryFillModalWithRetries(5, 100), 200);
                         }
                     }, 100);
                 } else {
-                    // If no current selection, try to restore from localStorage
                     setTimeout(function() {
                         restoreCustomerFromStorage();
                     }, 100);
@@ -1313,7 +1303,6 @@
         $(document).on('click', '.payable-Amount', function() {
             const button = $(this);
 
-            // Don't proceed if already processing
             if (button.prop('disabled')) {
                 return false;
             }
@@ -1396,17 +1385,14 @@
                 });
                 element.val(oldvalue);
             }
-            // Allow: backspace, delete, tab, escape, enter and .
             if (event.type === 'keydown') {
                 if ($.inArray(event.keyCode, [46, 8, 9, 27, 13, 190]) !== -1 ||
                     // Allow: Ctrl+A
                     (event.keyCode === 65 && event.ctrlKey === true) ||
                     // Allow: home, end, left, right
                     (event.keyCode >= 35 && event.keyCode <= 39)) {
-                    // let it happen, don't do anything
                     return;
                 }
-                // Ensure that it is a number and stop the keypress
                 if ((event.shiftKey || (event.keyCode < 48 || event.keyCode > 57)) && (event.keyCode < 96 || event
                         .keyCode > 105)) {
                     event.preventDefault();
@@ -1438,7 +1424,6 @@
             }
         });
 
-        // Auto-fill customer dropdown when loading draft order
         @if(isset($draftCustomer) && $draftCustomer)
             $(document).ready(function() {
                 let customerId = '{{ $draftCustomer->customer_id }}';
@@ -1446,17 +1431,14 @@
                 let customerPhone = '{{ $draftCustomer->customer_mobile_no }}';
                 let customerText = customerName + ' (' + customerPhone + ')';
 
-                // Create option and append to select
                 let newOption = new Option(customerText, customerId, true, true);
                 $('#customer').append(newOption).trigger('change');
 
-                // Store customer details
                 storeCustomerDetails(customerId, customerText);
 
                 console.log('Draft order customer auto-filled: ' + customerText);
             });
         @else
-            // Restore customer selection from localStorage on page load
             $(document).ready(function() {
                 restoreCustomerFromStorage();
             });
@@ -1469,7 +1451,6 @@
                 return null;
             }
 
-            // Extract customer name and phone from the text (format: "Name (Phone)")
             let match = customerText.match(/^(.+?)\s*\((.+?)\)$/);
             if (match) {
                 return {
@@ -1487,7 +1468,6 @@
             if (customerData) {
                 window.selectedCustomer = customerData;
 
-                // Store in localStorage with timestamp for persistence
                 const customerWithTimestamp = {
                     ...customerData,
                     timestamp: Date.now()
@@ -1511,25 +1491,20 @@
                     // Check if data is not too old (24 hours)
                     const maxAge = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
                     if (customerData.timestamp && (Date.now() - customerData.timestamp) < maxAge) {
-                        // Remove timestamp before using
+
                         const { timestamp, ...customerInfo } = customerData;
 
-                        // Wait for select2 to be initialized
                         setTimeout(function() {
                             if ($('#customer').length && typeof $('#customer').select2 === 'function') {
-                                // Create option and append to select
+
                                 let customerText = customerInfo.name + ' (' + customerInfo.phone + ')';
                                 let newOption = new Option(customerText, customerInfo.id, true, true);
                                 $('#customer').append(newOption).trigger('change');
 
-                                // Store customer details again to update timestamp
                                 storeCustomerDetails(customerInfo.id, customerText);
-
-                                console.log('Customer restored from localStorage: ' + customerText);
                             }
-                        }, 1000); // Wait 1 second for select2 initialization
+                        }, 1000);
                     } else {
-                        // Data is too old, remove it
                         localStorage.removeItem('posSelectedCustomer');
                     }
                 }
@@ -1542,7 +1517,6 @@
         $('#customer').on('select2:select', function(e) {
             let data = e.params.data;
             storeCustomerDetails(data.id, data.text);
-            // Also fill delivery address modal if it's open
             if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
                 setTimeout(() => fillDeliveryAddressModal(), 100);
             }
@@ -1550,7 +1524,6 @@
 
         $('#customer').on('select2:clear', function(e) {
             storeCustomerDetails(null, null);
-            // Clear delivery address modal if it's open
             if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
                 setTimeout(() => fillDeliveryAddressModal(), 100);
             }
@@ -1560,7 +1533,6 @@
             let customerId = $(this).val();
             let customerText = $(this).find('option:selected').text();
             storeCustomerDetails(customerId, customerText);
-            // Also fill delivery address modal if it's open
             if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
                 setTimeout(() => fillDeliveryAddressModal(), 100);
             }
@@ -1585,7 +1557,6 @@
                 let storedCustomer = localStorage.getItem('posSelectedCustomer');
                 if (storedCustomer) {
                     const customerData = JSON.parse(storedCustomer);
-                    // Remove timestamp before returning
                     const { timestamp, ...customerInfo } = customerData;
                     return customerInfo;
                 }
@@ -1628,7 +1599,6 @@
 
                 console.log('Delivery address modal filled with customer data: ' + customerData.name);
             } else {
-                // Clear fields if no customer selected
                 contactPersonNameField.val('');
                 contactPersonNumberField.val('');
             }
@@ -1667,7 +1637,6 @@
             activeInput = null;
         });
 
-        // Fill delivery address modal when it's opened
         $(document).on('shown.bs.modal', '#paymentModal, #delivery-address', function() {
             setTimeout(() => fillDeliveryAddressModal(), 300);
         });
@@ -1710,7 +1679,6 @@
 
             const button = $(this);
 
-            // Don't proceed if already processing
             if (button.prop('disabled')) {
                 return false;
             }
@@ -1780,7 +1748,6 @@
                     }
                 },
                 complete: function() {
-                    // Re-enable button
                     button.prop('disabled', false);
                     button.html(button.data('original-text'));
                 }
@@ -1917,7 +1884,6 @@
                 });
             }
 
-            // Handle category click
             $(document).on('click', '.category-item', function(e) {
                 e.preventDefault();
 
@@ -1928,7 +1894,6 @@
                 fetchData(categoryId, '', $('#search-keyword').val());
             });
 
-            // Handle subcategory click
             $(document).on('click', '.subcategory-item', function(e) {
                 e.preventDefault();
 
@@ -1937,11 +1902,9 @@
                 $(this).addClass('selected');
 
                 const categoryId = $('.category-item.selected').data('category') || '';
-                // Fetch products for the selected subcategory
                 fetchData(categoryId, subcategoryId, $('#search-keyword').val());
             });
 
-            // Handle search on Enter key
             $(document).on('keypress', '#search-keyword', function(e) {
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
@@ -1949,12 +1912,10 @@
                     const categoryId = $('.category-item.selected').data('category') || '';
                     const subcategoryId = $('.subcategory-item.selected').data('subcategory') || '';
 
-                    // Fetch products based on the search keyword
                     fetchData(categoryId, subcategoryId, keyword);
                 }
             });
 
-            //Order final Model Calculations
 
             function formatCurrency(amount) {
                 return `{{ Helpers::currency_symbol() }} ${amount.toFixed(3)}`;
@@ -1972,7 +1933,6 @@
                 $('#cash_return').text(formatCurrency(cashReturn));
                 const bankAccountSelect = $('#bank_account');
 
-                // Validate card_paid amount
                 if (cardPaid > invoiceAmount) {
                     alert('{{ translate('Card amount cannot be greater than the invoice amount.') }}');
                     $('#card_paid').val('');
@@ -1980,7 +1940,6 @@
                     return;
                 }
 
-                // Enable/disable bank account selection
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
                 } else {
@@ -1995,13 +1954,11 @@
                 });
             }
 
-            // Call updateCalculations when the modal is opened
             $('#orderFinalModal').on('shown.bs.modal', function() {
-                updateCalculations(); // Recalculate on modal open
-                attachEventListeners(); // Ensure input listeners are attached
+                updateCalculations();
+                attachEventListeners();
             });
 
-            // Trigger calculations if the modal inputs are dynamically added
             $(document).on('input', '#cash_paid, #card_paid', function() {
                 updateCalculations();
             });
@@ -2041,7 +1998,6 @@
                 }
             });
 
-            // Clear the input field
             $(document).on('click', '.keypad-clear', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -2052,29 +2008,23 @@
                 }
             });
 
-            // Sanitize and validate input on blur
             $(document).on('blur', '#cash_paid, #card_paid', function() {
                 const currentVal = this.value;
 
-                // Check if the value is a valid number
                 if (!isValidNumber(currentVal)) {
                     alert('Please enter a valid number');
                     this.value = ''; // Clear the input if it's invalid
                     $(this).trigger('input');
                 }
 
-                // Remove trailing decimal point on blur
                 if (currentVal.endsWith('.')) {
                     this.value = currentVal.slice(0, -1);
                     $(this).trigger('input');
                 }
             });
 
-            // Function to validate if the value is a valid number
             const isValidNumber = (value) => {
-                // Check if value is numeric and not empty
                 return !isNaN(value);
-                //  && value.trim() !== '';
             };
 
         });

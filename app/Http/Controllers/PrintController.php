@@ -32,48 +32,49 @@ class PrintController extends Controller
          * @param array $aligns   Array of 'left', 'right', 'center' for each column (optional)
          * @return string         Formatted line ready to print
          */
-        function formatRow(array $columns, array $widths, array $aligns = [])
-        {
-            $line = '';
-            $count = count($widths);
+        if (!function_exists('formatRow')) {
+            function formatRow(array $columns, array $widths, array $aligns = [])
+            {
+                $line = '';
+                $count = count($widths);
 
-            for ($i = 0; $i < $count; $i++) {
-                $text = isset($columns[$i]) ? (string) $columns[$i] : '';
-                $width = $widths[$i];
-                $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
+                for ($i = 0; $i < $count; $i++) {
+                    $text = isset($columns[$i]) ? (string) $columns[$i] : '';
+                    $width = $widths[$i];
+                    $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
 
-                // Handle multibyte strings
-                $textLength = mb_strlen($text, 'UTF-8');
+                    // Handle multibyte strings
+                    $textLength = mb_strlen($text, 'UTF-8');
 
-                // Truncate if too long
-                if ($textLength > $width) {
-                    $text = mb_substr($text, 0, $width, 'UTF-8');
-                    $textLength = $width;
+                    // Truncate if too long
+                    if ($textLength > $width) {
+                        $text = mb_substr($text, 0, $width, 'UTF-8');
+                        $textLength = $width;
+                    }
+
+                    $padLength = $width - $textLength;
+
+                    switch ($align) {
+                        case 'right':
+                            $padded = str_repeat(' ', $padLength) . $text;
+                            break;
+                        case 'center':
+                            $leftPad = floor($padLength / 2);
+                            $rightPad = $padLength - $leftPad;
+                            $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
+                            break;
+                        case 'left':
+                        default:
+                            $padded = $text . str_repeat(' ', $padLength);
+                            break;
+                    }
+
+                    $line .= $padded;
                 }
 
-                $padLength = $width - $textLength;
-
-                switch ($align) {
-                    case 'right':
-                        $padded = str_repeat(' ', $padLength) . $text;
-                        break;
-                    case 'center':
-                        $leftPad = floor($padLength / 2);
-                        $rightPad = $padLength - $leftPad;
-                        $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
-                        break;
-                    case 'left':
-                    default:
-                        $padded = $text . str_repeat(' ', $padLength);
-                        break;
-                }
-
-                $line .= $padded;
+                return $line;
             }
-
-            return $line;
         }
-
 
         function getRowLine(array $columns, array $widths)
         {
@@ -206,7 +207,7 @@ class PrintController extends Controller
 
                     $foodName = $foodDetails['name'] ?? 'Unknown Item';
                     $foodArabicName = Food::where('id', $detail->food_id)->first()->getTranslationValue('name', 'ar');
-                    $foodArabicName = ReceiptImageHelper::createArabicImageForPrinter($foodArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                    $foodArabicName = ReceiptImageHelper::createArabicImageForPrinter($foodArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                     $foodArabicNameImage = EscposImage::load($foodArabicName, false);
 
                     $printer->setEmphasis(true);
@@ -232,13 +233,13 @@ class PrintController extends Controller
                                     $options_listname = DB::table('options_list')
                                         ->where('id', $value['options_list_id'])
                                         ->value('name');
-                                    $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n") ;
+                                    $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
                                     // Get Option Translation
-                                    
+
                                     $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
-                                    if($arabicOptionName){
-                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                    if ($arabicOptionName) {
+                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                                         $arabicOptionName = EscposImage::load($arabicOptionName, false);
                                         $printer->setPrintLeftMargin(40);
                                         $printer->bitImageColumnFormat($arabicOptionName);
@@ -258,8 +259,8 @@ class PrintController extends Controller
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
-                                    if($addOnArabicName){
-                                        $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                    if ($addOnArabicName) {
+                                        $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                                         $addOnArabicName = EscposImage::load($addOnArabicName, false);
                                         $printer->setPrintLeftMargin(40);
                                         $printer->bitImageColumnFormat($addOnArabicName);
@@ -284,8 +285,8 @@ class PrintController extends Controller
 
                             // Get Addon Translation
                             $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
-                            if($addOnArabicName){
-                                $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                            if ($addOnArabicName) {
+                                $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                                 $addOnArabicName = EscposImage::load($addOnArabicName, false);
                                 $printer->setPrintLeftMargin(40);
                                 $printer->bitImageColumnFormat($addOnArabicName);
@@ -299,7 +300,7 @@ class PrintController extends Controller
                     // Notes
                     if ($detail->notes) {
                         $printer->text("  Note: \n");
-                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                         $notes = EscposImage::load($notes, false);
                         $printer->setPrintLeftMargin(40);
                         $printer->bitImageColumnFormat($notes);
@@ -497,7 +498,7 @@ class PrintController extends Controller
             // Print order header
 
             $printer->setEmphasis(true);
-            if($order->printed == '1'){
+            if ($order->printed == '1') {
                 $printer->text("REPRINTED\n\n");
             }
 
@@ -591,7 +592,7 @@ class PrintController extends Controller
 
                     $foodName = $foodDetails['name'] ?? 'Unknown Item';
                     $foodArabicName = Food::where('id', $detail->food_id)->first()->getTranslationValue('name', 'ar');
-                    $foodArabicName = ReceiptImageHelper::createArabicImageForPrinter($foodArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                    $foodArabicName = ReceiptImageHelper::createArabicImageForPrinter($foodArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                     $foodArabicNameImage = EscposImage::load($foodArabicName, false);
                     //  $printer->text($detail->quantity . "x " . $foodName . "\n");
 
@@ -636,11 +637,11 @@ class PrintController extends Controller
                                         ->where('id', $value['options_list_id'])
                                         ->value('name');
                                     $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-                                
+
                                     $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
-                                    if($arabicOptionName){
-                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                    if ($arabicOptionName) {
+                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                                         $arabicOptionName = EscposImage::load($arabicOptionName, false);
                                         $printer->setPrintLeftMargin(40);
                                         $printer->bitImageColumnFormat($arabicOptionName);
@@ -660,8 +661,8 @@ class PrintController extends Controller
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
-                                    if($addOnArabicName){
-                                        $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                                    if ($addOnArabicName) {
+                                        $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                                         $addOnArabicName = EscposImage::load($addOnArabicName, false);
                                         $printer->setPrintLeftMargin(40);
                                         $printer->bitImageColumnFormat($addOnArabicName);
@@ -686,8 +687,8 @@ class PrintController extends Controller
 
                             // Get Addon Translation
                             $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
-                            if($addOnArabicName){
-                                $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                            if ($addOnArabicName) {
+                                $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                                 $addOnArabicName = EscposImage::load($addOnArabicName, false);
                                 $printer->setPrintLeftMargin(40);
                                 $printer->bitImageColumnFormat($addOnArabicName);
@@ -701,7 +702,7 @@ class PrintController extends Controller
                     // Notes
                     if ($detail->notes) {
                         $printer->text("  Note: " . $detail->notes . "\n");
-                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_'. $count++ .'_arabic.png'), 20);
+                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                         $notes = EscposImage::load($notes, false);
                         $printer->setPrintLeftMargin(40);
                         $printer->bitImageColumnFormat($notes);

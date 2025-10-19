@@ -32,8 +32,8 @@ class PrintController extends Controller
          * @param array $aligns   Array of 'left', 'right', 'center' for each column (optional)
          * @return string         Formatted line ready to print
          */
-        if (!function_exists('formatRow')) {
-            function formatRow(array $columns, array $widths, array $aligns = [])
+        
+            function formatPrintRow(array $columns, array $widths, array $aligns = [])
             {
                 $line = '';
                 $count = count($widths);
@@ -74,7 +74,7 @@ class PrintController extends Controller
 
                 return $line;
             }
-        }
+        
 
         function getRowLine(array $columns, array $widths)
         {
@@ -187,7 +187,7 @@ class PrintController extends Controller
 
             // Items
 
-            $printer->text(formatRow(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
+            $printer->text(formatPrintRow(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
             $printer->bitImageColumnFormat($headerFilePath);
             $qtyImage = ReceiptImageHelper::createArabicImageForPrinter("كمية", storage_path('app/public/prints/food_qty_arabic.png'), 20);
             $qtyImage = EscposImage::load($qtyImage, false);
@@ -211,7 +211,7 @@ class PrintController extends Controller
                     $foodArabicNameImage = EscposImage::load($foodArabicName, false);
 
                     $printer->setEmphasis(true);
-                    $printer->text(formatRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
+                    $printer->text(formatPrintRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
 
                     // Arabic price line
                     // $printer->setJustification(Printer::JUSTIFY_RIGHT);

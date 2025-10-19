@@ -403,7 +403,7 @@ class PrintController extends Controller
          * @param array $aligns   Array of 'left', 'right', 'center' for each column (optional)
          * @return string         Formatted line ready to print
          */
-        function formatRowK(array $columns, array $widths, array $aligns = [])
+        function formatRowKitchen(array $columns, array $widths, array $aligns = [])
         {
             $line = '';
             $count = count($widths);
@@ -563,9 +563,6 @@ class PrintController extends Controller
             // Define column widths (adjust for your printer, usually 42 for 80mm)
             $colWidths = [5, 30, 12];           // Qty, Name, Amount
             $colAligns = ['left', 'left', 'right'];  // Amount right-aligned
-
-            // $colArabic= formatRow(["كمية",  "اسم", "الكمية"], $colWidths, $colAligns);
-
             // $bmpFile = $this->createArabicPngTight($colArabic, 'arabic-text.png');
             // $image = \Mike42\Escpos\EscposImage::load($bmpFile);
 
@@ -577,9 +574,8 @@ class PrintController extends Controller
 
             // Items
 
-            $printer->text(formatRowK(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
+            $printer->text(formatRowKitchen(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
             $printer->bitImageColumnFormat($headerFilePath);
-            //$printer->text(formatRow(["1", "Pizza Margherita", "2.500"], $colWidths, $colAligns) . "\n");
 
             $printer->text($linedash);
 
@@ -601,7 +597,7 @@ class PrintController extends Controller
                     //  $printer->text("  G Price: " . $detail->price . "\n" );
 
                     $printer->setEmphasis(true);
-                    $printer->text(formatRowK([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
+                    $printer->text(formatRowKitchen([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
 
                     $printer->setPrintLeftMargin(55);
                     $printer->bitImageColumnFormat($foodArabicNameImage);

@@ -31,7 +31,7 @@ class PrintController extends Controller
          * @param array $aligns   Array of 'left', 'right', 'center' for each column (optional)
          * @return string         Formatted line ready to print
          */
-        function formatRow(array $columns, array $widths, array $aligns = [])
+        function formatRowOld(array $columns, array $widths, array $aligns = [])
         {
             $line = '';
             $count = count($widths);

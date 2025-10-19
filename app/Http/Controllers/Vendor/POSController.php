@@ -966,7 +966,7 @@ class POSController extends Controller
             try {
                 $printController = new \App\Http\Controllers\PrintController();
 
-                if($order->status == 'unpaid'){
+                if($order->payment_status == 'unpaid'){
                     $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                 }
 

@@ -640,10 +640,7 @@ class POSController extends Controller
         // }
 
         // If no amount is provided at all (neither cash nor card)
-        if (
-            ($request->cash_paid === null || $request->cash_paid < 0) &&
-            ($request->card_paid === null || $request->card_paid < 0)
-        ) {
+        if (($request->cash_paid === null || $request->cash_paid < 0) && $request->order_draft == 'final') {
             Toastr::error(translate('Payment amount cannot be negative'));
             return back();
         }
@@ -711,10 +708,10 @@ class POSController extends Controller
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
 
-        $branchId = Helpers::get_restaurant_id();
-        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
-        $orderDate = $branch ? $branch->orders_date : null;
-        $order->order_date = $orderDate;
+            $branchId = Helpers::get_restaurant_id();
+            $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+            $orderDate = $branch ? $branch->orders_date : null;
+            $order->order_date = $orderDate;
 
             $today = Carbon::today();
             $todayOrderCount = Order::whereDate('created_at', $today)->count();
@@ -907,20 +904,40 @@ class POSController extends Controller
                 KitchenOrderStatusLog::create([
                     "status" => 'pending',
                     "order_id" => $order->id,
-                    "id" => $order->id.'1',
+                    "id" => $order->id . '1',
                 ]);
             }
+
+            $dirttyOrderDetails = [];
             if ($editing_order_id) {
-                OrderDetail::where('order_id', $order->id)->delete();
+                $dirtyOrder = OrderDetail::where('order_id', $order->id);
+                $dirttyOrderDetails = $dirtyOrder->get()->toArray();
+                $dirtyOrder->delete();
             }
 
+            // Prepare new order details
             foreach ($order_details as $key => $item) {
-                $order_details[$key]['id'] = $order->id.$key;
+                $order_details[$key]['id'] = $order->id . $key;
                 $order_details[$key]['order_id'] = $order->id;
             }
+
+            // Insert new order details
             OrderDetail::insert($order_details);
+
+            // Fetch new details after insert
+            $newOrderDetails = OrderDetail::where('order_id', $order->id)->get()->toArray();
+
+            // Compare old and new
+            if ($editing_order_id && $dirttyOrderDetails !== $newOrderDetails) {
+                // Save Log for edited order only if different
+                Helpers::create_all_logs($order, 'order_edited', 'Order');
+                Helpers::create_all_logs($order, 'order_detail_edited', 'OrderDetail', $dirttyOrderDetails, $newOrderDetails);
+            }
+
+
+
             $posOrderDtl = PosOrderAdditionalDtl::firstOrNew(['order_id' => $order->id]);
-            $posOrderDtl->id = $order->id.'1';
+            $posOrderDtl->id = $order->id . '1';
             $posOrderDtl->restaurant_id = $order->restaurant_id;
             $posOrderDtl->customer_name = $request->customer_name;
             $posOrderDtl->car_number = $request->car_number;
@@ -949,12 +966,22 @@ class POSController extends Controller
             try {
                 $printController = new \App\Http\Controllers\PrintController();
 
-                $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string) $order->id]));
+                if($order->status == 'unpaid'){
+                    $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                }
 
-               $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
-                
-               $order->printed = 1;
-               $order->save();
+                if($order->payment_status == 'paid'){
+                    $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                    $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string) $order->id]));
+                }
+
+                if(isset($order->printed) && $order->printed == 1 && $order->payment_status == 'paid'){
+                    // Reprint receipt for paid orders
+                    $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string) $order->id]));
+                }
+
+                $order->printed = 1;
+                $order->save();
             } catch (\Exception $printException) {
                 info('Print error: ' . $printException->getMessage());
             }
@@ -1115,6 +1142,4 @@ class POSController extends Controller
         }
         return response()->json($extra_charges, 200);
     }
-
-
 }

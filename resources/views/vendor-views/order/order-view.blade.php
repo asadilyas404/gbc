@@ -177,11 +177,11 @@
                         </div>
                         <div class="order-invoice-right">
                             <div class="d-none d-sm-flex flex-wrap ml-auto align-items-center justify-content-end m-n-5rem">
-                                <a class="btn btn--primary m-2 print--btn"
+                                <a class="btn btn--primary m-2 print--btn d-none"
                                     href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}">
                                     <i class="tio-print mr-1"></i> {{ translate('messages.print_invoice') }}
                                 </a>
-                                <a class="btn btn--primary m-2 print--btn"
+                                <a class="btn btn--primary m-2 print--btn d-none"
                                     href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}">
                                     <i class="tio-print mr-1"></i> Kitchen Receipt
                                 </a>
@@ -191,7 +191,7 @@
                                 </button>
                                 <button type="button" class="btn btn--primary m-2 print--btn api-print-btn"
                                     data-order-id="{{ $order['id'] }}">
-                                    <i class="tio-print mr-1"></i> API Print
+                                    <i class="tio-print mr-1"></i> POS Print
                                 </button>
                             </div>
                             <div class="text-right mt-3 order-invoice-right-contents text-capitalize">
@@ -387,8 +387,11 @@
                                                                                     <span class="d-block text-capitalize">
                                                                                         &nbsp; &nbsp;
                                                                                         {{ OptionsList::find($value['options_list_id'])->name ?? '' }}
-                                                                                        :
-                                                                                        <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
+                                                                                        @if(2 == 1)
+                                                                                            :
+                                                                                            <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
+                                                                                        @endif
+                                                                                        
                                                                                     </span>
                                                                                 @endforeach
 
@@ -429,17 +432,17 @@
                                                                         @endforeach
                                                                     @endif
 
-                                                                    <div class="mt-2">
+                                                                    <div class="mt-2 d-flex">
                                                                         <strong>{{ translate('messages.Price') }} | سعر:
                                                                         </strong>
                                                                         {{ \App\CentralLogics\Helpers::format_currency($detail['price']) }}
                                                                     </div>
-                                                                    <div>
+                                                                    <div class="d-flex">
                                                                         <strong>{{ translate('messages.Qty') }} | كمية
                                                                             :</strong>
                                                                         {{ $detail['quantity'] }}
                                                                     </div>
-                                                                    <div>
+                                                                    <div class="d-flex">
                                                                         <strong>Note | ملحوظة :</strong>
                                                                         {{ $detail['notes'] }}
                                                                     </div>

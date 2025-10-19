@@ -281,40 +281,7 @@
                             </div>
                         </div>
                     </div>
-                    @if (count($add_ons) > 0 && $add_ons[0])
-                        <div class="h3 p-0 pt-2">{{ translate('messages.addon') }}</div>
-
-                        <div class="d-flex justify-content-left flex-wrap">
-                            @foreach (AddOn::whereIn('id', $add_ons)->active()->orderBy('name', 'asc')->get() as $key => $add_on)
-                                <div class="flex-column pb-2">
-                                    <input type="hidden" name="addon-price{{ $add_on->id }}"
-                                        value="{{ $add_on->price }}">
-                                    <input class="btn-check addon-chek addon-quantity-input-toggle" type="checkbox"
-                                        id="addon{{ $key }}" name="addon_id[]" value="{{ $add_on->id }}"
-                                        autocomplete="off">
-                                    <label
-                                        class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break"
-                                        for="addon{{ $key }}">{{ Str::limit($add_on->name, 20, '...') }}
-                                        <br>
-                                        {{ Helpers::format_currency($add_on->price) }}</label>
-                                    <label class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"
-                                        for="addon{{ $key }}">
-                                        <button class="btn btn-sm h-100 text-dark px-0 decrease-button"
-                                            data-id="{{ $add_on->id }}" type="button"><i
-                                                class="tio-remove  font-weight-bold"></i></button>
-                                        <input type="number" name="addon-quantity{{ $add_on->id }}"
-                                            id="addon_quantity_input{{ $add_on->id }}"
-                                            class="form-control text-center border-0 h-100" placeholder="1"
-                                            value="1" min="1" max="9999999999" readonly>
-                                        <button class="btn btn-sm h-100 text-dark px-0 increase-button"
-                                            id="addon_quantity_button{{ $add_on->id }}"
-                                            data-id="{{ $add_on->id }}" type="button"><i
-                                                class="tio-add  font-weight-bold"></i></button>
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
+                    
                     <div class="row no-gutters d-none mt-2 text-dark" id="chosen_price_div">
                         <div class="col-2">
                             <div class="product-description-label">{{ translate('messages.Total_Price') }}:</div>

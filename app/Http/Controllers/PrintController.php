@@ -378,8 +378,6 @@ class PrintController extends Controller
             $printer->cut();
             $printer->close();
 
-            $this->printOrderKitchen($request);
-
             return redirect()->back()->with('success', 'Order printed successfully!');
         } catch (\Exception $e) {
             // Log the error but don't prevent order placement

@@ -1801,27 +1801,6 @@
             this.scrollLeft += e.deltaY;
         });
 
-        $(document).on('click', '.quick-View', function() {
-            $.get({
-                url: '{{ route('vendor.pos.quick-view') }}',
-                dataType: 'json',
-                data: {
-                    product_id: $(this).data('id')
-                },
-                beforeSend: function() {
-                    $('#loading').show();
-                },
-                success: function(data) {
-                    console.log("success...")
-                    $('#quick-view').modal('show');
-                    $('#quick-view-modal').empty().html(data.view);
-                },
-                complete: function() {
-                    $('#loading').hide();
-                },
-            });
-        });
-
         $(document).ready(function() {
             let isFormSubmitting = false;
 

@@ -3682,49 +3682,57 @@ class Helpers
     }
 
 
-    // public static function create_all_logs($object , $action_type, $model){
-    //     $restaurant_id = null;
-    //     if ((auth('vendor_employee')->check() || auth('vendor')->check() || request('vendor') || auth('admin')->check()) || (request()->token && DeliveryMan::where('auth_token' , request()->token)->exists()) ) {
-    //         if (auth('vendor_employee')->check()) {
-    //             $loable_type = 'App\Models\VendorEmployee';
-    //             $logable_id = auth('vendor_employee')->id();
-    //             $restaurant_id=auth('vendor_employee')->user() != null && isset(auth('vendor_employee')->user()->restaurant) ? auth('vendor_employee')->user()->restaurant->id : null;
-    //         } elseif (auth('vendor')->check() || request('vendor')) {
-    //             $restaurant_id=auth('vendor')->user() != null && isset(auth('vendor')->user()->restaurants[0]) ? auth('vendor')->user()->restaurants[0]->id : null;
-    //             $loable_type = 'App\Models\Vendor';
-    //             $logable_id = auth('vendor')->id();
+    public static function create_all_logs($object , $action_type, $model, $before_state = null, $after_state = null){
+        $restaurant_id = null;
+        if ((auth('vendor_employee')->check() || auth('vendor')->check() || request('vendor') || auth('admin')->check()) || (request()->token && DeliveryMan::where('auth_token' , request()->token)->exists()) ) {
+            if (auth('vendor_employee')->check()) {
+                $loable_type = 'App\Models\VendorEmployee';
+                $logable_id = auth('vendor_employee')->id();
+                $restaurant_id=auth('vendor_employee')->user() != null && isset(auth('vendor_employee')->user()->restaurant) ? auth('vendor_employee')->user()->restaurant->id : null;
+            } elseif (auth('vendor')->check() || request('vendor')) {
+                $restaurant_id=auth('vendor')->user() != null && isset(auth('vendor')->user()->restaurants[0]) ? auth('vendor')->user()->restaurants[0]->id : null;
+                $loable_type = 'App\Models\Vendor';
+                $logable_id = auth('vendor')->id();
 
-    //             if(request('vendor')){
-    //                 $logable_id =request('vendor')->id;
-    //                 $restaurant_id= isset(request('vendor')->restaurants[0]) ? request('vendor')->restaurants[0]->id : null;
-    //             }
-    //         //    dd(request('vendor')->restaurants[0]->id);
-    //         } elseif (auth('admin')->check()) {
-    //             $loable_type = 'App\Models\Admin';
-    //             $logable_id = auth('admin')->id();
-    //         }elseif (request()->token && DeliveryMan::where('auth_token' , request()->token)->exists()) {
-    //             $loable_type = 'App\Models\DeliveryMan';
-    //             $dm =DeliveryMan::where('auth_token' , request()->token)->with('restaurant')->first();
-    //             $logable_id = $dm->id;
-    //             if($dm->type == 'restaurant_wise' && $dm->restaurant){
-    //                 $restaurant_id= $dm->restaurant->id;
-    //             }
-    //         }
+                if(request('vendor')){
+                    $logable_id =request('vendor')->id;
+                    $restaurant_id= isset(request('vendor')->restaurants[0]) ? request('vendor')->restaurants[0]->id : null;
+                }
+            //    dd(request('vendor')->restaurants[0]->id);
+            } elseif (auth('admin')->check()) {
+                $loable_type = 'App\Models\Admin';
+                $logable_id = auth('admin')->id();
+            }elseif (request()->token && DeliveryMan::where('auth_token' , request()->token)->exists()) {
+                $loable_type = 'App\Models\DeliveryMan';
+                $dm =DeliveryMan::where('auth_token' , request()->token)->with('restaurant')->first();
+                $logable_id = $dm->id;
+                if($dm->type == 'restaurant_wise' && $dm->restaurant){
+                    $restaurant_id= $dm->restaurant->id;
+                }
+            }
 
-    //         $log = new Log();
-    //         $log->logable_type = $loable_type;
-    //         $log->logable_id = $logable_id;
-    //         $log->action_type = $action_type;
-    //         $log->model = $model;
-    //         $log->restaurant_id = $restaurant_id;
-    //         $log->model_id = $object->id;
-    //         $log->ip_address = request()->ip();
-    //         $log->before_state = json_encode($object->getOriginal());
-    //         $log->after_state = json_encode($object->getDirty());
-    //         $log->save();
-    //     }
-    //     return true;
-    // }
+            $log = new Log();
+            $log->logable_type = $loable_type;
+            $log->logable_id = $logable_id;
+            $log->action_type = $action_type;
+            $log->model = $model;
+            $log->restaurant_id = $restaurant_id;
+            $log->model_id = $object->id;
+            $log->ip_address = request()->ip();
+            if($before_state) {
+                $log->before_state = json_encode($before_state);
+            }else{
+                $log->before_state = json_encode($object->getOriginal());
+            }
+            if($after_state) {
+                $log->after_state = json_encode($after_state);
+            }else{
+                $log->after_state = json_encode($object->getDirty());
+            }
+            $log->save();
+        }
+        return true;
+    }
 
     public static function landing_language_load()
     {

@@ -2830,23 +2830,78 @@ class Helpers
         return $data;
     }
 
+    // public static function get_varient(array $product_variations, array $variations)
+    // {
+    //     $result = [];
+    //     $variation_price = 0;
+
+    //     foreach ($variations as $k => $variation) {
+    //         foreach ($product_variations as $product_variation) {
+    //             if (isset($variation['values']) && isset($product_variation['values']) && $product_variation['name'] == $variation['name']) {
+    //                 $result[$k] = $product_variation;
+    //                 $result[$k]['values'] = [];
+    //                 foreach ($product_variation['values'] as $key => $option) {
+    //                     // dd($option, $variation);
+    //                     if (in_array($option['label'], $variation['values']['label'])) {
+    //                         $result[$k]['values'][] = $option;
+    //                         $variation_price += $option['optionPrice'];
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //     return ['price' => $variation_price, 'variations' => array_values($result)];
+    // }
+
     public static function get_varient(array $product_variations, array $variations)
     {
         $result = [];
         $variation_price = 0;
 
+        $nameOccurrenceMap = [];
+
         foreach ($variations as $k => $variation) {
-            foreach ($product_variations as $product_variation) {
-                if (isset($variation['values']) && isset($product_variation['values']) && $product_variation['name'] == $variation['name']) {
-                    $result[$k] = $product_variation;
-                    $result[$k]['values'] = [];
-                    foreach ($product_variation['values'] as $key => $option) {
-                        // dd($option, $variation);
-                        if (in_array($option['label'], $variation['values']['label'])) {
-                            $result[$k]['values'][] = $option;
-                            $variation_price += $option['optionPrice'];
+            if (!isset($variation['values'])) {
+                continue;
+            }
+
+            $targetIndex = null;
+
+            if (isset($variation['name'])) {
+                $occurrence = $nameOccurrenceMap[$variation['name']] ?? 0;
+                $count = -1;
+                foreach ($product_variations as $pvIndex => $product_variation) {
+                    if (isset($product_variation['name']) && $product_variation['name'] == $variation['name']) {
+                        $count++;
+                        if ($count === $occurrence) {
+                            $targetIndex = $pvIndex;
+                            break;
                         }
                     }
+                }
+                $nameOccurrenceMap[$variation['name']] = $occurrence + 1;
+            }
+
+            if ($targetIndex === null && isset($product_variations[$k])) {
+                $targetIndex = $k;
+            }
+
+            if ($targetIndex === null) {
+                continue;
+            }
+
+            $product_variation = $product_variations[$targetIndex];
+            if (!isset($product_variation['values'])) {
+                continue;
+            }
+
+            $result[$k] = $product_variation;
+            $result[$k]['values'] = [];
+            foreach ($product_variation['values'] as $option) {
+                if (in_array($option['label'], $variation['values']['label'])) {
+                    $result[$k]['values'][] = $option;
+                    $variation_price += $option['optionPrice'];
                 }
             }
         }

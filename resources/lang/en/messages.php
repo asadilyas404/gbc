@@ -6577,4 +6577,7 @@
   'Ex : Option Name ' => 'Ex : Option Name ',
   'Option Name' => 'Option Name',
   'Kitchen Print' => 'Kitchen Print',
+  'Please Enter Amount Paid' => 'Please Enter Amount Paid',
+  'Please enter valid paid amount' => 'Please enter valid paid amount',
+  'Please enter a valid paid amount' => 'Please enter a valid paid amount',
 );

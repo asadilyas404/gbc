@@ -47,32 +47,6 @@ class POSController extends Controller
         return view('vendor-views.pos.index', compact('categories', 'products', 'category', 'keyword'));
     }
 
-    // public function indexNew(Request $request)
-    // {
-    //     $time = Carbon::now()->toTimeString();
-    //     $category = $request->query('category_id', 0);
-    //     $categories = Category::active()->where('parent_id',0)->get();
-    //     $subcategories = Category::active()->where('parent_id', $category)->where('parent_id','!=',0)->get();
-    //     $keyword = $request->query('keyword', false);
-    //     $key = explode(' ', $keyword);
-    //     $products = Food::active()->
-    //     when($category, function($query)use($category){
-    //         $query->whereHas('category',function($q)use($category){
-    //             return $q->whereId($category)->orWhere('parent_id', $category);
-    //         });
-    //     })
-    //     ->when($keyword, function($query)use($key){
-    //         return $query->where(function ($q) use ($key) {
-    //             foreach ($key as $value) {
-    //                 $q->orWhere('name', 'like', "%{$value}%");
-    //             }
-    //         });
-    //     })->available($time)
-    //     ->latest()->paginate(10);
-
-    //     return view('vendor-views.pos.index-new', compact('categories','subcategories', 'products','category', 'keyword'));
-    // }
-
     public function indexNew(Request $request)
     {
         $time = Carbon::now()->toTimeString();
@@ -639,14 +613,18 @@ class POSController extends Controller
         //     return back();
         // }
 
-        // If no amount is provided at all (neither cash nor card)
-        if (($request->cash_paid === null || $request->cash_paid < 0) && $request->order_draft == 'final') {
-            Toastr::error(translate('Payment amount cannot be negative'));
-            return back();
-        }
-
         $payment_type = '';
         if ($request->order_draft == 'final') {
+
+            if (floatval($request->cash_paid) < 0 || floatval($request->card_paid) < 0) {
+                Toastr::error(translate('Payment amount cannot be negative'));
+                return back();
+            }
+
+            if (floatval($request->cash_paid) <= 0 && floatval($request->card_paid) <= 0) {
+                Toastr::error(translate('Please enter a valid paid amount'));
+                return back();
+            }
 
             if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
                 $payment_type = 'cash';

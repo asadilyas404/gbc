@@ -948,9 +948,10 @@ class POSController extends Controller
                     $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                 }
 
-                if($order->payment_status == 'paid'){
-                    $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
-                    $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string) $order->id]));
+                if ($order->payment_status === 'paid' && !$order->printed) {
+                    // Print once for new paid order
+                    $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)$order->id]));
+                    $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string)$order->id]));
                 }
 
                 if(isset($order->printed) && $order->printed == 1 && $order->payment_status == 'paid'){

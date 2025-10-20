@@ -248,7 +248,7 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    $printer->text("     V Addon: " . $addon['name']
+                                    $printer->text("    Addon: " . $addon['name']
                                         . " | (" . number_format($addon['price'], 3, '.', '')
                                         . " x " . $addon['quantity'] . ")\n");
 
@@ -646,7 +646,7 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    $printer->text("     V Addon: " . $addon['name']
+                                    $printer->text("    Addon: " . $addon['name']
                                         . " | (" . number_format($addon['price'], 3, '.', '')
                                         . " x " . $addon['quantity'] . ")\n");
 
@@ -692,7 +692,7 @@ class PrintController extends Controller
 
                     // Notes
                     if ($detail->notes) {
-                        $printer->text("  Note: " . $detail->notes . "\n");
+                        $printer->text("  Note: \n");
                         $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
                         $notes = EscposImage::load($notes, false);
                         $printer->setPrintLeftMargin(40);

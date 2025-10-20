@@ -62,10 +62,12 @@
 
         <div class="row pt-2">
             <div class="col-12">
-                <h2>{{ translate('messages.description') }}</h2>
-                <span class="d-block text-dark text-break">
-                    {!! $product->description !!}
-                </span>
+                @if(!empty($product->description))
+                    <h2>{{ translate('messages.description') }}</h2>
+                    <span class="d-block text-dark text-break">
+                        {!! $product->description !!}
+                    </span>
+                @endif
                 <form id="add-to-cart-form" class="mb-2">
                     @csrf
                     <input type="hidden" name="id" value="{{ $product->id }}">
@@ -85,7 +87,8 @@
                     @endforeach
 
                     <div class="d-flex justify-content-between mt-4">
-                        <div class="product-description-label mt-2 text-dark h3">{{ translate('messages.Discount') }}:
+                        <div class="product-description-label mt-2 text-dark h3">
+                            {{ translate('messages.Discount') }}:
                         </div>
                         <div class="form-group col-sm-4">
                             <input type="number" class="form-control" name="product_discount" min="0.0001"
@@ -284,53 +287,8 @@
                             </div>
                         </div>
                     </div>
-                    @php($add_ons = json_decode($product->add_ons))
-                    @if (count($add_ons) > 0 && $add_ons[0])
-                        <div class="h3 p-0 pt-2">{{ translate('messages.addon') }}
-                        </div>
-                        <div class="d-flex justify-content-left flex-wrap">
-
-                            {{-- @php(
-    dd([
-        'keys' => $cart_item['add_ons'],
-        'values' => $cart_item['add_on_qtys'],
-        'count_keys' => count($cart_item['add_ons']),
-        'count_values' => count($cart_item['add_on_qtys']),
-    ])) --}}
-
-                            @php($selected_addons = array_combine($cart_item['add_ons'], $cart_item['add_on_qtys']))
-                            @foreach (AddOn::whereIn('id', $add_ons)->active()->orderBy('name', 'asc')->get() as $key => $add_on)
-                                <div class="flex-column pb-2">
-                                    <input type="hidden" name="addon-price{{ $add_on->id }}"
-                                        value="{{ $add_on->price }}">
-                                    <input class="btn-check addon-chek addon-quantity-input-toggle" type="checkbox"
-                                        id="addon{{ $key }}" name="addon_id[]" value="{{ $add_on->id }}"
-                                        {{ in_array($add_on->id, $cart_item['add_ons']) ? 'checked' : '' }}
-                                        autocomplete="off">
-                                    <label
-                                        class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break"
-                                        for="addon{{ $key }}">{{ Str::limit($add_on->name, 20, '...') }}
-                                        <br>
-                                        {{ Helpers::format_currency($add_on->price) }}</label>
-                                    <label class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"
-                                        @if (in_array($add_on->id, $cart_item['add_ons'])) style="visibility:visible;" @endif
-                                        for="addon{{ $key }}">
-                                        <button class="btn btn-sm h-100 text-dark px-0 decrease-button"
-                                            data-id="{{ $add_on->id }}" type="button"><i
-                                                class="tio-remove  font-weight-bold"></i></button>
-                                        <input id="addon_quantity_input{{ $add_on->id }}" type="number"
-                                            name="addon-quantity{{ $add_on->id }}"
-                                            class="form-control text-center border-0 h-100 " placeholder="1"
-                                            value="{{ in_array($add_on->id, $cart_item['add_ons']) ? $selected_addons[$add_on->id] : 1 }}"
-                                            min="1" max="9999999999" readonly>
-                                        <button class="btn btn-sm h-100 text-dark px-0 increase-button"
-                                            data-id="{{ $add_on->id }}" type="button"><i
-                                                class="tio-add  font-weight-bold"></i></button>
-                                    </label>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endif
+                    
+                    
                     <div class="row no-gutters d-none mt-2 text-dark" id="chosen_price_div">
 
                         <div class="col-2">

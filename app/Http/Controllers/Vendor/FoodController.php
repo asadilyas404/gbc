@@ -245,6 +245,7 @@ class FoodController extends Controller
                     $variation->max = $option['max'] ?? 0;
                     $variation->is_required =   data_get($option, 'required') == 'on' ? true : false;
                     $variation->link_addons =   data_get($option, 'link_addons') == 'on' ? true : false;
+                    $variation->printing_option =  $option['printing_option'] ?? 'option_name';
                     $variation->save();
 
                     foreach (array_values($option['values']) as $value) {
@@ -280,6 +281,7 @@ class FoodController extends Controller
                     $variation->max = $option['max'] ?? 0;
                     $variation->is_required =   data_get($option, 'required') == 'on' ? true : false;
                     $variation->link_addons =   data_get($option, 'link_addons') == 'on' ? true : false;
+                    $variation->printing_option =  $option['printing_option'] ?? 'option_name';
                     $variation->save();
 
                     foreach (array_values($option['values']) as $value) {
@@ -340,6 +342,7 @@ class FoodController extends Controller
                     'max' => $v->max,
                     'required' => $v->is_required ? 'on' : 'off',
                     'link_addons' => $v->link_addons ? 'on' : 'off',
+                    'printing_option' => $v->printing_option,
                     'values' => [],
                 ];
                 $dbOptions = VariationOption::where('food_id', $product->id)
@@ -417,6 +420,7 @@ class FoodController extends Controller
                     'max' => $v->max,
                     'required' => $v->is_required ? 'on' : 'off',
                     'link_addons' => $v->link_addons ? 'on' : 'off',
+                    'printing_option' => $v->printing_option,
                     'values' => [],
                 ];
                 $dbOptions = VariationOption::where('food_id', $originalProduct->id)
@@ -611,6 +615,7 @@ class FoodController extends Controller
                     $variation->max = $option['max'] ?? 0;
                     $variation->is_required = data_get($option, 'required') == 'on' ? true : false;
                     $variation->link_addons = data_get($option, 'link_addons') == 'on' ? true : false;
+                    $variation->printing_option =  $option['printing_option'] ?? 'option_name';
                     // if($option['type'] == 'multi') {
                     //     dd($variation);
                     // }
@@ -625,6 +630,7 @@ class FoodController extends Controller
                         "max" => $option['max'] ?? 0,
                         "is_required" => data_get($option, 'required') == 'on' ? true : false,
                         "link_addons" => data_get($option, 'link_addons') == 'on' ? true : false,
+                        "printing_option" =>  $option['printing_option'] ?? 'option_name',
                     ]);
                 }
 

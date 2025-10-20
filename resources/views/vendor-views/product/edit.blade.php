@@ -599,6 +599,19 @@
                                         </div>
                                     </div>
                                 </div>
+                                <div class="col-xl-4 col-lg-6">
+                <label for="">
+                    {{ translate('Print') }}
+                    &nbsp;<span class="form-label-secondary text-danger"
+                        data-toggle="tooltip" data-placement="right"
+                        data-original-title="{{ translate('messages.Required.') }}"> *
+                    </span>
+                </label>
+                <select name="options[` + count + `][printing_option]" id="" class="form-control js-select2-custom">
+                    <option value="option_name" selected>Option Name</option>
+                    <option value="option_list_name">Option List Name</option>
+                </select>
+            </div>
                             </div>
 
                             <div id="option_price_` + count + `" >

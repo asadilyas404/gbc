@@ -18,6 +18,7 @@ class Variation extends Model
         'max' => 'integer',
         'is_required' => 'boolean',
         'link_addons' => 'boolean',
+        'printing_option' => 'string',
     ];
 
     public function food()

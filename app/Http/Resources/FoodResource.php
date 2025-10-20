@@ -76,6 +76,7 @@ class FoodResource extends JsonResource
                     'max' => $variation->type === 'multi' ? $variation->max : null,
                     'is_required' => $variation->is_required ?? false,
                     'link_addons' => $variation->link_addons ?? false,
+                    'printing_option' => $variation->printing_option ?? 'option_name',
                     'addons' => $variationAddons,
                     'data' => $options->map(function ($option) {
                         return [

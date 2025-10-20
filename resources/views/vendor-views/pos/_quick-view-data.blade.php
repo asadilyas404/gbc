@@ -70,10 +70,12 @@
                     }
                 }
                 ?>
-                <h2>{{ translate('messages.description') }}</h2>
-                <span class="d-block text-dark text-break">
-                    {!! $product->description !!}
-                </span>
+                @if(!empty($product->description))
+                    <h2>{{ translate('messages.description') }}</h2>
+                    <span class="d-block text-dark text-break">
+                        {!! $product->description !!}
+                    </span>
+                @endif
                 <form id="add-to-cart-form" class="mb-2">
                     @csrf
                     <input type="hidden" name="id" value="{{ $product->id }}">

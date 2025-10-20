@@ -34,7 +34,7 @@
                 value="{{ data_get($item, 'variation_id') }}">
 
             <div class="col-xl-4 col-lg-6">
-                <div class="form-group">
+                <div class="form-group mb-0">
                     <label class="input-label text-capitalize d-flex alig-items-center"><span
                             class="line--limit-1">{{ translate('messages.selcetion_type') }} </span>
                     </label>
@@ -80,6 +80,19 @@
                     </div>
 
                 </div>
+            </div>
+            <div class="col-xl-4 col-lg-6">
+                <label for="">
+                    {{ translate('Print') }}
+                    &nbsp;<span class="form-label-secondary text-danger"
+                        data-toggle="tooltip" data-placement="right"
+                        data-original-title="{{ translate('messages.Required.') }}"> *
+                    </span>
+                </label>
+                <select name="options[{{ $key }}][printing_option]" class="form-control js-select2-custom">
+                    <option value="option_name" @if(isset($item['printing_option'])  && $item['printing_option'] == 'option_name') selected @endif>Option Name</option>
+                    <option value="option_list_name" @if(isset($item['printing_option'])  && $item['printing_option'] == 'option_list_name') selected @endif>Option List Name</option>
+                </select>
             </div>
         </div>
 

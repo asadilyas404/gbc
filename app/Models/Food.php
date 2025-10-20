@@ -324,6 +324,7 @@ class Food extends Model
                         "max" => (string) $variation['max'],
                         "required" => (string) $variation['is_required'] == true ? "on" :'off',
                         "link_addons" => (string) $variation['link_addons'] == true ? "on" :'off',
+                        "printing_option" => $variation['printing_option'] ?? 'option_name',
                         "values" => []
                     ];
 

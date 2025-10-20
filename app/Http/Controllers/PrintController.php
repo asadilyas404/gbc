@@ -220,15 +220,38 @@ class PrintController extends Controller
 
                         foreach ($variations as $variation) {
                             if (isset($variation['name']) && isset($variation['values'])) {
-                                $printer->text("  " . $variation['name'] . ":" . "\n");
+                                // $printer->text("  " . $variation['name'] . ":" . "\n");
                                 // $printer->text("  " . $variation['options_list_id'] . ":");
                                 foreach ($variation['values'] as $value) {
                                     //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
                                     //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-                                    $options_listname = DB::table('options_list')
+                                    if(isset($variation['printing_option']) && $variation['printing_option'] == 'option_name'){
+                                        $optionName = DB::table('variation_options')
+                                        ->where('id', $value['option_id'])
+                                        ->value('option_name') ?? '';
+                                        
+                                        if(!empty($optionName) && $foodDetails['name'] != $optionName){
+                                            $printer->text("  - " . $optionName . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");   
+                                        }
+                                    }else{
+                                        $options_listname = DB::table('options_list')
                                         ->where('id', $value['options_list_id'])
                                         ->value('name');
-                                    $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
+                                        
+                                        if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
+                                            $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");   
+
+                                            $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
+
+                                            if ($arabicOptionName) {
+                                                $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
+                                                $arabicOptionName = EscposImage::load($arabicOptionName, false);
+                                                $printer->setPrintLeftMargin(40);
+                                                $printer->bitImageColumnFormat($arabicOptionName);
+                                                $printer->setPrintLeftMargin(0);
+                                            }
+                                        }
+                                    }
                                     // Get Option Translation
 
                                     $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -242,7 +265,6 @@ class PrintController extends Controller
                                     }
                                 }
                             }
-
                             //variation addon
 
                             // Print addons if available
@@ -617,26 +639,37 @@ class PrintController extends Controller
 
                         foreach ($variations as $variation) {
                             if (isset($variation['name']) && isset($variation['values'])) {
-                                $printer->text("  " . $variation['name'] . ":" . "\n");
+                                // $printer->text("  " . $variation['name'] . ":" . "\n");
                                 // $printer->text("  " . $variation['options_list_id'] . ":");
-
-
                                 foreach ($variation['values'] as $value) {
                                     //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
                                     //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-                                    $options_listname = DB::table('options_list')
+
+                                    if(isset($variation['printing_option']) && $variation['printing_option'] == 'option_name'){
+                                        $optionName = DB::table('variation_options')
+                                        ->where('id', $value['option_id'])
+                                        ->value('option_name');
+                                        if(!empty($optionName) && $foodDetails['name'] != $optionName){
+                                            $printer->text("  - " . $optionName . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");   
+                                        }
+                                    }else{
+                                        $options_listname = DB::table('options_list')
                                         ->where('id', $value['options_list_id'])
                                         ->value('name');
-                                    $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
+                                        
+                                        if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
+                                            $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");   
 
-                                    $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
+                                            $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
-                                    if ($arabicOptionName) {
-                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
-                                        $arabicOptionName = EscposImage::load($arabicOptionName, false);
-                                        $printer->setPrintLeftMargin(40);
-                                        $printer->bitImageColumnFormat($arabicOptionName);
-                                        $printer->setPrintLeftMargin(0);
+                                            if ($arabicOptionName) {
+                                                $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
+                                                $arabicOptionName = EscposImage::load($arabicOptionName, false);
+                                                $printer->setPrintLeftMargin(40);
+                                                $printer->bitImageColumnFormat($arabicOptionName);
+                                                $printer->setPrintLeftMargin(0);
+                                            }
+                                        }
                                     }
                                 }
                             }

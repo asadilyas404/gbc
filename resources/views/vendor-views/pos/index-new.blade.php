@@ -229,6 +229,9 @@
                             color: black;
                         }
                     }
+                    .pe-none{
+                        pointer-events: none !important;
+                    }
                 </style>
 
                 <div class="subcategory-scroll-container">
@@ -378,6 +381,18 @@
                         </a>
                     </div>
                     <div class="w-100">
+                        @if($editingOrder)
+                        <div class="justify-content-between p-2">
+                            <h1>Order # {{ $editingOrder->order_serial }}</h1>
+                            @if($editingOrder->kitchen_status == 'cooking')
+                                <span class="badge bg-danger text-white small">{{ $editingOrder->kitchen_status }}</span>
+                            @elseif ($editingOrder->kitchen_status == 'completed' || $editingOrder->kitchen_status == 'ready')
+                                <span class="badge bg-success text-white small">{{ $editingOrder->kitchen_status }}</span>
+                            @else
+                                <span class="badge bg-info text-white small">{{ $editingOrder->kitchen_status }}</span>
+                            @endif
+                        </div>
+                        @endif
                         <div class="d-flex flex-wrap flex-row p-2 add--customer-btn">
                             <label for='customer'></label>
                             <select id='customer' name="customer_id"

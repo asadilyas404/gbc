@@ -37,13 +37,17 @@
                 @foreach (session()->get('cart') as $key => $cartItem)
                     @if (is_array($cartItem))
                         <?php
-                        $variation_price += $cartItem['variation_price'];
-                        $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
-                        $discount_on_product += $cartItem['discount'] * $cartItem['quantity'];
-                        $subtotal += $product_subtotal;
-                        $addon_price += $cartItem['addon_price'];
+                        if($cartItem['is_deleted'] == 'N'){
+                            $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
+                            $variation_price += $cartItem['variation_price'];
+                            $discount_on_product += $cartItem['discount'] * $cartItem['quantity'];
+                            $subtotal += $product_subtotal;
+                            $addon_price += $cartItem['addon_price'];
+                        }else{
+                            $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
+                        }
                         ?>
-                        <tr>
+                        <tr @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') class="bg-light pe-none" @endif>
                             <td class="media cart--media align-items-center cursor-pointer quick-View-Cart-Item"
                                 data-product-id="{{ $cartItem['id'] }}" data-item-key="{{ $key }}">
                                 <img class="avatar avatar-sm mr-2 onerror-image" src="{{ $cartItem['image_full_url'] }}"
@@ -74,9 +78,13 @@
                             </td>
                             <td class="align-items-center">
                                 <div class="btn--container justify-content-center">
-                                    <a href="javascript:" data-product-id="{{ $key }}"
+                                    @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') 
+                                        <span class="badge bg-danger text-white small">Removed</span>
+                                    @else
+                                        <a href="javascript:" data-product-id="{{ $key }}"
                                         class="btn btn-sm btn--danger action-btn btn-outline-danger remove-From-Cart">
                                         <i class="tio-delete-outlined"></i></a>
+                                    @endif
                                 </div>
                             </td>
                         </tr>

@@ -4590,8 +4590,6 @@ class Helpers
 
     }
 
-
-
     public static function checkCurrency($data, $type = null)
     {
 

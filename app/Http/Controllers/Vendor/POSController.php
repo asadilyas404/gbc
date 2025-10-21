@@ -360,6 +360,7 @@ class POSController extends Controller
         $data['quantity'] = $request['quantity'];
         $data['price'] = $price;
         $data['name'] = $product->name;
+        $data['is_deleted'] = 'N';
         if ($request->product_discount_type && $request->product_discount) {
             $discountAmount = $request->product_discount;
             $discountType = $request->product_discount_type;
@@ -453,7 +454,11 @@ class POSController extends Controller
     {
         if ($request->session()->has('cart')) {
             $cart = $request->session()->get('cart', collect([]));
-            $cart->forget($request->key);
+            // Get the item by the key
+            $cartItem = $cart->get($request->key);
+            $cartItem['is_deleted'] = 'Y';
+            $cart->put($request->key, $cartItem);
+            // $cart->forget($request->key);
             $request->session()->put('cart', $cart);
         }
 
@@ -809,6 +814,8 @@ class POSController extends Controller
                         }
                     }
 
+                    
+
                     $or_d = [
                         'food_id' => $c['id'],
                         'food_details' => json_encode($product),
@@ -821,6 +828,7 @@ class POSController extends Controller
                         'add_ons' => json_encode($addon_data['addons']),
                         'total_add_on_price' => $total_addon_price_for_item,
                         'notes' => $c['notes'] ?? $c['details'] ?? null,
+                        'is_deleted' => isset($c['is_deleted']) ? trim($c['is_deleted']) : 'N',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -831,10 +839,16 @@ class POSController extends Controller
                         error_log('First variation values: ' . json_encode($c['variations'][0]['values']));
                     }
                     error_log('Order detail variation field: ' . $or_d['variation']);
-                    $total_addon_price += $or_d['total_add_on_price'];
-                    $product_price += $price * $or_d['quantity'];
-                    $restaurant_discount_amount += $or_d['discount_on_food'] * $or_d['quantity'];
+
                     $order_details[] = $or_d;
+                    
+                    if($or_d['is_deleted'] == 'Y'){
+                        continue;
+                    }else{
+                        $total_addon_price += $or_d['total_add_on_price'];
+                        $product_price += $price * $or_d['quantity'];
+                        $restaurant_discount_amount += $or_d['discount_on_food'] * $or_d['quantity'];
+                    }
                 }
             }
         }
@@ -1037,6 +1051,7 @@ class POSController extends Controller
                 'discountType' => 'amount',
                 'details' => $item->notes,
                 'image' => $food['image'] ?? null,
+                'is_deleted' => trim($item->is_deleted),
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
             ];

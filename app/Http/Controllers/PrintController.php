@@ -148,10 +148,18 @@ class PrintController extends Controller
             //$printer->text($line . "\n");
             $printer->setTextSize(2, 2);
             $printer->text("Order # " . $order->order_serial . "\n");
+            if ($order->order_status == 'canceled') {
+                $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
+                $printer->setReverseColors(true);
+                $printer->setTextSize(2, 2);
+                $printer->text("\nCANCELED\n\n");
+            }
             $printer->setTextSize(1, 1);
 
             $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
             $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
+
+
 
             // Customer info
             if ($order->pos_details) {
@@ -198,6 +206,11 @@ class PrintController extends Controller
             $count = 0;
             foreach ($order->details as $detail) {
                 if ($detail->food_id || $detail->campaign == null) {
+
+                    if(trim($detail->is_deleted) == 'Y'){
+                        continue;
+                    }
+
                     $foodDetails = json_decode($detail->food_details, true);
 
                     $foodName = $foodDetails['name'] ?? 'Unknown Item';
@@ -469,9 +482,6 @@ class PrintController extends Controller
         }
     public function printOrderKitchen(Request $request)
     {
-
-        
-
         try {
             $request->validate([
                 'order_id' => 'required|string'
@@ -546,6 +556,23 @@ class PrintController extends Controller
             //$printer->text($line . "\n");
             $printer->setTextSize(2, 2);
             $printer->text("Order # " . $order->order_serial . "\n");
+            
+            if ($order->printed == '1' && $order->order_status != 'canceled') {
+                $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
+                $printer->setReverseColors(true);
+                $printer->setTextSize(2, 2);
+                $printer->text("\nOrder Updated\n\n");  
+                $printer->selectPrintMode();
+                $printer->setReverseColors(false);
+            }
+
+            if ($order->printed == '1' && $order->order_status == 'canceled') {
+                $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
+                $printer->setReverseColors(true);
+                $printer->setTextSize(2, 2);
+                $printer->text("\nOrder Canceled\n\n");  
+            }
+
             $printer->setTextSize(1, 1);
 
             $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
@@ -597,7 +624,12 @@ class PrintController extends Controller
             $subTotal = 0;
             $addOnsCost = 0;
             $count = 0;
+
             foreach ($order->details as $detail) {
+                if(trim($detail->is_deleted) == 'Y'){
+                    $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
+                    $printer->setReverseColors(true);
+                }
                 if ($detail->food_id || $detail->campaign == null) {
                     $foodDetails = json_decode($detail->food_details, true);
 
@@ -732,14 +764,26 @@ class PrintController extends Controller
                     $itemTotal = $detail->price * $detail->quantity;
                     $subTotal += $itemTotal;
 
+                    if(trim($detail->is_deleted) == 'Y'){
+                        $printer->setReverseColors(false);
+                        $printer->selectPrintMode(Printer::MODE_FONT_A);
+                    }
+
                     $printer->text($linedash);
                 }
+                
             }
 
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->text("TOTAL: " . number_format($order->order_amount, 3, '.', ''));
             $printer->bitImageColumnFormat($currencyTextimage);
             $printer->text($linedash);
+
+
+            if($order->printed == '1' && $order->order_status == 'canceled') {
+                $printer->selectPrintMode();
+                $printer->setReverseColors(false);
+            }
 
             // Feed & cut
             $printer->cut();

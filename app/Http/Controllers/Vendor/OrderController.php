@@ -448,7 +448,6 @@ class OrderController extends Controller
                     }
             }
             Helpers::decreaseSellCount($order->details);
-
         }
         // if($request->order_status == 'delivered')
         // {
@@ -465,6 +464,16 @@ class OrderController extends Controller
         $order[$request['order_status']] = now();
         $order->save();
 
+        // Send Order Canceled Print Command to Kitchen Printer
+        if($order->order_status == 'canceled'){
+            try {
+                $printController = new \App\Http\Controllers\PrintController();
+                $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+            } catch (\Exception $printException) {
+                info('Print error On Order Cancel: ' . $printException->getMessage());
+            }
+        }
+        
 
         // if(!Helpers::send_order_notification($order))
         // {

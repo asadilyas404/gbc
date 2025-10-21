@@ -16,7 +16,7 @@ class SyncFoodJob implements ShouldQueue
 
     public function handle(): void
     {
-        set_time_limit(300);
+        set_time_limit(0);
         \Log::info('SyncFoodJob started');
         try {
             // Sync FOOD
@@ -219,10 +219,12 @@ class SyncFoodJob implements ShouldQueue
 
     private function copyImageFromStorage(string $filename, string $folder = 'product/'): void
 {
-    $imageSourceBase = rtrim(env('image_source_base'), '/') . '/';
+    $imageSourceBase = config('constants.image_source_base');
+    $imageSourceBase = rtrim($imageSourceBase, '/') . '/';
     $relativePath = $folder . $filename;
 
     $sourceUrl = $imageSourceBase . $relativePath;
+
     $destinationPath = public_path('storage/' . $relativePath);
 
     // Log::info("Trying to sync image from: " . $sourceUrl);

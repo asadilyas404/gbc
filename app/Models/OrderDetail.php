@@ -20,6 +20,7 @@ class OrderDetail extends Model
         'quantity' => 'integer',
         'item_campaign_id' => 'integer',
         'details' => 'string',
+        'is_deleted' => 'string',
     ];
 
 
@@ -46,5 +47,10 @@ class OrderDetail extends Model
         static::addGlobalScope('order', function (Builder $builder) {
             $builder->Has('order');
                 });
+    }
+
+    public function getIsDeletedAttribute($value)
+    {
+        return trim($value);
     }
 }

@@ -1214,6 +1214,7 @@
                 localStorage.removeItem('posSelectedCustomer');
                 window.selectedCustomer = null;
                 updateCart();
+                $('#customer').val('').trigger('change');
                 toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
                     CloseButton: true,
                     ProgressBar: true
@@ -1232,9 +1233,9 @@
 
                 if (currentCustomerId && currentCustomerId !== 'false') {
                     setTimeout(function() {
-                        $('#customer').val(currentCustomerId).trigger('change');
+                        // $('#customer').val(currentCustomerId).trigger('change');
 
-                        storeCustomerDetails(currentCustomerId, currentCustomerText);
+                        // storeCustomerDetails(currentCustomerId, currentCustomerText);
 
                         if ($('#orderFinalModal').hasClass('show') || $('#orderFinalModal').is(':visible')) {
                             setTimeout(() => tryFillModalWithRetries(5, 100), 200);
@@ -1242,7 +1243,7 @@
                     }, 100);
                 } else {
                     setTimeout(function() {
-                        restoreCustomerFromStorage();
+                        // restoreCustomerFromStorage();
                     }, 100);
                 }
             });
@@ -1440,7 +1441,7 @@
             });
         @else
             $(document).ready(function() {
-                restoreCustomerFromStorage();
+                // restoreCustomerFromStorage();
             });
         @endif
 

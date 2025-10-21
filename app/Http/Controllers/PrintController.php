@@ -231,7 +231,7 @@ class PrintController extends Controller
                                         ->value('option_name') ?? '';
                                         
                                         if(!empty($optionName) && $foodDetails['name'] != $optionName){
-                                            $printer->text("  - " . $optionName . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");   
+                                            $printer->text("  - " . $optionName . "\n");   
                                         }
                                     }else{
                                         $options_listname = DB::table('options_list')
@@ -239,7 +239,7 @@ class PrintController extends Controller
                                         ->value('name');
                                         
                                         if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
-                                            $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");   
+                                            $printer->text("  - " . $options_listname . "\n");   
 
                                             $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -270,9 +270,7 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    $printer->text("    Addon: " . $addon['name']
-                                        . " | (" . number_format($addon['price'], 3, '.', '')
-                                        . " x " . $addon['quantity'] . ")\n");
+                                    $printer->text("    Addon: " . $addon['name'] . "\n");
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -298,7 +296,7 @@ class PrintController extends Controller
                         $printer->text("  Add-ons:" . "\n");
                         foreach ($addOns as $addon) {
                             // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
-                            $printer->text("  -" . $addon['name'] . " (" . $addon['quantity'] . "x" . number_format($addon['price'], 3, '.', '') . ")\n");
+                            $printer->text("  -" . $addon['name'] . "\n");
 
                             // Get Addon Translation
                             $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -650,7 +648,7 @@ class PrintController extends Controller
                                         ->where('id', $value['option_id'])
                                         ->value('option_name');
                                         if(!empty($optionName) && $foodDetails['name'] != $optionName){
-                                            $printer->text("  - " . $optionName . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");   
+                                            $printer->text("  - " . $optionName . "\n");   
                                         }
                                     }else{
                                         $options_listname = DB::table('options_list')
@@ -658,7 +656,7 @@ class PrintController extends Controller
                                         ->value('name');
                                         
                                         if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
-                                            $printer->text("  - " . $options_listname . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");   
+                                            $printer->text("  - " . $options_listname . "\n");   
 
                                             $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -679,9 +677,7 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    $printer->text("    Addon: " . $addon['name']
-                                        . " | (" . number_format($addon['price'], 3, '.', '')
-                                        . " x " . $addon['quantity'] . ")\n");
+                                    $printer->text("    Addon: " . $addon['name'] . "\n");
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -707,7 +703,7 @@ class PrintController extends Controller
                         $printer->text("  Add-ons:" . "\n");
                         foreach ($addOns as $addon) {
                             // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
-                            $printer->text("  -" . $addon['name'] . " (" . $addon['quantity'] . "x" . number_format($addon['price'], 3, '.', '') . ")\n");
+                            $printer->text("  -" . $addon['name'] . "\n");
 
                             // Get Addon Translation
                             $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -735,10 +731,11 @@ class PrintController extends Controller
 
                     $itemTotal = $detail->price * $detail->quantity;
                     $subTotal += $itemTotal;
+
+                    $printer->text($linedash);
                 }
             }
 
-            $printer->text($linedash);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->text("TOTAL: " . number_format($order->order_amount, 3, '.', ''));
             $printer->bitImageColumnFormat($currencyTextimage);

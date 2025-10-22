@@ -63,7 +63,7 @@
                     </div>
                 </div>
 
-                <form action="{{ route('vendor.pos.order') }}" id='order_place' method="post">
+                <form action="{{ route('vendor.pos.order') }}" id='order_place' method="post" onsubmit="disableButtons()">
                     @csrf
                     <input type="hidden" name="user_id" id="customer_id">
                     <!-- Customer Details Section -->
@@ -203,3 +203,12 @@
     </div>
 </div>
 
+<script>
+    function disableButtons() {
+    const buttons = document.querySelectorAll('#order_place button[type="submit"]');
+        buttons.forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('disabled');
+        });
+    }
+</script>

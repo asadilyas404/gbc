@@ -1820,40 +1820,48 @@
             this.scrollLeft += e.deltaY;
         });
 
-        $(document).ready(function() {
+        $(document).ready(function(e) {
             let isFormSubmitting = false;
 
-            $('form').on('submit', function(e) {
-                const submitButton = $(this).find('button[type="submit"]:focus, button[type="submit"].clicked');
+            // Track which submit button was clicked
+            $(document).on('click', 'button[type="submit"]', function () {
+            const $form = $(this).closest('form');
+            $form.find('button[type="submit"]').removeClass('clicked');
+            $(this).addClass('clicked');
+            });
 
-                if (isFormSubmitting) {
-                    e.preventDefault();
-                    return false;
+            $('form').on('submit', function (e) {
+            if (isFormSubmitting) return false; // block duplicates
+
+            isFormSubmitting = true;
+            const $form = $(this);
+            const $buttons = $form.find('button[type="submit"]');
+            const $activeBtn = $form.find('button.clicked');
+
+            $buttons.prop('disabled', true);
+
+            // Add spinner only to the clicked submit button
+            if ($activeBtn.length) {
+                if (!$activeBtn.data('original-text')) {
+                $activeBtn.data('original-text', $activeBtn.html());
                 }
+                $activeBtn.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait');
+            }
 
-                isFormSubmitting = true;
-
-                $(this).find('button[type="submit"]').each(function() {
-                    $(this).prop('disabled', true);
-
-                    if (!$(this).data('original-text')) {
-                        $(this).data('original-text', $(this).html());
-                    }
-
-                    $(this).html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait');
+            // Let the form submit naturally (no e.preventDefault)
+            // The reset below is just a fallback if submission is AJAX or blocked
+            setTimeout(() => {
+                isFormSubmitting = false;
+                $buttons.prop('disabled', false);
+                $buttons.each(function () {
+                const originalText = $(this).data('original-text');
+                if (originalText) $(this).html(originalText);
                 });
-
-                setTimeout(function() {
-                    isFormSubmitting = false;
-                }, 10000);
+            }, 10000);
             });
 
-            $(document).on('click', 'button[type="submit"]', function() {
 
-                $('button[type="submit"]').removeClass('clicked');
 
-                $(this).addClass('clicked');
-            });
 
             function fetchData(categoryId = '', subcategoryId = '', keyword = '') {
                 $.ajax({

@@ -356,7 +356,7 @@
                                         @if (isset($detail->food_id))
                                             @php($detail->food = json_decode($detail->food_details, true))
                                             @php($food = \App\Models\Food::where(['id' => $detail->food['id']])->first())
-                                            <tr>
+                                            <tr @if(isset($detail->is_deleted) && $detail->is_deleted == 'Y') class="table-danger" @endif>
                                                 <td>
                                                     <div class="media">
                                                         <a class="avatar mr-3 cursor-pointer initial-80"

@@ -48,7 +48,8 @@
                         }
                         ?>
                         <tr @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') class="bg-light pe-none" @endif>
-                            <td class="media cart--media align-items-center cursor-pointer quick-View-Cart-Item"
+                            <td 
+                                class="media cart--media align-items-center cursor-pointer quick-View-Cart-Item"
                                 data-product-id="{{ $cartItem['id'] }}" data-item-key="{{ $key }}">
                                 <img class="avatar avatar-sm mr-2 onerror-image" src="{{ $cartItem['image_full_url'] }}"
                                     data-onerror-image="{{ dynamicAsset('public/assets/admin/img/160x160/img2.jpg') }}"
@@ -63,6 +64,7 @@
                             <td class="align-items-center text-center">
                                 <label>
                                     <input type="number" data-key="{{ $key }}"
+                                        @if(isset($editingOrder)) readonly @endif
                                         data-value="{{ $cartItem['quantity'] }}"
                                         data-option_ids="{{ $cartItem['variation_option_ids'] }}"
                                         data-food_id="{{ $cartItem['id'] }}"

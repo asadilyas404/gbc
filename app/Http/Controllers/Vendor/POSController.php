@@ -361,6 +361,7 @@ class POSController extends Controller
         $data['price'] = $price;
         $data['name'] = $product->name;
         $data['is_deleted'] = 'N';
+        $data['is_printed'] = 0;
         if ($request->product_discount_type && $request->product_discount) {
             $discountAmount = $request->product_discount;
             $discountType = $request->product_discount_type;
@@ -829,6 +830,7 @@ class POSController extends Controller
                         'total_add_on_price' => $total_addon_price_for_item,
                         'notes' => $c['notes'] ?? $c['details'] ?? null,
                         'is_deleted' => isset($c['is_deleted']) ? trim($c['is_deleted']) : 'N',
+                        'is_printed' => $c['is_printed'] ?? 0,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -1052,6 +1054,7 @@ class POSController extends Controller
                 'details' => $item->notes,
                 'image' => $food['image'] ?? null,
                 'is_deleted' => trim($item->is_deleted),
+                'is_printed' => $item->is_printed,
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
             ];

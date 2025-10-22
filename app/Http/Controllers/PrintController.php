@@ -630,6 +630,21 @@ class PrintController extends Controller
                     $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                     $printer->setReverseColors(true);
                 }
+
+                if($order->printed == '1'){
+                    if($detail->is_printed == 0 && $detail->is_deleted != 'Y'){
+                        $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
+                        $printer->setReverseColors(true);
+                        $printer->text("NEW ITEM\n");
+                        $printer->selectPrintMode();
+                        $printer->setReverseColors(false);
+                    }
+                }
+
+                // Save printed status
+                $detail->is_printed = 1;
+                $detail->save();
+
                 if ($detail->food_id || $detail->campaign == null) {
                     $foodDetails = json_decode($detail->food_details, true);
 
@@ -661,7 +676,7 @@ class PrintController extends Controller
                     //  $logo = \Mike42\Escpos\EscposImage::load($filePath, false);
                     //                     $printer->graphics($logo);
 
-                    $printer->setEmphasis(false);
+                    // $printer->setEmphasis(false);
                     // Variations
                     $variations = json_decode($detail->variation, true);
                     if (count($variations) > 0) {
@@ -728,7 +743,7 @@ class PrintController extends Controller
                     }
 
 
-                    $printer->setEmphasis(false);
+                    // $printer->setEmphasis(false);
                     // Add-ons
                     $addOns = json_decode($detail->add_ons, true);
                     if (count($addOns) > 0) {

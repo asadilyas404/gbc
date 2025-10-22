@@ -382,8 +382,8 @@
                     </div>
                     <div class="w-100">
                         @if($editingOrder)
-                        <div class="justify-content-between p-2">
-                            <h1>Order # {{ $editingOrder->order_serial }}</h1>
+                        <div class="justify-content-between p-2" id="editingOrderHeading">
+                            <h1 class="bg-dark text-white">Order # {{ $editingOrder->order_serial }}</h1>
                             @if($editingOrder->kitchen_status == 'cooking')
                                 <span class="badge bg-danger text-white small">{{ $editingOrder->kitchen_status }}</span>
                             @elseif ($editingOrder->kitchen_status == 'completed' || $editingOrder->kitchen_status == 'ready')
@@ -1230,6 +1230,9 @@
                 window.selectedCustomer = null;
                 updateCart();
                 $('#customer').val('').trigger('change');
+                if($('#editingOrderHeading').length){
+                    $('#editingOrderHeading').html('');
+                }
                 toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
                     CloseButton: true,
                     ProgressBar: true

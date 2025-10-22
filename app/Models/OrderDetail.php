@@ -21,6 +21,7 @@ class OrderDetail extends Model
         'item_campaign_id' => 'integer',
         'details' => 'string',
         'is_deleted' => 'string',
+        'is_printed' => 'integer',
     ];
 
 

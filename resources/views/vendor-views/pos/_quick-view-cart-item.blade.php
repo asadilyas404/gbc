@@ -12,7 +12,7 @@
         </button>
     </div>
 
-    <div class="modal-body">
+    <div class="modal-body pe-none">
         <div class="d-flex flex-row align-items-center">
             <div class="d-flex align-items-center justify-content-center active position-relative">
                 @if (config('toggle_veg_non_veg'))
@@ -316,10 +316,10 @@
                     <div class="d-flex justify-content-center mt-2">
                         @if ($product->stock_type !== 'unlimited' && $product->item_stock <= 0)
                             <a href="javascript:" data-product-id="{{ $item_key }}"
-                                class="btn  btn--danger  remove-From-Cart"> {{ translate('Remove') }} <i
+                                class="btn  btn--danger  remove-From-Cart d-none"> {{ translate('Remove') }} <i
                                     class="tio-delete-outlined"></i></a>
                         @else
-                            <button class="btn btn--primary h--45px w-40p add-To-Cart" type="button">
+                            <button class="btn btn--primary h--45px w-40p add-To-Cart d-none" type="button">
                                 <i class="tio-shopping-cart"></i>
                                 {{ translate('messages.update') }}
                             </button>

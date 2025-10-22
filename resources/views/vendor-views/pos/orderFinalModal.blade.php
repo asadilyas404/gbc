@@ -36,9 +36,9 @@
                     <div class="col-4">
                         <div class="card bg-primary text-white">
                             <div class="card-body text-center">
-                                <h5>{{ translate('Invoice Amount') }}</h5>
+                                <h5 class="text-white">{{ translate('Invoice Amount') }}</h5>
                                 <h4 id="invoice_amount" class="font-weight-bold">
-                                    <span></span>
+                                    <span class="text-white"></span>
                                 </h4>
                             </div>
                         </div>
@@ -46,8 +46,8 @@
                     <div class="col-4">
                         <div class="card bg-success text-white">
                             <div class="card-body text-center">
-                                <h5>{{ translate('Cash Paid') }}</h5>
-                                <h4 id="cash_paid_display" class="font-weight-bold">
+                                <h5 class="text-white">{{ translate('Cash Paid') }}</h5>
+                                <h4 id="cash_paid_display" class="font-weight-bold text-white">
                                     {{ Helpers::format_currency(0.0) }}</h4>
                             </div>
                         </div>
@@ -55,15 +55,15 @@
                     <div class="col-4">
                         <div class="card bg-danger text-white">
                             <div class="card-body text-center">
-                                <h5>{{ translate('Cash Return') }}</h5>
-                                <h4 id="cash_return" class="font-weight-bold">
+                                <h5 class="text-white">{{ translate('Cash Return') }}</h5>
+                                <h4 id="cash_return" class="font-weight-bold text-white">
                                     {{ Helpers::format_currency(0.0) }}</h4>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <form action="{{ route('vendor.pos.order') }}" id='order_place' method="post" onsubmit="disableButtons()">
+                <form action="{{ route('vendor.pos.order') }}" id='order_place' method="post">
                     @csrf
                     <input type="hidden" name="user_id" id="customer_id">
                     <!-- Customer Details Section -->
@@ -202,13 +202,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    function disableButtons() {
-    const buttons = document.querySelectorAll('#order_place button[type="submit"]');
-        buttons.forEach(btn => {
-            btn.disabled = true;
-            btn.classList.add('disabled');
-        });
-    }
-</script>

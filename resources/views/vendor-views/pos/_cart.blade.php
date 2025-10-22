@@ -350,8 +350,8 @@ if (isset($cart['paid'])) {
                         <div class="col-4">
                             <div class="card bg-primary text-white">
                                 <div class="card-body text-center">
-                                    <h5>{{ translate('Invoice Amount') }}</h5>
-                                    <h4 id="invoice_amount" class="font-weight-bold">
+                                    <h5 class="text-white">{{ translate('Invoice Amount') }}</h5>
+                                    <h4 id="invoice_amount" class="font-weight-bold text-white">
                                         <span>{{ Helpers::format_currency($paid) }}</span>
                                     </h4>
                                 </div>
@@ -360,8 +360,8 @@ if (isset($cart['paid'])) {
                         <div class="col-4">
                             <div class="card bg-success text-white">
                                 <div class="card-body text-center">
-                                    <h5>{{ translate('Cash Paid') }}</h5>
-                                    <h4 id="cash_paid_display" class="font-weight-bold">
+                                    <h5 class="text-white">{{ translate('Cash Paid') }}</h5>
+                                    <h4 id="cash_paid_display" class="font-weight-bold text-white">
                                         {{ Helpers::format_currency(0.0) }}</h4>
                                 </div>
                             </div>
@@ -369,8 +369,8 @@ if (isset($cart['paid'])) {
                         <div class="col-4">
                             <div class="card bg-danger text-white">
                                 <div class="card-body text-center">
-                                    <h5>{{ translate('Cash Return') }}</h5>
-                                    <h4 id="cash_return" class="font-weight-bold">
+                                    <h5 class="text-white">{{ translate('Cash Return') }}</h5>
+                                    <h4 id="cash_return" class="font-weight-bold text-white">
                                         {{ Helpers::format_currency(0.0) }}</h4>
                                 </div>
                             </div>

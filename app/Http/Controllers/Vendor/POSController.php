@@ -129,9 +129,11 @@ class POSController extends Controller
         $product = Food::findOrFail($request->product_id);
         $item_key = $request->item_key;
         $cart_item = session()->get('cart')[$item_key];
+        $editing_order_id = session()->get('editing_order_id') ?? null;
+
         return response()->json([
             'success' => 1,
-            'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key'))->render(),
+            'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key', 'editing_order_id'))->render(),
         ]);
     }
 
@@ -747,6 +749,7 @@ class POSController extends Controller
         $order->original_delivery_charge = 0;
         $order->delivery_address = isset($address) ? json_encode($address) : null;
         $order->checked = 1;
+        $order->order_note = $request->order_notes ?? '';
         $order->updated_at = now();
         $order->otp = rand(1000, 9999);
 

@@ -6580,4 +6580,6 @@
   'Please Enter Amount Paid' => 'Please Enter Amount Paid',
   'Please enter valid paid amount' => 'Please enter valid paid amount',
   'Please enter a valid paid amount' => 'Please enter a valid paid amount',
+  'You_are_currently_editing_an_existing_order.Changes_will_be_applied_to_that_order.' => 'You are currently editing an existing order.Changes will be applied to that order.',
+  'You_are_currently_editing_an_existing_order. Editing_note_allowed.' => 'You are currently editing an existing order. Editing note allowed.',
 );

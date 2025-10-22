@@ -283,7 +283,13 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    $printer->text("    Addon: " . $addon['name'] . "\n");
+                                    if($addon['price'] > 0){
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3)); 
+                                        $printer->bitImageColumnFormat($currencyTextimage);
+                                        // $printer->text("\n");
+                                    }else{
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
+                                    }
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -341,7 +347,7 @@ class PrintController extends Controller
                     //$printer->text("  Total: " . Helpers::format_currency($itemTotal) . "\n");
                     $printer->setJustification(Printer::JUSTIFY_RIGHT);
                     $printer->setEmphasis(true);
-                    $printer->text("  Total: " . number_format($itemTotal, 3, '.', '') . "\n");
+                    $printer->text("  Total: " . number_format($itemTotal + $addOnsCost, 3, '.', '') . "\n");
                     $printer->setJustification(Printer::JUSTIFY_LEFT);
 
                     $printer->text($linedash);
@@ -724,7 +730,13 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    $printer->text("    Addon: " . $addon['name'] . "\n");
+                                    if($addon['price'] > 0){
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3)); 
+                                        $printer->bitImageColumnFormat($currencyTextimage);
+                                        // $printer->text("\n");
+                                    }else{
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
+                                    }
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -788,6 +800,18 @@ class PrintController extends Controller
                 }
                 
             }
+
+            // Order Notes
+            if ($order->order_note) {
+                $printer->text("Order Note: \n");
+                $orderNoteImage = ReceiptImageHelper::createArabicImageForPrinter($order->order_note, storage_path('app/public/prints/order_note_' . $count++ . '_arabic.png'), 20);
+                $orderNoteImage = EscposImage::load($orderNoteImage, false);
+                $printer->setPrintLeftMargin(0);
+                $printer->bitImageColumnFormat($orderNoteImage);
+                $printer->setPrintLeftMargin(0);
+                $printer->text($linedash);
+            }
+
 
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->text("TOTAL: " . number_format($order->order_amount, 3, '.', ''));

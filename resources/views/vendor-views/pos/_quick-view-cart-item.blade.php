@@ -12,7 +12,7 @@
         </button>
     </div>
 
-    <div class="modal-body pe-none">
+    <div class="modal-body @if (session()->get('editing_order_id')) pe-none @endif">
         <div class="d-flex flex-row align-items-center">
             <div class="d-flex align-items-center justify-content-center active position-relative">
                 @if (config('toggle_veg_non_veg'))
@@ -313,18 +313,24 @@
                     </div>
 
 
-                    <div class="d-flex justify-content-center mt-2">
-                        @if ($product->stock_type !== 'unlimited' && $product->item_stock <= 0)
-                            <a href="javascript:" data-product-id="{{ $item_key }}"
-                                class="btn  btn--danger  remove-From-Cart d-none"> {{ translate('Remove') }} <i
-                                    class="tio-delete-outlined"></i></a>
-                        @else
-                            <button class="btn btn--primary h--45px w-40p add-To-Cart d-none" type="button">
-                                <i class="tio-shopping-cart"></i>
-                                {{ translate('messages.update') }}
-                            </button>
-                        @endif
-                    </div>
+                    @if(session()->get('editing_order_id'))
+                        <div class="alert alert-danger mt-3">
+                            {{ translate('You_are_currently_editing_an_existing_order. Editing_not_allowed.') }}
+                        </div>
+                    @else
+                        <div class="d-flex justify-content-center mt-2">
+                            @if ($product->stock_type !== 'unlimited' && $product->item_stock <= 0)
+                                <a href="javascript:" data-product-id="{{ $item_key }}"
+                                    class="btn  btn--danger  remove-From-Cart"> {{ translate('Remove') }} <i
+                                        class="tio-delete-outlined"></i></a>
+                            @else
+                                <button class="btn btn--primary h--45px w-40p add-To-Cart" type="button">
+                                    <i class="tio-shopping-cart"></i>
+                                    {{ translate('messages.update') }}
+                                </button>
+                            @endif
+                        </div>
+                    @endif
                 </form>
             </div>
         </div>

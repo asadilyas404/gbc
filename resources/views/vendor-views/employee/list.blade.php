@@ -129,7 +129,7 @@
                                     <td>
                                         {{ $e['email'] }}
                                     </td>
-                                    <td>{{ $e['phone'] }}</td>
+                                    <td>{{ $e['mobile_no'] }}</td>
                                     <td>{{ $e->role ? $e->role['name'] : translate('messages.role_deleted') }}</td>
                                     <td>
 

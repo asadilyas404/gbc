@@ -59,7 +59,7 @@ class EmployeeController extends Controller
         $vendor->id = $maxId ? $maxId + 1 : 1;
         $vendor->f_name = $request->f_name;
         $vendor->l_name = $request->l_name;
-        $vendor->phone = $request->phone;
+        $vendor->mobile_no = $request->phone;
         $vendor->email = $request->email;
         $vendor->employee_role_id = $request->role_id;
         $vendor->password = bcrypt($request->password);
@@ -80,9 +80,8 @@ class EmployeeController extends Controller
         ->when(isset($key) , function($query) use($key) {
             $query->where(function ($q) use ($key) {
                 foreach ($key as $value) {
-                    $q->orWhere('f_name', 'like', "%{$value}%");
-                    $q->orWhere('l_name', 'like', "%{$value}%");
-                    $q->orWhere('phone', 'like', "%{$value}%");
+                    $q->orWhere('name', 'like', "%{$value}%");
+                    $q->orWhere('mobile_no', 'like', "%{$value}%");
                     $q->orWhere('email', 'like', "%{$value}%");
                 }
             });
@@ -109,7 +108,7 @@ class EmployeeController extends Controller
             'l_name' => 'nullable|max:100',
             'role_id' => 'required',
             'email' => 'required|unique:vendor_employees,email,'.$id,
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:20|unique:vendor_employees,phone,'.$id,
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:20|unique:vendor_employees,mobile_no,'.$id,
             'image' => 'nullable|max:2048',
             'password' => ['nullable', Password::min(8)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
 
@@ -145,7 +144,7 @@ class EmployeeController extends Controller
         DB::table('vendor_employees')->where(['id' => $id])->update([
             'f_name' => $request->f_name,
             'l_name' => $request->l_name,
-            'phone' => $request->phone,
+            'mobile_no' => $request->phone,
             'email' => $request->email,
             'employee_role_id' => $request->role_id,
             'vendor_id'=> Helpers::get_vendor_id(),
@@ -178,7 +177,7 @@ class EmployeeController extends Controller
             foreach ($key as $value) {
                 $q->orWhere('f_name', 'like', "%{$value}%");
                 $q->orWhere('l_name', 'like', "%{$value}%");
-                $q->orWhere('phone', 'like', "%{$value}%");
+                $q->orWhere('mobile_no', 'like', "%{$value}%");
                 $q->orWhere('email', 'like', "%{$value}%");
             }
         })->limit(50)->get();
@@ -196,7 +195,7 @@ class EmployeeController extends Controller
                 foreach ($key as $value) {
                     $q->orWhere('f_name', 'like', "%{$value}%");
                     $q->orWhere('l_name', 'like', "%{$value}%");
-                    $q->orWhere('phone', 'like', "%{$value}%");
+                    $q->orWhere('mobile_no', 'like', "%{$value}%");
                     $q->orWhere('email', 'like', "%{$value}%");
                 }
             });

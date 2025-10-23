@@ -132,11 +132,11 @@
                                             class="input-label">{{ translate('Select Account') }}</label>
                                         <select id="bank_account" name="bank_account" class="form-control">
                                             <option value="">{{ translate('Select an option') }}</option>
-                                            <option value="1">
+                                            <option value="1" @if(session()->has('bank_account') && session('bank_account') == '1') selected @endif>
                                                 {{ translate('Bank 1') }}</option>
-                                            <option value="2">
+                                            <option value="2" @if(session()->has('bank_account') && session('bank_account') == '2') selected @endif>
                                                 {{ translate('Bank 2') }}</option>
-                                            <option value="3">
+                                            <option value="3" @if(session()->has('bank_account') && session('bank_account') == '3') selected @endif>
                                                 {{ translate('Bank 3') }}</option>
                                         </select>
                                     </div>

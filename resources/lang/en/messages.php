@@ -6582,4 +6582,8 @@
   'Please enter a valid paid amount' => 'Please enter a valid paid amount',
   'You_are_currently_editing_an_existing_order.Changes_will_be_applied_to_that_order.' => 'You are currently editing an existing order.Changes will be applied to that order.',
   'You_are_currently_editing_an_existing_order. Editing_note_allowed.' => 'You are currently editing an existing order. Editing note allowed.',
+  'employee_session' => 'Employee session',
+  'shift_setup' => 'Shift setup',
+  'kitchen orders' => 'Kitchen orders',
+  'shift session' => 'Shift session',
 );

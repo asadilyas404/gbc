@@ -500,6 +500,7 @@ class POSController extends Controller
         session()->forget('cart');
         session()->forget('address');
         session()->forget('editing_order_id');
+        session()->forget('bank_account');
         return response()->json([], 200);
     }
 
@@ -568,17 +569,17 @@ class POSController extends Controller
     public function get_customers(Request $request)
     {
         try {
-            $key = explode(' ', $request['q']);
+            $key = str_replace(' ', '%', $request['q']);
 
-            $data = SaleCustomer::where(function ($q) use ($key) {
-                foreach ($key as $value) {
-                    $q->orWhere(DB::raw('UPPER(customer_name)'), 'like', strtoupper("%{$value}%"))
-                        ->orWhere(DB::raw('UPPER(customer_mobile_no)'), 'like', strtoupper("%{$value}%"))
-                        ->orWhere(DB::raw('UPPER(customer_email)'), 'like', strtoupper("%{$value}%"));
-                }
+            $data = SaleCustomer::where(function ($query) use ($key) {
+                $query->orWhere(DB::raw('UPPER(customer_name)'), 'like', strtoupper("{$key}%"))
+                    ->orWhere(DB::raw('UPPER(customer_mobile_no)'), 'like', strtoupper("{$key}%"))
+                    ->orWhere(DB::raw('UPPER(customer_email)'), 'like', strtoupper("{$key}%"));
+                
             })
-                ->limit(8)
-                ->get([DB::raw('customer_id as id'), DB::raw('customer_name'), DB::raw('customer_mobile_no')]);
+            ->limit(8)
+            ->orderBy('customer_code', 'desc')
+            ->get([DB::raw('customer_id as id'), DB::raw('customer_name'), DB::raw('customer_mobile_no')]);
 
             // Format the data for select2
             $formattedData = $data->map(function ($customer) {
@@ -600,9 +601,11 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
-        $activeSession = \App\Models\ShiftSession::current()->first();
+        $activeSession = \App\Models\ShiftSession::current()
+        ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
+        ->first();
         if (!$activeSession) {
-            Toastr::error('No active shift session found. Please start a shift session before placing orders.');
+            Toastr::error('No active shift session found. Please start a shift session with your ID before placing orders.');
             return back();
         }
 
@@ -942,10 +945,15 @@ class POSController extends Controller
             $posOrderDtl->invoice_amount = $order->order_amount ?? 0;
             $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
             $posOrderDtl->card_paid = $request->card_paid ?? 0;
-            $posOrderDtl->bank_account = $request->bank_account;
+            if($payment_type == 'card' || $payment_type == 'cash_card'){
+                $posOrderDtl->bank_account = $request->bank_account;    
+            }else{
+                $posOrderDtl->bank_account = null;
+            }
             $posOrderDtl->order_notes = $request->order_notes;
             $posOrderDtl->save();
 
+            
             session()->forget('cart');
             session()->forget('editing_order_id');
             session()->forget('address');

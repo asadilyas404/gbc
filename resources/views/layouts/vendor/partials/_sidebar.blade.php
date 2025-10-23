@@ -306,10 +306,10 @@ use Illuminate\Support\Facades\DB;
                         class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/shift-session*') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link"
                             href="{{ route('vendor.shift-session.index') }}"
-                            title="Shift Session">
+                            title="Employee Session">
                             <i class="tio-time nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                {{ translate('messages.shift_session') }}
+                                {{ translate('messages.employee_session') }}
                             </span>
                         </a>
                     </li>

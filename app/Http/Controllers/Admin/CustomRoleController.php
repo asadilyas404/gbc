@@ -142,7 +142,7 @@ class CustomRoleController extends Controller
             return view('errors.404');
         }
         $role=AdminRole::find($id);
-        $role?->translations()?->delete();
+        $role->translations()->delete();
         $role->delete();
         Toastr::success(translate('messages.role_deleted_successfully'));
         return back();

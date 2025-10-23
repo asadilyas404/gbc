@@ -54,7 +54,7 @@
                                         ({{ translate('Default') }})
                                     </label>
                                     <input type="text" name="name[]" id="default_name" class="form-control"
-                                        value="{{ $product->name }}" required
+                                        value="{{ $originalProduct->getRawOriginal('name') . ' (Copy)' }}" required
                                         placeholder="{{ translate('messages.new_food') }}"
                                         {{ $lang == $default_lang ? 'required' : '' }}>
                                 </div>
@@ -63,17 +63,17 @@
                                     <label class="input-label"
                                         for="exampleFormControlInput1">{{ translate('messages.short_description') }}
                                         ({{ translate('Default') }})</label>
-                                    <textarea type="text" name="description[]" class="form-control ckeditor min-height-154px">{!! $product->description ?? '' !!}</textarea>
+                                    <textarea type="text" name="description[]" class="form-control ckeditor min-height-154px">{!! $originalProduct->getRawOriginal('description') ?? '' !!}</textarea>
                                 </div>
                             </div>
                             @if ($language)
                                 @foreach (json_decode($language) as $lang)
                                     <?php
-                                    if (count($product['translations'])) {
+                                    if (count($originalProduct['translations'])) {
                                         $translate = [];
-                                        foreach ($product['translations'] as $t) {
+                                        foreach ($originalProduct['translations'] as $t) {
                                             if ($t->locale == $lang && $t->key == 'name') {
-                                                $translate[$lang]['name'] = $t->value;
+                                                $translate[$lang]['name'] = $t->value . ' (Copy)';
                                             }
                                             if ($t->locale == $lang && $t->key == 'description') {
                                                 $translate[$lang]['description'] = $t->value;

@@ -620,6 +620,8 @@ class PrintController extends Controller
             $colArabicImagePath = public_path('assets/pos_printer_arabic_header_text.png');
             $headerFilePath = EscposImage::load($colArabicImagePath, false);
 
+            $printer->setEmphasis(true);
+
             // Items
 
             $printer->text($this->formatRowKitchen(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
@@ -684,6 +686,9 @@ class PrintController extends Controller
 
                     // $printer->setEmphasis(false);
                     // Variations
+                    // $printer->selectPrintMode(Printer::PDF417_STANDARD);
+                    // $printer->selectPrintMode(Printer::MODE_DOUBLE_WIDTH);
+
                     $variations = json_decode($detail->variation, true);
                     if (count($variations) > 0) {
                         //$printer->text("  Variations:\n");

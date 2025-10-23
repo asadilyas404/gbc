@@ -7,15 +7,29 @@ use App\Models\ShiftSession;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
+use Google\Rpc\Help;
 use Illuminate\Support\Facades\DB;
 
 class ShiftSessionController extends Controller
 {
     public function index()
     {
-        // Get current open session for this restaurant
-        $currentSession = ShiftSession::current()->first();
+        $currentSession = ShiftSession::current();
+            
+        
+        // Check if the user is vendor or vendor-employee
+        if(auth('vendor')->check()){
+            $userId = auth('vendor')->id();
+            $currentSession = $currentSession->where('user_id', $userId);
+            $currentSession->with('restaurant');
+        } 
+        if (auth('vendor_employee')->check()) {
+            $userId = auth('vendor_employee')->id();
+            $currentSession = $currentSession->where('user_id', $userId);
+            $currentSession->with('user');
+        }
 
+        $currentSession = $currentSession->first();
         // Get available shifts from tbl_defi_shift
         $shifts = DB::table('tbl_defi_shift')
                     ->select('shift_id', 'shift_name')

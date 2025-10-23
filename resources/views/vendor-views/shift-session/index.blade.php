@@ -48,6 +48,16 @@
                         <div class="col-md-6">
                             <div class="shift-info">
                                 <h6 class="text-primary">Session Details</h6>
+                                <p class="mb-1">
+                                    <strong>Vendor/Employee:</strong>
+                                    @if (auth('vendor')->check())
+                                        {{ $currentSession->restaurant->name }}
+                                    @elseif (auth('vendor-employee')->check())
+                                        {{ $currentSession->user->name }}
+                                    @else
+                                        N/A
+                                    @endif
+                                </p>
                                 <p class="mb-1"><strong>Session #:</strong> {{ $currentSession->session_no }}</p>
                                 <p class="mb-1"><strong>Shift:</strong> {{ $currentSession->shift_name }}</p>
                                 <p class="mb-1"><strong>Started:</strong> {{ $currentSession->start_date->format('M d, Y H:i:s') }}</p>

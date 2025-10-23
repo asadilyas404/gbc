@@ -373,11 +373,11 @@ class FoodController extends Controller
             return back();
         }
 
-        $originalProduct = Food::withoutGlobalScope('translate')->findOrFail($id);
+        $originalProduct = Food::withoutGlobalScope('translate')->with('translations')->findOrFail($id);
 
         $product = new Food();
-        $product->name = $originalProduct->name . ' (Copy)';
-        $product->description = $originalProduct->description;
+        $product->name = $originalProduct->getRawOriginal('name') . ' (Copy)';
+        $product->description = $originalProduct->getRawOriginal('description');
         $product->image = Helpers::copy_image('product/', $originalProduct->image);
         $product->category_id = $originalProduct->category_id;
         $product->category_ids = $originalProduct->category_ids;

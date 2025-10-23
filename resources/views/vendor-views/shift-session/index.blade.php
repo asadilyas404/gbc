@@ -52,7 +52,7 @@
                                     <strong>Vendor/Employee:</strong>
                                     @if (auth('vendor')->check())
                                         {{ $currentSession->restaurant->name }}
-                                    @elseif (auth('vendor-employee')->check())
+                                    @elseif (auth('vendor_employee')->check()) 
                                         {{ $currentSession->user->name }}
                                     @else
                                         N/A

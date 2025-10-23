@@ -43,7 +43,7 @@ class ShiftSessionController extends Controller
     {
         // Check if there's already an open session
         $existingSession = ShiftSession::current()
-        ->where('user_id', auth()->user()->id)
+        ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
         ->first();
         if ($existingSession) {
             Toastr::warning('A shift session is already open. Please close the current session before starting a new one.');
@@ -83,7 +83,7 @@ class ShiftSessionController extends Controller
     public function close(Request $request)
     {
         $currentSession = ShiftSession::current()
-        ->where('user_id', auth()->user()->id)
+        ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
         ->first();
 
         if (!$currentSession) {

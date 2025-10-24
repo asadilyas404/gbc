@@ -760,6 +760,12 @@ class POSController extends Controller
         foreach ($cart as $c) {
 
             if (is_array($c)) {
+
+                 if($c['discount'] > ($c['price'] * $c['quantity'])){
+                    Toastr::error(translate('messages.discount_cannot_exceed_product_amount'));
+                    return back()->withInput();
+                }
+
                 $product = Food::find($c['id']);
                 if ($product) {
                     $price = $c['price'];

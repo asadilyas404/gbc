@@ -104,7 +104,8 @@ if (session()->has('address') && count(session()->get('address')) > 0) {
     $delivery_fee += session()->get('address')['delivery_fee'];
 }
 $total = $subtotal + $addon_price;
-$discount_amount = $discount_type == 'percent' && $discount > 0 ? (($total - $discount_on_product) * $discount) / 100 : $discount;
+$discount_amount = $discount_type == 'percent' && $discount > 0 ? (($total - $discount_on_product) * $discount) / 100 : $discount - $discount_on_product;
+$discount_amount = 0;
 $total -= $discount_amount + $discount_on_product;
 $tax_included = Helpers::get_mail_status('tax_included') ?? 0;
 $total_tax_amount = $tax > 0 ? ($total * $tax) / 100 : 0;
@@ -157,7 +158,7 @@ if (isset($cart['paid'])) {
 
             <dt class="col-6 font-regular">{{ translate('messages.extra_discount') }} :</dt>
             <dd class="col-6 text-right">
-                <button class="btn btn-sm" type="button" data-toggle="modal" data-target="#add-discount"><i
+                <button class="btn btn-sm" disabled type="button" data-toggle="modal" data-target="#add-discount"><i
                         class="tio-edit"></i></button>
                 - {{ Helpers::format_currency(round($discount_amount, 3)) }}
             </dd>
@@ -577,7 +578,7 @@ if (isset($cart['paid'])) {
                     <div class="form-group col-sm-6">
                         <label for="discount_input">{{ translate('messages.discount') }}</label>
                         <input type="number" class="form-control" name="discount" min="0.0001"
-                            id="discount_input" value="{{ $discount }}"
+                            id="discount_input" value="0"
                             max="{{ $discount_type == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                     </div>
                     <div class="form-group col-sm-6">

@@ -12,7 +12,7 @@
         </button>
     </div>
 
-    <div class="modal-body @if (session()->get('editing_order_id')) pe-none @endif">
+    <div class="modal-body">
         <div class="d-flex flex-row align-items-center">
             <div class="d-flex align-items-center justify-content-center active position-relative">
                 @if (config('toggle_veg_non_veg'))
@@ -112,7 +112,8 @@
                         </div>
                     </div>
 
-                    @foreach (json_decode($product->variations) as $key => $choice)
+                    <div class="@if (session()->get('editing_order_id')) pe-none @endif">
+@foreach (json_decode($product->variations) as $key => $choice)
                         @if (isset($choice->name) && isset($choice->values))
                             <div class="h3 p-0 pt-2">{{ $choice->name }} <small class="text-muted fs-12">
                                     ({{ $choice->required == 'on' ? translate('messages.Required') : translate('messages.optional') }}
@@ -287,6 +288,8 @@
                             </div>
                         </div>
                     </div>
+                    </div>
+                    
                     
                     
                     <div class="row no-gutters d-none mt-2 text-dark" id="chosen_price_div">
@@ -313,11 +316,7 @@
                     </div>
 
 
-                    @if(session()->get('editing_order_id'))
-                        <div class="alert alert-danger mt-3">
-                            {{ translate('You_are_currently_editing_an_existing_order. Editing_not_allowed.') }}
-                        </div>
-                    @else
+                    
                         <div class="d-flex justify-content-center mt-2">
                             @if ($product->stock_type !== 'unlimited' && $product->item_stock <= 0)
                                 <a href="javascript:" data-product-id="{{ $item_key }}"
@@ -330,7 +329,7 @@
                                 </button>
                             @endif
                         </div>
-                    @endif
+                    
                 </form>
             </div>
         </div>

@@ -6586,5 +6586,4 @@
   'shift_setup' => 'Shift setup',
   'kitchen orders' => 'Kitchen orders',
   'shift session' => 'Shift session',
-  'You_are_currently_editing_an_existing_order. Editing_not_allowed.' => 'You are currently editing an existing order. Editing not allowed.',
 );

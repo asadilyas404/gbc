@@ -1084,7 +1084,8 @@ class POSController extends Controller
         }
 
         if ($order->restaurant_discount_amount > 0) {
-            $cartSession['discount'] = $order->restaurant_discount_amount;
+            // $cartSession['discount'] = $order->restaurant_discount_amount;
+            $cartSession['discount'] = 0;
             $cartSession['discount_type'] = 'amount';
         }
 

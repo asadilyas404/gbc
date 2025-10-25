@@ -96,6 +96,13 @@
                 padding: 0px 0px 0 80px !important;
             }
         }
+        .payment-selection-box{
+            border: 0.0625rem solid #e7eaf3 !important;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
     </style>
 
     <div id="pos-div" class="content container-fluid" style="background-color: white; padding-top: 0;">
@@ -1942,14 +1949,14 @@
                 if (cardPaid > invoiceAmount) {
                     alert('{{ translate('Card amount cannot be greater than the invoice amount.') }}');
                     $('#card_paid').val('');
-                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                    bankAccountSelect.prop('required', false).prop('disabled', true);
                     return;
                 }
 
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
                 } else {
-                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                    bankAccountSelect.prop('required', false).prop('disabled', true);
                 }
 
             }
@@ -1969,6 +1976,30 @@
                 updateCalculations();
             });
 
+
+            $(document).on('change', 'input[name="select_payment_type"]', function() {
+                var value = $(this).val();
+                handlePaymentTypeChange(value);
+            });
+
+            function handlePaymentTypeChange(value) {
+                if(value == 'cash'){
+                    const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                    $('#cash_paid').val(invoiceAmount.toFixed(2)).trigger('input');
+                    $('#card_paid').val('').trigger('input');
+                }
+
+                if(value == 'card'){
+                    const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                    $('#cash_paid').val('').trigger('input');
+                    $('#card_paid').val(invoiceAmount.toFixed(2)).trigger('input');
+                }
+
+                if(value == 'both'){
+                    $('#cash_paid').val(0);
+                    $('#card_paid').val(0);
+                }
+            }
 
             // Numeric Keypad working
 

@@ -104,8 +104,7 @@ if (session()->has('address') && count(session()->get('address')) > 0) {
     $delivery_fee += session()->get('address')['delivery_fee'];
 }
 $total = $subtotal + $addon_price;
-$discount_amount = $discount_type == 'percent' && $discount > 0 ? (($total - $discount_on_product) * $discount) / 100 : $discount - $discount_on_product;
-$discount_amount = 0;
+$discount_amount = $discount_type == 'percent' && $discount > 0 ? (($total - $discount_on_product) * $discount) / 100 : $discount;
 $total -= $discount_amount + $discount_on_product;
 $tax_included = Helpers::get_mail_status('tax_included') ?? 0;
 $total_tax_amount = $tax > 0 ? ($total * $tax) / 100 : 0;
@@ -158,7 +157,7 @@ if (isset($cart['paid'])) {
 
             <dt class="col-6 font-regular">{{ translate('messages.extra_discount') }} :</dt>
             <dd class="col-6 text-right">
-                <button class="btn btn-sm" disabled type="button" data-toggle="modal" data-target="#add-discount"><i
+                <button class="btn btn-sm" type="button" data-toggle="modal" data-target="#add-discount"><i
                         class="tio-edit"></i></button>
                 - {{ Helpers::format_currency(round($discount_amount, 3)) }}
             </dd>
@@ -413,6 +412,35 @@ if (isset($cart['paid'])) {
                     <!-- Payment Details Section -->
                     <div class="row pl-2">
                         <div class="col-lg-8">
+                            <div class="row mb-4">
+                                <div class="col-md-4">
+                                    <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                        <input type="radio" id="payment_type_cash" name="select_payment_type" value="cash"
+                                            >
+                                        <span class="input-label m-0">
+                                            {{ translate('Cash') }}
+                                        </span>
+                                    </label>
+                                </div>        
+                                <div class="col-md-4">
+                                    <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                        <input type="radio" id="payment_type_card" name="select_payment_type" value="card"
+                                            >
+                                        <span class="input-label m-0">
+                                            {{ translate('Card') }}
+                                        </span>
+                                    </label>
+                                </div>        
+                                <div class="col-md-4">
+                                    <label for="payment_type_both" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                        <input type="radio" id="payment_type_both" name="select_payment_type" value="both"
+                                            >
+                                        <span class="input-label m-0">
+                                            {{ translate('Cash & Card') }}
+                                        </span>
+                                    </label>
+                                </div>        
+                            </div>
                             <div class="row">
                                 <div class="col-12 col-lg-6">
                                     <div class="form-group">
@@ -578,7 +606,7 @@ if (isset($cart['paid'])) {
                     <div class="form-group col-sm-6">
                         <label for="discount_input">{{ translate('messages.discount') }}</label>
                         <input type="number" class="form-control" name="discount" min="0.0001"
-                            id="discount_input" value="0"
+                            id="discount_input" value="{{ $discount }}"
                             max="{{ $discount_type == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                     </div>
                     <div class="form-group col-sm-6">

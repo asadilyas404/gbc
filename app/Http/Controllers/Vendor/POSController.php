@@ -500,7 +500,7 @@ class POSController extends Controller
         session()->forget('cart');
         session()->forget('address');
         session()->forget('editing_order_id');
-        session()->forget('bank_account');
+        // session()->forget('bank_account');
         return response()->json([], 200);
     }
 
@@ -533,6 +533,7 @@ class POSController extends Controller
 
         $discount = $request->discount;
         $discount_type = $request->type;
+
         $discount_amount = $discount_type == 'percent' && $discount > 0
             ? (($total - $discount_on_product) * $discount) / 100
             : $discount;
@@ -630,12 +631,7 @@ class POSController extends Controller
             if (floatval($request->cash_paid) < 0 || floatval($request->card_paid) < 0) {
                 Toastr::error(translate('Payment amount cannot be negative'));
                 return back();
-            }
-
-            if (floatval($request->cash_paid) <= 0 && floatval($request->card_paid) <= 0) {
-                Toastr::error(translate('Please enter a valid paid amount'));
-                return back();
-            }
+            }   
 
             if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
                 $payment_type = 'cash';
@@ -682,6 +678,7 @@ class POSController extends Controller
 
         $total_addon_price = 0;
         $product_price = 0;
+        $discount_on_product = 0;
         $restaurant_discount_amount = 0;
 
         $order_details = [];
@@ -758,7 +755,6 @@ class POSController extends Controller
 
         DB::beginTransaction();
         foreach ($cart as $c) {
-
             if (is_array($c)) {
 
                  if($c['discount'] > ($c['price'] * $c['quantity'])){
@@ -861,7 +857,7 @@ class POSController extends Controller
                     }else{
                         $total_addon_price += $or_d['total_add_on_price'];
                         $product_price += $price * $or_d['quantity'];
-                        $restaurant_discount_amount += $or_d['discount_on_food'] * $or_d['quantity'];
+                        $discount_on_product += $or_d['discount_on_food'] * $or_d['quantity'];
                     }
                 }
             }
@@ -873,11 +869,24 @@ class POSController extends Controller
             $order->discount_on_product_by = 'admin';
         }
         if (isset($cart['discount'])) {
-            $restaurant_discount_amount += $cart['discount_type'] == 'percent' && $cart['discount'] > 0 ? ((($product_price + $total_addon_price - $restaurant_discount_amount) * $cart['discount']) / 100) : $cart['discount'];
+            $restaurant_discount_amount += $cart['discount_type'] == 'percent' && $cart['discount'] > 0 ? ((($product_price + $total_addon_price - $discount_on_product) * $cart['discount']) / 100) : $cart['discount'];
         }
 
-        $total_price = $product_price + $total_addon_price - $restaurant_discount_amount;
+        $total_price = $product_price + $total_addon_price - $discount_on_product - $restaurant_discount_amount;
         $tax = isset($cart['tax']) ? $cart['tax'] : $restaurant->tax;
+
+        if($total_price < 0){
+            Toastr::error(translate('messages.total_price_cannot_be_negative'));
+            return back()->withInput();
+        }
+
+        // We want to save the orders with 100% discount even if total price is 0
+        if ($total_price > 0 && (floatval($request->cash_paid) <= 0 || floatval($request->card_paid) <= 0) && $request->order_draft == 'final') {
+            Toastr::error(translate('Payment amount cannot be negative'));
+            return back();
+        }
+
+
 
         $order->tax_status = 'excluded';
 
@@ -952,7 +961,8 @@ class POSController extends Controller
             $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
             $posOrderDtl->card_paid = $request->card_paid ?? 0;
             if($payment_type == 'card' || $payment_type == 'cash_card'){
-                $posOrderDtl->bank_account = $request->bank_account;    
+                $posOrderDtl->bank_account = $request->bank_account; 
+                session()->put('bank_account', $request->bank_account);
             }else{
                 $posOrderDtl->bank_account = null;
             }
@@ -1084,8 +1094,7 @@ class POSController extends Controller
         }
 
         if ($order->restaurant_discount_amount > 0) {
-            // $cartSession['discount'] = $order->restaurant_discount_amount;
-            $cartSession['discount'] = 0;
+            $cartSession['discount'] = $order->restaurant_discount_amount;
             $cartSession['discount_type'] = 'amount';
         }
 

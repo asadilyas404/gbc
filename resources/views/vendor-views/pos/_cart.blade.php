@@ -37,14 +37,14 @@
                 @foreach (session()->get('cart') as $key => $cartItem)
                     @if (is_array($cartItem))
                         <?php
-                        if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'N'){
+                        if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y'){
+                                $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
+                        }else{
                             $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
                             $variation_price += $cartItem['variation_price'];
                             $discount_on_product += $cartItem['discount'] * $cartItem['quantity'];
                             $subtotal += $product_subtotal;
                             $addon_price += $cartItem['addon_price'];
-                        }else{
-                            $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
                         }
                         ?>
                         <tr @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') class="bg-light pe-none" @endif>

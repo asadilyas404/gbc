@@ -186,6 +186,13 @@
                 font-size: 0.8rem;
             }
         }
+        .payment-selection-box{
+            border: 0.0625rem solid #e7eaf3 !important;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
     </style>
 @endpush
 
@@ -1053,6 +1060,30 @@
             $(document).on('input', '#cash_paid, #card_paid', function() {
                 updateCalculations();
             });
+
+            $(document).on('change', 'input[name="select_payment_type"]', function() {
+                var value = $(this).val();
+                handlePaymentTypeChange(value);
+            });
+
+            function handlePaymentTypeChange(value) {
+                if(value == 'cash'){
+                    const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                    $('#cash_paid').val(invoiceAmount.toFixed(3)).trigger('input');
+                    $('#card_paid').val('').trigger('input');
+                }
+
+                if(value == 'card'){
+                    const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                    $('#cash_paid').val('').trigger('input');
+                    $('#card_paid').val(invoiceAmount.toFixed(3)).trigger('input');
+                }
+
+                if(value == 'both'){
+                    $('#cash_paid').val(0);
+                    $('#card_paid').val(0);
+                }
+            }
 
 
             // Numeric Keypad working

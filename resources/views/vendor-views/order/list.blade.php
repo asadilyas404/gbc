@@ -1031,7 +1031,7 @@
                 if (cardPaid > invoiceAmount) {
                     alert('{{ translate('Card amount cannot be greater than the invoice amount.') }}');
                     $('#card_paid').val('');
-                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                    bankAccountSelect.prop('required', false).prop('disabled', true);
                     return;
                 }
 
@@ -1039,7 +1039,7 @@
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
                 } else {
-                    bankAccountSelect.prop('required', false).prop('disabled', true).val('');
+                    bankAccountSelect.prop('required', false).prop('disabled', true);
                 }
 
             }

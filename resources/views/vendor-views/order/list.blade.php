@@ -1077,6 +1077,7 @@
                     const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
                     $('#cash_paid').val('').trigger('input');
                     $('#card_paid').val(invoiceAmount.toFixed(3)).trigger('input');
+                    $('#bank_account').val(1).trigger('change');
                 }
 
                 if(value == 'both'){
@@ -1210,8 +1211,7 @@
                         $('#cash_paid').val(data.cash_paid ?? '');
                         $('#card_paid').val(data.card_paid ?? '');
                         $('#delivery_type').val(data.delivery_type ?? '');
-                        $('#bank_account').val(data.bank_account ?? '').prop('disabled', !data
-                            .bank_account);
+                        $('#bank_account').val(1);
                         updateCalculations();
 
                         $('#loading').hide();

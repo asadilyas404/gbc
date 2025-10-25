@@ -49,7 +49,7 @@ class AppServiceProvider extends ServiceProvider
         if (!App::runningInConsole()) {
             Config::set('addon_admin_routes',$this->get_addon_admin_routes());
             Config::set('get_payment_publish_status',$this->get_payment_publish_status());
-            Config::set('default_pagination', 25);
+            Config::set('default_pagination', 200);
             Paginator::useBootstrap();
             try {
                 foreach(Helpers::get_view_keys() as $key=>$value)

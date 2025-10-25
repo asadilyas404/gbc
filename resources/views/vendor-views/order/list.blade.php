@@ -1039,7 +1039,7 @@
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
                 } else {
-                    bankAccountSelect.prop('required', false).prop('disabled', true);
+                    // bankAccountSelect.prop('required', false).prop('disabled', true);
                 }
 
             }

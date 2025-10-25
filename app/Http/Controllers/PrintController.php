@@ -342,12 +342,17 @@ class PrintController extends Controller
                     }
 
                     $itemTotal = $detail->price * $detail->quantity;
-                    $subTotal += $itemTotal;
+                    $subTotal += $itemTotal - $detail->discount_on_food;
 
                     //$printer->text("  Total: " . Helpers::format_currency($itemTotal) . "\n");
                     $printer->setJustification(Printer::JUSTIFY_RIGHT);
                     $printer->setEmphasis(true);
-                    $printer->text("  Total: " . number_format($itemTotal + $addOnsCost, 3, '.', '') . "\n");
+                    if($detail->discount_on_food > 0){
+                        $printer->text("  Discount: -" . number_format($detail->discount_on_food, 3, '.', ''));
+                        $printer->bitImageColumnFormat($currencyTextimage);
+                    }
+                    $printer->text("  Total: " . number_format(($itemTotal + $addOnsCost) - $detail->discount_on_food, 3, '.', ''));
+                    $printer->bitImageColumnFormat($currencyTextimage);
                     $printer->setJustification(Printer::JUSTIFY_LEFT);
 
                     $printer->text($linedash);
@@ -364,7 +369,7 @@ class PrintController extends Controller
             $printer->text("Subtotal: " . number_format($subTotalWithAddons, 3, '.', ''));
             $printer->bitImageColumnFormat($currencyTextimage);
             if ($order->restaurant_discount_amount > 0) {
-                $printer->text("Discount: -" . number_format($order->restaurant_discount_amount, 3, '.', ''));
+                $printer->text("Discount On Bill: -" . number_format($order->restaurant_discount_amount, 3, '.', ''));
                 $printer->bitImageColumnFormat($currencyTextimage);
             }
 

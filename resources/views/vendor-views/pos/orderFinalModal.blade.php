@@ -159,10 +159,9 @@
                                     <div class="form-group mt-3">
                                         <label for="bank_account"
                                             class="input-label">{{ translate('Select Account') }}</label>
-                                        <select id="bank_account" name="bank_account" class="form-control">
+                                        <select id="bank_account" value="1" name="bank_account" class="form-control">
                                             <option value="1" selected>
-                                                {{ translate('Bank 1') }}</option>
-                                            
+                                                {{ translate('Bank 1') }}</option>  
                                         </select>
                                     </div>
                                 </div>

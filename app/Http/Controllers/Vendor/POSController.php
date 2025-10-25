@@ -880,11 +880,19 @@ class POSController extends Controller
             return back()->withInput();
         }
 
-        // We want to save the orders with 100% discount even if total price is 0
-        if ($total_price > 0 && (floatval($request->cash_paid) <= 0 || floatval($request->card_paid) <= 0) && $request->order_draft == 'final') {
-            Toastr::error(translate('Payment amount cannot be negative'));
-            return back();
+        // Allow 100% discount orders even if total = 0
+        if ($total_price > 0 && $request->order_draft == 'final') {
+            if (floatval($request->cash_paid) < 0 || floatval($request->card_paid) < 0) {
+                Toastr::error(translate('Payment amount cannot be negative'));
+                return back();
+            }
+
+            if (floatval($request->cash_paid) == 0 && floatval($request->card_paid) == 0) {
+                Toastr::error(translate('Payment amount cannot be zero for paid orders'));
+                return back();
+            }
         }
+
 
 
 

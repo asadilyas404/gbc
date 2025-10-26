@@ -83,20 +83,31 @@
                             <form action="{{ route('vendor.shift-session.close') }}" method="post" id="closeSessionForm">
                                 @csrf
                                 <div class="row">
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label class="form-label">Closing Cash Amount</label>
                                             <input type="number" name="closing_cash" class="form-control"
-                                                   step="0.01" min="0" required
+                                                   step="0.001" min="0" required
                                                    placeholder="Enter closing cash amount">
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
+                                    <div class="col-md-4">
                                         <div class="form-group">
                                             <label class="form-label">Closing Visa Amount</label>
                                             <input type="number" name="closing_visa" class="form-control"
-                                                   step="0.01" min="0" required
+                                                   step="0.001" min="0" required
                                                    placeholder="Enter closing visa amount">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Incharge</label>
+                                            <select class="form-control" name="closing_incharge">
+                                                <option value="">Select Incharge</option>
+                                                @foreach ($users as $user)
+                                                    <option value="{{ $user->id }}">{{ $user->name }}</option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
                                 </div>

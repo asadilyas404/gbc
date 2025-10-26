@@ -2,13 +2,15 @@
 
 namespace App\Http\Controllers\Vendor;
 
-use App\Http\Controllers\Controller;
+use App\Models\User;
+use Google\Rpc\Help;
 use App\Models\ShiftSession;
-use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
-use Google\Rpc\Help;
+use App\Models\VendorEmployee;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Brian2694\Toastr\Facades\Toastr;
 
 class ShiftSessionController extends Controller
 {
@@ -36,7 +38,10 @@ class ShiftSessionController extends Controller
                     ->orderBy('shift_name')
                     ->get();
 
-        return view('vendor-views.shift-session.index', compact('currentSession', 'shifts'));
+        $users = VendorEmployee::where('restaurant_id', Helpers::get_restaurant_id())
+        ->get();
+
+        return view('vendor-views.shift-session.index', compact('currentSession', 'shifts','users'));
     }
 
     public function store(Request $request)

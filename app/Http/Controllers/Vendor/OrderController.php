@@ -142,11 +142,12 @@ class OrderController extends Controller
         // Calculate amounts
         $totalAmount = $orders->sum('order_amount');
         $paidAmount = $orders->where('payment_status', 'paid')->sum('order_amount');
+        $canceledAmount = $orders->where('order_status', 'canceled')->sum('order_amount');
         $unpaidAmount = $orders->where('payment_status', 'unpaid')->sum('order_amount');
 
         $st=$status;
         $status = translate('messages.'.$status);
-        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders', 'totalAmount', 'paidAmount', 'unpaidAmount'));
+        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount'));
     }
 
     public function search(Request $request){
@@ -211,19 +212,20 @@ class OrderController extends Controller
                 $price = \App\CentralLogics\Helpers::format_currency($discoPrice) ;
                 $qty = $detail['quantity'];
 
-                $html .= '<tr>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <img src="' . $image . '" alt="food" class="rounded" style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
-                                    <div>
-                                        <div><strong>' . $name . '</strong></div>
-                                        <div><small>' . $nameAr . '</small></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-center">' . $qty . '</td>
-                            <td>' . $price . '</td>
-                        </tr>';
+                $html .= '<tr ' . ($detail->is_deleted == "Y" ? "class='bg-danger'" : "") . '>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <img src="' . $image . '" alt="food" class="rounded" style="width:50px;height:50px;object-fit:cover;margin-right:10px;">
+                            <div>
+                                <div><strong>' . $name . '</strong></div>
+                                <div><small>' . $nameAr . '</small></div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">' . $qty . '</td>
+                    <td>' . $price . '</td>
+                </tr>';
+
             }
         }
 
@@ -279,6 +281,7 @@ class OrderController extends Controller
                 'discountType' => 'amount',
                 'details' => $item->notes,
                 'image' => $food['image'] ?? null,
+                'is_deleted'=> $item->is_deleted ?? 'N',
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
             ];

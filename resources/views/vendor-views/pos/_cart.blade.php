@@ -415,7 +415,7 @@ if (isset($cart['paid'])) {
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                     <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" name="select_payment_type" value="cash"
+                                        <input type="radio" id="payment_type_cash" name="select_payment_type" value="cash_payment"
                                             >
                                         <span class="input-label m-0">
                                             {{ translate('Cash') }}
@@ -424,7 +424,7 @@ if (isset($cart['paid'])) {
                                 </div>        
                                 <div class="col-md-4">
                                     <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_card" name="select_payment_type" value="card"
+                                        <input type="radio" id="payment_type_card" name="select_payment_type" value="card_payment"
                                             >
                                         <span class="input-label m-0">
                                             {{ translate('Card') }}
@@ -433,7 +433,7 @@ if (isset($cart['paid'])) {
                                 </div>        
                                 <div class="col-md-4">
                                     <label for="payment_type_both" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_both" name="select_payment_type" value="both"
+                                        <input type="radio" id="payment_type_both" name="select_payment_type" value="both_payment"
                                             >
                                         <span class="input-label m-0">
                                             {{ translate('Cash & Card') }}

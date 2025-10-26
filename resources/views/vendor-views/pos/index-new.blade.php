@@ -1983,19 +1983,19 @@
             });
 
             function handlePaymentTypeChange(value) {
-                if(value == 'cash'){
+                if(value == 'cash_payment'){
                     const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
                     $('#cash_paid').val(invoiceAmount.toFixed(3)).trigger('input');
                     $('#card_paid').val('').trigger('input');
                 }
 
-                if(value == 'card'){
+                if(value == 'card_payment'){
                     const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
                     $('#cash_paid').val('').trigger('input');
                     $('#card_paid').val(invoiceAmount.toFixed(3)).trigger('input');
                 }
 
-                if(value == 'both'){
+                if(value == 'both_payment'){
                     $('#cash_paid').val(0);
                     $('#card_paid').val(0);
                 }

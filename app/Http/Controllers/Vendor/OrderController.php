@@ -28,7 +28,7 @@ class OrderController extends Controller
         $data =0;
         $restaurant =Helpers::get_restaurant_data();
         if (($restaurant->restaurant_model == 'subscription' &&  $restaurant->restaurant_sub->self_delivery == 1)  || ($restaurant->restaurant_model == 'commission' &&  $restaurant->self_delivery_system == 1) ){
-        $data =1;
+            $data =1;
         }
 
         Order::where(['checked' => 0])->where('restaurant_id',Helpers::get_restaurant_id())->update(['checked' => 1]);
@@ -106,7 +106,8 @@ class OrderController extends Controller
             });
         })
         ->when($status == 'draft', function($query){
-            return $query->where('payment_status','unpaid');
+           return $query->where('payment_status', 'unpaid')
+             ->where('order_status', '!=', 'canceled');
         })
         ->when(in_array($status, ['pending','confirmed']), function($query){
             return $query->OrderScheduledIn(30);
@@ -298,7 +299,7 @@ class OrderController extends Controller
             'cash_paid' => $order->pos_details->cash_paid ?? 0,
             'card_paid' => $order->pos_details->card_paid ?? 0,
             'delivery_type' => $order->order_type ?? '',
-            'bank_account' => $order->pos_details->bank_account ?? '',
+            'bank_account' => $order->pos_details->bank_account ?? session('bank_account'),
         ]);
 
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

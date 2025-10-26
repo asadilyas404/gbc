@@ -782,11 +782,11 @@
                                     <!-- Action Buttons -->
                                     <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
                                         <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
-                                            class="btn btn-sm btn-outline-primary" title="{{ translate('View') }}">
+                                            class="btn btn-md btn-outline-primary" title="{{ translate('View') }}">
                                             <i class="tio-visible-outlined"></i>
                                         </a>
 
-                                        <a href="javascript:void(0);" class="btn btn-sm btn-outline-info quick-view-btn"
+                                        <a href="javascript:void(0);" class="btn btn-md btn-outline-info quick-view-btn"
                                             data-order-id="{{ $order['id'] }}"
                                             data-order-number="{{ $order['order_serial'] }}"
                                             title="{{ translate('Quick View') }}">
@@ -795,24 +795,11 @@
 
                                         @if ($order['payment_status'] === 'unpaid')
                                             <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
-                                                class="btn btn-sm btn-outline-warning"
+                                                class="btn btn-md btn-outline-warning"
                                                 title="{{ translate('Load to POS') }}">
                                                 <i class="tio-refresh"></i>
                                             </a>
                                         @endif
-
-                                        <a href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"
-                                            class="btn btn-sm btn-outline-success" target="_blank"
-                                            title="{{ translate('Invoice') }}">
-                                            <i class="tio-print"></i>
-                                        </a>
-
-                                        <a href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}"
-                                            class="btn btn-sm btn-outline-dark" target="_blank"
-                                            title="{{ translate('Receipt') }}">
-                                            <i class="tio-document"></i>
-                                        </a>
-
                                         {{-- <a type="button" class="btn btn-sm btn--primary btn-outline-primary print-order-btn"
                                             data-order-id="{{ $order['id'] }}"
                                             title="{{ translate('Direct Print') }}">
@@ -1039,9 +1026,8 @@
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
                 } else {
-                    // bankAccountSelect.prop('required', false).prop('disabled', true);
+                    bankAccountSelect.prop('required', false).prop('disabled', true);
                 }
-
             }
 
             function attachEventListeners() {
@@ -1067,20 +1053,19 @@
             });
 
             function handlePaymentTypeChange(value) {
-                if(value == 'cash'){
+                if(value == 'cash_payment'){
                     const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
                     $('#cash_paid').val(invoiceAmount.toFixed(3)).trigger('input');
                     $('#card_paid').val('').trigger('input');
                 }
 
-                if(value == 'card'){
+                if(value == 'card_payment'){
                     const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
                     $('#cash_paid').val('').trigger('input');
                     $('#card_paid').val(invoiceAmount.toFixed(3)).trigger('input');
-                    $('#bank_account').val(1).trigger('change');
                 }
 
-                if(value == 'both'){
+                if(value == 'both_payment'){
                     $('#cash_paid').val(0);
                     $('#card_paid').val(0);
                 }
@@ -1211,7 +1196,7 @@
                         $('#cash_paid').val(data.cash_paid ?? '');
                         $('#card_paid').val(data.card_paid ?? '');
                         $('#delivery_type').val(data.delivery_type ?? '');
-                        $('#bank_account').val(1);
+                        $('#bank_account').val(data.bank_account ?? '');
                         updateCalculations();
 
                         $('#loading').hide();

@@ -970,14 +970,13 @@ class POSController extends Controller
             $posOrderDtl->card_paid = $request->card_paid ?? 0;
             if($payment_type == 'card' || $payment_type == 'cash_card'){
                 $posOrderDtl->bank_account = $request->bank_account; 
-                session()->put('bank_account', $request->bank_account);
+                session(['bank_account' => $request->bank_account]);
             }else{
                 $posOrderDtl->bank_account = null;
             }
             $posOrderDtl->order_notes = $request->order_notes;
             $posOrderDtl->save();
 
-            
             session()->forget('cart');
             session()->forget('editing_order_id');
             session()->forget('address');

@@ -200,7 +200,6 @@
     <?php
     use Illuminate\Support\Str;
     $isDraftPage = Str::contains(request()->url(), 'draft');
-    $totalAmount = $orders->sum('order_amount');
     ?>
     <div class="content container-fluid">
         <!-- Page Header -->
@@ -298,21 +297,33 @@
                             </div>
                         </div>
                         <div class="col-auto">
-                            <div class="mini-card amount">
-                                <span class="mini-label">{{ translate('Total_Amount') }}</span>
-                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($totalAmount) }}</span>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="mini-card paid-amount">
-                                <span class="mini-label">{{ translate('Paid_Amount') }}</span>
-                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($paidAmount) }}</span>
+                            <div class="mini-card canceled">
+                                <span class="mini-label">{{ translate('Canceled') }}</span>
+                                <span class="mini-value">{{ $canceledOrders }}</span>
                             </div>
                         </div>
                         <div class="col-auto">
                             <div class="mini-card unpaid-amount">
                                 <span class="mini-label">{{ translate('Unpaid_Amount') }}</span>
                                 <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($unpaidAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card paid">
+                                <span class="mini-label">{{ translate('Paid_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($paidAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card canceled">
+                                <span class="mini-label">{{ translate('Refunded') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($canceledAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card amount">
+                                <span class="mini-label">{{ translate('Total_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($totalAmount) }}</span>
                             </div>
                         </div>
                     </div>

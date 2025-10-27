@@ -136,18 +136,30 @@ class OrderController extends Controller
 
         // Calculate order statistics
         $totalOrders = $orders->total();
-        $paidOrders = $orders->where('payment_status', 'paid')->count();
-        $unpaidOrders = $orders->where('payment_status', 'unpaid')->count();
+        $paidOrders = $orders->where('payment_status', 'paid')
+        ->where('order_status', '!=', 'canceled')
+        ->count();
+        $unpaidOrders = $orders->where('payment_status', 'unpaid')
+        ->where('order_status', '!=', 'canceled')
+        ->count();
+        $canceledOrders = $orders->where('order_status', 'canceled')->count();
 
         // Calculate amounts
-        $totalAmount = $orders->sum('order_amount');
-        $paidAmount = $orders->where('payment_status', 'paid')->sum('order_amount');
-        $canceledAmount = $orders->where('order_status', 'canceled')->sum('order_amount');
-        $unpaidAmount = $orders->where('payment_status', 'unpaid')->sum('order_amount');
+        $paidAmount = $orders->where('payment_status', 'paid')
+        ->sum('order_amount');
+        $canceledAmount = $orders
+        ->where('order_status', 'canceled')
+        ->whereIn('payment_status', ['paid'])
+        ->sum('order_amount');
+        $unpaidAmount = $orders->where('payment_status', 'unpaid')
+        ->where('order_status', 'pending')
+        ->sum('order_amount');
+
+        $totalAmount = $paidAmount - $canceledAmount;
 
         $st=$status;
         $status = translate('messages.'.$status);
-        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount'));
+        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders','canceledOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount'));
     }
 
     public function search(Request $request){

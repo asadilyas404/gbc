@@ -299,8 +299,26 @@ class OrderController extends Controller
             ];
         }
 
-        // Store in session
-        session()->put('cart', collect($cart));
+        $cartSession = collect($cart);
+
+        if ($order->delivery_charge > 0) {
+            $cartSession['delivery_fee'] = $order->delivery_charge;
+        }
+
+        if ($order->restaurant_discount_amount > 0) {
+            $cartSession['discount'] = $order->restaurant_discount_amount;
+            $cartSession['discount_type'] = 'amount';
+        }
+
+        if ($order->total_tax_amount > 0) {
+            $subtotal = $order->order_amount - $order->total_tax_amount - $order->delivery_charge;
+            if ($subtotal > 0) {
+                $tax_percentage = ($order->total_tax_amount / $subtotal) * 100;
+                $cartSession['tax'] = round($tax_percentage, 2);
+            }
+        }
+
+        session()->put('cart', $cartSession);
         session()->put('editing_order_id', $order->id);
 
         // Toastr::success('Unpaid order loaded to cart.');

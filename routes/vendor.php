@@ -144,10 +144,11 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
         Route::post('food/food-variation-generate', 'FoodController@food_variation_generator')->name('food.food-variation-generate');
         Route::group(['prefix' => 'food', 'as' => 'food.', 'middleware' => ['module:food', 'subscription:food']], function () {
+
+            if (!app()->environment('local')) {
             Route::get('add-new', 'FoodController@index')->name('add-new');
             Route::post('variant-combination', 'FoodController@variant_combination')->name('variant-combination');
             Route::post('store', 'FoodController@store')->name('store');
-            if (!app()->environment('local')) {
             Route::get('edit/{id}', 'FoodController@edit')->name('edit');
             Route::get('copy/{id}', 'FoodController@copy')->name('copy');
             Route::post('update/{id}', 'FoodController@update')->name('update');
@@ -291,6 +292,13 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('site_direction_vendor', 'BusinessSettingsController@site_direction_vendor')->name('site_direction_vendor');
             Route::post('update-meta-data/{restaurant}', 'BusinessSettingsController@updateStoreMetaData')->name('update-meta-data');
 
+        });
+
+        // Sync routes (only in local environment)
+        Route::group(['prefix' => 'settings', 'as' => 'settings.'], function () {
+            Route::get('/sync/users', 'BusinessSettingsController@syncUsers')->name('sync.users');
+            Route::get('/sync/customers', 'BusinessSettingsController@syncCustomers')->name('sync.customers');
+            Route::get('/sync/branches-restaurants', 'BusinessSettingsController@syncBranchesRestaurants')->name('sync.branches.restaurants');
         });
 
         Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['module:bank_info', 'subscription:bank_info']], function () {

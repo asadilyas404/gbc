@@ -21,10 +21,12 @@
                         <a href="{{ route('vendor.food.stockOutList') }}" class="btn max-sm-12 btn--danger w-100">
                             {{ translate('messages.Out of Stock Foods') }}</a>
                     </div>
+                    @if (!app()->environment('local'))
                     <div class="col-auto">
                         <a href="{{ route('vendor.food.add-new') }}" class="btn max-sm-12 btn--primary w-100"><i
                                 class="tio-add-circle"></i> {{ translate('messages.add_new_food') }}</a>
                     </div>
+                    @endif
                     @if (app()->environment('local'))
                         <div class="col-auto">
                             <a href="{{ route('vendor.food.sync.foods') }}" class="btn max-sm-12 btn--primary w-100">Sync

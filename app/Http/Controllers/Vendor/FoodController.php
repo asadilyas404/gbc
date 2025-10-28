@@ -374,7 +374,6 @@ class FoodController extends Controller
         }
 
         $originalProduct = Food::withoutGlobalScope('translate')->with('translations')->findOrFail($id);
-
         $product = new Food();
         $product->name = $originalProduct->getRawOriginal('name') . ' (Copy)';
         $product->description = $originalProduct->getRawOriginal('description');

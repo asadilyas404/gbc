@@ -16,6 +16,9 @@ use App\Models\RestaurantSchedule;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Validator;
+use App\Jobs\SyncUsersJob;
+use App\Jobs\SyncCustomersJob;
+use App\Jobs\SyncBranchesRestaurantsJob;
 
 class BusinessSettingsController extends Controller
 {
@@ -294,6 +297,27 @@ class BusinessSettingsController extends Controller
         Helpers::add_or_update_translations(request:$request,key_data: 'meta_description', name_field:'meta_description' , model_name:'Restaurant' ,data_id:$restaurant->id,data_value:$restaurant->meta_description);
 
         Toastr::success(translate('messages.meta_data_updated'));
+        return back();
+    }
+
+    public function syncUsers()
+    {
+        SyncUsersJob::dispatch();
+        Toastr::success('Users sync started successfully!');
+        return back();
+    }
+
+    public function syncCustomers()
+    {
+        SyncCustomersJob::dispatch();
+        Toastr::success('Customers sync started successfully!');
+        return back();
+    }
+
+    public function syncBranchesRestaurants()
+    {
+        SyncBranchesRestaurantsJob::dispatch();
+        Toastr::success('Branches & Restaurants sync started successfully!');
         return back();
     }
 }

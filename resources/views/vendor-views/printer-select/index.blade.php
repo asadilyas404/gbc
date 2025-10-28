@@ -14,9 +14,32 @@
     <div class="content container-fluid">
         <!-- Page Header -->
         <div class="page-header">
-            <h1 class="page-header-title">
-                <i class="tio-add-circle-outlined"></i> Settings
-            </h1>
+            <div class="mb-2 mb-sm-0">
+                <h1 class="page-header-title">
+                    <i class="tio-add-circle-outlined"></i> Settings
+                </h1>
+            </div>
+            <div class="my-2">
+                <div class="row g-2 align-items-center justify-content-end">
+                    @if (app()->environment('local'))
+                        <div class="col-auto">
+                            <a href="{{ route('vendor.settings.sync.users') }}" class="btn max-sm-12 btn--primary w-100">
+                                Sync Users
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{{ route('vendor.settings.sync.customers') }}" class="btn max-sm-12 btn--success w-100">
+                                Sync Customers
+                            </a>
+                        </div>
+                        <div class="col-auto">
+                            <a href="{{ route('vendor.settings.sync.branches.restaurants') }}" class="btn max-sm-12 btn--warning w-100">
+                                Sync Branches & Restaurants
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </div>
         </div>
 
         <div class="container mt-4">
@@ -30,12 +53,14 @@
 
                     <div class="col-md-7">
                         <label for="billPrinter">Bill Printer</label>
-                        <input type="text" id="billPrinter" name="billPrinter" class="form-control" placeholder="Enter bill printer name">
+                        <input type="text" id="billPrinter" name="billPrinter" class="form-control"
+                            placeholder="Enter bill printer name">
                     </div>
 
                     <div class="col-md-7 mt-3">
                         <label for="kitchenPrinter">Kitchen Printer</label>
-                        <input type="text" id="kitchenPrinter" name="kitchenPrinter" class="form-control" placeholder="Enter kitchen printer name">
+                        <input type="text" id="kitchenPrinter" name="kitchenPrinter" class="form-control"
+                            placeholder="Enter kitchen printer name">
                     </div>
                 </div>
 

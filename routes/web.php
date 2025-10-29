@@ -26,6 +26,11 @@ Route::post('/variation-delete', [VariationController::class, 'variationDelete']
 Route::resource('table_employees', TableEmployeeController::class);
 
 
+
+Route::get('/test-pusher', function () {
+    event(new \App\Events\myevent('Hello from Laravel!'));
+    return 'event sent';
+});
 /*
 |--------------------------------------------------------------------------
 | Web Routes

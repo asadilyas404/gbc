@@ -18,11 +18,14 @@ use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use App\Jobs\SyncOrdersJob;
 use Illuminate\Support\Str;
-
+use App\Events\myevent;
 class OrderController extends Controller
 {
     public function list($status , Request $request)
     {
+
+           
+        // dd('dsa',$status ,  $request->all());
         $key = explode(' ', $request['search']);
 
         $data =0;

@@ -38,8 +38,6 @@ class LoginController extends Controller
 
     public function login($login_url)
     {
-
-
         $language = BusinessSetting::where('key', 'system_language')->first();
         if($language){
             foreach (json_decode($language->value, true) as $key => $data) {
@@ -110,6 +108,26 @@ class LoginController extends Controller
         if (Cookie::has('p_token') && Cookie::has('e_token') && Cookie::has('role')  &&  Cookie::get('role') == $role) {
             $email = Crypt::decryptString(Cookie::get('e_token'));
             $password = Crypt::decryptString(Cookie::get('p_token'));
+        }
+
+        $guards = [
+            'admin' => 'admin',
+            'admin_employee' => 'admin',
+            'vendor' => 'vendor',
+            'vendor_employee' => 'vendor_employee',
+        ];
+
+        $guard = $guards[$role] ?? null;
+
+        if ($guard && auth($guard)->check()) {
+            switch ($role) {
+                case 'admin':
+                case 'admin_employee':
+                    return redirect()->route('admin.dashboard');
+                case 'vendor':
+                case 'vendor_employee':
+                    return redirect()->route('vendor.dashboard');
+            }
         }
 
         return view('auth.login', compact('custome_recaptcha','email','password','role','site_direction','locale'));
@@ -449,7 +467,6 @@ class LoginController extends Controller
                 session()->forget('subscription_free_trial_close_btn');
                 session()->forget('subscription_renew_close_btn');
                 session()->forget('subscription_cancel_close_btn');
-                auth()->guard('vendor')->logout();
             }
             elseif(auth('vendor_employee')->check()){
                 $user_link = Helpers::get_login_url('restaurant_employee_login_url');
@@ -457,15 +474,17 @@ class LoginController extends Controller
                 session()->forget('subscription_free_trial_close_btn');
                 session()->forget('subscription_renew_close_btn');
                 session()->forget('subscription_cancel_close_btn');
-                auth()->guard('vendor_employee')->logout();
             } else {
                 if (isset(auth()->guard('admin')->user()->role_id) && auth()->guard('admin')->user()->role_id == 1) {
                     $user_link = Helpers::get_login_url('admin_login_url');
                 } else {
                     $user_link = Helpers::get_login_url('admin_employee_login_url');
                 }
-                auth()->guard('admin')->logout();
             }
+
+            auth()->guard('vendor')->logout();
+            auth()->guard('vendor_employee')->logout();
+            auth()->guard('admin')->logout();
 
             return redirect()->route('login',[$user_link]);
 

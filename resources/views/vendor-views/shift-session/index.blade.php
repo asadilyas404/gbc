@@ -85,7 +85,7 @@
                                 <div class="row">
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label class="form-label">Closing Cash Amount</label>
+                                            <label class="form-label">Closing Cash Amount <span class="text-danger">*</span></label>
                                             <input type="number" name="closing_cash" class="form-control"
                                                    step="0.001" min="0" required
                                                    placeholder="Enter closing cash amount">
@@ -93,7 +93,7 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label class="form-label">Closing Visa Amount</label>
+                                            <label class="form-label">Closing Visa Amount <span class="text-danger">*</span></label>
                                             <input type="number" name="closing_visa" class="form-control"
                                                    step="0.001" min="0" required
                                                    placeholder="Enter closing visa amount">
@@ -101,8 +101,8 @@
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label class="form-label">Incharge</label>
-                                            <select class="form-control" name="closing_incharge">
+                                            <label class="form-label">Shift Incharge <span class="text-danger">*</span></label>
+                                            <select class="form-control" name="closing_incharge" required>
                                                 <option value="">Select Incharge</option>
                                                 @foreach ($users as $user)
                                                     <option value="{{ $user->id }}">{{ $user->name }}</option>

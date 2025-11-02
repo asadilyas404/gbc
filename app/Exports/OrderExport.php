@@ -52,7 +52,7 @@ class OrderExport implements FromView, ShouldAutoSize, WithStyles,WithColumnWidt
             'color' => ['rgb' => '005D5F'],
         ]);
 
-        $sheet->getStyle('K4:O'.$this->data['orders']->count() + 3)->getFill()->applyFromArray([
+        $sheet->getStyle('K4:O'.($this->data['orders']->count() + 3))->getFill()->applyFromArray([
             'fillType' => 'solid',
             'rotation' => 0,
             'color' => ['rgb' => 'FFE599'],
@@ -74,7 +74,7 @@ class OrderExport implements FromView, ShouldAutoSize, WithStyles,WithColumnWidt
         $sheet->getStyle('A1:C1')->applyFromArray($styleArray);
         return [
             // Define the style for cells with data
-            'A1:O'.$this->data['orders']->count() + 3 => [
+            'A1:O'.($this->data['orders']->count() + 3) => [
                 'borders' => [
                     'allBorders' => [
                         'borderStyle' => Border::BORDER_THIN,
@@ -98,7 +98,7 @@ class OrderExport implements FromView, ShouldAutoSize, WithStyles,WithColumnWidt
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);
 
-                $event->sheet->getStyle('A3:O'.$this->data['orders']->count() + 3) // Adjust the range as per your needs
+                $event->sheet->getStyle('A3:O'.($this->data['orders']->count() + 3)) // Adjust the range as per your needs
                     ->getAlignment()
                     ->setHorizontal(Alignment::HORIZONTAL_CENTER)
                     ->setVertical(Alignment::VERTICAL_CENTER);

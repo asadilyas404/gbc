@@ -11,6 +11,7 @@ use App\Models\VendorEmployee;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Support\Facades\Auth;
 
 class ShiftSessionController extends Controller
 {
@@ -27,21 +28,30 @@ class ShiftSessionController extends Controller
         } 
         if (auth('vendor_employee')->check()) {
             $userId = auth('vendor_employee')->id();
+            dd($userId);
             $currentSession = $currentSession->where('user_id', $userId);
             $currentSession->with('user');
         }
 
+        dd(auth());
+
         $currentSession = $currentSession->first();
+
+        
         // Get available shifts from tbl_defi_shift
         $shifts = DB::table('tbl_defi_shift')
                     ->select('shift_id', 'shift_name')
                     ->orderBy('shift_name')
                     ->get();
 
-        $users = VendorEmployee::where('restaurant_id', Helpers::get_restaurant_id())
+        $users = User::where('restaurant_id', Helpers::get_restaurant_id())
         ->get();
 
-        return view('vendor-views.shift-session.index', compact('currentSession', 'shifts','users'));
+        $rejectedSessions = ShiftSession::where('user_id', $userId)->where('verified', 2);
+        $rejectedSessionCounts = $rejectedSessions->count();
+        $rejectedSessions = $rejectedSessions->get();
+
+        return view('vendor-views.shift-session.index', compact('currentSession', 'shifts','users','rejectedSessions', 'rejectedSessionCounts'));
     }
 
     public function store(Request $request)
@@ -50,6 +60,7 @@ class ShiftSessionController extends Controller
         $existingSession = ShiftSession::current()
         ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
         ->first();
+
         if ($existingSession) {
             Toastr::warning('A shift session is already open. Please close the current session before starting a new one.');
             return back();
@@ -99,17 +110,21 @@ class ShiftSessionController extends Controller
         $request->validate([
             'closing_cash' => 'required|numeric|min:0',
             'closing_visa' => 'required|numeric|min:0',
+            'closing_incharge' => 'required|numeric'
         ], [
             'closing_cash.required' => 'Closing cash amount is required.',
             'closing_cash.min' => 'Closing cash amount must be at least 0.',
             'closing_visa.required' => 'Closing visa amount is required.',
             'closing_visa.min' => 'Closing visa amount must be at least 0.',
+            'closing_incharge.required' => 'Please Select Shift Closing Incharge',
         ]);
 
         try {
             $closingData = [
                 'closing_cash' => $request->closing_cash,
                 'closing_visa' => $request->closing_visa,
+                'closing_incharge' => $request->closing_incharge,
+                'vertifid' => 0,
             ];
 
             $currentSession->closeSession($closingData);
@@ -158,4 +173,43 @@ class ShiftSessionController extends Controller
             ]
         ]);
     }
+
+    public function verifyList(Request $request){
+
+        $id = auth('vendor')->id() ?? auth('vendor_employee')->id();
+
+        $list = ShiftSession::where('verified', 0)
+        ->with('user')
+        // ->where('closing_incharge', $id)
+        ->get();
+
+        return view('vendor-views.shift-session.verification', compact('list'));
+    }
+
+    public function approve(Request $request)
+    {
+        $session = ShiftSession::where('session_id', $request->id)->first();
+        if (!$session) {
+            return response()->json(['sucess' => false, 'message' => 'Session not found.'], 404);
+        }
+
+        $session->verified = 1;
+        $session->save();
+
+        return response()->json(['sucess' => true, 'message' => 'Session approved successfully.']);
+    }
+
+    public function reject(Request $request)
+    {
+        $session = ShiftSession::where('session_id', $request->id)->first();
+        if (!$session) {
+            return response()->json(['sucess' => false, 'message' => 'Session not found.'], 404);
+        }
+
+        $session->verified = 2;
+        $session->save();
+
+        return response()->json(['sucess' => true, 'message' => 'Session rejected successfully.']);
+    }
+
 }

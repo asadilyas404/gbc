@@ -240,6 +240,9 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('/', 'ShiftSessionController@index')->name('index');
             Route::post('store', 'ShiftSessionController@store')->name('store');
             Route::post('close', 'ShiftSessionController@close')->name('close');
+            Route::get('verify-list', 'ShiftSessionController@verifyList')->name('verifyList');
+            Route::post('approve', 'ShiftSessionController@approve')->name('approve');
+            Route::post('reject', 'ShiftSessionController@reject')->name('reject');
             Route::get('shift-details/{shiftId}', 'ShiftSessionController@getShiftDetails')->name('shift-details');
             Route::get('current-session', 'ShiftSessionController@getCurrentSession')->name('current-session');
         });

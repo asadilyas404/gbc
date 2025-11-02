@@ -6589,4 +6589,12 @@
   'You_are_currently_editing_an_existing_order. Editing_not_allowed.' => 'You are currently editing an existing order. Editing not allowed.',
   'Cash & Card' => 'Cash & Card',
   'Select Option' => 'Select Option',
+  'session_requests' => 'Session requests',
+  'Please Select Shift Closing Incharge' => 'Please Select Shift Closing Incharge',
+  'visa_amount' => 'Visa amount',
+  'cash_amount' => 'Cash amount',
+  'request_date' => 'Request date',
+  'request_by' => 'Request by',
+  'Login' => 'Login',
+  'Restaurant Employee' => 'Restaurant Employee',
 );

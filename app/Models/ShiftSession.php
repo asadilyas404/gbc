@@ -29,7 +29,9 @@ class ShiftSession extends Model
         'business_id',
         'user_id',
         'session_no',
-        'session_status'
+        'session_status',
+        'closing_incharge',
+        'verified'
     ];
 
     protected $casts = [
@@ -47,6 +49,8 @@ class ShiftSession extends Model
         'user_id' => 'integer',
         'session_no' => 'integer',
         'session_status' => 'string',
+        'closing_incharge' => 'integer',
+        'verified' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
@@ -59,6 +63,11 @@ class ShiftSession extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function verifier()
+    {
+        return $this->belongsTo(User::class, 'closing_incharge', 'id');
     }
 
     public function orders()

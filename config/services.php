@@ -30,4 +30,28 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Live Server API Configuration (for syncing data)
+    |--------------------------------------------------------------------------
+    |
+    */
+    'live_server' => [
+        'url' => env('LIVE_SERVER_API_URL', 'https://malikalpizza.royalerp.net/api/v1'),
+        'token' => env('SYNC_API_TOKEN'),
+        'timeout' => env('LIVE_SERVER_API_TIMEOUT', 60), // seconds
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sync API Configuration (for receiving sync data)
+    |--------------------------------------------------------------------------
+    | Configuration for validating incoming API sync requests on live server
+    | Uses SYNC_API_TOKEN - same token name on both local and live servers
+    |
+    */
+    'sync_api' => [
+        'token' => env('SYNC_API_TOKEN'),
+    ],
+
 ];

@@ -78,5 +78,6 @@ class Kernel extends HttpKernel
         'react' => \App\Http\Middleware\ReactValid::class,
         'apiGuestCheck' => \App\Http\Middleware\APIGuestMiddleware::class,
         'maintenance' => \App\Http\Middleware\MaintenanceMode::class,
+        'validate.api.token' => \App\Http\Middleware\ValidateApiToken::class,
     ];
 }

@@ -16,7 +16,9 @@ use App\Http\Controllers\Api\OrderSyncController;
 Route::middleware('validate.api.token')->group(function () {
 
     Route::post('/orders/sync-bulk', [OrderSyncController::class, 'syncBulk']);
-
     Route::post('/orders/sync-complete', [OrderSyncController::class, 'syncComplete']);
+
+    Route::get('/food/get-data', [\App\Http\Controllers\Api\FoodSyncController::class, 'getFoodData']);
+    Route::post('/food/mark-pushed', [\App\Http\Controllers\Api\FoodSyncController::class, 'markAsPushed']);
 });
 

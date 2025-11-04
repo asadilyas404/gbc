@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,236 +18,250 @@ class SyncFoodJob implements ShouldQueue
     public function handle(): void
     {
         set_time_limit(300);
-        \Log::info('SyncFoodJob started');
-        try {
-            // Sync FOOD
-            $foods = DB::connection('oracle_live')
-                ->table('food')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
-                ->get();
+        Log::info('SyncFoodJob started (API-based)');
 
-            foreach ($foods as $food) {
+        try {
+            $response = Http::timeout(config('services.live_server.timeout', 60))
+                ->withToken(config('services.live_server.token'))
+                ->retry(3, 1000)
+                ->get(config('services.live_server.url') . '/food/get-data');
+
+            if (!$response->successful()) {
+                Log::error('Failed to get food data from live server', [
+                    'status' => $response->status(),
+                    'response' => $response->body()
+                ]);
+                return;
+            }
+
+            $result = $response->json();
+            $data = $result['data'] ?? [];
+
+            Log::info('Received food data from live server', [
+                'foods' => count($data['foods'] ?? []),
+                'addons' => count($data['addons'] ?? []),
+                'categories' => count($data['categories'] ?? []),
+                'options_list' => count($data['options_list'] ?? []),
+            ]);
+
+            $syncedFoodIds = [];
+            $syncedAddonIds = [];
+            $syncedCategoryIds = [];
+            $syncedOptionsListIds = [];
+
+            foreach ($data['foods'] ?? [] as $foodData) {
                 DB::connection('oracle')->beginTransaction();
 
                 try {
-                    // Sync food record
+                    $food = $foodData['food'];
+
                     DB::connection('oracle')
                         ->table('food')
                         ->updateOrInsert(
-                            ['id' => $food->id],
-                            (array) $food
+                            ['id' => $food['id']],
+                            $food
                         );
 
-                    // SYNC FOOD IMAGES
-                    $this->copyImageFromStorage($food->image, 'product/');
-                    // SYNC FOOD TRANSLATIONS
-                    $this->syncTranslations('oracle_live', 'App\\Models\\Food', $food->id);
+                    if (!empty($food['image'])) {
+                        $this->copyImageFromStorage($food['image'], 'product/');
+                    }
 
-                    // Sync variations
-                    $variations = DB::connection('oracle_live')
-                        ->table('variations')
-                        ->where('food_id', $food->id)
-                        ->get();
+                    foreach ($foodData['translations'] ?? [] as $translation) {
+                        DB::connection('oracle')
+                            ->table('translations')
+                            ->updateOrInsert(
+                                ['id' => $translation['id']],
+                                $translation
+                            );
+                    }
 
-                    foreach ($variations as $variation) {
+                    foreach ($foodData['variations'] ?? [] as $variation) {
                         DB::connection('oracle')
                             ->table('variations')
                             ->updateOrInsert(
-                                ['id' => $variation->id],
-                                (array) $variation
+                                ['id' => $variation['id']],
+                                $variation
                             );
                     }
 
-                    // Sync variation options
-                    $variationOptions = DB::connection('oracle_live')
-                        ->table('variation_options')
-                        ->where('food_id', $food->id)
-                        ->get();
-
-                    foreach ($variationOptions as $option) {
+                    foreach ($foodData['variation_options'] ?? [] as $option) {
                         DB::connection('oracle')
                             ->table('variation_options')
                             ->updateOrInsert(
-                                ['id' => $option->id],
-                                (array) $option
+                                ['id' => $option['id']],
+                                $option
                             );
                     }
 
-                    // Mark food as pushed
-                    DB::connection('oracle_live')
-                        ->table('food')
-                        ->where('id', $food->id)
-                        ->update(['is_pushed' => 'Y']);
-
                     DB::connection('oracle')->commit();
-                    // Log::info("Food ID {$food->id} synced successfully.");
+                    $syncedFoodIds[] = $food['id'];
+
                 } catch (\Exception $e) {
                     DB::connection('oracle')->rollBack();
-                    Log::error("Failed syncing food ID {$food->id}: " . $e->getMessage());
+                    Log::error("Failed syncing food ID {$foodData['food']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
 
-            // Sync ADD_ONS
-            $addons = DB::connection('oracle_live')
-                ->table('add_ons')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
-                ->get();
-
-            foreach ($addons as $addon) {
+            foreach ($data['addons'] ?? [] as $addonData) {
                 try {
+                    $addon = $addonData['addon'];
+
                     DB::connection('oracle')
                         ->table('add_ons')
                         ->updateOrInsert(
-                            ['id' => $addon->id],
-                            (array) $addon
+                            ['id' => $addon['id']],
+                            $addon
                         );
 
-                    // SYNC ADDON TRANSLATIONS
-                    $this->syncTranslations('oracle_live', 'App\\Models\\AddOn', $addon->id);
+                    foreach ($addonData['translations'] ?? [] as $translation) {
+                        DB::connection('oracle')
+                            ->table('translations')
+                            ->updateOrInsert(
+                                ['id' => $translation['id']],
+                                $translation
+                            );
+                    }
 
-                    DB::connection('oracle_live')
-                        ->table('add_ons')
-                        ->where('id', $addon->id)
-                        ->update(['is_pushed' => 'Y']);
+                    $syncedAddonIds[] = $addon['id'];
 
-                    // Log::info("AddOn ID {$addon->id} synced successfully.");
                 } catch (\Exception $e) {
-                    Log::error("Failed syncing AddOn ID {$addon->id}: " . $e->getMessage());
+                    Log::error("Failed syncing AddOn ID {$addonData['addon']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
 
-            // Sync CATEGORIES
-            $categories = DB::connection('oracle_live')
-                ->table('categories')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
-                ->get();
-
-            foreach ($categories as $category) {
+            foreach ($data['categories'] ?? [] as $categoryData) {
                 try {
+                    $category = $categoryData['category'];
+
                     DB::connection('oracle')
                         ->table('categories')
                         ->updateOrInsert(
-                            ['id' => $category->id],
-                            (array) $category
+                            ['id' => $category['id']],
+                            $category
                         );
 
-                    // SYNC CATEGORY IMAGES
-                    $this->copyImageFromStorage($category->image, 'category/');
-                    // SYNC CATEGORY TRANSLATIONS
-                    $this->syncTranslations('oracle_live', 'App\\Models\\Category', $category->id);
+                    if (!empty($category['image'])) {
+                        $this->copyImageFromStorage($category['image'], 'category/');
+                    }
 
-                    DB::connection('oracle_live')
-                        ->table('categories')
-                        ->where('id', $category->id)
-                        ->update(['is_pushed' => 'Y']);
+                    foreach ($categoryData['translations'] ?? [] as $translation) {
+                        DB::connection('oracle')
+                            ->table('translations')
+                            ->updateOrInsert(
+                                ['id' => $translation['id']],
+                                $translation
+                            );
+                    }
 
-                    // Log::info("Category ID {$category->id} synced successfully.");
+                    $syncedCategoryIds[] = $category['id'];
+
                 } catch (\Exception $e) {
-                    Log::error("Failed syncing Category ID {$category->id}: " . $e->getMessage());
+                    Log::error("Failed syncing Category ID {$categoryData['category']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
 
-            // Sync options_list
-            $options_list = DB::connection('oracle_live')
-                ->table('options_list')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
-                ->get();
-
-            foreach ($options_list as $option_list) {
+            foreach ($data['options_list'] ?? [] as $optionData) {
                 try {
+                    $option = $optionData['option'];
+
                     DB::connection('oracle')
                         ->table('options_list')
                         ->updateOrInsert(
-                            ['id' => $option_list->id],
-                            (array) $option_list
+                            ['id' => $option['id']],
+                            $option
                         );
 
-                    // SYNC OPTIONS_LIST TRANSLATIONS
-                    $this->syncTranslations('oracle_live', 'App\\Models\\OptionsList', $option_list->id);
+                    foreach ($optionData['translations'] ?? [] as $translation) {
+                        DB::connection('oracle')
+                            ->table('translations')
+                            ->updateOrInsert(
+                                ['id' => $translation['id']],
+                                $translation
+                            );
+                    }
 
-                    DB::connection('oracle_live')
-                        ->table('options_list')
-                        ->where('id', $option_list->id)
-                        ->update(['is_pushed' => 'Y']);
+                    $syncedOptionsListIds[] = $option['id'];
 
-                    // Log::info("AddOn ID {$addon->id} synced successfully.");
                 } catch (\Exception $e) {
-                    Log::error("Failed syncing options_list ID {$option_list->id}: " . $e->getMessage());
+                    Log::error("Failed syncing OptionsList ID {$optionData['option']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
 
+            if (!empty($syncedFoodIds) || !empty($syncedAddonIds) || !empty($syncedCategoryIds) || !empty($syncedOptionsListIds)) {
+                try {
+                    $markResponse = Http::timeout(30)
+                        ->withToken(config('services.live_server.token'))
+                        ->post(config('services.live_server.url') . '/food/mark-pushed', [
+                            'food_ids' => $syncedFoodIds,
+                            'addon_ids' => $syncedAddonIds,
+                            'category_ids' => $syncedCategoryIds,
+                            'options_list_ids' => $syncedOptionsListIds,
+                        ]);
 
-            \Log::info('SyncFoodJob completed successfully.');
-        } catch (\Exception $e) {
-            Log::error("SyncFoodJob failed: " . $e->getMessage());
-        }
-    }
-
-
-    /**
-     * Sync translations for a specific model.
-     *
-     * @param string $sourceConnection
-     * @param string $modelType (e.g., App\Models\Food)
-     * @param int $modelId
-     * @return void
-     */
-    private function syncTranslations(string $sourceConnection, string $modelType, int $modelId): void
-    {
-        try {
-            $translations = DB::connection($sourceConnection)
-                ->table('translations')
-                ->where('translationable_id', $modelId)
-                ->where('translationable_type', $modelType)
-                ->get();
-
-            foreach ($translations as $translation) {
-                DB::connection('oracle')
-                    ->table('translations')
-                    ->updateOrInsert(
-                        ['id' => $translation->id],
-                        (array) $translation
-                    );
+                    if ($markResponse->successful()) {
+                        Log::info('Items marked as pushed on live server');
+                    } else {
+                        Log::warning('Failed to mark items as pushed on live server', [
+                            'status' => $markResponse->status()
+                        ]);
+                    }
+                } catch (\Exception $e) {
+                    Log::error('Failed to mark items as pushed', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
             }
+
+            Log::info('SyncFoodJob completed successfully', [
+                'synced_foods' => count($syncedFoodIds),
+                'synced_addons' => count($syncedAddonIds),
+                'synced_categories' => count($syncedCategoryIds),
+                'synced_options_list' => count($syncedOptionsListIds),
+            ]);
+
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('Connection error while syncing food', [
+                'error' => $e->getMessage()
+            ]);
         } catch (\Exception $e) {
-            Log::error("Failed syncing translations for {$modelType} ID {$modelId}: " . $e->getMessage());
+            Log::error('SyncFoodJob failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 
     private function copyImageFromStorage(string $filename, string $folder = 'product/'): void
-{
-    $imageSourceBase = config('constants.image_source_base');
-    $imageSourceBase = rtrim($imageSourceBase, '/') . '/';
-    $relativePath = $folder . $filename;
+    {
+        $imageSourceBase = config('constants.image_source_base');
+        $imageSourceBase = rtrim($imageSourceBase, '/') . '/';
+        $relativePath = $folder . $filename;
 
-    $sourceUrl = $imageSourceBase . $relativePath;
+        $sourceUrl = $imageSourceBase . $relativePath;
+        $destinationPath = public_path('storage/' . $relativePath);
 
-    $destinationPath = public_path('storage/' . $relativePath);
+        try {
+            if (!file_exists(dirname($destinationPath))) {
+                mkdir(dirname($destinationPath), 0755, true);
+            }
 
-    // Log::info("Trying to sync image from: " . $sourceUrl);
+            $imageData = @file_get_contents($sourceUrl);
+            if ($imageData === false) {
+                return;
+            }
 
-    try {
-        if (!file_exists(dirname($destinationPath))) {
-            mkdir(dirname($destinationPath), 0755, true);
+            file_put_contents($destinationPath, $imageData);
+
+        } catch (\Exception $e) {
+            Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
         }
-
-        $imageData = @file_get_contents($sourceUrl);
-        if ($imageData === false) {
-            // Log::warning("Image not found or failed to fetch: {$sourceUrl}");
-            return;
-        }
-
-        file_put_contents($destinationPath, $imageData);
-        // Log::info("Image copied to: " . $destinationPath);
-
-    } catch (\Exception $e) {
-        Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
     }
-}
-
-
 }

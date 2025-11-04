@@ -223,22 +223,22 @@ use Illuminate\Support\Facades\DB;
                             </a>
                             <ul class="js-navbar-vertical-aside-submenu nav nav-sub"
                                 style="display:{{ Request::is('restaurant-panel/food*') ? 'block' : 'none' }}">
-                                <li
+                                <!-- <li
                                     class="nav-item {{ Request::is('restaurant-panel/food/add-new') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.food.add-new') }}"
                                         title="{{ translate('Add New Food') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate">{{ translate('messages.add_new') }}</span>
                                     </a>
-                                </li>
-                                <li
+                                </li> -->
+                                <!-- <li
                                     class="nav-item {{ Request::is('restaurant-panel/food/add-new') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.food.add-new') }}?type=offer"
                                         title="{{ translate('Add New Food Offer') }}">
                                         <span class="tio-circle nav-indicator-icon"></span>
                                         <span class="text-truncate">{{ translate('messages.add_new') }} Offer</span>
                                     </a>
-                                </li>
+                                </li> -->
                                 <li class="nav-item {{ Request::is('restaurant-panel/food/list') ? 'active' : '' }}">
                                     <a class="nav-link " href="{{ route('vendor.food.list') }}"
                                         title="{{ translate('Food List') }}">

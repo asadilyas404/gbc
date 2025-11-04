@@ -6590,4 +6590,12 @@
   'Cash & Card' => 'Cash & Card',
   'Select Option' => 'Select Option',
   'discount_cannot_exceed_product_amount' => 'Discount cannot exceed product amount',
+  'session_requests' => 'Session requests',
+  'Please Select Shift Closing Incharge' => 'Please Select Shift Closing Incharge',
+  'visa_amount' => 'Visa amount',
+  'cash_amount' => 'Cash amount',
+  'request_date' => 'Request date',
+  'request_by' => 'Request by',
+  'Login' => 'Login',
+  'Restaurant Employee' => 'Restaurant Employee',
 );

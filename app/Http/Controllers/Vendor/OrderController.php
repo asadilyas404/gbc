@@ -743,7 +743,7 @@ class OrderController extends Controller
             } catch(\Exception $e) {
                 // dd($e);
                 Toastr::error("line___{$e->getLine()}",$e->getMessage());
-                info(["line___{$e->getLine()}",$e->getMessage()]);
+                info(["line___{$e->getLine()}",$e->getMessage(), $e->getFile()]);
                 return back();
             }
     }

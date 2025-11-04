@@ -5,6 +5,7 @@ namespace App\Jobs;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -17,99 +18,105 @@ class SyncOrdersJob implements ShouldQueue
     public function handle(): void
     {
         set_time_limit(300);
-        \Log::info('SyncOrdersJob started');
+        Log::info('SyncOrdersJob started (API-based)');
+
         try {
-            // Fetch orders that haven't been pushed
             $orders = DB::connection('oracle')
                 ->table('orders')
                 ->where('is_pushed', '!=', 'Y')
                 ->orWhereNull('is_pushed')
                 ->get();
 
+            Log::info('Found orders to sync', ['count' => $orders->count()]);
+
+            if ($orders->isEmpty()) {
+                Log::info('No orders to sync');
+                return;
+            }
+
+            $allOrdersData = [];
+            $orderIds = [];
+
             foreach ($orders as $order) {
-                DB::connection('oracle_live')->beginTransaction();
+                $orderDetails = DB::connection('oracle')
+                    ->table('order_details')
+                    ->where('order_id', $order->id)
+                    ->get();
 
-                try {
-                    DB::connection('oracle_live')
-                    ->table('orders')
-                    ->updateOrInsert(
-                        ['id' => $order->id],
-                        (array) $order
-                    );
+                $orderAdditionalDetails = DB::connection('oracle')
+                    ->table('pos_order_additional_dtl')
+                    ->where('order_id', $order->id)
+                    ->get();
 
-                    // Fetch order details for this order
+                $kitchenStatus = DB::connection('oracle')
+                    ->table('kitchen_order_status_logs')
+                    ->where('order_id', $order->id)
+                    ->get();
 
-                    $orderDetails = DB::connection('oracle')
-                        ->table('order_details')
-                        ->where('order_id', $order->id)
-                        ->get();
+                $allOrdersData[] = [
+                    'order' => (array) $order,
+                    'order_details' => $orderDetails->map(function ($detail) {
+                        return (array) $detail;
+                    })->toArray(),
+                    'additional_details' => $orderAdditionalDetails->map(function ($detail) {
+                        return (array) $detail;
+                    })->toArray(),
+                    'kitchen_status' => $kitchenStatus->map(function ($status) {
+                        return (array) $status;
+                    })->toArray(),
+                ];
 
-                    // $sourceDetailIds = $orderDetails->pluck('id')->toArray();
+                $orderIds[] = $order->id;
+            }
 
-                    // DB::connection('oracle_live')
-                    //     ->table('order_details')
-                    //     ->where('order_id', $order->id)
-                    //     ->where('global_id', $order->global_id)
-                    //     ->whereNotIn('id', $sourceDetailIds)
-                    //     ->delete();
+            Log::info('Making bulk API call', ['order_count' => count($allOrdersData)]);
 
-                    foreach ($orderDetails as $detail) {
-                        DB::connection('oracle_live')
-                        ->table('order_details')
-                        ->updateOrInsert(
-                            ['order_id' => $detail->order_id],
-                            (array) $detail
-                        );
-                    }
+            try {
+                $response = Http::timeout(config('services.live_server.timeout', 60))
+                    ->withToken(config('services.live_server.token'))
+                    ->retry(3, 1000)
+                    ->post(config('services.live_server.url') . '/orders/sync-bulk', [
+                        'orders' => $allOrdersData
+                    ]);
 
-                    $orderAdditionalDetails = DB::connection('oracle')
-                        ->table('pos_order_additional_dtl')
-                        ->where('order_id', $order->id)
-                        ->get();
-
-                    foreach ($orderAdditionalDetails as $detail) {
-                        DB::connection('oracle_live')
-                        ->table('pos_order_additional_dtl')
-                        ->updateOrInsert(
-                            ['order_id' => $detail->order_id],
-                            (array) $detail
-                        );
-                    }
-
-                    $kitchenStatus = DB::connection('oracle')
-                        ->table('kitchen_order_status_logs')
-                        ->where('order_id', $order->id)
-                        ->get();
-
-                    foreach ($kitchenStatus as $detail) {
-                        $exists = DB::connection('oracle_live')
-                            ->table('kitchen_order_status_logs')
-                            ->where('id', $detail->id)
-                            ->exists();
-
-                        if (!$exists) {
-                            DB::connection('oracle_live')
-                                ->table('kitchen_order_status_logs')
-                                ->insert((array) $detail);
-                        }
-                    }
-
-                    // Mark as pushed in source DB
-
+                if ($response->successful()) {
                     DB::connection('oracle')
                         ->table('orders')
-                        ->where('id', $order->id)
+                        ->whereIn('id', $orderIds)
                         ->update(['is_pushed' => 'Y']);
 
-                    DB::connection('oracle_live')->commit();
-                    \Log::info('SyncOrdersJob completed');
-                } catch (\Exception $e) {
-                    DB::connection('oracle_live')->rollBack();
-                    Log::error("Failed syncing order ID {$order->id}: " . $e->getMessage());
+                    Log::info('All orders synced successfully via API', [
+                        'order_count' => count($orderIds),
+                        'order_ids' => $orderIds
+                    ]);
+                } else {
+                    Log::error('Failed syncing orders via API', [
+                        'order_count' => count($orderIds),
+                        'status' => $response->status(),
+                        'response' => $response->body()
+                    ]);
                 }
+
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                Log::error('Connection error while syncing orders', [
+                    'order_count' => count($orderIds),
+                    'error' => $e->getMessage()
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Failed syncing orders', [
+                    'order_count' => count($orderIds),
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
             }
+
+            Log::info('SyncOrdersJob completed');
+
         } catch (\Exception $e) {
-            Log::error("SyncOrdersJob job failed: " . $e->getMessage());
+            Log::error('SyncOrdersJob failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
         }
     }
 }

@@ -303,13 +303,24 @@ use Illuminate\Support\Facades\DB;
                     <!-- Shift Session -->
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('shift_session'))
                     <li
-                        class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/shift-session*') ? 'active' : '' }}">
+                        class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/shift-session') ? 'active' : '' }}">
                         <a class="js-navbar-vertical-aside-menu-link nav-link"
                             href="{{ route('vendor.shift-session.index') }}"
                             title="Employee Session">
                             <i class="tio-time nav-icon"></i>
                             <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
                                 {{ translate('messages.employee_session') }}
+                            </span>
+                        </a>
+                    </li>
+                    <li
+                        class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/shift-session/verify-list*') ? 'active' : '' }}">
+                        <a class="js-navbar-vertical-aside-menu-link nav-link"
+                            href="{{ route('vendor.shift-session.verifyList') }}"
+                            title="Session Requests">
+                            <i class="tio-checkmark-circle-outlined nav-icon"></i>
+                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                {{ translate('messages.session_requests') }}
                             </span>
                         </a>
                     </li>

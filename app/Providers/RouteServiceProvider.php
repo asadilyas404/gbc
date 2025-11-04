@@ -73,6 +73,12 @@ class RouteServiceProvider extends ServiceProvider
                 ->namespace($this->namespace)
                 ->group(base_path('routes/api/v2/api.php'));
 
+            // Sync API Routes (for live server)
+            Route::prefix('api/v1')
+                ->middleware('api')
+                ->namespace($this->namespace)
+                ->group(base_path('routes/api_sync.php'));
+
         });
     }
 

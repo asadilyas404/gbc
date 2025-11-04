@@ -145,7 +145,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         Route::post('food/food-variation-generate', 'FoodController@food_variation_generator')->name('food.food-variation-generate');
         Route::group(['prefix' => 'food', 'as' => 'food.', 'middleware' => ['module:food', 'subscription:food']], function () {
 
-            if (!app()->environment('local')) {
+            // if (!app()->environment('local')) {
             Route::get('add-new', 'FoodController@index')->name('add-new');
             Route::post('variant-combination', 'FoodController@variant_combination')->name('variant-combination');
             Route::post('store', 'FoodController@store')->name('store');
@@ -153,7 +153,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('copy/{id}', 'FoodController@copy')->name('copy');
             Route::post('update/{id}', 'FoodController@update')->name('update');
             Route::delete('delete/{id}', 'FoodController@delete')->name('delete');
-            }
+            // }
             Route::get('list', 'FoodController@list')->name('list');
             Route::get('status/{id}/{status}', 'FoodController@status')->name('status');
             Route::get('recommended/{id}/{status}', 'FoodController@recommended')->name('recommended');

@@ -6589,6 +6589,7 @@
   'You_are_currently_editing_an_existing_order. Editing_not_allowed.' => 'You are currently editing an existing order. Editing not allowed.',
   'Cash & Card' => 'Cash & Card',
   'Select Option' => 'Select Option',
+  'discount_cannot_exceed_product_amount' => 'Discount cannot exceed product amount',
   'session_requests' => 'Session requests',
   'Please Select Shift Closing Incharge' => 'Please Select Shift Closing Incharge',
   'visa_amount' => 'Visa amount',

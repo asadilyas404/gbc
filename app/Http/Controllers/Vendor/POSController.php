@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use App\Models\KitchenOrderStatusLog;
 use Illuminate\Support\Facades\Auth;
+use App\Events\myevent;
 
 class POSController extends Controller
 {
@@ -602,6 +603,10 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
+
+          
+          
+
         $activeSession = \App\Models\ShiftSession::current()
         ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
         ->first();
@@ -893,9 +898,6 @@ class POSController extends Controller
             }
         }
 
-
-
-
         $order->tax_status = 'excluded';
 
         $tax_included = BusinessSetting::where(['key' => 'tax_included'])->first()->value ?? 0;
@@ -988,15 +990,20 @@ class POSController extends Controller
                 }
             }
 
+           
+
             DB::commit();
 
             // Print order receipts
             try {
+                 event(new myevent('unpaid'));
                 $printController = new \App\Http\Controllers\PrintController();
 
                 if($order->payment_status == 'unpaid'){
                     $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                 }
+
+                //  dd($order->payment_status,$order,$request->all());
 
                 if ($order->payment_status === 'paid' && !$order->printed) {
                     // Print once for new paid order
@@ -1011,6 +1018,7 @@ class POSController extends Controller
 
                 $order->printed = 1;
                 $order->save();
+               
             } catch (\Exception $printException) {
                 info('Print error: ' . $printException->getMessage());
             }
@@ -1027,6 +1035,8 @@ class POSController extends Controller
             // }
 
             //PlaceOrderMail end
+
+           
 
             if ($request->order_draft == 'draft') {
                 Toastr::success(translate('messages.order_drafted_successfully'));

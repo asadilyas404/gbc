@@ -32,6 +32,7 @@
     <!-- Provider Panel Update CSS -->
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/css/vendor.css')}}">
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/intltelinput/css/intlTelInput.css')}}">
+       <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
 
     @stack('css_or_js')
 

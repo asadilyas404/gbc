@@ -9,6 +9,7 @@
 
     <!-- QZ Tray Script -->
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
+ 
 
     <style>
         .col-auto {
@@ -903,9 +904,34 @@
 @endsection
 
 @push('script_2')
+
+
+
     <script>
         "use strict";
         $(document).on('ready', function() {
+            
+
+
+            Pusher.logToConsole = true;
+            var pusher = new Pusher('3072d0c5201dc9141481', {
+            cluster: 'ap2',
+            // forceTLS: true,
+            //   enabledTransports: ['ws', 'wss', 'xhr_streaming', 'xhr_polling']
+            // enabledTransports: ['ws', 'wss']
+            });
+
+            var channel = pusher.subscribe('my-channel');
+            channel.bind('my-event', function(data) {
+                // if(data.message =='unpaid'){
+                    window.location.reload();
+                // }
+                console.log(data,data.message);
+               
+            });
+
+
+            ///////////////
             // INITIALIZATION OF NAV SCROLLER
             // =======================================================
             $('.js-nav-scroller').each(function() {
@@ -1378,6 +1404,24 @@
             // }
 
         });
+
+        ///////////
+        // Save scroll position before leaving or reloading
+        window.addEventListener('beforeunload', function () {
+            localStorage.setItem('scrollPosition', window.scrollY);
+        });
+
+        // Restore scroll position when page loads
+        window.addEventListener('load', function () {
+            const scrollPosition = localStorage.getItem('scrollPosition');
+            if (scrollPosition) {
+            window.scrollTo(0, parseInt(scrollPosition));
+            // Clear it if you only want to restore once
+            localStorage.removeItem('scrollPosition');
+            }
+        });
     </script>
+
+
 @endpush
 

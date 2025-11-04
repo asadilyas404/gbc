@@ -133,6 +133,22 @@
                                         name="options[{{ $key }}][values][{{ $key_value }}][optionPrice]"
                                         value="{{ $value['optionPrice'] }}">
                                 </div>
+
+                                @foreach ($PARTNER_VARIATION_OPTION->whereNull('variation_option_id') as $row)
+
+                                    <div class="col-md-3 col-sm-6">
+                                        <label for="">{{  $row->partner_name." Additional price" }} &nbsp;<span
+                                                class="form-label-secondary text-danger" data-toggle="tooltip"
+                                                data-placement="right"
+                                                data-original-title="{{ translate('messages.Required.') }}"> *
+                                            </span></label>
+                                        <input class="form-control" required type="number" min="0" step="0.01"
+                                            name="options[{{ $key }}][values][{{ $key_value }}][optionPrice]"
+                                            value="{{ $row->price  }}">
+                                    </div>
+
+                                @endforeach
+                                
                                 <div class="col-md-3 col-sm-6 hide_this">
                                     <label for="">{{ translate('Stock') }}</label>
                                     <input class="form-control stock_disable count_stock" required type="number"
@@ -140,9 +156,12 @@
                                         name="options[{{ $key }}][values][{{ $key_value }}][total_stock]"
                                         value="{{ data_get($value, 'current_stock', 100) }}">
                                 </div>
+
                                 <input type="hidden" hidden
                                     name="options[{{ $key }}][values][{{ $key_value }}][option_id]"
                                     value="{{ data_get($value, 'option_id') }}">
+                                
+                                
                                 <div class="col-sm-2 max-sm-absolute">
                                     <label class="d-none d-md-block">&nbsp;</label>
                                     <button type="button" data-id="{{ data_get($value, 'option_id') }}"
@@ -150,9 +169,6 @@
                                         title="{{ translate('Delete') }}">
                                         <i class="tio-add-to-trash"></i>
                                     </button>
-
-
-
                                 </div>
                             </div>
                         @endforeach

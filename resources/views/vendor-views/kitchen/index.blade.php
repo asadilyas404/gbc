@@ -303,10 +303,25 @@
             });
         }
 
-        setInterval(function() {
-            updateAllOrders();
-        }, 10000)
 
+        // setInterval(function() {
+        //     updateAllOrders();
+        // }, 10000)
+
+         Pusher.logToConsole = true;
+            var pusher = new Pusher('3072d0c5201dc9141481', {
+            cluster: 'ap2',
+            // forceTLS: true,
+            //   enabledTransports: ['ws', 'wss', 'xhr_streaming', 'xhr_polling']
+            // enabledTransports: ['ws', 'wss']
+            });
+
+            var channel = pusher.subscribe('my-channel');
+            channel.bind('my-event', function(data) {
+                 updateAllOrders();
+            });
+
+       
         function funViewCard(customer, item, buttonName, btnAction) {
             let timeHtml = "";
             if (item?.kitchen_time) {

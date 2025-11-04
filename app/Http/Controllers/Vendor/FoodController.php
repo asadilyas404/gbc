@@ -26,6 +26,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Jobs\SyncFoodJob;
 
+
+// PARTNER_VARIATION_OPTION
 class FoodController extends Controller
 {
     public function index()
@@ -359,11 +361,16 @@ class FoodController extends Controller
                         'current_stock' => $opt->total_stock,
                     ];
                 }
-                $variationsPayload[] = $entry;
+                $variationsPayload[] = $entry;    
             }
         }
 
-        return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload'));
+         $PARTNER_VARIATION_OPTION =DB::table('TBL_SALE_ORDER_PARTNERS as p')
+                ->leftJoin('PARTNER_VARIATION_OPTION as op', 'op.partner_id', '=', 'p.id')
+                 ->where('partner_entry_status',1)
+                 ->get();
+
+        return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload','PARTNER_VARIATION_OPTION'));
     }
 
     public function copy($id)
@@ -1150,12 +1157,17 @@ class FoodController extends Controller
     }
      public function deleteOption(Request $request)
     {
+
         $request->validate([
             'option_id' => 'required|integer|exists:variation_options,id',
         ]);
 
         try {
             VariationOption::where('id', $request->option_id)->delete();
+
+            DB::table('PARTNER_VARIATION_OPTION')->where('VARIATION_OPTION_ID',$request->option_id)->update(['is_deleted'=>1]);
+
+            
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {

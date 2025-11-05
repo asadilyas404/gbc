@@ -401,9 +401,26 @@ class Order extends Model
         return $this->belongsTo(TableEmployee::class, 'table_id');
     }
 
+    public function getOrderTakenByNameAttribute()
+    {
+        $id = $this->order_taken_by;
+
+        $vendor = Restaurant::find($id);
+        if ($vendor) {
+            return $vendor->name;
+        }
+
+        $employee = User::find($id);
+        if ($employee) {
+            return $employee->name;
+        }
+
+        return null;
+    }
+
     public function takenBy()
     {
-        return $this->belongsTo(VendorEmployee::class, 'order_taken_by');
+        return $this->belongsTo(User::class, 'order_taken_by', 'id');
     }
 
 }

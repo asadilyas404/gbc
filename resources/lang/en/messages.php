@@ -6607,4 +6607,5 @@
   'test3 Additional_price' => 'Test3 Additional price',
   'test 40 Additional_price' => 'Test 40 Additional price',
   'Max_Purchase_Quantity_Limit' => 'Max Purchase Quantity Limit',
+  'order_taken_by' => 'Order taken by',
 );

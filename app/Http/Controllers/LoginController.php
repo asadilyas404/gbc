@@ -461,39 +461,38 @@ class LoginController extends Controller
     public function logout()
     {
         try {
-            if(auth('vendor')->check()){
+            $user_link = null;
+
+            if (auth('vendor')->check()) {
                 $user_link = Helpers::get_login_url('restaurant_login_url');
-                session()->forget('stock_out_reminder_close_btn');
-                session()->forget('subscription_free_trial_close_btn');
-                session()->forget('subscription_renew_close_btn');
-                session()->forget('subscription_cancel_close_btn');
-            }
-            elseif(auth('vendor_employee')->check()){
+                auth('vendor')->logout();
+            } elseif (auth('vendor_employee')->check()) {
                 $user_link = Helpers::get_login_url('restaurant_employee_login_url');
-                session()->forget('stock_out_reminder_close_btn');
-                session()->forget('subscription_free_trial_close_btn');
-                session()->forget('subscription_renew_close_btn');
-                session()->forget('subscription_cancel_close_btn');
-            } else {
-                if (isset(auth()->guard('admin')->user()->role_id) && auth()->guard('admin')->user()->role_id == 1) {
+                auth('vendor_employee')->logout();
+            } elseif (auth('admin')->check()) {
+                if (auth('admin')->user()->role_id == 1) {
                     $user_link = Helpers::get_login_url('admin_login_url');
                 } else {
                     $user_link = Helpers::get_login_url('admin_employee_login_url');
                 }
+                auth('admin')->logout();
             }
 
-            auth()->guard('vendor')->logout();
-            auth()->guard('vendor_employee')->logout();
-            auth()->guard('admin')->logout();
+            // Clear sessions
+            session()->forget([
+                'stock_out_reminder_close_btn',
+                'subscription_free_trial_close_btn',
+                'subscription_renew_close_btn',
+                'subscription_cancel_close_btn',
+            ]);
 
-            return redirect()->route('login',[$user_link]);
+            return redirect()->route('login', [$user_link]);
 
         } catch (\Throwable $th) {
-
             return redirect()->route('home');
         }
-
     }
+
 
     public function otp_resent(Request $request){
         $data = DB::table('password_resets')->where(['token' => $request['token']])->first();

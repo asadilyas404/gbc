@@ -134,7 +134,15 @@
                                         value="{{ $value['optionPrice'] }}">
                                 </div>
 
-                                @foreach ($PARTNER_VARIATION_OPTION->whereNull('variation_option_id') as $row)
+                                @php
+
+                                $option_id=$value['option_id'];
+
+                                $PARTNER_VARIATION_OPTION= get_partner_option($option_id);
+                                                    
+                                @endphp
+
+                                @foreach ($PARTNER_VARIATION_OPTION as $row)
 
                                     <div class="col-md-3 col-sm-6">
                                         <label for="">{{  $row->partner_name." Additional price" }} &nbsp;<span
@@ -142,12 +150,18 @@
                                                 data-placement="right"
                                                 data-original-title="{{ translate('messages.Required.') }}"> *
                                             </span></label>
+
                                         <input class="form-control" required type="number" min="0" step="0.01"
-                                            name="options[{{ $key }}][values][{{ $key_value }}][optionPrice]"
-                                            value="{{ $row->price  }}">
+                                        name="options[{{ $key }}][values][{{ $key_value }}][partneroptionPrice][{{$row->p_id}}]"
+                                        value="{{ $row->price  }}">
+
+                               
                                     </div>
+                                    <!-- @php dump( $row->p_id) @endphp -->
 
                                 @endforeach
+
+                                  <!-- @php dump( $PARTNER_VARIATION_OPTION) @endphp -->
                                 
                                 <div class="col-md-3 col-sm-6 hide_this">
                                     <label for="">{{ translate('Stock') }}</label>

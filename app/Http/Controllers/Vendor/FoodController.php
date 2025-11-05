@@ -366,9 +366,19 @@ class FoodController extends Controller
         }
 
          $PARTNER_VARIATION_OPTION =DB::table('TBL_SALE_ORDER_PARTNERS as p')
-                ->leftJoin('PARTNER_VARIATION_OPTION as op', 'op.partner_id', '=', 'p.id')
+                // ->leftJoin('PARTNER_VARIATION_OPTION as op', 'op.partner_id', '=', 'p.partner_id')
+                   ->leftjoin('PARTNER_VARIATION_OPTION as op', function ($join)use($id)  {
+                    $join->on('op.partner_id', '=', 'p.partner_id')
+                        ->whereNull('variation_option_id')
+                        ->where('food_id',$id)
+                        
+                        ->where('is_deleted',0);
+                })
+                ->select('p.*','op.*','p.partner_id as p_id')
                  ->where('partner_entry_status',1)
                  ->get();
+
+                //  dd($PARTNER_VARIATION_OPTION);
 
         return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload','PARTNER_VARIATION_OPTION'));
     }
@@ -484,6 +494,7 @@ class FoodController extends Controller
 
     public function update(Request $request, $id)
     {
+        // DD($request->toArray());
         if (!Helpers::get_restaurant_data()->food_section) {
             return response()->json([
                 'errors' => [
@@ -595,6 +606,52 @@ class FoodController extends Controller
         $p->choice_options = json_encode([]);
         $p->variations = json_encode([]);
 
+
+        // if (isset($request->partner_option_price)) {
+
+        //     $partner_option_price=$request->partner_option_price;
+        //     foreach( $partner_option_price as $option_id=>$partner_price){
+
+        //         foreach($partner_price as $partner_id=>$price){
+
+        //             DB::table('PARTNER_VARIATION_OPTION')
+        //             ->updateOrInsert(
+        //                 [ 'is_deleted' => 0,'VARIATION_OPTION_ID' => $option_id, 'PARTNER_ID' => $partner_id,'FOOD_ID' => $id,'TYPE' => 'option'],
+        //                 [
+        //                         'price' => $price,
+        //                         'created_at' => date('Y/m/d H:is'),
+        //                         'updated_at' =>date('Y/m/d H:is'),
+        //                         ]
+        //             );
+                   
+        //         }
+        //     }
+        // }
+
+        if (isset($request->partner_price)) {
+            $partner_price=$request->partner_price;
+            foreach($partner_price as $partner_id=>$price){
+
+                DB::table('PARTNER_VARIATION_OPTION')->updateOrInsert(
+                    [
+                        'PARTNER_ID' => $partner_id,
+                        'VARIATION_OPTION_ID' => null,
+                        'FOOD_ID' => $id,
+                        'TYPE' => 'basic',
+                        'is_deleted' => 0
+                    ],
+                    [
+                        'price' => $price,
+                        'created_at' => date('Y/m/d H:is'),
+                        'updated_at' =>date('Y/m/d H:is'),
+                    ]
+                );
+            }
+            
+        }
+
+        
+
         if (isset($request->options)) {
             foreach (array_values($request->options) as $key => $option) {
                 if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
@@ -653,8 +710,10 @@ class FoodController extends Controller
                         $v->stock_type = $request->stock_type ?? 'unlimited';
                         $v->sell_count = 0;
                         $v->save();
+
+                        
                     } else {
-                        VariationOption::create([
+                        $v = VariationOption::create([
                             "food_id" => $p->id,
                             "variation_id" => $variation->id,
                             "option_name" => $value['label'],
@@ -664,6 +723,21 @@ class FoodController extends Controller
                             "stock_type" => $request->stock_type ?? 'unlimited',
                             "sell_count" => 0,
                         ]);
+                        
+                    }
+                    $partner_price=$value['partneroptionPrice'];
+
+                    foreach($partner_price as $partner_id=>$price){
+
+                        DB::table('PARTNER_VARIATION_OPTION')
+                        ->updateOrInsert(
+                            [ 'is_deleted' => 0,'VARIATION_OPTION_ID' => $v->id, 'PARTNER_ID' => $partner_id,'FOOD_ID' => $id,'TYPE' => 'option'],
+                            [
+                                    'price' => $price,
+                                    'created_at' => date('Y/m/d H:is'),
+                                    'updated_at' =>date('Y/m/d H:is'),
+                                    ]
+                        );
                     }
                 }
             }

@@ -6601,4 +6601,10 @@
   'all_order_partners' => 'All order partners',
   'TM DONE Additional_price' => 'TM DONE Additional price',
   'Talabat Additional_price' => 'Talabat Additional price',
+  'Muhammad Usama3 Additional_price' => 'Muhammad Usama3 Additional price',
+  'Muhammad Usama2 Additional_price' => 'Muhammad Usama2 Additional price',
+  'test 5 Additional_price' => 'Test 5 Additional price',
+  'test3 Additional_price' => 'Test3 Additional price',
+  'test 40 Additional_price' => 'Test 40 Additional price',
+  'Max_Purchase_Quantity_Limit' => 'Max Purchase Quantity Limit',
 );

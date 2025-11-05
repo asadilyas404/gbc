@@ -328,7 +328,7 @@
                         </div>
                         <div class="card-body">
                             <div class="row g-2">
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.price') }}</label>
@@ -337,7 +337,7 @@
                                             placeholder="{{ translate('messages.Ex :') }} 100" required>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.discount_type') }}
@@ -355,7 +355,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-md-4">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.discount') }}
@@ -370,10 +370,10 @@
                                             placeholder="{{ translate('messages.Ex :') }} 100">
                                     </div>
                                 </div>
-                                <div class="col-md-3" id="maximum_cart_quantity">
+                                <div class="col-md-6" id="maximum_cart_quantity">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
-                                            for="maximum_cart_quantity">{{ translate('messages.Maximum_Purchase_Quantity_Limit') }}
+                                            for="maximum_cart_quantity">{{ translate('messages.Max_Purchase_Quantity_Limit') }}
                                             <span class="input-label-secondary text--title" data-toggle="tooltip"
                                                 data-placement="right"
                                                 data-original-title="{{ translate('If_this_limit_is_exceeded,_customers_can_not_buy_the_food_in_a_single_purchase.') }}">
@@ -386,7 +386,7 @@
                                     </div>
                                 </div>
 
-                                <div class="col-md-3">
+                                <div class="col-md-6">
                                     <div class="form-group mb-0">
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.Stock_Type') }}
@@ -419,22 +419,19 @@
                                     </div>
                                 </div>
 
-                                @foreach ($PARTNER_VARIATION_OPTION->whereNull('variation_option_id') as $row)
-
+                                @foreach ($PARTNER_VARIATION_OPTION as $row)
                                     <div class="col-md-3">
                                         <div class="form-group mb-0">
                                             <label class="input-label"
                                                 for="">{{  $row->partner_name." Price" }}</label>
                                             <input type="number" min="0" max="999999999999.99" step="0.01"
-                                                value="{{ $row->price }}" name="partner_price[]" class="form-control"
+                                                data-id="{{ $row->p_id }}"
+                                                value="{{ $row->price }}" name="partner_price[{{$row->p_id }}]" class="form-control"
                                                 placeholder="{{ translate('messages.Ex :') }} 100" required>
                                         </div>
                                     </div>
                                 
                                 @endforeach
-
-                              
-
 
                             </div>
                         </div>
@@ -460,6 +457,7 @@
                                     <div id="add_new_option">
                                         @php($prefill = isset($variationsPayload) && count($variationsPayload) ? $variationsPayload : (isset($product->variations) ? json_decode($product->variations, true) : []))
                                         @if (!empty($prefill))
+
                                             @foreach ($prefill as $key_choice_options => $item)
                                                 @if (isset($item['price']))
                                                     @break
@@ -665,6 +663,20 @@
                     count +
                     `][values][0][optionPrice]" id="">
                                             </div>
+
+  @foreach ($PARTNER_VARIATION_OPTION as $row)
+                    <div class="col-md-3 col-sm-6">
+                    <label for="">{{ translate($row->partner_name.' Additional_price') }}  &nbsp; <span class="form-label-secondary text-danger"
+    data-toggle="tooltip" data-placement="right"
+    data-original-title="{{ translate('messages.Required.') }}"> *
+    </span></label>
+    <input class="form-control" required type="number" min="0" step="0.01" name="options[` + count + `][values][0][partneroptionPrice][` +{{$row->partner_id}} + `]" id=""></div>
+
+  @endforeach
+
+
+
+
                                             <div class="col-md-3 col-sm-6 hide_this">
                                                 <label for="">{{ translate('Stock') }} </label>
                                                 <input class="form-control stock_disable count_stock" required type="number" max="99999999" min="0"  name="options[` +
@@ -730,16 +742,14 @@
                     </div>
                     
 
-  @foreach ($PARTNER_VARIATION_OPTION->whereNull('variation_option_id') as $row)
+  @foreach ($PARTNER_VARIATION_OPTION as $row)
                      <div class="col-md-3 col-sm-5">
                         <label for="">{{ translate($row->partner_name.' Additional_price') }}  &nbsp;<span class="form-label-secondary text-danger"
                                 data-toggle="tooltip" data-placement="right"
                                 data-original-title="{{ translate('messages.Required.') }}"> *
                                 </span></label>
-                        <input class="form-control"  required type="number" min="0" step="0.01" name="options[` + data + `][values][` + countRow + `][optionPrice]" id="">
+                        <input class="form-control"  required type="number" min="0" step="0.01" name="options[` + data + `][values][` + countRow + `][partneroptionPrice][` +{{$row->partner_id}} + `]" id="">
                     </div>
-
-
     @endforeach
 
                     <div class="col-md-3 col-sm-5 hide_this">

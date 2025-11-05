@@ -17,6 +17,23 @@ use Illuminate\Support\Facades\Mail;
 use App\Models\SubscriptionBillingAndRefundHistory;
 use Brian2694\Toastr\Facades\Toastr;
 
+if (! function_exists('get_partner_option')) {
+    function get_partner_option($option_id)
+    {
+        $PARTNER_VARIATION_OPTION =DB::table('TBL_SALE_ORDER_PARTNERS as p')
+            ->leftjoin('PARTNER_VARIATION_OPTION as op', function ($join) use($option_id) {
+                    $join->on('op.partner_id', '=', 'p.partner_id')
+                        ->where('variation_option_id', $option_id)
+                        ->where('is_deleted',0);
+                })
+            ->select('p.*','op.*','p.partner_id as p_id')
+            ->where('partner_entry_status',1)   
+            ->get();
+
+        return  $PARTNER_VARIATION_OPTION;
+    }
+}
+
 
 if (! function_exists('translate')) {
     function translate($key, $replace = [])

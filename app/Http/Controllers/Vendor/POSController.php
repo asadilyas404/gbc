@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\KitchenOrderStatusLog;
 use Illuminate\Support\Facades\Auth;
 use App\Events\myevent;
+use Illuminate\Support\Facades\Session;
 
 class POSController extends Controller
 {
@@ -63,6 +64,23 @@ class POSController extends Controller
             ->where('parent_id', '!=', 0)
             ->get();
 
+        // Redirect once to clean URL
+        if ($request->query('order_partner_id')) {
+            $orderPartner = $request->query('order_partner_id');
+            // Store necessary session data first
+            if ($orderPartner && !empty($orderPartner)) {
+                session()->put('order_partner', $orderPartner);
+                $this->emptyCart($request);
+            } else {
+                session()->forget('order_partner');
+                $this->emptyCart($request);
+            }
+
+            // Redirect to same route without query parameters
+            return redirect()->route('vendor.pos.index.new');
+        }
+
+
         $products = Food::active()
             ->when($category, function ($query) use ($category) {
                 $query->whereHas('category', function ($q) use ($category) {
@@ -82,7 +100,15 @@ class POSController extends Controller
                 });
             })
             //    ->available($time)
-            ->latest()->get();
+            ->latest()->get()->each(function($item){
+                if(session()->has('order_partner')){
+                    // If order_partner is not null
+                    if(!is_null(session()->get('order_partner')) || !empty(session()->get('order_partner'))){
+                        // Get the Price From the database
+                        $item->price = 0;
+                    }
+                }
+            });
         // ->paginate(10);
 
         if ($request->ajax()) {
@@ -109,8 +135,23 @@ class POSController extends Controller
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
+        $orderPartners = DB::table('tbl_sale_order_partners')->get();
+        $orderPartner = session()->get('order_partner');
 
-        return view('vendor-views.pos.index-new', compact('categories', 'subcategories', 'products', 'category', 'subcategory', 'keyword', 'draftDetails', 'editingOrder', 'orderDate', 'draftCustomer'));
+        return view('vendor-views.pos.index-new', compact(
+            'categories', 
+            'subcategories', 
+            'products', 
+            'category', 
+            'subcategory', 
+            'keyword', 
+            'draftDetails', 
+            'editingOrder', 
+            'orderDate', 
+            'draftCustomer',
+            'orderPartners',
+            'orderPartner'
+        ));
     }
 
 

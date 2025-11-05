@@ -6598,4 +6598,7 @@
   'request_by' => 'Request by',
   'Login' => 'Login',
   'Restaurant Employee' => 'Restaurant Employee',
+  'all_order_partners' => 'All order partners',
+  'TM DONE Additional_price' => 'TM DONE Additional price',
+  'Talabat Additional_price' => 'Talabat Additional price',
 );

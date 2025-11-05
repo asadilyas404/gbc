@@ -294,22 +294,22 @@
                     <div class="card-body d-flex flex-column justify-content-center" id="items"
                         style="padding-top: 8px;">
                         <div class="row g-2 mb-1">
-                            {{-- <div class="col-sm-6">
+                            <div class="col-sm-12">
                                 <div class="input-group">
-                                    <select name="category" id="category"
+                                    <select name="order_partner" id="order_partner"
                                             class="form-control js-select2-custom set-filter"
-                                            data-url="{{ url()->full() }}" data-filter="category_id"
+                                            data-url="{{ url()->full() }}" data-filter="order_partner_id"
                                             title="{{ translate('messages.select_category') }}">
-                                        <option value="">{{ translate('messages.all_categories') }}</option>
-                                        @foreach ($categories as $item)
+                                        <option value="">{{ config('app.name') }}</option>
+                                        @foreach ($orderPartners as $partner)
                                             <option
-                                                value="{{ $item->id }}" {{ $category == $item->id ? 'selected' : '' }}>
-                                                {{ Str::limit($item->name, 20, '...') }}</option>
+                                                value="{{ $partner->partner_id }}"
+                                                {{ $partner->partner_id == $orderPartner ? 'selected' : '' }}>
+                                                {{ $partner->partner_name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
-                            </div> --}}
-
+                            </div>
                             <div class="col-sm-12">
                                 <div class="category-scroll-container">
                                     <div class="category-scroll">

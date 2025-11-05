@@ -787,7 +787,7 @@ class POSController extends Controller
         $order->vehicle_id = $vehicle_id ?? null;
         $order->restaurant_id = $restaurant->id;
         $order->user_id = $request->user_id;
-        $order->order_taken_by = Auth::guard('vendor_employee')->user()->id ?? '';
+        $order->order_taken_by = Auth::guard('vendor_employee')->user()->id ?? Auth::guard('vendor')->user()->id;
         $order->zone_id = $restaurant->zone_id;
         $order->session_id = $activeSession->session_id;
         $order->delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
@@ -799,6 +799,11 @@ class POSController extends Controller
         $order->order_note = $request->order_notes ?? '';
         $order->updated_at = now();
         $order->otp = rand(1000, 9999);
+
+        // Set the User ID
+        if($order->payment_status == 'paid'){
+            $order->user_id = Auth::guard('vendor_employee')->user()->id ?? Auth::guard('vendor')->user()->id;
+        }
 
         DB::beginTransaction();
         foreach ($cart as $c) {
@@ -1077,9 +1082,6 @@ class POSController extends Controller
             // }
 
             //PlaceOrderMail end
-
-           
-
             if ($request->order_draft == 'draft') {
                 Toastr::success(translate('messages.order_drafted_successfully'));
             } else {

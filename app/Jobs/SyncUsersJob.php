@@ -15,7 +15,7 @@ class SyncUsersJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(): void
+    public function handle()
     {
         set_time_limit(300);
         Log::info('SyncUsersJob started (API-based)');
@@ -114,7 +114,7 @@ class SyncUsersJob implements ShouldQueue
         }
     }
 
-    private function copyImageFromStorage(string $filename, string $folder = 'images/'): void
+    private function copyImageFromStorage($filename, $folder = 'images/')
     {
         $imageSourceBase = config('constants.image_source_base');
         $imageSourceBase = rtrim($imageSourceBase, '/') . '/';

@@ -104,6 +104,7 @@ class POSController extends Controller
                 if(session()->has('order_partner')){
                     // If order_partner is not null
                     if(!is_null(session()->get('order_partner')) || !empty(session()->get('order_partner'))){
+                        // TODO:: Fetch the prices based on the order_partner
                         // Get the Price From the database
                         $item->price = 0;
                     }

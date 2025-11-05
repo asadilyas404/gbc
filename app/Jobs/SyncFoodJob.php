@@ -15,7 +15,7 @@ class SyncFoodJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(): void
+    public function handle()
     {
         set_time_limit(300);
         Log::info('SyncFoodJob started (API-based)');
@@ -239,7 +239,7 @@ class SyncFoodJob implements ShouldQueue
         }
     }
 
-    private function copyImageFromStorage(string $filename, string $folder = 'product/'): void
+    private function copyImageFromStorage($filename, $folder = 'product/')
     {
         $imageSourceBase = config('constants.image_source_base');
         $imageSourceBase = rtrim($imageSourceBase, '/') . '/';

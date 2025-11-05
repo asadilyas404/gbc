@@ -28,12 +28,10 @@ class ShiftSessionController extends Controller
         } 
         if (auth('vendor_employee')->check()) {
             $userId = auth('vendor_employee')->id();
-            dd($userId);
+            
             $currentSession = $currentSession->where('user_id', $userId);
             $currentSession->with('user');
         }
-
-        dd(auth());
 
         $currentSession = $currentSession->first();
 

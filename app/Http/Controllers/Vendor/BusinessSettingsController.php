@@ -293,8 +293,8 @@ class BusinessSettingsController extends Controller
         $restaurant->meta_description = $request->meta_description[array_search('default', $request->lang)];
         $restaurant->save();
 
-        Helpers::add_or_update_translations(request:$request,key_data: 'meta_title', name_field:'meta_title' , model_name:'Restaurant' ,data_id:$restaurant->id,data_value:$restaurant->meta_title);
-        Helpers::add_or_update_translations(request:$request,key_data: 'meta_description', name_field:'meta_description' , model_name:'Restaurant' ,data_id:$restaurant->id,data_value:$restaurant->meta_description);
+        Helpers::add_or_update_translations($request, 'meta_title', 'meta_title', 'Restaurant', $restaurant->id, $restaurant->meta_title);
+        Helpers::add_or_update_translations($request, 'meta_description', 'meta_description', 'Restaurant', $restaurant->id, $restaurant->meta_description);
 
         Toastr::success(translate('messages.meta_data_updated'));
         return back();

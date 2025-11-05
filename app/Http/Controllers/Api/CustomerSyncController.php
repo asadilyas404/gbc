@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Http\Controllers\Api;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+
+class CustomerSyncController extends Controller
+{
+    /**
+     * Get unpushed customer data from live server
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getData()
+    {
+        try {
+            $data = [
+                'customers' => [],
+            ];
+
+            // Get unpushed CUSTOMERS from live server
+            $customers = DB::connection('oracle')
+                ->table('tbl_sale_customer')
+                ->where('is_pushed', '!=', 'Y')
+                ->orWhereNull('is_pushed')
+                ->get();
+
+            foreach ($customers as $customer) {
+                $data['customers'][] = (array) $customer;
+            }
+
+            Log::info('Customer data retrieved for sync', [
+                'customers_count' => count($data['customers']),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'counts' => [
+                    'customers' => count($data['customers']),
+                ]
+            ], 200);
+
+        } catch (\Exception $e) {
+            Log::error('Failed to get customer data for sync', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve customer data',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Mark customers as pushed after successful sync
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function markAsPushed(Request $request)
+    {
+        try {
+            $customerIds = $request->input('customer_ids', []);
+
+            DB::connection('oracle')->beginTransaction();
+
+            if (!empty($customerIds)) {
+                DB::connection('oracle')
+                    ->table('tbl_sale_customer')
+                    ->whereIn('customer_id', $customerIds)
+                    ->update(['is_pushed' => 'Y']);
+            }
+
+            DB::connection('oracle')->commit();
+
+            Log::info('Customers marked as pushed', [
+                'customer_count' => count($customerIds),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Customers marked as pushed successfully'
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::connection('oracle')->rollBack();
+
+            Log::error('Failed to mark customers as pushed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to mark customers as pushed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+}

@@ -365,20 +365,30 @@ class FoodController extends Controller
             }
         }
 
-         $PARTNER_VARIATION_OPTION =DB::table('TBL_SALE_ORDER_PARTNERS as p')
-                // ->leftJoin('PARTNER_VARIATION_OPTION as op', 'op.partner_id', '=', 'p.partner_id')
-                   ->leftjoin('PARTNER_VARIATION_OPTION as op', function ($join)use($id)  {
-                    $join->on('op.partner_id', '=', 'p.partner_id')
-                        ->whereNull('variation_option_id')
-                        ->where('food_id',$id)
+        //  $PARTNER_VARIATION_OPTION =DB::table('TBL_SALE_ORDER_PARTNERS as p')
+        //         // ->leftJoin('PARTNER_VARIATION_OPTION as op', 'op.partner_id', '=', 'p.partner_id')
+        //            ->leftjoin('PARTNER_VARIATION_OPTION as op', function ($join)use($id)  {
+        //             $join->on('op.partner_id', '=', 'p.partner_id')
+        //                 ->whereNull('variation_option_id')
+        //                 ->where('food_id',$id)
                         
-                        ->where('is_deleted',0);
-                })
-                ->select('p.*','op.*','p.partner_id as p_id')
+        //                 ->where('is_deleted',0);
+        //         })
+        //         ->select('p.*','op.*','p.partner_id as p_id')
+        //          ->where('partner_entry_status',1)
+        //          ->get();
+
+        $partner_price=collect(json_decode($product->partner_price));
+
+        $PARTNER_VARIATION_OPTION =DB::table('TBL_SALE_ORDER_PARTNERS as p')
+                ->select('p.*','p.partner_id as p_id')
                  ->where('partner_entry_status',1)
                  ->get();
 
-                //  dd($PARTNER_VARIATION_OPTION);
+                 foreach($PARTNER_VARIATION_OPTION as $p){
+                    $p->price=optional( $partner_price->where('partner_id',$p->p_id)->first())->price;
+                }
+
 
         return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload','PARTNER_VARIATION_OPTION'));
     }
@@ -628,29 +638,38 @@ class FoodController extends Controller
         //     }
         // }
 
+        // if (isset($request->partner_price)) {
+        //     $partner_price=$request->partner_price;
+        //     foreach($partner_price as $partner_id=>$price){
+
+        //         DB::table('PARTNER_VARIATION_OPTION')->updateOrInsert(
+        //             [
+        //                 'PARTNER_ID' => $partner_id,
+        //                 'VARIATION_OPTION_ID' => null,
+        //                 'FOOD_ID' => $id,
+        //                 'TYPE' => 'basic',
+        //                 'is_deleted' => 0
+        //             ],
+        //             [
+        //                 'price' => $price,
+        //                 'created_at' => date('Y/m/d H:is'),
+        //                 'updated_at' =>date('Y/m/d H:is'),
+        //             ]
+        //         );
+        //     }
+            
+        // }
+
+        $arr=[];
         if (isset($request->partner_price)) {
             $partner_price=$request->partner_price;
             foreach($partner_price as $partner_id=>$price){
-
-                DB::table('PARTNER_VARIATION_OPTION')->updateOrInsert(
-                    [
-                        'PARTNER_ID' => $partner_id,
-                        'VARIATION_OPTION_ID' => null,
-                        'FOOD_ID' => $id,
-                        'TYPE' => 'basic',
-                        'is_deleted' => 0
-                    ],
-                    [
-                        'price' => $price,
-                        'created_at' => date('Y/m/d H:is'),
-                        'updated_at' =>date('Y/m/d H:is'),
-                    ]
-                );
-            }
-            
+                $arr[]=['partner_id'=>$partner_id,'price'=>$price];
+            }   
         }
 
-        
+        $p->partner_price= json_encode($arr);
+
 
         if (isset($request->options)) {
             foreach (array_values($request->options) as $key => $option) {

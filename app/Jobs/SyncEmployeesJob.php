@@ -15,7 +15,7 @@ class SyncEmployeesJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(): void
+    public function handle()
     {
         set_time_limit(300);
         Log::info('SyncEmployeesJob started (API-based)');

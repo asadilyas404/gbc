@@ -15,7 +15,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function handle(): void
+    public function handle()
     {
         set_time_limit(300);
         Log::info('SyncBranchesRestaurantsJob started (API-based)');
@@ -146,7 +146,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         }
     }
 
-    private function copyImageFromStorage(string $filename, string $folder = 'restaurant/'): void
+    private function copyImageFromStorage($filename, $folder = 'restaurant/')
     {
         $imageSourceBase = config('constants.image_source_base');
         $imageSourceBase = rtrim($imageSourceBase, '/') . '/';

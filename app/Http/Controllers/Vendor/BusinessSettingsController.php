@@ -303,7 +303,6 @@ class BusinessSettingsController extends Controller
 
     public function syncUsers()
     {
-        SyncUsersJob::dispatch();
         SyncEmployeesJob::dispatch();
         Toastr::success('Users sync started successfully!');
         return back();

@@ -27,7 +27,7 @@ class SyncEmployeesJob implements ShouldQueue
                 ->get(config('services.live_server.url') . '/employees-users/get-data');
 
             if (!$response->successful()) {
-                Log::error('Failed to get employee data from live server', [
+                Log::error('Failed to get employee/user data from live server', [
                     'status' => $response->status(),
                     'response' => $response->body()
                 ]);
@@ -37,13 +37,15 @@ class SyncEmployeesJob implements ShouldQueue
             $result = $response->json();
             $data = $result['data'] ?? [];
 
-            Log::info('Received employee data from live server', [
+            Log::info('Received employee/user data from live server', [
                 'employee_roles' => count($data['employee_roles'] ?? []),
                 'employees' => count($data['employees'] ?? []),
+                'users' => count($data['users'] ?? []),
             ]);
 
             $syncedEmployeeRoleIds = [];
             $syncedEmployeeIds = [];
+            $syncedUserIds = [];
 
             foreach ($data['employee_roles'] ?? [] as $role) {
                 try {
@@ -81,14 +83,41 @@ class SyncEmployeesJob implements ShouldQueue
                 }
             }
 
-            if (!empty($syncedEmployeeRoleIds) || !empty($syncedEmployeeIds)) {
+            foreach ($data['users'] ?? [] as $user) {
+                DB::connection('oracle')->beginTransaction();
+
+                try {
+                    DB::connection('oracle')
+                        ->table('users')
+                        ->updateOrInsert(
+                            ['id' => $user['id']],
+                            $user
+                        );
+
+                    if (!empty($user['image_url'])) {
+                        $this->copyImageFromStorage($user['image_url'], 'images/');
+                    }
+
+                    DB::connection('oracle')->commit();
+                    $syncedUserIds[] = $user['id'];
+                    Log::info("User ID {$user['id']} ({$user['name']}) synced successfully.");
+
+                } catch (\Exception $e) {
+                    DB::connection('oracle')->rollBack();
+                    Log::error("Failed syncing user ID {$user['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            if (!empty($syncedEmployeeRoleIds) || !empty($syncedEmployeeIds) || !empty($syncedUserIds)) {
                 try {
                     $markResponse = Http::timeout(30)
                         ->withToken(config('services.live_server.token'))
                         ->post(config('services.live_server.url') . '/employees-users/mark-pushed', [
                             'employee_role_ids' => $syncedEmployeeRoleIds,
                             'employee_ids' => $syncedEmployeeIds,
-                            'user_ids' => [],
+                            'user_ids' => $syncedUserIds,
                         ]);
 
                     if ($markResponse->successful()) {
@@ -108,10 +137,11 @@ class SyncEmployeesJob implements ShouldQueue
             Log::info('SyncEmployeesJob completed successfully', [
                 'synced_employee_roles' => count($syncedEmployeeRoleIds),
                 'synced_employees' => count($syncedEmployeeIds),
+                'synced_users' => count($syncedUserIds),
             ]);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error('Connection error while syncing employees', [
+            Log::error('Connection error while syncing employees/users', [
                 'error' => $e->getMessage()
             ]);
         } catch (\Exception $e) {
@@ -119,6 +149,34 @@ class SyncEmployeesJob implements ShouldQueue
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+        }
+    }
+
+    private function copyImageFromStorage($filename, $folder = 'images/')
+    {
+        $imageSourceBase = config('constants.image_source_base');
+        $imageSourceBase = rtrim($imageSourceBase, '/') . '/';
+        $relativePath = $folder . $filename;
+
+        $sourceUrl = $imageSourceBase . $relativePath;
+        $destinationPath = public_path($relativePath);
+
+        try {
+            if (!file_exists(dirname($destinationPath))) {
+                mkdir(dirname($destinationPath), 0755, true);
+            }
+
+            $imageData = @file_get_contents($sourceUrl);
+            if ($imageData === false) {
+                Log::warning("Image not found or failed to fetch: {$sourceUrl}");
+                return;
+            }
+
+            file_put_contents($destinationPath, $imageData);
+            Log::info("Image copied to: " . $destinationPath);
+
+        } catch (\Exception $e) {
+            Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
         }
     }
 }

@@ -79,6 +79,7 @@
                 <form id="add-to-cart-form" class="mb-2">
                     @csrf
                     <input type="hidden" name="id" value="{{ $product->id }}">
+                    <input type="hidden" name="partner_id" value="{{ $partner_id }}">
 
                     <div class="d-flex justify-content-between mt-4">
                         <div class="product-description-label mt-2 text-dark h3">{{ translate('messages.Discount') }}:

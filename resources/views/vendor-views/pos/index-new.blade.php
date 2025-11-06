@@ -912,6 +912,15 @@
         }
 
 
+        $(document).on('change', '#order_partner', function() {
+            // Get the value (1 or 2) from the selected option
+            var selectedId = $(this).val(); 
+            
+           console.log(selectedId);
+            window.location.href = '/restaurant-panel/pos/new/' + selectedId; 
+        });
+
+
         $("#insertPayableAmount").on('keydown', function(e) {
             if (e.keyCode === 13) {
                 e.preventDefault();
@@ -939,7 +948,8 @@
                 url: '{{ route('vendor.pos.quick-view') }}',
                 dataType: 'json',
                 data: {
-                    product_id: $(this).data('id')
+                    product_id: $(this).data('id'),
+                    id: {{ $orderPartner }}
                 },
                 beforeSend: function() {
                     $('#loading').show();

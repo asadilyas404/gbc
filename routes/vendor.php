@@ -32,7 +32,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('variant_price', 'POSController@variant_price')->name('variant_price');
             Route::group(['middleware' => ['module:pos', 'subscription:pos']], function () {
                 // Route::get('/', 'POSController@index')->name('index');
-                Route::get('/new', 'POSController@indexNew')->name('index.new');
+                Route::get('/new/{id?}', 'POSController@indexNew')->name('index.new');
                 Route::get('load-draft/{order_id}', 'POSController@loadDraftOrderToCart')->name('load-draft');
                 Route::get('quick-view', 'POSController@quick_view')->name('quick-view');
                 Route::get('quick-view-cart-item', 'POSController@quick_view_card_item')->name('quick-view-cart-item');

@@ -49,8 +49,10 @@ class POSController extends Controller
         return view('vendor-views.pos.index', compact('categories', 'products', 'category', 'keyword'));
     }
 
-    public function indexNew(Request $request)
+    public function indexNew(Request $request, $id=null)
     {
+
+        // dd($request->all(),$id);
         $time = Carbon::now()->toTimeString();
         $category = $request->query('category_id', 0);
         $subcategory = $request->query('subcategory_id', 0);
@@ -100,15 +102,22 @@ class POSController extends Controller
                 });
             })
             //    ->available($time)
-            ->latest()->get()->each(function($item){
-                if(session()->has('order_partner')){
-                    // If order_partner is not null
-                    if(!is_null(session()->get('order_partner')) || !empty(session()->get('order_partner'))){
-                        // TODO:: Fetch the prices based on the order_partner
-                        // Get the Price From the database
-                        $item->price = 0;
-                    }
+            ->latest()->get()->each(function($item)use($id){
+
+                if(!empty($id)){
+                    $partner_price=collect(json_decode($item->partner_price));
+                    $item->price=optional( $partner_price->where('partner_id',$id)->first())->price;
                 }
+
+                // if(session()->has('order_partner')){
+                //     // If order_partner is not null
+                //     if(!is_null(session()->get('order_partner')) || !empty(session()->get('order_partner'))){
+                //         // Get the Price From the database
+                //         // $prices = $item->partner_price;
+                //         // $item->price = $item;
+                //         $item->price = 0;
+                //     }
+                // }
             });
         // ->paginate(10);
 
@@ -137,7 +146,8 @@ class POSController extends Controller
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
         $orderPartners = DB::table('tbl_sale_order_partners')->get();
-        $orderPartner = session()->get('order_partner');
+        // $orderPartner = session()->get('order_partner');
+        $orderPartner = $id;
 
         return view('vendor-views.pos.index-new', compact(
             'categories', 
@@ -159,11 +169,45 @@ class POSController extends Controller
 
     public function quick_view(Request $request)
     {
+
+        // dd('ssd',$request->all());
         $product = Food::findOrFail($request->product_id);
-        // dd('variations: ' . $product->variations);
+
+        $partner_id=!isset($request->id)?null:$request->id;
+
+
+          if(!empty($request->id)){
+                    $partner_price=collect(json_decode($product->partner_price));
+                    $product->price=optional( $partner_price->where('partner_id',$request->id)->first())->price;
+
+                    $variations = json_decode($product->variations, true);
+
+                        foreach ($variations as &$variation) {
+                            if (isset($variation['values'])) {
+                                foreach ($variation['values'] as &$v) {
+
+                                       $price = DB::table('PARTNER_VARIATION_OPTION')
+                                ->where('is_deleted', 0)
+                                ->where('variation_option_id', $v['option_id'])
+                                ->where('partner_id', $request->id)
+                                ->value('price');
+                                
+
+                                    $v['optionPrice'] =  $price;
+                                }
+                            }
+                        }
+
+
+                        $product->variations = json_encode($variations);
+            }
+
+
+
+        // dd(  json_decode($product->variations),$request->all(),$product->price,$product );
         return response()->json([
             'success' => 1,
-            'view' => view('vendor-views.pos._quick-view-data', compact('product'))->render(),
+            'view' => view('vendor-views.pos._quick-view-data', compact('product','partner_id'))->render(),
         ]);
     }
 
@@ -217,6 +261,8 @@ class POSController extends Controller
 
     public function variant_price(Request $request)
     {
+
+        // dd($request->all());
         $product = Food::find($request->id);
         $price = $product->price;
         $addon_price = 0;

@@ -17,6 +17,7 @@ use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Validator;
 use App\Jobs\SyncUsersJob;
+use App\Jobs\SyncEmployeesJob;
 use App\Jobs\SyncCustomersJob;
 use App\Jobs\SyncBranchesRestaurantsJob;
 
@@ -303,6 +304,7 @@ class BusinessSettingsController extends Controller
     public function syncUsers()
     {
         SyncUsersJob::dispatch();
+        SyncEmployeesJob::dispatch();
         Toastr::success('Users sync started successfully!');
         return back();
     }

@@ -918,7 +918,7 @@
             cluster: 'ap2',
             // forceTLS: true,
             //   enabledTransports: ['ws', 'wss', 'xhr_streaming', 'xhr_polling']
-            // enabledTransports: ['ws', 'wss']
+            enabledTransports: ['ws', 'wss']
             });
 
             var channel = pusher.subscribe('my-channel');
@@ -929,7 +929,6 @@
                 console.log(data,data.message);
                
             });
-
 
             ///////////////
             // INITIALIZATION OF NAV SCROLLER

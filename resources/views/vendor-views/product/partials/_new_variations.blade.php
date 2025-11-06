@@ -136,7 +136,7 @@
 
                                 @php
 
-                                $option_id=$value['option_id'];
+                                $option_id=isset($value['old_option_id'])?$value['old_option_id'] : $value['option_id'];
 
                                 $PARTNER_VARIATION_OPTION= get_partner_option($option_id);
                                                     

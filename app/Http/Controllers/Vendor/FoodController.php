@@ -38,7 +38,19 @@ class FoodController extends Controller
         }
         $categories = Category::where(['position' => 0])->get();
         $optionList = DB::table('options_list')->get();
-        return view('vendor-views.product.index', compact('categories', 'optionList'));
+
+        //  $partner_price=collect(json_decode($product->partner_price));
+
+        $PARTNER_VARIATION_OPTION =DB::table('TBL_SALE_ORDER_PARTNERS as p')
+                ->select('p.*','p.partner_id as p_id')
+                 ->where('partner_entry_status',1)
+                 ->get();
+
+        foreach($PARTNER_VARIATION_OPTION as $p){
+            $p->price=null;
+        }
+
+        return view('vendor-views.product.index', compact('categories', 'optionList','PARTNER_VARIATION_OPTION'));
     }
 
     public function store(Request $request)
@@ -162,6 +174,16 @@ class FoodController extends Controller
         $food->price = $request->price;
         $food->veg = $request->veg;
         $food->status = 1;
+
+        $arr=[];
+        if (isset($request->partner_price)) {
+            $partner_price=$request->partner_price;
+            foreach($partner_price as $partner_id=>$price){
+                $arr[]=['partner_id'=>$partner_id,'price'=>$price];
+            }   
+        }
+
+        $food->partner_price= json_encode($arr);
 
         // Handle image upload - if copying and no new image, use the copied image
         if ($request->hasFile('image')) {
@@ -296,6 +318,21 @@ class FoodController extends Controller
                         $VariationOption->stock_type = $request->stock_type ?? 'unlimited';
                         $VariationOption->total_stock = data_get($value, 'total_stock') == null || $VariationOption->stock_type == 'unlimited' ? 0 : data_get($value, 'total_stock');
                         $VariationOption->save();
+
+                         $partner_price=$value['partneroptionPrice'];
+
+                        foreach($partner_price as $partner_id=>$price){
+
+                            DB::table('PARTNER_VARIATION_OPTION')
+                            ->updateOrInsert(
+                                [ 'is_deleted' => 0,'VARIATION_OPTION_ID' => $VariationOption->id, 'PARTNER_ID' => $partner_id,'FOOD_ID' => $food->id,'TYPE' => 'option'],
+                                [
+                                        'price' => $price,
+                                        'created_at' => date('Y/m/d H:is'),
+                                        'updated_at' =>date('Y/m/d H:is'),
+                                        ]
+                            );
+                        }
                     }
                 }
             }
@@ -385,9 +422,9 @@ class FoodController extends Controller
                  ->where('partner_entry_status',1)
                  ->get();
 
-                 foreach($PARTNER_VARIATION_OPTION as $p){
-                    $p->price=optional( $partner_price->where('partner_id',$p->p_id)->first())->price;
-                }
+        foreach($PARTNER_VARIATION_OPTION as $p){
+            $p->price=optional( $partner_price->where('partner_id',$p->p_id)->first())->price;
+        }
 
 
         return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload','PARTNER_VARIATION_OPTION'));
@@ -456,6 +493,7 @@ class FoodController extends Controller
                 foreach ($dbOptions as $opt) {
                     $entry['values'][] = [
                         'option_id' => null,
+                        'old_option_id' => $opt->id,
                         'label' => $opt->option_name,
                         'options_list_id' => $opt->options_list_id,
                         'optionPrice' => $opt->option_price,
@@ -467,11 +505,25 @@ class FoodController extends Controller
             }
         }
 
+
+        // dd($variationsPayload );
         $product->tags = $originalProduct->tags;
         $product->nutritions = $originalProduct->nutritions;
         $product->allergies = $originalProduct->allergies;
 
-        return view('vendor-views.product.copy', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload', 'originalProduct'));
+
+        $partner_price=collect(json_decode($originalProduct->partner_price));
+
+        $PARTNER_VARIATION_OPTION =DB::table('TBL_SALE_ORDER_PARTNERS as p')
+                ->select('p.*','p.partner_id as p_id')
+                 ->where('partner_entry_status',1)
+                 ->get();
+
+        foreach($PARTNER_VARIATION_OPTION as $p){
+            $p->price=optional( $partner_price->where('partner_id',$p->p_id)->first())->price;
+        }
+
+        return view('vendor-views.product.copy', compact('PARTNER_VARIATION_OPTION','product', 'product_category', 'categories', 'optionList', 'variationsPayload', 'originalProduct'));
     }
 
     public function status(Request $request)
@@ -670,7 +722,6 @@ class FoodController extends Controller
 
         $p->partner_price= json_encode($arr);
 
-
         if (isset($request->options)) {
             foreach (array_values($request->options) as $key => $option) {
                 if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
@@ -682,7 +733,7 @@ class FoodController extends Controller
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
                 if ($option['max'] > count($option['values'])) {
-                    $validator->getMessageBag()->add('name', translate('messages.please_add_more_options_or_change_the_max_value_for') . $option['name']);
+                    $validator->getMessageBag()->add('name', translate('messages.please_add_more_options_or_change_the_max_value_for') . $option['name']); 
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
 

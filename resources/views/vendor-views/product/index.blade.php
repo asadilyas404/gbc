@@ -410,6 +410,20 @@
                                     </div>
                                 </div>
 
+                                @foreach ($PARTNER_VARIATION_OPTION as $row)
+                                    <div class="col-md-3">
+                                        <div class="form-group mb-0">
+                                            <label class="input-label"
+                                                for="">{{  $row->partner_name." Price" }}</label>
+                                            <input type="number" min="0" max="999999999999.99" step="0.01"
+                                                data-id="{{ $row->p_id }}"
+                                                value="{{ $row->price }}" name="partner_price[{{$row->p_id }}]" class="form-control"
+                                                placeholder="{{ translate('messages.Ex :') }} 100" required>
+                                        </div>
+                                    </div>
+                                
+                                @endforeach
+
 
                             </div>
                         </div>
@@ -922,6 +936,17 @@
                         count +
                         `][values][0][optionPrice]" id="">
                                                 </div>
+
+                                                 @foreach ($PARTNER_VARIATION_OPTION as $row)
+                    <div class="col-md-3 col-sm-6">
+                    <label for="">{{ translate($row->partner_name.' Additional_price') }}  &nbsp; <span class="form-label-secondary text-danger"
+                    data-toggle="tooltip" data-placement="right"
+                    data-original-title="{{ translate('messages.Required.') }}"> *
+                    </span></label>
+                    <input class="form-control" required type="number" min="0" step="0.01" name="options[` + count + `][values][0][partneroptionPrice][` +{{$row->partner_id}} + `]" id=""></div>
+
+                @endforeach
+
                                                 <div class="col-md-3 col-sm-6 hide_this">
                                                     <label for="">{{ translate('Stock') }}</label>
                                                     <input class="form-control stock_disable count_stock" required type="number" min="0" max="9999999" name="options[` +
@@ -976,6 +1001,16 @@
                     data + `][values][` + countRow +
                     `][optionPrice]" id="">
                         </div>
+
+                        @foreach ($PARTNER_VARIATION_OPTION as $row)
+                            <div class="col-md-3 col-sm-5">
+                                <label for="">{{ translate($row->partner_name.' Additional_price') }}  &nbsp;<span class="form-label-secondary text-danger"
+                                        data-toggle="tooltip" data-placement="right"
+                                        data-original-title="{{ translate('messages.Required.') }}"> *
+                                        </span></label>
+                                <input class="form-control"  required type="number" min="0" step="0.01" name="options[` + data + `][values][` + countRow + `][partneroptionPrice][` +{{$row->partner_id}} + `]" id="">
+                            </div>
+                        @endforeach
 
 
                         <div class="col-md-3 col-sm-6 hide_this">

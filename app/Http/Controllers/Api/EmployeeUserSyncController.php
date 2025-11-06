@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Log;
 class EmployeeUserSyncController extends Controller
 {
     /**
-     * Get unpushed employee roles, employees, and users data
-     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getData()
@@ -23,7 +21,6 @@ class EmployeeUserSyncController extends Controller
                 'users' => [],
             ];
 
-            // Get unpushed EMPLOYEE ROLES
             $employeeRoles = DB::connection('oracle')
                 ->table('employee_roles')
                 ->where('is_pushed', '!=', 'Y')
@@ -34,7 +31,6 @@ class EmployeeUserSyncController extends Controller
                 $data['employee_roles'][] = (array) $role;
             }
 
-            // Get unpushed EMPLOYEES
             $employees = DB::connection('oracle')
                 ->table('vendor_employees')
                 ->where('is_pushed', '!=', 'Y')
@@ -45,7 +41,6 @@ class EmployeeUserSyncController extends Controller
                 $data['employees'][] = (array) $employee;
             }
 
-            // Get unpushed USERS
             $users = DB::connection('oracle')
                 ->table('users')
                 ->where('is_pushed', '!=', 'Y')
@@ -87,8 +82,6 @@ class EmployeeUserSyncController extends Controller
     }
 
     /**
-     * Mark employee roles, employees, and users as pushed
-     *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */

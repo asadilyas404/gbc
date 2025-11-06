@@ -21,18 +21,18 @@ class ShiftSessionController extends Controller
             
         
         // Check if the user is vendor or vendor-employee
-        if(auth('vendor')->check()){
+        if (auth('vendor')->check()) {
             $userId = auth('vendor')->id();
             $currentSession = $currentSession->where('user_id', $userId);
             $currentSession->with('restaurant');
-        } 
-        if (auth('vendor_employee')->check()) {
+        } elseif (auth('vendor_employee')->check()) {
             $userId = auth('vendor_employee')->id();
-            
             $currentSession = $currentSession->where('user_id', $userId);
             $currentSession->with('user');
+        } else {
+            $userId = null; // not logged in
         }
-
+        
         $currentSession = $currentSession->first();
 
         

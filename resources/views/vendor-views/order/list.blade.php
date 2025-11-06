@@ -194,6 +194,9 @@
             cursor: pointer;
             transition: border-color 0.3s;
         }
+        .bg-card-mine-order{
+            background-color: #00800012 !important;
+        }
     </style>
 @endpush
 
@@ -724,7 +727,10 @@
                 <div class="row">
                     @foreach ($orders as $order)
                         <div class="col-md-6 col-xl-4 p-2">
-                            <div class="card border order-card h-100 shadow-sm">
+                            @php
+                                $authId = auth('vendor')->id() ?? auth('vendor_employee')->id();
+                            @endphp
+                            <div class="card border order-card h-100 shadow-sm @if($authId && $authId == $order->order_taken_by) bg-card-mine-order border-success @endif">
                                 <div class="card-body p-3 pb-2">
                                     <!-- Header: Order # and Status -->
                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -767,8 +773,13 @@
                                             Phone: {{ $order->pos_details->phone ?? '-' }} &nbsp;
                                             Car No. {{ $order->pos_details->car_number ?? '-' }}
                                         @endif
+                                        
                                     </div>
 
+                                    <div class="text-muted">
+                                        <strong>{{ translate('messages.order_taken_by') }}:</strong>
+                                        {{ $order->order_taken_by_name ?? '-' }}
+                                    </div>
                                     <!-- Amount -->
                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                         <div class="text-muted">

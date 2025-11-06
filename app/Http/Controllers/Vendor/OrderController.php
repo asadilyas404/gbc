@@ -23,8 +23,6 @@ class OrderController extends Controller
 {
     public function list($status , Request $request)
     {
-
-           
         // dd('dsa',$status ,  $request->all());
         $key = explode(' ', $request['search']);
 

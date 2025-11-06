@@ -645,10 +645,6 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
-
-          
-          
-
         $activeSession = \App\Models\ShiftSession::current()
         ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
         ->first();
@@ -783,11 +779,12 @@ class POSController extends Controller
             $order->additional_charge = 0;
         }
 
+        $authUserId = Auth::guard('vendor')->id() ?? Auth::guard('vendor_employee')->id();
 
         $order->vehicle_id = $vehicle_id ?? null;
         $order->restaurant_id = $restaurant->id;
         $order->user_id = $request->user_id;
-        $order->order_taken_by = Auth::guard('vendor_employee')->user()->id ?? Auth::guard('vendor')->user()->id;
+        $order->order_taken_by = $authUserId;
         $order->zone_id = $restaurant->zone_id;
         $order->session_id = $activeSession->session_id;
         $order->delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
@@ -802,7 +799,7 @@ class POSController extends Controller
 
         // Set the User ID
         if($order->payment_status == 'paid'){
-            $order->user_id = Auth::guard('vendor_employee')->user()->id ?? Auth::guard('vendor')->user()->id;
+            $order->user_id = $authUserId;
         }
 
         DB::beginTransaction();

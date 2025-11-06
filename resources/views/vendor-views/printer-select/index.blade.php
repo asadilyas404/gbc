@@ -28,7 +28,7 @@
                             </a>
                         </div>
                         <div class="col-auto">
-                            <a href="{{ route('vendor.settings.sync.customers') }}" class="btn max-sm-12 btn--success w-100">
+                            <a href="{{ route('vendor.settings.sync.customers') }}" class="btn max-sm-12 btn--primary w-100">
                                 Sync Customers
                             </a>
                         </div>

@@ -318,7 +318,7 @@ class BusinessSettingsController extends Controller
     public function syncBranchesRestaurants()
     {
         SyncBranchesRestaurantsJob::dispatch();
-        Toastr::success('Branches & Restaurants started successfully!');
+        Toastr::success('Branches & Restaurants sync successfully!');
         return back();
     }
 }

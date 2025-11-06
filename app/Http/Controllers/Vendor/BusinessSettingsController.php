@@ -304,21 +304,21 @@ class BusinessSettingsController extends Controller
     public function syncUsers()
     {
         SyncEmployeesJob::dispatch();
-        Toastr::success('Users sync started successfully!');
+        Toastr::success('Users sync successfully!');
         return back();
     }
 
     public function syncCustomers()
     {
         SyncCustomersJob::dispatch();
-        Toastr::success('Customers sync started successfully!');
+        Toastr::success('Customers sync successfully!');
         return back();
     }
 
     public function syncBranchesRestaurants()
     {
         SyncBranchesRestaurantsJob::dispatch();
-        Toastr::success('Branches & Restaurants sync started successfully!');
+        Toastr::success('Branches & Restaurants started successfully!');
         return back();
     }
 }

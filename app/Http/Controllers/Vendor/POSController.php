@@ -264,7 +264,17 @@ class POSController extends Controller
 
         // dd($request->all());
         $product = Food::find($request->id);
-        $price = $product->price;
+
+        if(isset($request->partner_id)){
+            $partner_price=collect(json_decode($product->partner_price));
+            $price=optional( $partner_price->where('partner_id',$request->partner_id)->first())->price;
+
+        }else{
+            $price = $product->price;
+        }
+
+        
+        
         $addon_price = 0;
         $add_on_ids = [];
         $add_on_qtys = [];
@@ -286,7 +296,7 @@ class POSController extends Controller
                         $addon_price += $addon_price_value * $quantity;
                     }
                 }
-            }
+            } 
         }
 
         $variation_options = null;
@@ -307,7 +317,20 @@ class POSController extends Controller
         $product_variations = json_decode($product->variations, true);
 
         if ($request->variations && is_array($request->variations) && count($request->variations) > 0 && count($product_variations) > 0) {
-            $price_total = $price + Helpers::variation_price($product_variations, $request->variations);
+
+            if(isset($request->partner_id)){
+                $price_sum = DB::table('PARTNER_VARIATION_OPTION')
+                    ->where('is_deleted', 0)
+                    ->whereIn('variation_option_id', explode(',', $request->option_ids))
+                    ->where('partner_id', $request->partner_id)
+                    ->sum('price');
+
+                $price_total = $price + $price_sum;
+
+                }else{
+                $price_total = $price + Helpers::variation_price($product_variations, $request->variations);
+            }
+            
         } else {
             $price_total = $price;
         }

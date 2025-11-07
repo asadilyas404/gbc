@@ -913,7 +913,7 @@
 
 
         $(document).on('change', '#order_partner', function() {
-            // Get the value (1 or 2) from the selected option
+            // Get the value (1 or 2) from the selected option 
             var selectedId = $(this).val(); 
             
            console.log(selectedId);
@@ -949,7 +949,7 @@
                 dataType: 'json',
                 data: {
                     product_id: $(this).data('id'),
-                    id: {{ $orderPartner }}
+                    id: '{{ $orderPartner ?? 'null' }}'
                 },
                 beforeSend: function() {
                     $('#loading').show();

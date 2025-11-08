@@ -1885,22 +1885,20 @@
 
 
 
-            function fetchData(categoryId = '', subcategoryId = '', keyword = '') {
+            function fetchData(categoryId = '', subcategoryId = '', keyword = '', partner = '') {
                 $.ajax({
-                    url: "{{ url('restaurant-panel/pos/new') }}",
+                    url: `/restaurant-panel/pos/new/${partner}`,
                     type: "GET",
                     data: {
                         category_id: categoryId,
                         subcategory_id: subcategoryId,
-                        keyword: keyword
+                        keyword: keyword,
                     },
                     beforeSend: function() {
                         $('#loading').show();
                     },
                     success: function(response) {
-                        // Update subcategories
                         $('.subcategory-list').html(response.subcategoryHtml);
-                        // Update products
                         $('#product-list').html(response.productHtml);
                     },
                     complete: function() {
@@ -1910,7 +1908,7 @@
                         console.error('Error:', xhr.responseText);
                     }
                 });
-            }
+            }   
 
             $(document).on('click', '.category-item', function(e) {
                 e.preventDefault();
@@ -1919,7 +1917,7 @@
                 $('.category-item').removeClass('selected');
                 $(this).addClass('selected');
 
-                fetchData(categoryId, '', $('#search-keyword').val());
+                fetchData(categoryId, '', $('#search-keyword').val(), "{{ $partner->partner_id }}");
             });
 
             $(document).on('click', '.subcategory-item', function(e) {
@@ -1930,7 +1928,7 @@
                 $(this).addClass('selected');
 
                 const categoryId = $('.category-item.selected').data('category') || '';
-                fetchData(categoryId, subcategoryId, $('#search-keyword').val());
+                fetchData(categoryId, subcategoryId, $('#search-keyword').val(), "{{ $partner->partner_id }}");
             });
 
             $(document).on('keypress', '#search-keyword', function(e) {
@@ -1940,7 +1938,7 @@
                     const categoryId = $('.category-item.selected').data('category') || '';
                     const subcategoryId = $('.subcategory-item.selected').data('subcategory') || '';
 
-                    fetchData(categoryId, subcategoryId, keyword);
+                    fetchData(categoryId, subcategoryId, keyword, "{{ $partner->partner_id }}");
                 }
             });
 

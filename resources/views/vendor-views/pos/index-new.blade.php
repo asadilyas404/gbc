@@ -1267,7 +1267,7 @@
 
             $.post('<?php echo e(route('vendor.pos.cart_items')); ?>', {
                 _token: '<?php echo e(csrf_token()); ?>',
-                partner_id: '{{ $partner->partner_id ?? '' }}'
+                partner_id: '{{ $orderPartner ?? '' }}'
             }, function(data) {
                 $('#cart').empty().html(data);
 
@@ -1917,7 +1917,7 @@
                 $('.category-item').removeClass('selected');
                 $(this).addClass('selected');
 
-                fetchData(categoryId, '', $('#search-keyword').val(), "{{ $partner->partner_id }}");
+                fetchData(categoryId, '', $('#search-keyword').val(), "{{ $orderPartner }}");
             });
 
             $(document).on('click', '.subcategory-item', function(e) {
@@ -1928,7 +1928,7 @@
                 $(this).addClass('selected');
 
                 const categoryId = $('.category-item.selected').data('category') || '';
-                fetchData(categoryId, subcategoryId, $('#search-keyword').val(), "{{ $partner->partner_id }}");
+                fetchData(categoryId, subcategoryId, $('#search-keyword').val(), "{{ $orderPartner }}");
             });
 
             $(document).on('keypress', '#search-keyword', function(e) {
@@ -1938,7 +1938,7 @@
                     const categoryId = $('.category-item.selected').data('category') || '';
                     const subcategoryId = $('.subcategory-item.selected').data('subcategory') || '';
 
-                    fetchData(categoryId, subcategoryId, keyword, "{{ $partner->partner_id }}");
+                    fetchData(categoryId, subcategoryId, keyword, "{{ $orderPartner }}");
                 }
             });
 

@@ -103,21 +103,10 @@ class POSController extends Controller
             })
             //    ->available($time)
             ->latest()->get()->each(function($item)use($id){
-
                 if(!empty($id)){
                     $partner_price=collect(json_decode($item->partner_price));
                     $item->price=optional( $partner_price->where('partner_id',$id)->first())->price;
                 }
-
-                // if(session()->has('order_partner')){
-                //     // If order_partner is not null
-                //     if(!is_null(session()->get('order_partner')) || !empty(session()->get('order_partner'))){
-                //         // Get the Price From the database
-                //         // $prices = $item->partner_price;
-                //         // $item->price = $item;
-                //         $item->price = 0;
-                //     }
-                // }
             });
         // ->paginate(10);
 
@@ -146,7 +135,6 @@ class POSController extends Controller
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
         $orderPartners = DB::table('tbl_sale_order_partners')->get();
-        // $orderPartner = session()->get('order_partner');
         $orderPartner = $id;
 
         return view('vendor-views.pos.index-new', compact(
@@ -169,42 +157,35 @@ class POSController extends Controller
 
     public function quick_view(Request $request)
     {
-
         // dd('ssd',$request->all());
         $product = Food::findOrFail($request->product_id);
 
         $partner_id=!isset($request->id)?null:$request->id;
 
+        if(!empty($request->id)){
+            $partner_price=collect(json_decode($product->partner_price));
+            $product->price=optional( $partner_price->where('partner_id',$request->id)->first())->price;
 
-          if(!empty($request->id)){
-                    $partner_price=collect(json_decode($product->partner_price));
-                    $product->price=optional( $partner_price->where('partner_id',$request->id)->first())->price;
+            $variations = json_decode($product->variations, true);
 
-                    $variations = json_decode($product->variations, true);
+                foreach ($variations as &$variation) {
+                    if (isset($variation['values'])) {
+                        foreach ($variation['values'] as &$v) {
 
-                        foreach ($variations as &$variation) {
-                            if (isset($variation['values'])) {
-                                foreach ($variation['values'] as &$v) {
+                        $price = DB::table('PARTNER_VARIATION_OPTION')
+                        ->where('is_deleted', 0)
+                        ->where('variation_option_id', $v['option_id'])
+                        ->where('partner_id', $request->id)
+                        ->value('price');
+                        
 
-                                       $price = DB::table('PARTNER_VARIATION_OPTION')
-                                ->where('is_deleted', 0)
-                                ->where('variation_option_id', $v['option_id'])
-                                ->where('partner_id', $request->id)
-                                ->value('price');
-                                
-
-                                    $v['optionPrice'] =  $price;
-                                }
-                            }
+                            $v['optionPrice'] =  $price;
                         }
+                    }
+                }
+            $product->variations = json_encode($variations);
+        }
 
-
-                        $product->variations = json_encode($variations);
-            }
-
-
-
-        // dd(  json_decode($product->variations),$request->all(),$product->price,$product );
         return response()->json([
             'success' => 1,
             'view' => view('vendor-views.pos._quick-view-data', compact('product','partner_id'))->render(),
@@ -261,10 +242,15 @@ class POSController extends Controller
 
     public function variant_price(Request $request)
     {
-
-        // dd($request->all());
         $product = Food::find($request->id);
-        $price = $product->price;
+        
+        if(isset($request->partner_id) && !empty($request->partner_id)){
+            $partner_price = collect(json_decode($product->partner_price));
+            $price = optional( $partner_price->where('partner_id',$request->partner_id)->first())->price;
+        }else{
+            $price = $product->price;   
+        }
+
         $addon_price = 0;
         $add_on_ids = [];
         $add_on_qtys = [];
@@ -307,7 +293,7 @@ class POSController extends Controller
         $product_variations = json_decode($product->variations, true);
 
         if ($request->variations && is_array($request->variations) && count($request->variations) > 0 && count($product_variations) > 0) {
-            $price_total = $price + Helpers::variation_price($product_variations, $request->variations);
+            $price_total = $price + Helpers::variation_price($product_variations, $request->variations, $request->partner_id);
         } else {
             $price_total = $price;
         }
@@ -384,6 +370,7 @@ class POSController extends Controller
 
         $data = array();
         $data['id'] = $product->id;
+        $data['partner_id'] = $request->partner_id ?? '';
         $str = '';
         $variations = [];
         $price = 0;
@@ -416,7 +403,7 @@ class POSController extends Controller
                     ]);
                 }
             }
-            $variation_data = Helpers::get_varient($product_variations, $request->variations);
+            $variation_data = Helpers::get_varient($product_variations, $request->variations, $data['partner_id']);
             $variation_price = $variation_data['price'];
             $variations = $request->variations;
 
@@ -445,7 +432,15 @@ class POSController extends Controller
         $data['variations'] = $variations;
         $data['variant'] = $str;
 
-        $price = $product->price + $variation_price;
+        if(isset($data['partner_id']) && !empty($data['partner_id'])){
+            $partner_price=collect(json_decode($product->partner_price));
+            $price = optional( $partner_price->where('partner_id',$data['partner_id'])->first())->price;
+        }else{
+            $price = $product->price;
+        }
+        
+        $price += $variation_price;
+
         $data['variation_price'] = $variation_price;
 
         $data['quantity'] = $request['quantity'];
@@ -529,17 +524,19 @@ class POSController extends Controller
         ]);
     }
 
-    public function cart_items()
+    public function cart_items(Request $request)
     {
         $editingOrderId = session('editing_order_id');
         $draftDetails = null;
         $editingOrder = null;
 
+        $partner_id = $request->partner_id ?? '';
+
         if ($editingOrderId) {
             $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
             $editingOrder = Order::find($editingOrderId);
         }
-        return view('vendor-views.pos._cart', compact('draftDetails', 'editingOrder'));
+        return view('vendor-views.pos._cart', compact('draftDetails', 'editingOrder', 'partner_id'));
     }
 
     public function removeFromCart(Request $request)
@@ -842,6 +839,7 @@ class POSController extends Controller
         $order->order_note = $request->order_notes ?? '';
         $order->updated_at = now();
         $order->otp = rand(1000, 9999);
+        $order->partner_id = $request->partner_id ?? '';
 
         // Set the User ID
         if($order->payment_status == 'paid'){
@@ -890,7 +888,7 @@ class POSController extends Controller
                         $product->increment('sell_count', $c['quantity']);
                     }
 
-                    $variation_data = Helpers::get_varient($product->variations, $c['variations']);
+                    $variation_data = Helpers::get_varient($product->variations, $c['variations'], $request->partner_id);
                     $processed_variations = $variation_data['variations'];
 
                     $total_addon_price_for_item = $addon_data['total_add_on_price'];
@@ -917,8 +915,6 @@ class POSController extends Controller
                             $complete_variations[] = $completeVariation;
                         }
                     }
-
-                    
 
                     $or_d = [
                         'food_id' => $c['id'],
@@ -1221,7 +1217,7 @@ class POSController extends Controller
         }
 
         Toastr::success('Unpaid order loaded to cart.');
-        return redirect()->route('vendor.pos.index.new');
+        return redirect()->route('vendor.pos.index.new', ['id' => $order->partner_id]);
     }
 
 

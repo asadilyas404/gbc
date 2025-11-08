@@ -368,11 +368,11 @@
         });
     }
 
-    // Initialize when document is ready
-    $(document).ready(function() {
-        initializeVariationAddonControls();
-        getVariantPrice(); // Calculate initial price
-    });
+    // // Initialize when document is ready
+    // $(document).ready(function() {
+    //     initializeVariationAddonControls();
+    //     getVariantPrice(); // Calculate initial price
+    // });
 
     // Also initialize when modal is shown (in case of dynamic loading)
     $(document).on('shown.bs.modal', function() {
@@ -447,7 +447,11 @@
                 type: "POST",
                 url: '{{ route('vendor.pos.variant_price') }}',
                 data: $('#add-to-cart-form').serializeArray(),
+                beforeSend: function(){
+                    $('#loading').show();
+                },
                 success: function(data) {
+                    $('#loading').hide();
                     if (data.error === 'quantity_error') {
                         toastr.error(data.message);
                     } else if (data.error === 'stock_out') {
@@ -468,6 +472,7 @@
                     }
                 },
                 error: function() {
+                    $('#loading').hide();
                     toastr.error('Something went wrong. Please try again.');
                 }
             });

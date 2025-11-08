@@ -66,6 +66,7 @@
                 <form action="{{ route('vendor.pos.order') }}" id='order_place' method="post">
                     @csrf
                     <input type="hidden" name="user_id" id="customer_id">
+                    <input type="hidden" name="partner_id" id="partner_id" value="{{ $partner_id ?? '' }}">
                     <!-- Customer Details Section -->
                     <div class="row pl-2 mt-3">
                         <div class="col-12 col-lg-4">

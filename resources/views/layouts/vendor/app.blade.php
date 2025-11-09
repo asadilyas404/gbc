@@ -496,7 +496,10 @@
     })
 
     const channel = new BroadcastChannel("erp_tab_channel");
-    const currentUrl = window.location.pathname;
+    let currentUrl = window.location.pathname;
+
+    // Remove numeric ID at the end (e.g. /new/123 → /new)
+    currentUrl = currentUrl.replace(/\/\d+$/, "");
 
     let isDuplicate = false;
 
@@ -505,24 +508,22 @@
     channel.onmessage = (event) => {
         const { type, url } = event.data;
         if (type === "CHECK_URL" && url === currentUrl) {
-            // Another tab is open with the same URL
             isDuplicate = true;
-            alert("This page is already open in another tab.");
-            window.location.href = "/404"
+            alert("This POS page is already open in another tab.");
+            window.location.href = "/404";
         }
     };
 
-    // Register current tab as owner after short delay
     setTimeout(() => {
-    if (!isDuplicate) {
-        channel.postMessage({ type: "REGISTER_URL", url: currentUrl });
-    }
+        if (!isDuplicate) {
+            channel.postMessage({ type: "REGISTER_URL", url: currentUrl });
+        }
     }, 500);
 
-    // Clean up when closing
     window.addEventListener("beforeunload", () => {
-    channel.postMessage({ type: "UNREGISTER_URL", url: currentUrl });
+        channel.postMessage({ type: "UNREGISTER_URL", url: currentUrl });
     });
+
 
     @php($fcm_credentials = \App\CentralLogics\Helpers::get_business_settings('fcm_credentials'))
     var firebaseConfig = {

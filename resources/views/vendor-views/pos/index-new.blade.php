@@ -428,10 +428,11 @@
                                 </div>
                             </div>
                         @endif
-                    </div>
+                    </div>  
+                    <!-- <input type="hidden" name="partner_id" value="{{ $orderPartner }}" > -->
 
                     <div class='w-100' id="cart">
-                        @include('vendor-views.pos._cart')
+                        @include('vendor-views.pos._cart',['orderPartner' => $orderPartner])
                     </div>
                 </div>
             </div>
@@ -970,6 +971,26 @@
             @if ($order)
                 $('#print-invoice').modal('show');
             @endif
+            
+
+            console.log({{ $orderPartner }})
+            @if (!empty($orderPartner))
+
+                $('#payment_type_credit').prop('checked', true);
+                $('.payment_type').prop('disabled', true);
+                $('<input>').attr({
+                type: 'hidden',
+                name: 'select_payment_type',
+                value: 'credit_payment'
+            }).appendTo('#order_place');
+               console.log('if')
+            @else
+                   console.log('else')
+                $('#payment_type_credit').prop('checked', false);
+                $('#payment_type_credit').hide();
+                $('.payment_type').prop('disabled', false);
+            @endif   
+            
         });
 
 

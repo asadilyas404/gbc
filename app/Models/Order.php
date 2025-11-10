@@ -42,6 +42,7 @@ class Order extends Model
         'is_pushed' => 'string',
         'printed' => 'boolean',
         'session_id' => 'string',
+        'partner_id',
     ];
     protected $appends = ['order_proof_full_url'];
 

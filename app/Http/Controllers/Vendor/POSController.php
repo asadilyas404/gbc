@@ -263,7 +263,7 @@ class POSController extends Controller
                         $addon_price += $addon_price_value * $quantity;
                     }
                 }
-            }
+            } 
         }
 
         $variation_options = null;

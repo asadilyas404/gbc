@@ -549,6 +549,7 @@
                                 <th class="w-140px">{{ translate('messages.customer_information') }}</th>
                                 <th class="w-100px">{{ translate('messages.total_amount') }}</th>
                                 <th class="w-100px text-center">{{ translate('messages.order_status') }}</th>
+                                <th class="w-100px text-center">Order Partner</th>
                                 <th class="w-100px text-center">{{ translate('messages.actions') }}</th>
                             </tr>
                         </thead>
@@ -691,6 +692,9 @@
                                             @endif
                                         </div>
                                     </td>
+                                      <td class="">
+                                        {{ $order['partner_name'] }}
+                                    </td>
                                     <td>
                                         <div class="btn--container justify-content-center">
                                             <a class="btn action-btn btn--warning btn-outline-warning"
@@ -743,9 +747,14 @@
                                         </span>
                                     </div>
 
+                                       <!-- Partner name -->
+                                    <div class="text-muted mb-1">
+                                        <strong>Order Partner: </strong>{{ $order->partner_name }}
+                                    </div>
+
                                     <!-- Date -->
                                     <div class="text-muted mb-1">
-                                        <strong>{{ translate('messages.order_date') }}:</strong><br>
+                                        <strong>{{ translate('messages.order_date') }}: </strong>
                                         {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y - h:i A') }}
                                     </div>
 
@@ -811,6 +820,7 @@
 
                                         <a href="javascript:void(0);" class="btn btn-md btn-outline-info quick-view-btn"
                                             data-order-id="{{ $order['id'] }}"
+                                            data-order-p-id="{{ $order['id'] }}"
                                             data-order-number="{{ $order['order_serial'] }}"
                                             title="{{ translate('Quick View') }}">
                                             <i class="tio-info-outined"></i>
@@ -1187,6 +1197,7 @@
 
             $(document).on('click', '.quick-view-btn', function() {
                 const orderId = $(this).data('order-id');
+                const p_Id = $(this).data('order-p-id');
                 const orderNumber = $(this).data('order-number');
                 console.log(orderNumber);
                 $('#modal-order-number').text(orderNumber);
@@ -1196,6 +1207,10 @@
 
                 const url = "{{ route('vendor.order.quickView', ['id' => '__id__']) }}".replace('__id__',
                     orderId);
+
+                // if (p_Id) {
+                //     url = url + '/' + p_Id; 
+                // }
 
                 $('#quickViewModal').modal('show');
 

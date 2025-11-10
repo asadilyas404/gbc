@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Jobs\SyncOrdersJob;
 use Illuminate\Support\Str;
 use App\Events\myevent;
+use Carbon\Carbon;
 class OrderController extends Controller
 {
     public function list($status , Request $request)
@@ -97,7 +98,7 @@ class OrderController extends Controller
             });
         })
         ->when($status == 'all', function($query) use($data){
-            return $query->where(function($q1) use($data) {
+            return $query->where(function($q1) use($data) { //->where('updated_at', '>=', Carbon::now()->subHours(1))
                 $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['pending','failed', 'refund_requested', 'refunded'])
                 ->orWhere(function($q2){
                     return $q2->where('order_status','pending')->where('order_type', 'take_away');
@@ -156,6 +157,10 @@ class OrderController extends Controller
         ->where('order_status', 'pending')
         ->sum('order_amount');
 
+        foreach($orders as $o){
+            $o->partner_name = DB::table('tbl_sale_order_partners')->where('partner_id',$o->partner_id)->value('partner_name');
+        }
+
         $totalAmount = $paidAmount - $canceledAmount;
 
         $st=$status;
@@ -208,7 +213,7 @@ class OrderController extends Controller
         }
     }
 
-    public function quickView($id)
+    public function quickView($id) //$p_id
     {
         $order = Order::with('details')->findOrFail($id);
 

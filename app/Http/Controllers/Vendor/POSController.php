@@ -232,7 +232,9 @@ class POSController extends Controller
 
 
     public function variant_price(Request $request)
-    {
+    { 
+
+    
         $product = Food::find($request->id);
         
         if(isset($request->partner_id) && !empty($request->partner_id)){
@@ -241,6 +243,8 @@ class POSController extends Controller
         }else{
             $price = $product->price;   
         }
+
+    
 
         $addon_price = 0;
         $add_on_ids = [];
@@ -284,13 +288,15 @@ class POSController extends Controller
         $product_variations = json_decode($product->variations, true);
 
         if ($request->variations && is_array($request->variations) && count($request->variations) > 0 && count($product_variations) > 0) {
+            
+            
             $price_total = $price + Helpers::variation_price($product_variations, $request->variations, $request->partner_id);
         } else {
             $price_total = $price;
         }
 
         $original_price = $price_total;
-
+ 
         if ($request->product_discount_type && $request->has('product_discount')) {
             $discountAmount = $request->product_discount;
             $discountType = $request->product_discount_type;
@@ -304,7 +310,7 @@ class POSController extends Controller
             // Apply restaurant discount (if any)
             $price_total = $price_total - Helpers::product_discount_calculate($product, $price_total, Helpers::get_restaurant_data());
         }
-
+  
         $total_price = ($price_total * $request->quantity) + $addon_price;
 
         return response()->json([
@@ -521,13 +527,13 @@ class POSController extends Controller
         $draftDetails = null;
         $editingOrder = null;
 
-        $partner_id = $request->partner_id ?? '';
+        $orderPartner = $request->partner_id ?? '';
 
         if ($editingOrderId) {
             $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
             $editingOrder = Order::find($editingOrderId);
         }
-        return view('vendor-views.pos._cart', compact('draftDetails', 'editingOrder', 'partner_id'));
+        return view('vendor-views.pos._cart', compact('draftDetails', 'editingOrder', 'orderPartner'));
     }
 
     public function removeFromCart(Request $request)
@@ -835,6 +841,7 @@ class POSController extends Controller
         $order->otp = rand(1000, 9999);
         $order->partner_id = $request->partner_id ?? '';
 
+        // dd($request->all(), $request->partner_id);
         // Set the User ID
         if($order->payment_status == 'paid'){
             $order->user_id = $authUserId;
@@ -1135,6 +1142,7 @@ class POSController extends Controller
 
     public function loadDraftOrderToCart($order_id)
     {
+        // dd('fsd');
         $order = Order::with('details')->find($order_id);
 
         if (!$order || $order->payment_status != 'unpaid') {

@@ -705,12 +705,15 @@ class POSController extends Controller
         $payment_type = '';
         if ($request->order_draft == 'final') {
 
-            if (floatval($request->cash_paid) < 0 || floatval($request->card_paid) < 0) {
+            if (!(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment' ) && (floatval($request->cash_paid) < 0 || floatval($request->card_paid) < 0)) {
                 Toastr::error(translate('Payment amount cannot be negative'));
                 return back();
             }   
 
-            if ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
+            if(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment' ){
+                $payment_type = 'credit';
+            }
+            elseif ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
                 $payment_type = 'cash';
             } elseif ($request->card_paid > 0 && ($request->cash_paid === null || $request->cash_paid <= 0)) {
                 $payment_type = 'card';
@@ -718,7 +721,7 @@ class POSController extends Controller
                 $payment_type = 'cash_card';
             }
         }
-
+            
         if ($request->session()->has('cart')) {
             if (count($request->session()->get('cart')) < 1) {
                 Toastr::error(translate('messages.cart_empty_warning'));
@@ -969,7 +972,7 @@ class POSController extends Controller
                 return back();
             }
 
-            if (floatval($request->cash_paid) == 0 && floatval($request->card_paid) == 0) {
+            if (!(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment' ) && floatval($request->cash_paid) == 0 && floatval($request->card_paid) == 0) {
                 Toastr::error(translate('Payment amount cannot be zero for paid orders'));
                 return back();
             }
@@ -1045,8 +1048,12 @@ class POSController extends Controller
             $posOrderDtl->car_number = $request->car_number;
             $posOrderDtl->phone = $request->phone;
             $posOrderDtl->invoice_amount = $order->order_amount ?? 0;
-            $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
-            $posOrderDtl->card_paid = $request->card_paid ?? 0;
+            if(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment'){
+                $posOrderDtl->credit_paid = $request->invoice_amount ?? 0;
+            }else{
+                $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
+                $posOrderDtl->card_paid = $request->card_paid ?? 0;
+            }
             if($payment_type == 'card' || $payment_type == 'cash_card'){
                 $posOrderDtl->bank_account = $request->bank_account; 
                 session(['bank_account' => $request->bank_account]);
@@ -1066,8 +1073,6 @@ class POSController extends Controller
                     $rest_sub->decrement('max_order', 1);
                 }
             }
-
-           
 
             DB::commit();
 

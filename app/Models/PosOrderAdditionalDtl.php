@@ -19,7 +19,8 @@ class PosOrderAdditionalDtl extends Model
         'invoice_amount',
         'cash_paid',
         'card_paid',
-        'bank_account'
+        'bank_account',
+        'credit_paid'
     ];
 
     public function order()

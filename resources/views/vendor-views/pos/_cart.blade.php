@@ -409,38 +409,47 @@ if (isset($cart['paid'])) {
                             </div>
                         </div>
                     </div>
+                     <input type="hidden" name="invoice_amount" id="" value="{{ $paid }}">
 
                     <!-- Payment Details Section -->
                     <div class="row pl-2">
                         <div class="col-lg-8">
                             <div class="row mb-4">
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" name="select_payment_type" value="cash_payment"
+                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment"
                                             >
                                         <span class="input-label m-0">
                                             {{ translate('Cash') }}
                                         </span>
                                     </label>
                                 </div>        
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_card" name="select_payment_type" value="card_payment"
+                                        <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment"
                                             >
                                         <span class="input-label m-0">
                                             {{ translate('Card') }}
                                         </span>
                                     </label>
                                 </div>        
-                                <div class="col-md-4">
+                                <div class="col-md-3">
                                     <label for="payment_type_both" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_both" name="select_payment_type" value="both_payment"
-                                            >
+                                        <input type="radio" id="payment_type_both" class="payment_type" name="select_payment_type" value="both_payment" >
                                         <span class="input-label m-0">
                                             {{ translate('Cash & Card') }}
                                         </span>
                                     </label>
-                                </div>        
+                                </div> 
+                                <div class="col-md-3">
+                                    <label for="payment_type_credit" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                        <input type="radio" id="payment_type_credit" class="payment_type" name="select_payment_type" value="credit_payment" >
+                                        <span class="input-label m-0">
+                                            {{ translate('Credit') }}
+                                        </span>
+                                    </label>
+                                </div>
+                                
                             </div>
                             <div class="row">
                                 <div class="col-12 col-lg-6">
@@ -794,3 +803,32 @@ if (isset($cart['paid'])) {
         </div>
     </div>
 </div>
+
+    <script >
+
+
+$(document).on('ready', function() {
+          
+            
+
+            console.log({{ $orderPartner }})
+            @if (!empty($orderPartner))
+
+                $('#payment_type_credit').prop('checked', true);
+                $('.payment_type').prop('disabled', true);
+                $('<input>').attr({
+                type: 'hidden',
+                name: 'select_payment_type',
+                value: 'credit_payment'
+            }).appendTo('#order_place');
+               console.log('if')
+            @else
+                   console.log('else')
+                $('#payment_type_credit').prop('checked', false);
+                $('#payment_type_credit').hide();
+                $('.payment_type').prop('disabled', false);
+            @endif   
+            
+        });
+
+    </script>

@@ -610,6 +610,41 @@
     <script>
         "use strict";
 
+        const channel = new BroadcastChannel("erp_tab_channel");
+        let currentUrl = window.location.pathname;
+
+        // Extract numeric ID (if exists)
+        const idMatch = currentUrl.match(/\/(\d+)$/);
+        const currentId = idMatch ? idMatch[1] : null;
+
+        // Normalize URL (remove numeric ID)
+        const baseUrl = currentUrl.replace(/\/\d+$/, "");
+
+        let isDuplicate = false;
+
+        channel.postMessage({ type: "CHECK_URL", url: baseUrl, id: currentId });
+
+        channel.onmessage = (event) => {
+            const { type, url, id } = event.data;
+
+            if (type === "CHECK_URL" && url === baseUrl) {
+                // Same page and same ID → block
+                isDuplicate = true;
+                alert("This POS page is already open in another tab.");
+                window.location.href = "/404";
+            }
+        };
+
+        setTimeout(() => {
+            if (!isDuplicate) {
+                channel.postMessage({ type: "REGISTER_URL", url: baseUrl, id: currentId });
+            }
+        }, 500);
+
+        window.addEventListener("beforeunload", () => {
+            channel.postMessage({ type: "UNREGISTER_URL", url: baseUrl, id: currentId });
+        });
+
         function initMap() {
             let map = new google.maps.Map(document.getElementById("map"), {
                 zoom: 13,

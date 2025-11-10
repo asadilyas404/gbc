@@ -44,7 +44,6 @@
                     ? 'vendor.dashboard'
                     : 'admin.dashboard';
             @endphp
-
             <a class="btn btn-primary" href="{{ route($route) }}">
                 {{ translate('messages.dashboard') }}
             </a>

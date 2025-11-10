@@ -66,22 +66,13 @@ class POSController extends Controller
             ->where('parent_id', '!=', 0)
             ->get();
 
-        // Redirect once to clean URL
-        if ($request->query('order_partner_id')) {
-            $orderPartner = $request->query('order_partner_id');
-            // Store necessary session data first
-            if ($orderPartner && !empty($orderPartner)) {
-                session()->put('order_partner', $orderPartner);
-                $this->emptyCart($request);
-            } else {
-                session()->forget('order_partner');
-                $this->emptyCart($request);
-            }
+        // Check the Order Partner ID and Manage Cart Session
+        if($id != session()->get('current_partner_id', '')){
+            // If the current partner ID in session is different from the new one
 
-            // Redirect to same route without query parameters
-            return redirect()->route('vendor.pos.index.new');
+            session()->forget('cart'); // Clear the cart
+            session()->put('current_partner_id', $id); // Set the new partner ID
         }
-
 
         $products = Food::active()
             ->when($category, function ($query) use ($category) {

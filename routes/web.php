@@ -219,7 +219,7 @@ if (!$is_published) {
 
 
 
-Route::get('/test',function (){
+Route::get('/404',function (){
     return view('errors.404');
 });
 

@@ -334,6 +334,7 @@ class OrderController extends Controller
             'card_paid' => $order->pos_details->card_paid ?? 0,
             'delivery_type' => $order->order_type ?? '',
             'bank_account' => $order->pos_details->bank_account ?? session('bank_account'),
+            'partner_id'    => $order->partner_id ?? ''
         ]);
 
     } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {

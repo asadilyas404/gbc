@@ -38,15 +38,17 @@
 
         </div>
         <!-- End Row -->
-            <div class="mt-2">
-{{--                <h1 class="display-1 mb-0">404</h1>--}}
-{{--                <p class="lead">{{translate('messages.404_warning_message')}}.</p>--}}
-                @if(auth('vendor')->check())
-                    <a class="btn btn-primary" href="{{route('vendor.dashboard')}}">{{translate('messages.dashboard')}}</a>
-                @else
-                    <a class="btn btn-primary" href="{{route('admin.dashboard')}}">{{translate('messages.dashboard')}}</a>
-                @endif
-            </div>
+        <div class="mt-2">
+            @php
+                $route = auth('vendor')->check() || auth('vendor_employee')->check()
+                    ? 'vendor.dashboard'
+                    : 'admin.dashboard';
+            @endphp
+
+            <a class="btn btn-primary" href="{{ route($route) }}">
+                {{ translate('messages.dashboard') }}
+            </a>
+        </div>
     </div>
 </div>
 <!-- End Content -->

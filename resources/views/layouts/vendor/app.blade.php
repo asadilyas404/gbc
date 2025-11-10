@@ -445,7 +445,7 @@
 </audio>
 
 <script>
-        "use strict";
+    "use strict";
     let audio = document.getElementById("myAudio");
 
     function playAudio() {
@@ -494,6 +494,35 @@
             }
         })
     })
+
+    const channel = new BroadcastChannel("erp_tab_channel");
+    let currentUrl = window.location.pathname;
+
+    // Remove numeric ID at the end (e.g. /new/123 → /new)
+    currentUrl = currentUrl.replace(/\/\d+$/, "");
+
+    let isDuplicate = false;
+
+    channel.postMessage({ type: "CHECK_URL", url: currentUrl });
+
+    channel.onmessage = (event) => {
+        const { type, url } = event.data;
+        if (type === "CHECK_URL" && url === currentUrl) {
+            isDuplicate = true;
+            alert("This POS page is already open in another tab.");
+            window.location.href = "/404";
+        }
+    };
+
+    setTimeout(() => {
+        if (!isDuplicate) {
+            channel.postMessage({ type: "REGISTER_URL", url: currentUrl });
+        }
+    }, 500);
+
+    window.addEventListener("beforeunload", () => {
+        channel.postMessage({ type: "UNREGISTER_URL", url: currentUrl });
+    });
 
 
     @php($fcm_credentials = \App\CentralLogics\Helpers::get_business_settings('fcm_credentials'))
@@ -743,12 +772,6 @@
             $(document).on('keyup', 'input[type="tel"]', function () {
                 $(this).val(keepNumbersAndPlus($(this).val()));
                 });
-
-
-
-
-
-
 </script>
 
 

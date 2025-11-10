@@ -1244,6 +1244,7 @@
                         $('#card_paid').val(data.card_paid ?? '');
                         $('#delivery_type').val(data.delivery_type ?? '');
                         $('#bank_account').val(data.bank_account ?? '');
+                        $('#partner_id').val(data.partner_id ?? '');
                         updateCalculations();
 
                         $('#loading').hide();

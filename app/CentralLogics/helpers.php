@@ -101,7 +101,7 @@ class Helpers
         return $globalId;
     }
 
-    public static function variation_price($product, $variations)
+    public static function variation_price($product, $variations, $partnerId = null)
     {
         $match = $variations;
         $result = 0;
@@ -109,7 +109,18 @@ class Helpers
             foreach ($product_variation['values'] as $option) {
                 foreach ($match as $variation) {
                     if ($product_variation['name'] == $variation['name'] && isset($variation['values']) && in_array($option['label'], $variation['values']['label'])) {
-                        $result += $option['optionPrice'];
+                        if($partnerId){
+                            $optionPrice = optional(
+                                DB::table('PARTNER_VARIATION_OPTION')
+                                    ->where('partner_id', $partnerId)
+                                    ->where('type', 'option')
+                                    ->where('variation_option_id', $option['option_id'])
+                                    ->first()
+                            )->price ?? 0;
+                            $result += $optionPrice;
+                        }else{
+                            $result += $option['optionPrice'];
+                        }
                     }
                 }
             }
@@ -2283,7 +2294,6 @@ class Helpers
 
     public static function calculate_addon_price($addons, $add_on_qtys, $incrementCount = false, $old_selected_addons = [])
     {
-
         $add_ons_cost = 0;
         $data = [];
         if ($addons) {
@@ -2291,7 +2301,7 @@ class Helpers
                 if ($add_on_qtys == null) {
                     $add_on_qty = 1;
                 } else {
-                                    $add_on_qty = isset($add_on_qtys[$key2]) ? $add_on_qtys[$key2] : 0;
+                    $add_on_qty = isset($add_on_qtys[$key2]) ? $add_on_qtys[$key2] : 0;
                 }
 
                 // if($add_on_qty > 0 ){
@@ -2854,7 +2864,7 @@ class Helpers
     //     return ['price' => $variation_price, 'variations' => array_values($result)];
     // }
 
-    public static function get_varient(array $product_variations, array $variations)
+    public static function get_varient(array $product_variations, array $variations, $partnerId = '')
     {
         $result = [];
         $variation_price = 0;
@@ -2901,7 +2911,18 @@ class Helpers
             foreach ($product_variation['values'] as $option) {
                 if (in_array($option['label'], $variation['values']['label'])) {
                     $result[$k]['values'][] = $option;
-                    $variation_price += $option['optionPrice'];
+                    if($partnerId){
+                        $optionPrice = optional(
+                            DB::table('PARTNER_VARIATION_OPTION')
+                                ->where('partner_id', $partnerId)
+                                ->where('type', 'option')
+                                ->where('variation_option_id', $option['option_id'])
+                                ->first()
+                        )->price ?? 0;
+                        $variation_price += $optionPrice;
+                    }else{
+                        $variation_price += $option['optionPrice'];
+                    }
                 }
             }
         }

@@ -297,8 +297,7 @@
                             <div class="col-sm-12">
                                 <div class="input-group">
                                     <select name="order_partner" id="order_partner"
-                                            class="form-control js-select2-custom set-filter"
-                                            data-url="{{ url()->full() }}" data-filter="order_partner_id"
+                                            class="form-control js-select2-custom"
                                             title="{{ translate('messages.select_category') }}">
                                         <option value="">{{ config('app.name') }}</option>
                                         @foreach ($orderPartners as $partner)
@@ -913,11 +912,16 @@
 
 
         $(document).on('change', '#order_partner', function() {
-            // Get the value (1 or 2) from the selected option 
-            var selectedId = $(this).val(); 
-            
-           console.log(selectedId);
-            window.location.href = '/restaurant-panel/pos/new/' + selectedId; 
+            $('#loading').show();
+            var selectedId = $(this).val(); // capture before AJAX
+
+            $.post('{{ route('vendor.pos.emptyCart') }}', {
+                _token: '{{ csrf_token() }}'
+            }).done(function() {
+                window.location.href = '/restaurant-panel/pos/new/' + selectedId;
+            }).always(function() {
+                // $('#loading').hide();
+            });
         });
 
 
@@ -945,11 +949,11 @@
 
         $(document).on('click', '.quick-View', function() {
             $.get({
-                url: '{{ route('vendor.pos.quick-view') }}',
+                url: '{{ route("vendor.pos.quick-view") }}',
                 dataType: 'json',
                 data: {
                     product_id: $(this).data('id'),
-                    id: '{{ $orderPartner ?? 'null' }}'
+                    id: '{{ $orderPartner ?? '' }}',
                 },
                 beforeSend: function() {
                     $('#loading').show();
@@ -967,7 +971,7 @@
 
         $(document).on('click', '.quick-View-Cart-Item', function() {
             $.get({
-                url: '{{ route('vendor.pos.quick-view-cart-item') }}',
+                url: '{{ route("vendor.pos.quick-view-cart-item") }}',
                 dataType: 'json',
                 data: {
                     product_id: $(this).data('product-id'),
@@ -1130,7 +1134,7 @@
             });
             let form_id = 'add-to-cart-form';
             $.post({
-                url: '{{ route('vendor.pos.add-to-cart') }}',
+                url: '{{ route("vendor.pos.add-to-cart") }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
                     $('#loading').show();
@@ -1262,7 +1266,8 @@
             let currentCustomerText = $('#customer').find('option:selected').text();
 
             $.post('<?php echo e(route('vendor.pos.cart_items')); ?>', {
-                _token: '<?php echo e(csrf_token()); ?>'
+                _token: '<?php echo e(csrf_token()); ?>',
+                partner_id: '{{ $orderPartner ?? '' }}'
             }, function(data) {
                 $('#cart').empty().html(data);
 
@@ -1880,22 +1885,20 @@
 
 
 
-            function fetchData(categoryId = '', subcategoryId = '', keyword = '') {
+            function fetchData(categoryId = '', subcategoryId = '', keyword = '', partner = '') {
                 $.ajax({
-                    url: "{{ url('restaurant-panel/pos/new') }}",
+                    url: `/restaurant-panel/pos/new/${partner}`,
                     type: "GET",
                     data: {
                         category_id: categoryId,
                         subcategory_id: subcategoryId,
-                        keyword: keyword
+                        keyword: keyword,
                     },
                     beforeSend: function() {
                         $('#loading').show();
                     },
                     success: function(response) {
-                        // Update subcategories
                         $('.subcategory-list').html(response.subcategoryHtml);
-                        // Update products
                         $('#product-list').html(response.productHtml);
                     },
                     complete: function() {
@@ -1905,7 +1908,7 @@
                         console.error('Error:', xhr.responseText);
                     }
                 });
-            }
+            }   
 
             $(document).on('click', '.category-item', function(e) {
                 e.preventDefault();
@@ -1914,7 +1917,7 @@
                 $('.category-item').removeClass('selected');
                 $(this).addClass('selected');
 
-                fetchData(categoryId, '', $('#search-keyword').val());
+                fetchData(categoryId, '', $('#search-keyword').val(), "{{ $orderPartner }}");
             });
 
             $(document).on('click', '.subcategory-item', function(e) {
@@ -1925,7 +1928,7 @@
                 $(this).addClass('selected');
 
                 const categoryId = $('.category-item.selected').data('category') || '';
-                fetchData(categoryId, subcategoryId, $('#search-keyword').val());
+                fetchData(categoryId, subcategoryId, $('#search-keyword').val(), "{{ $orderPartner }}");
             });
 
             $(document).on('keypress', '#search-keyword', function(e) {
@@ -1935,7 +1938,7 @@
                     const categoryId = $('.category-item.selected').data('category') || '';
                     const subcategoryId = $('.subcategory-item.selected').data('subcategory') || '';
 
-                    fetchData(categoryId, subcategoryId, keyword);
+                    fetchData(categoryId, subcategoryId, keyword, "{{ $orderPartner }}");
                 }
             });
 

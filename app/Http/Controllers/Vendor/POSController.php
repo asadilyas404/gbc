@@ -834,7 +834,7 @@ class POSController extends Controller
 
         // Set the User ID
         if($order->payment_status == 'paid'){
-            $order->user_id = $authUserId;
+            $order->payment_user_id = $authUserId;
         }
 
         DB::beginTransaction();
@@ -1219,29 +1219,21 @@ class POSController extends Controller
             'phone' => 'required',
             'email' => 'nullable|email',
         ]);
+        $authUserId = Auth::guard('vendor')->id() ?? Auth::guard('vendor_employee')->id();
         $branchId = Helpers::get_restaurant_id();
         $customerName = $request['f_name'] ?? 'Customer';
-        $customer = SaleCustomer::create([
+        SaleCustomer::create([
             'customer_code' => SaleCustomer::generateCustomerCode(),
-            'customer_type' => '10223122121801',
+            'customer_type' => '19615125061409',
             'customer_name' => $customerName,
             'customer_mobile_no' => $request['phone'],
             'customer_email' => $request['email'],
+            'customer_user_id' => $authUserId,
             'business_id' => 1,
             'company_id' => 1,
             'branch_id' => $branchId,
             'customer_id' => SaleCustomer::generateCustomerId($branchId)
         ]);
-        // try {
-        //     $notification_status = Helpers::getNotificationStatusData('customer', 'customer_pos_registration');
-
-        //     if ($notification_status->mail_status == 'active' && config('mail.status') && $request->email && Helpers::get_mail_status('pos_registration_mail_status_user') == '1') {
-        //         Mail::to($request->email)->send(new \App\Mail\CustomerRegistrationPOS($request->f_name . ' ' . $request->l_name, $request['email'], 'password'));
-        //         Toastr::success(translate('mail_sent_to_the_user'));
-        //     }
-        // } catch (\Exception $ex) {
-        //     info($ex->getMessage());
-        // }
         Toastr::success(translate('customer_added_successfully'));
         return back();
     }

@@ -74,6 +74,7 @@ class SyncOrdersJob implements ShouldQueue
             try {
                 $response = Http::timeout(config('services.live_server.timeout', 60))
                     ->withToken(config('services.live_server.token'))
+                    ->withoutVerifying() // disables SSL certificate verification
                     ->retry(3, 1000)
                     ->post(config('services.live_server.url') . '/orders/sync-bulk', [
                         'orders' => $allOrdersData

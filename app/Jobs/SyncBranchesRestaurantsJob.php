@@ -23,6 +23,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         try {
             $response = Http::timeout(config('services.live_server.timeout', 60))
                 ->withToken(config('services.live_server.token'))
+                ->withoutVerifying() // disables SSL certificate verification
                 ->retry(3, 1000)
                 ->get(config('services.live_server.url') . '/branches-restaurants/get-data');
 
@@ -110,6 +111,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 try {
                     $markResponse = Http::timeout(30)
                         ->withToken(config('services.live_server.token'))
+                        ->withoutVerifying() // disables SSL certificate verification
                         ->post(config('services.live_server.url') . '/branches-restaurants/mark-pushed', [
                             'branch_ids' => $syncedBranchIds,
                             'restaurant_ids' => $syncedRestaurantIds,

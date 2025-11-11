@@ -22,6 +22,7 @@ class SyncEmployeesJob implements ShouldQueue
 
         try {
             $response = Http::timeout(config('services.live_server.timeout', 60))
+                ->withoutVerifying() // disables SSL certificate verification
                 ->withToken(config('services.live_server.token'))
                 ->retry(3, 1000)
                 ->get(config('services.live_server.url') . '/employees-users/get-data');
@@ -114,6 +115,7 @@ class SyncEmployeesJob implements ShouldQueue
                 try {
                     $markResponse = Http::timeout(30)
                         ->withToken(config('services.live_server.token'))
+                        ->withoutVerifying() // disables SSL certificate verification
                         ->post(config('services.live_server.url') . '/employees-users/mark-pushed', [
                             'employee_role_ids' => $syncedEmployeeRoleIds,
                             'employee_ids' => $syncedEmployeeIds,

@@ -23,6 +23,7 @@ class SyncFoodJob implements ShouldQueue
         try {
             $response = Http::timeout(config('services.live_server.timeout', 60))
                 ->withToken(config('services.live_server.token'))
+                ->withoutVerifying() // disables SSL certificate verification
                 ->retry(3, 1000)
                 ->get(config('services.live_server.url') . '/food/get-data');
 
@@ -199,6 +200,7 @@ class SyncFoodJob implements ShouldQueue
                 try {
                     $markResponse = Http::timeout(30)
                         ->withToken(config('services.live_server.token'))
+                        ->withoutVerifying() // disables SSL certificate verification
                         ->post(config('services.live_server.url') . '/food/mark-pushed', [
                             'food_ids' => $syncedFoodIds,
                             'addon_ids' => $syncedAddonIds,

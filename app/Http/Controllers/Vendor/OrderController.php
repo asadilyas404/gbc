@@ -213,7 +213,7 @@ class OrderController extends Controller
         }
     }
 
-    public function quickView($id) //$p_id
+    public function quickView($id, $p_id=null) //$p_id
     {
         $order = Order::with('details')->findOrFail($id);
 

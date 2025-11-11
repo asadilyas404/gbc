@@ -695,7 +695,7 @@ class POSController extends Controller
 
         $cart = $request->session()->get('cart');
 
-        // dd($cart);
+        // dump($cart,$request->all());
         $allNotes = [];
         foreach ($cart as $item) {
             $notes = $item['details'] ?? null; // Change 'notes' to 'details'
@@ -994,7 +994,7 @@ class POSController extends Controller
 
         $total_tax_amount = Helpers::product_tax($total_price, $tax, $order->tax_status == 'included');
         $tax_a = $order->tax_status == 'included' ? 0 : $total_tax_amount;
-        try {
+        try { 
             $order->restaurant_discount_amount = $restaurant_discount_amount;
             $order->total_tax_amount = $total_tax_amount;
 
@@ -1055,8 +1055,9 @@ class POSController extends Controller
             $posOrderDtl->car_number = $request->car_number;
             $posOrderDtl->phone = $request->phone;
             $posOrderDtl->invoice_amount = $order->order_amount ?? 0;
+            // dd($order->order_amount,$request->invoice_amount);
             if(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment'){
-                $posOrderDtl->credit_paid = $request->invoice_amount ?? 0;
+                $posOrderDtl->credit_paid = $order->order_amount ?? 0;
             }else{
                 $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
                 $posOrderDtl->card_paid = $request->card_paid ?? 0;

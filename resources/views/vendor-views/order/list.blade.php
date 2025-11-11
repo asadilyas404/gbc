@@ -820,7 +820,7 @@
 
                                         <a href="javascript:void(0);" class="btn btn-md btn-outline-info quick-view-btn"
                                             data-order-id="{{ $order['id'] }}"
-                                            data-order-p-id="{{ $order['id'] }}"
+                                            data-order-p-id="{{ $order['partner_id'] }}"
                                             data-order-number="{{ $order['order_serial'] }}"
                                             title="{{ translate('Quick View') }}">
                                             <i class="tio-info-outined"></i>
@@ -1205,12 +1205,12 @@
                 const modalBody = $('#quick-view-items-body');
                 modalBody.html('<tr><td colspan="3" class="text-center">Loading...</td></tr>');
 
-                const url = "{{ route('vendor.order.quickView', ['id' => '__id__']) }}".replace('__id__',
+                let url = "{{ route('vendor.order.quickView', ['id' => '__id__']) }}".replace('__id__',
                     orderId);
 
-                // if (p_Id) {
-                //     url = url + '/' + p_Id; 
-                // }
+                if (p_Id) {
+                    url = url + '/' + p_Id; 
+                }
 
                 $('#quickViewModal').modal('show');
 
@@ -1260,6 +1260,27 @@
                         $('#delivery_type').val(data.delivery_type ?? '');
                         $('#bank_account').val(data.bank_account ?? '');
                         $('#partner_id').val(data.partner_id ?? '');
+                        $('#invoice_amount_input').val(data.total_amount_formatted ?? '');
+                        
+
+                        if (  data.partner_id){
+                            console.log('if')
+
+                            $('#payment_type_credit').prop('checked', true);
+                            $('.payment_type').prop('disabled', true);
+                            $('<input>').attr({
+                            type: 'hidden',
+                            name: 'select_payment_type',
+                            value: 'credit_payment'
+                            }).appendTo('#order_place');
+                        
+                        }else{
+                                console.log('else')
+                            $('#payment_type_credit').prop('checked', false);
+                            $('#payment_type_credit').hide();
+                            $('.payment_type').prop('disabled', false);
+                        }
+
                         updateCalculations();
 
                         $('#loading').hide();

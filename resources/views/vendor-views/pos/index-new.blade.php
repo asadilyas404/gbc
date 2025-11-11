@@ -972,9 +972,14 @@
                 $('#print-invoice').modal('show');
             @endif
             
+        });
+
+        $(document).on('click', '#orderFinalModal_btn', function(e) {
 
             console.log({{ $orderPartner }})
+
             @if (!empty($orderPartner))
+                console.log('if')
 
                 $('#payment_type_credit').prop('checked', true);
                 $('.payment_type').prop('disabled', true);
@@ -982,15 +987,15 @@
                 type: 'hidden',
                 name: 'select_payment_type',
                 value: 'credit_payment'
-            }).appendTo('#order_place');
-               console.log('if')
+                }).appendTo('#order_place');
+            
             @else
-                   console.log('else')
+                    console.log('else')
                 $('#payment_type_credit').prop('checked', false);
                 $('#payment_type_credit').hide();
                 $('.payment_type').prop('disabled', false);
             @endif   
-            
+
         });
 
 

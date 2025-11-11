@@ -321,7 +321,7 @@ if (isset($cart['paid'])) {
         @endif --}}
         <div class="row button--bottom-fixed g-1 bg-white">
             <div class="col-sm-6">
-                <button type="button" data-toggle="modal" data-target="#orderFinalModal"
+                <button type="button" data-toggle="modal" data-target="#orderFinalModal" id="orderFinalModal_btn"
                     class="btn btn--primary btn-sm btn-block" onclick="setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);">{{ translate('proceed') }} </button>
             </div>
 
@@ -811,24 +811,34 @@ $(document).on('ready', function() {
           
             
 
-            console.log({{ $orderPartner }})
-            @if (!empty($orderPartner))
+    
 
-                $('#payment_type_credit').prop('checked', true);
-                $('.payment_type').prop('disabled', true);
-                $('<input>').attr({
-                type: 'hidden',
-                name: 'select_payment_type',
-                value: 'credit_payment'
+    $(document).on('click', '#orderFinalModal_btn', function(e) {
+
+        console.log({{ $orderPartner }})
+
+        @if (!empty($orderPartner))
+            console.log('if')
+
+            $('#payment_type_credit').prop('checked', true);
+            $('.payment_type').prop('disabled', true);
+            $('<input>').attr({
+            type: 'hidden',
+            name: 'select_payment_type',
+            value: 'credit_payment'
             }).appendTo('#order_place');
-               console.log('if')
-            @else
-                   console.log('else')
-                $('#payment_type_credit').prop('checked', false);
-                $('#payment_type_credit').hide();
-                $('.payment_type').prop('disabled', false);
-            @endif   
+           
+        @else
+                console.log('else')
+            $('#payment_type_credit').prop('checked', false);
+            $('#payment_type_credit').hide();
+            $('.payment_type').prop('disabled', false);
+        @endif   
+
+    });
+           
+           
             
-        });
+});
 
     </script>

@@ -685,6 +685,8 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
+        
+
         $activeSession = \App\Models\ShiftSession::current()
         ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
         ->first();
@@ -1131,7 +1133,8 @@ class POSController extends Controller
                 Toastr::success(translate('messages.order_placed_successfully'));
             }
 
-            return back();
+            return redirect()->to('restaurant-panel/pos/new');
+            // return back();
         } catch (\Exception $exception) {
             DB::rollBack();
             info([$exception->getFile(), $exception->getLine(), $exception->getMessage()]);

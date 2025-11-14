@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\Log;
 class CustomerSyncController extends Controller
 {
     /**
-     * Get unpushed customer data from live server
-     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function getData()
@@ -19,9 +17,9 @@ class CustomerSyncController extends Controller
         try {
             $data = [
                 'customers' => [],
+                'order_partners' => [],
             ];
 
-            // Get unpushed CUSTOMERS from live server
             $customers = DB::connection('oracle')
                 ->table('tbl_sale_customer')
                 ->where('is_pushed', '!=', 'Y')
@@ -32,8 +30,19 @@ class CustomerSyncController extends Controller
                 $data['customers'][] = (array) $customer;
             }
 
+            $orderPartners = DB::connection('oracle')
+                ->table('tbl_sale_order_partners')
+                ->where('is_pushed', '!=', 'Y')
+                ->orWhereNull('is_pushed')
+                ->get();
+
+            foreach ($orderPartners as $orderPartner) {
+                $data['order_partners'][] = (array) $orderPartner;
+            }
+
             Log::info('Customer data retrieved for sync', [
                 'customers_count' => count($data['customers']),
+                'order_partners_count' => count($data['order_partners']),
             ]);
 
             return response()->json([
@@ -41,6 +50,7 @@ class CustomerSyncController extends Controller
                 'data' => $data,
                 'counts' => [
                     'customers' => count($data['customers']),
+                    'order_partners' => count($data['order_partners']),
                 ]
             ], 200);
 
@@ -58,9 +68,7 @@ class CustomerSyncController extends Controller
         }
     }
 
-    /**
-     * Mark customers as pushed after successful sync
-     *
+    /**s
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
@@ -68,6 +76,7 @@ class CustomerSyncController extends Controller
     {
         try {
             $customerIds = $request->input('customer_ids', []);
+            $orderPartnerIds = $request->input('order_partner_ids', []);
 
             DB::connection('oracle')->beginTransaction();
 
@@ -78,10 +87,18 @@ class CustomerSyncController extends Controller
                     ->update(['is_pushed' => 'Y']);
             }
 
+            if (!empty($orderPartnerIds)) {
+                DB::connection('oracle')
+                    ->table('tbl_sale_order_partners')
+                    ->whereIn('partner_id', $orderPartnerIds)
+                    ->update(['is_pushed' => 'Y']);
+            }
+
             DB::connection('oracle')->commit();
 
             Log::info('Customers marked as pushed', [
                 'customer_count' => count($customerIds),
+                'order_partner_count' => count($orderPartnerIds),
             ]);
 
             return response()->json([

@@ -39,9 +39,11 @@ class SyncCustomersJob implements ShouldQueue
 
             Log::info('Received customer data from live server', [
                 'customers' => count($data['customers'] ?? []),
+                'order_partners' => count($data['order_partners'] ?? []),
             ]);
 
             $syncedCustomerIds = [];
+            $syncedOrderPartnerIds = [];
 
             foreach ($data['customers'] ?? [] as $customer) {
                 DB::connection('oracle')->beginTransaction();
@@ -66,12 +68,45 @@ class SyncCustomersJob implements ShouldQueue
                 }
             }
 
-            if (!empty($syncedCustomerIds)) {
+            foreach ($data['order_partners'] ?? [] as $orderPartner) {
+                if (!isset($orderPartner['partner_id'])) {
+                    Log::warning('Skipped order partner without partner_id', [
+                        'data' => $orderPartner,
+                    ]);
+                    continue;
+                }
+
+                DB::connection('oracle')->beginTransaction();
+
+                try {
+                    DB::connection('oracle')
+                        ->table('tbl_sale_order_partners')
+                        ->updateOrInsert(
+                            ['partner_id' => $orderPartner['partner_id']],
+                            $orderPartner
+                        );
+
+                    DB::connection('oracle')->commit();
+                    $syncedOrderPartnerIds[] = $orderPartner['partner_id'];
+                    $partnerName = $orderPartner['partner_name'] ?? $orderPartner['name'] ?? 'N/A';
+                    Log::info("Order partner ID {$orderPartner['partner_id']} ({$partnerName}) synced successfully.");
+
+                } catch (\Exception $e) {
+                    DB::connection('oracle')->rollBack();
+                    $partnerIdForLog = $orderPartner['partner_id'] ?? 'unknown';
+                    Log::error("Failed syncing order partner ID {$partnerIdForLog}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            if (!empty($syncedCustomerIds) || !empty($syncedOrderPartnerIds)) {
                 try {
                     $markResponse = Http::timeout(30)
                         ->withToken(config('services.live_server.token'))
                         ->post(config('services.live_server.url') . '/customers/mark-pushed', [
                             'customer_ids' => $syncedCustomerIds,
+                            'order_partner_ids' => $syncedOrderPartnerIds,
                         ]);
 
                     if ($markResponse->successful()) {
@@ -90,6 +125,7 @@ class SyncCustomersJob implements ShouldQueue
 
             Log::info('SyncCustomersJob completed successfully', [
                 'synced_customers' => count($syncedCustomerIds),
+                'synced_order_partners' => count($syncedOrderPartnerIds),
             ]);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {

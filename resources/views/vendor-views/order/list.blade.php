@@ -920,8 +920,6 @@
     </div>
 
     @include('vendor-views.pos.orderFinalModal')
-
-
 @endsection
 
 @push('script_2')

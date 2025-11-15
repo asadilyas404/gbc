@@ -127,6 +127,7 @@ class POSController extends Controller
         $orderDate = $branch ? $branch->orders_date : null;
         $orderPartners = DB::table('tbl_sale_order_partners')->get();
         $orderPartner = $id;
+        $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', Helpers::get_restaurant_id())->get();
 
         return view('vendor-views.pos.index-new', compact(
             'categories', 
@@ -140,7 +141,8 @@ class POSController extends Controller
             'orderDate', 
             'draftCustomer',
             'orderPartners',
-            'orderPartner'
+            'orderPartner',
+            'bankaccounts'
         ));
     }
 
@@ -528,12 +530,12 @@ class POSController extends Controller
         $editingOrder = null;
 
         $orderPartner = $request->partner_id ?? '';
-
+        $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', Helpers::get_restaurant_id())->get();
         if ($editingOrderId) {
             $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
             $editingOrder = Order::find($editingOrderId);
         }
-        return view('vendor-views.pos._cart', compact('draftDetails', 'editingOrder', 'orderPartner'));
+        return view('vendor-views.pos._cart', compact('draftDetails', 'editingOrder', 'orderPartner', 'bankaccounts'));
     }
 
     public function removeFromCart(Request $request)

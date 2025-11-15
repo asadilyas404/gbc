@@ -492,18 +492,12 @@ if (isset($cart['paid'])) {
                                         <select id="bank_account" name="bank_account" class="form-control"
                                             {{ old('bank_account', $draftDetails->bank_account ?? '') != '' ? '' : 'disabled' }}>
                                             <option value="">{{ translate('Select an option') }}</option>
-                                            <option value="1"
-                                                @if(session()->has('bank_account') && session('bank_account') == '1') selected @endif
-                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == '1' ? 'selected' : '' }}>
-                                                {{ translate('Bank 1') }}</option>
-                                            <option value="2"
-                                                @if(session()->has('bank_account') && session('bank_account') == '2') selected @endif
-                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == '2' ? 'selected' : '' }}>
-                                                {{ translate('Bank 2') }}</option>
-                                            <option value="3"
-                                                @if(session()->has('bank_account') && session('bank_account') == '3') selected @endif
-                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == '3' ? 'selected' : '' }}>
-                                                {{ translate('Bank 3') }}</option>
+                                            @foreach ($bankaccounts as $account)
+                                                <option value="{{ $account->bank_account_id }}"
+                                                @if(session()->has('bank_account') && session('bank_account') == $account->bank_id) selected @endif
+                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == $account->bank_id ? 'selected' : '' }}>
+                                                {{ $account->bank_name }}</option>    
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>

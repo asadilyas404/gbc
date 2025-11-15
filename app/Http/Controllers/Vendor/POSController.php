@@ -109,10 +109,9 @@ class POSController extends Controller
         }
 
         $editingOrderId = session('editing_order_id');
-        $draftDetails = null;
-        $editingOrder = null;
-        $draftCustomer = null;
-
+        $draftDetails   = null;
+        $editingOrder   = null;
+        $draftCustomer  = null;
         if ($editingOrderId) {
             $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
             $editingOrder = Order::find($editingOrderId);
@@ -129,6 +128,17 @@ class POSController extends Controller
         $orderPartner = $id;
         $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', Helpers::get_restaurant_id())->get();
 
+        $previousDate = $orderDate ? Carbon::parse($orderDate) : null;
+        $currentDate = Carbon::now();
+        $updateDate = false;
+
+        if ($previousDate && $previousDate->toDateString() != $currentDate->toDateString() 
+            && $currentDate->hour >= 8) {
+            // Show warning
+            $updateDate = true;
+        }
+
+
         return view('vendor-views.pos.index-new', compact(
             'categories', 
             'subcategories', 
@@ -142,7 +152,8 @@ class POSController extends Controller
             'draftCustomer',
             'orderPartners',
             'orderPartner',
-            'bankaccounts'
+            'bankaccounts',
+            'updateDate'
         ));
     }
 
@@ -542,11 +553,15 @@ class POSController extends Controller
     {
         if ($request->session()->has('cart')) {
             $cart = $request->session()->get('cart', collect([]));
-            // Get the item by the key
-            $cartItem = $cart->get($request->key);
-            $cartItem['is_deleted'] = 'Y';
-            $cart->put($request->key, $cartItem);
-            // $cart->forget($request->key);
+            $editing_order_id = session('editing_order_id');
+            if ($editing_order_id) {
+                // Get the item by the key
+                $cartItem = $cart->get($request->key);
+                $cartItem['is_deleted'] = 'Y';
+                $cart->put($request->key, $cartItem);
+            }else{
+                $cart->forget($request->key);
+            }
             $request->session()->put('cart', $cart);
         }
 
@@ -831,9 +846,9 @@ class POSController extends Controller
         $order->vehicle_id = $vehicle_id ?? null;
         $order->restaurant_id = $restaurant->id;
         $order->user_id = $request->user_id;
-        $order->order_taken_by = $authUserId;
+        $order->order_taken_by = $order->order_taken_by ?? $authUserId;
         $order->zone_id = $restaurant->zone_id;
-        $order->session_id = $activeSession->session_id;
+        $order->session_id = $order->session_id ?? $activeSession->session_id;
         $order->delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
         $order->delivery_charge += isset($cart['delivery_fee']) ? $cart['delivery_fee'] : 0;
         // $order->original_delivery_charge = isset($address) ? $address['delivery_fee'] : 0;
@@ -849,6 +864,7 @@ class POSController extends Controller
         // Set the User ID
         if($order->payment_status == 'paid'){
             $order->payment_user_id = $authUserId;
+            $order->payment_user_session_id = $activeSession->session_id;
         }
 
         DB::beginTransaction();

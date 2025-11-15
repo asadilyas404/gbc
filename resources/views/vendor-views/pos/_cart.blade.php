@@ -321,8 +321,8 @@ if (isset($cart['paid'])) {
         @endif --}}
         <div class="row button--bottom-fixed g-1 bg-white">
             <div class="col-sm-6">
-                <button type="button" data-toggle="modal" data-target="#orderFinalModal" id="orderFinalModal_btn"
-                    class="btn btn--primary btn-sm btn-block" onclick="setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);">{{ translate('proceed') }} </button>
+                <button type="button" data-toggle="modal" id="orderFinalModal_btn"
+                    class="btn btn--primary btn-sm btn-block">{{ translate('proceed') }} </button>
             </div>
 
             {{-- <div class="col-sm-6">
@@ -457,6 +457,7 @@ if (isset($cart['paid'])) {
                                         <label for="cash_paid"
                                             class="input-label">{{ translate('Cash Amount') }}</label>
                                         <input id="cash_paid" type="text" name="cash_paid" class="form-control"
+                                            onfocus="this.select();"
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter cash amount') }}"
                                             value="{{ old('cash_paid', $draftDetails->cash_paid ?? '') }}">
@@ -481,6 +482,7 @@ if (isset($cart['paid'])) {
                                         <label for="card_paid"
                                             class="input-label">{{ translate('Card Amount') }}</label>
                                         <input id="card_paid" type="text" name="card_paid" class="form-control"
+                                            onfocus="this.select();"
                                             min="0" step="0.001"
                                             autocomplete="false"
                                             placeholder="{{ translate('Enter card amount') }}"
@@ -797,42 +799,3 @@ if (isset($cart['paid'])) {
         </div>
     </div>
 </div>
-
-    <script >
-
-
-$(document).on('ready', function() {
-          
-            
-
-    
-
-    $(document).on('click', '#orderFinalModal_btn', function(e) {
-
-        console.log({{ $orderPartner }})
-
-        @if (!empty($orderPartner))
-            console.log('if')
-
-            $('#payment_type_credit').prop('checked', true);
-            $('.payment_type').prop('disabled', true);
-            $('<input>').attr({
-            type: 'hidden',
-            name: 'select_payment_type',
-            value: 'credit_payment'
-            }).appendTo('#order_place');
-           
-        @else
-                console.log('else')
-            $('#payment_type_credit').prop('checked', false);
-            $('#payment_type_credit').hide();
-            $('.payment_type').prop('disabled', false);
-        @endif   
-
-    });
-           
-           
-            
-});
-
-    </script>

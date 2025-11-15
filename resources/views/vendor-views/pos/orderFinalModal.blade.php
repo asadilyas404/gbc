@@ -144,6 +144,7 @@
                                         <label for="cash_paid"
                                             class="input-label">{{ translate('Cash Amount') }}</label>
                                         <input id="cash_paid" type="text" name="cash_paid" class="form-control"
+                                            onfocus="this.select();"
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter cash amount') }}" value="">
                                     </div>
@@ -164,6 +165,7 @@
                                         <label for="card_paid"
                                             class="input-label">{{ translate('Card Amount') }}</label>
                                         <input id="card_paid" type="text" name="card_paid" class="form-control"
+                                            onfocus="this.select();"
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter card amount') }}" value="">
                                     </div>

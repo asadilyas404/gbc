@@ -979,12 +979,7 @@
         });
 
         $(document).on('click', '#orderFinalModal_btn', function(e) {
-
-            console.log({{ $orderPartner }})
-
             @if (!empty($orderPartner))
-                console.log('if')
-
                 $('#payment_type_credit').prop('checked', true);
                 $('.payment_type').prop('disabled', true);
                 $('<input>').attr({
@@ -994,12 +989,39 @@
                 }).appendTo('#order_place');
             
             @else
-                    console.log('else')
                 $('#payment_type_credit').prop('checked', false);
                 $('#payment_type_credit').hide();
                 $('.payment_type').prop('disabled', false);
             @endif   
+            
 
+
+            @if($updateDate && !$editingOrder)
+                // Show orderFianlModal
+                Swal.fire({
+                    title: "Are you sure?",
+                    text: "Session Date is {{ \Carbon\Carbon::parse($orderDate)->format('d F, Y') }}",
+                    showCancelButton: true,
+                    confirmButtonColor: "#3085d6",
+                    cancelButtonColor: "#d33",
+                    confirmButtonText: "Yes, Proceed!",
+                    preConfirm: () => {
+                        return new Promise((resolve) => {
+                            resolve(true);
+                        });
+                    }
+                }).then((result) => {
+                    if (result.value) {
+                        setTimeout(() => {
+                            setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
+                            $('#orderFinalModal').modal('show');
+                        }, 100);
+                    }
+                });
+            @else
+                setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
+                $('#orderFinalModal').modal('show');
+            @endif            
         });
 
 

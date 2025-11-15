@@ -37,14 +37,13 @@ class SyncFoodJob implements ShouldQueue
                 return;
             }
 
-            $lastSyncedAtMap = $this->getLastSyncedAtMap((int) $branchId);
-            $requestParams = $this->buildRequestParams((int) $branchId, $lastSyncedAtMap);
-
             $response = Http::timeout(config('services.live_server.timeout', 60))
                 ->withToken(config('services.live_server.token'))
                 ->withoutVerifying() // disables SSL certificate verification
                 ->retry(3, 1000)
-                ->get(config('services.live_server.url') . '/food/get-data', $requestParams);
+                ->get(config('services.live_server.url') . '/food/get-data', [
+                    'branch_id' => $branchId,
+                ]);
 
             if (!$response->successful()) {
                 Log::error('Failed to get food data from live server', [
@@ -257,30 +256,7 @@ class SyncFoodJob implements ShouldQueue
                 }
             }
 
-            if (!empty($syncedFoodIds) || !empty($syncedAddonIds) || !empty($syncedCategoryIds) || !empty($syncedOptionsListIds)) {
-                try {
-                    $markResponse = Http::timeout(30)
-                        ->withToken(config('services.live_server.token'))
-                        ->post(config('services.live_server.url') . '/food/mark-pushed', [
-                            'food_ids' => $syncedFoodIds,
-                            'addon_ids' => $syncedAddonIds,
-                            'category_ids' => $syncedCategoryIds,
-                            'options_list_ids' => $syncedOptionsListIds,
-                        ]);
-
-                    if ($markResponse->successful()) {
-                        Log::info('Items marked as pushed on live server');
-                    } else {
-                        Log::warning('Failed to mark items as pushed on live server', [
-                            'status' => $markResponse->status()
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Failed to mark items as pushed', [
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
+            $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
             Log::info('SyncFoodJob completed successfully', [
                 'synced_foods' => count($syncedFoodIds),
@@ -328,47 +304,6 @@ class SyncFoodJob implements ShouldQueue
         }
     }
 
-    private function buildRequestParams(int $branchId, array $lastSyncedAtMap): array
-    {
-        $params = [
-            'branch_id' => $branchId,
-        ];
-
-        foreach (self::SYNC_ENTITY_TYPES as $entity) {
-            if (empty($lastSyncedAtMap[$entity])) {
-                continue;
-            }
-
-            try {
-                $params[$entity . '_last_synced_at'] = Carbon::parse($lastSyncedAtMap[$entity])->toIso8601String();
-            } catch (\Exception $e) {
-                Log::warning("Invalid stored last_synced_at for {$entity}, skipping from request", [
-                    'value' => $lastSyncedAtMap[$entity],
-                    'error' => $e->getMessage(),
-                ]);
-            }
-        }
-
-        return $params;
-    }
-
-    private function getLastSyncedAtMap(int $branchId): array
-    {
-        $rows = DB::connection('oracle')
-            ->table('branch_sync_state')
-            ->where('restaurant_id', $branchId)
-            ->whereIn('entity_type', self::SYNC_ENTITY_TYPES)
-            ->get()
-            ->keyBy('entity_type');
-
-        $map = [];
-        foreach (self::SYNC_ENTITY_TYPES as $entity) {
-            $map[$entity] = optional($rows->get($entity))->last_synced_at;
-        }
-
-        return $map;
-    }
-
     private function pickLatestTimestamp(?string $current, ?string $candidate): ?string
     {
         if (empty($candidate)) {
@@ -406,55 +341,54 @@ class SyncFoodJob implements ShouldQueue
             : $currentCarbon->toIso8601String();
     }
 
-    private function persistSyncedTimestamps(int $branchId, array $latestSyncedTimestamps): void
+    private function sendSyncStateUpdate(int $branchId, array $latestSyncedTimestamps): void
     {
+        $payload = [
+            'branch_id' => $branchId,
+        ];
+
         foreach (self::SYNC_ENTITY_TYPES as $entity) {
             if (empty($latestSyncedTimestamps[$entity])) {
                 continue;
             }
 
-            $this->upsertLastSyncedAt($branchId, $entity, $latestSyncedTimestamps[$entity]);
+            try {
+                $payload[$entity . '_last_synced_at'] = Carbon::parse($latestSyncedTimestamps[$entity])->toIso8601String();
+            } catch (\Exception $e) {
+                Log::warning('Invalid timestamp while preparing sync update', [
+                    'entity' => $entity,
+                    'timestamp' => $latestSyncedTimestamps[$entity],
+                    'error' => $e->getMessage(),
+                ]);
+            }
         }
-    }
 
-    private function upsertLastSyncedAt(int $branchId, string $entity, string $timestamp): void
-    {
+        if (count($payload) === 1) {
+            return;
+        }
+
         try {
-            $normalizedTimestamp = Carbon::parse($timestamp)->utc()->format('Y-m-d H:i:s');
+            $response = Http::timeout(30)
+                ->withToken(config('services.live_server.token'))
+                ->withoutVerifying()
+                ->post(config('services.live_server.url') . '/food/update-sync-state', $payload);
+
+            if ($response->successful()) {
+                Log::info('Branch sync state updated on live server', [
+                    'branch_id' => $branchId,
+                    'entities' => array_keys(array_diff_key($payload, ['branch_id' => null])),
+                ]);
+            } else {
+                Log::warning('Failed to update branch sync state on live server', [
+                    'branch_id' => $branchId,
+                    'status' => $response->status(),
+                ]);
+            }
         } catch (\Exception $e) {
-            Log::warning('Unable to persist last_synced_at due to invalid timestamp', [
-                'entity' => $entity,
-                'timestamp' => $timestamp,
+            Log::error('Exception while updating branch sync state', [
+                'branch_id' => $branchId,
                 'error' => $e->getMessage(),
             ]);
-
-            return;
         }
-
-        $now = Carbon::now()->utc()->format('Y-m-d H:i:s');
-
-        $query = DB::connection('oracle')
-            ->table('branch_sync_state')
-            ->where('restaurant_id', $branchId)
-            ->where('entity_type', $entity);
-
-        if ($query->exists()) {
-            $query->update([
-                'last_synced_at' => $normalizedTimestamp,
-                'updated_at' => $now,
-            ]);
-
-            return;
-        }
-
-        DB::connection('oracle')
-            ->table('branch_sync_state')
-            ->insert([
-                'restaurant_id' => $branchId,
-                'entity_type' => $entity,
-                'last_synced_at' => $normalizedTimestamp,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
     }
 }

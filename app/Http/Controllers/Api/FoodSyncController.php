@@ -26,14 +26,10 @@ class FoodSyncController extends Controller
         try {
             $validated = $request->validate([
                 'branch_id' => 'required|integer',
-                'foods_last_synced_at' => 'nullable|string',
-                'addons_last_synced_at' => 'nullable|string',
-                'categories_last_synced_at' => 'nullable|string',
-                'options_list_last_synced_at' => 'nullable|string',
             ]);
 
             $branchId = (int) $validated['branch_id'];
-            $cursorMap = $this->resolveLastSyncedMap($branchId, $validated);
+            $cursorMap = $this->resolveLastSyncedMap($branchId);
 
             $data = [
                 'foods' => [],
@@ -45,12 +41,18 @@ class FoodSyncController extends Controller
             $foods = DB::connection('oracle')
                 ->table('food')
                 ->when($cursorMap['foods'], function ($query, Carbon $cursor) {
-                    $query->where('updated_at', '>', $cursor->toDateTimeString());
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
                 })
                 ->orderBy('updated_at')
                 ->get();
 
             foreach ($foods as $food) {
+                $foodRecord = $this->ensureUpdatedAt((array) $food, 'food', 'id');
+                $food->updated_at = $foodRecord['updated_at'] ?? $food->updated_at;
+
                 $variations = DB::connection('oracle')
                     ->table('variations')
                     ->where('food_id', $food->id)
@@ -89,7 +91,7 @@ class FoodSyncController extends Controller
                     ->toArray();
 
                 $data['foods'][] = [
-                    'food' => (array) $food,
+                    'food' => $foodRecord,
                     'variations' => $variations,
                     'variation_options' => $variationOptions,
                     'partner_variation_options' => $partnerVariationOptions,
@@ -100,12 +102,18 @@ class FoodSyncController extends Controller
             $addons = DB::connection('oracle')
                 ->table('add_ons')
                 ->when($cursorMap['addons'], function ($query, Carbon $cursor) {
-                    $query->where('updated_at', '>', $cursor->toDateTimeString());
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
                 })
                 ->orderBy('updated_at')
                 ->get();
 
             foreach ($addons as $addon) {
+                $addonRecord = $this->ensureUpdatedAt((array) $addon, 'add_ons', 'id');
+                $addon->updated_at = $addonRecord['updated_at'] ?? $addon->updated_at;
+
                 $translations = DB::connection('oracle')
                     ->table('translations')
                     ->where('translationable_id', $addon->id)
@@ -117,7 +125,7 @@ class FoodSyncController extends Controller
                     ->toArray();
 
                 $data['addons'][] = [
-                    'addon' => (array) $addon,
+                    'addon' => $addonRecord,
                     'translations' => $translations,
                 ];
             }
@@ -125,12 +133,18 @@ class FoodSyncController extends Controller
             $categories = DB::connection('oracle')
                 ->table('categories')
                 ->when($cursorMap['categories'], function ($query, Carbon $cursor) {
-                    $query->where('updated_at', '>', $cursor->toDateTimeString());
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
                 })
                 ->orderBy('updated_at')
                 ->get();
 
             foreach ($categories as $category) {
+                $categoryRecord = $this->ensureUpdatedAt((array) $category, 'categories', 'id');
+                $category->updated_at = $categoryRecord['updated_at'] ?? $category->updated_at;
+
                 $translations = DB::connection('oracle')
                     ->table('translations')
                     ->where('translationable_id', $category->id)
@@ -142,7 +156,7 @@ class FoodSyncController extends Controller
                     ->toArray();
 
                 $data['categories'][] = [
-                    'category' => (array) $category,
+                    'category' => $categoryRecord,
                     'translations' => $translations,
                 ];
             }
@@ -150,12 +164,18 @@ class FoodSyncController extends Controller
             $optionsList = DB::connection('oracle')
                 ->table('options_list')
                 ->when($cursorMap['options_list'], function ($query, Carbon $cursor) {
-                    $query->where('updated_at', '>', $cursor->toDateTimeString());
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
                 })
                 ->orderBy('updated_at')
                 ->get();
 
             foreach ($optionsList as $option) {
+                $optionRecord = $this->ensureUpdatedAt((array) $option, 'options_list', 'id');
+                $option->updated_at = $optionRecord['updated_at'] ?? $option->updated_at;
+
                 $translations = DB::connection('oracle')
                     ->table('translations')
                     ->where('translationable_id', $option->id)
@@ -167,7 +187,7 @@ class FoodSyncController extends Controller
                     ->toArray();
 
                 $data['options_list'][] = [
-                    'option' => (array) $option,
+                    'option' => $optionRecord,
                     'translations' => $translations,
                 ];
             }
@@ -219,7 +239,7 @@ class FoodSyncController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function markAsPushed(Request $request)
+    public function updateSyncState(Request $request)
     {
         try {
             $validated = $request->validate([
@@ -262,16 +282,13 @@ class FoodSyncController extends Controller
         }
     }
 
-    private function resolveLastSyncedMap(int $branchId, array $validated): array
+    private function resolveLastSyncedMap(int $branchId): array
     {
         $remoteMap = $this->fetchBranchSyncState($branchId);
 
         $cursors = [];
         foreach (self::SYNC_ENTITY_TYPES as $entity) {
-            $field = $entity . '_last_synced_at';
-            $cursors[$entity] = $this->parseTimestamp($validated[$field] ?? null)
-                ?? $remoteMap[$entity]
-                ?? null;
+            $cursors[$entity] = $remoteMap[$entity] ?? null;
         }
 
         return $cursors;
@@ -387,6 +404,35 @@ class FoodSyncController extends Controller
                     'updated_at' => Carbon::now()->utc()->format('Y-m-d H:i:s'),
                 ]);
         }
+    }
+
+    private function ensureUpdatedAt(array $record, string $table, string $primaryKey): array
+    {
+        if (!array_key_exists($primaryKey, $record)) {
+            Log::warning('Missing primary key while ensuring updated_at', [
+                'table' => $table,
+                'primary_key' => $primaryKey,
+            ]);
+
+            return $record;
+        }
+
+        if (!empty($record['updated_at'])) {
+            return $record;
+        }
+
+        $timestamp = Carbon::now()->utc()->format('Y-m-d H:i:s');
+
+        DB::connection('oracle')
+            ->table($table)
+            ->where($primaryKey, $record[$primaryKey])
+            ->update([
+                'updated_at' => $timestamp,
+            ]);
+
+        $record['updated_at'] = $timestamp;
+
+        return $record;
     }
 }
 

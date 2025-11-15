@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\CentralLogics\Helpers;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -15,17 +17,32 @@ class SyncEmployeesJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private const SYNC_ENTITY_TYPES = [
+        'employee_roles',
+        'employees',
+        'users',
+    ];
+
     public function handle()
     {
         set_time_limit(300);
         Log::info('SyncEmployeesJob started (API-based)');
 
         try {
+            $branchId = Helpers::get_restaurant_id();
+
+            if (empty($branchId)) {
+                Log::warning('SyncEmployeesJob halted: branch/restaurant context missing');
+                return;
+            }
+
             $response = Http::timeout(config('services.live_server.timeout', 60))
                 ->withoutVerifying() // disables SSL certificate verification
                 ->withToken(config('services.live_server.token'))
                 ->retry(3, 1000)
-                ->get(config('services.live_server.url') . '/employees-users/get-data');
+                ->get(config('services.live_server.url') . '/employees-users/get-data', [
+                    'branch_id' => $branchId,
+                ]);
 
             if (!$response->successful()) {
                 Log::error('Failed to get employee/user data from live server', [
@@ -47,6 +64,7 @@ class SyncEmployeesJob implements ShouldQueue
             $syncedEmployeeRoleIds = [];
             $syncedEmployeeIds = [];
             $syncedUserIds = [];
+            $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
 
             foreach ($data['employee_roles'] ?? [] as $role) {
                 try {
@@ -58,6 +76,10 @@ class SyncEmployeesJob implements ShouldQueue
                         );
 
                     $syncedEmployeeRoleIds[] = $role['id'];
+                    $latestSyncedTimestamps['employee_roles'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['employee_roles'],
+                        $role['updated_at'] ?? null
+                    );
 
                 } catch (\Exception $e) {
                     Log::error("Failed syncing role ID {$role['id']}", [
@@ -76,6 +98,10 @@ class SyncEmployeesJob implements ShouldQueue
                         );
 
                     $syncedEmployeeIds[] = $employee['id'];
+                    $latestSyncedTimestamps['employees'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['employees'],
+                        $employee['updated_at'] ?? null
+                    );
 
                 } catch (\Exception $e) {
                     Log::error("Failed syncing employee ID {$employee['id']}", [
@@ -101,6 +127,10 @@ class SyncEmployeesJob implements ShouldQueue
 
                     DB::connection('oracle')->commit();
                     $syncedUserIds[] = $user['id'];
+                    $latestSyncedTimestamps['users'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['users'],
+                        $user['updated_at'] ?? null
+                    );
                     Log::info("User ID {$user['id']} ({$user['name']}) synced successfully.");
 
                 } catch (\Exception $e) {
@@ -111,30 +141,7 @@ class SyncEmployeesJob implements ShouldQueue
                 }
             }
 
-            if (!empty($syncedEmployeeRoleIds) || !empty($syncedEmployeeIds) || !empty($syncedUserIds)) {
-                try {
-                    $markResponse = Http::timeout(30)
-                        ->withToken(config('services.live_server.token'))
-                        ->withoutVerifying() // disables SSL certificate verification
-                        ->post(config('services.live_server.url') . '/employees-users/mark-pushed', [
-                            'employee_role_ids' => $syncedEmployeeRoleIds,
-                            'employee_ids' => $syncedEmployeeIds,
-                            'user_ids' => $syncedUserIds,
-                        ]);
-
-                    if ($markResponse->successful()) {
-                        Log::info('Items marked as pushed on live server');
-                    } else {
-                        Log::warning('Failed to mark items as pushed on live server', [
-                            'status' => $markResponse->status()
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Failed to mark items as pushed', [
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
+            $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
             Log::info('SyncEmployeesJob completed successfully', [
                 'synced_employee_roles' => count($syncedEmployeeRoleIds),
@@ -179,6 +186,94 @@ class SyncEmployeesJob implements ShouldQueue
 
         } catch (\Exception $e) {
             Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
+        }
+    }
+
+    private function pickLatestTimestamp(?string $current, ?string $candidate): ?string
+    {
+        if (empty($candidate)) {
+            return $current;
+        }
+
+        try {
+            $candidateCarbon = Carbon::parse($candidate);
+        } catch (\Exception $e) {
+            Log::warning('Invalid candidate timestamp received during employee sync', [
+                'value' => $candidate,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $current;
+        }
+
+        if (empty($current)) {
+            return $candidateCarbon->toIso8601String();
+        }
+
+        try {
+            $currentCarbon = Carbon::parse($current);
+        } catch (\Exception $e) {
+            Log::warning('Invalid stored timestamp during employee sync, overriding', [
+                'value' => $current,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $candidateCarbon->toIso8601String();
+        }
+
+        return $candidateCarbon->greaterThan($currentCarbon)
+            ? $candidateCarbon->toIso8601String()
+            : $currentCarbon->toIso8601String();
+    }
+
+    private function sendSyncStateUpdate(int $branchId, array $latestSyncedTimestamps): void
+    {
+        $payload = [
+            'branch_id' => $branchId,
+        ];
+
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            if (empty($latestSyncedTimestamps[$entity])) {
+                continue;
+            }
+
+            try {
+                $payload[$entity . '_last_synced_at'] = Carbon::parse($latestSyncedTimestamps[$entity])->toIso8601String();
+            } catch (\Exception $e) {
+                Log::warning('Invalid timestamp while preparing employee sync update', [
+                    'entity' => $entity,
+                    'timestamp' => $latestSyncedTimestamps[$entity],
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if (count($payload) === 1) {
+            return;
+        }
+
+        try {
+            $response = Http::timeout(30)
+                ->withToken(config('services.live_server.token'))
+                ->withoutVerifying()
+                ->post(config('services.live_server.url') . '/employees-users/update-sync-state', $payload);
+
+            if ($response->successful()) {
+                Log::info('Branch sync state updated on live server (employees/users)', [
+                    'branch_id' => $branchId,
+                    'entities' => array_keys(array_diff_key($payload, ['branch_id' => null])),
+                ]);
+            } else {
+                Log::warning('Failed to update branch sync state on live server (employees/users)', [
+                    'branch_id' => $branchId,
+                    'status' => $response->status(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Exception while updating branch sync state (employees/users)', [
+                'branch_id' => $branchId,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

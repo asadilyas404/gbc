@@ -2,6 +2,8 @@
 
 namespace App\Jobs;
 
+use App\CentralLogics\Helpers;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -15,17 +17,31 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private const SYNC_ENTITY_TYPES = [
+        'branches',
+        'restaurants',
+    ];
+
     public function handle()
     {
         set_time_limit(300);
         Log::info('SyncBranchesRestaurantsJob started (API-based)');
 
         try {
+            $branchId = Helpers::get_restaurant_id();
+
+            if (empty($branchId)) {
+                Log::warning('SyncBranchesRestaurantsJob halted: branch/restaurant context missing');
+                return;
+            }
+
             $response = Http::timeout(config('services.live_server.timeout', 60))
                 ->withToken(config('services.live_server.token'))
                 ->withoutVerifying() // disables SSL certificate verification
                 ->retry(3, 1000)
-                ->get(config('services.live_server.url') . '/branches-restaurants/get-data');
+                ->get(config('services.live_server.url') . '/branches-restaurants/get-data', [
+                    'branch_id' => $branchId,
+                ]);
 
             if (!$response->successful()) {
                 Log::error('Failed to get branch/restaurant data from live server', [
@@ -45,6 +61,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
 
             $syncedBranchIds = [];
             $syncedRestaurantIds = [];
+            $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
 
             foreach ($data['branches'] ?? [] as $branch) {
                 try {
@@ -56,6 +73,10 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                         );
 
                     $syncedBranchIds[] = $branch['branch_id'];
+                    $latestSyncedTimestamps['branches'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['branches'],
+                        $branch['updated_at'] ?? null
+                    );
                     Log::info("Branch ID {$branch['branch_id']} synced successfully.");
 
                 } catch (\Exception $e) {
@@ -97,6 +118,10 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
 
                     DB::connection('oracle')->commit();
                     $syncedRestaurantIds[] = $restaurant['id'];
+                    $latestSyncedTimestamps['restaurants'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['restaurants'],
+                        $restaurant['updated_at'] ?? null
+                    );
                     Log::info("Restaurant ID {$restaurant['id']} ({$restaurant['name']}) synced successfully.");
 
                 } catch (\Exception $e) {
@@ -107,29 +132,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 }
             }
 
-            if (!empty($syncedBranchIds) || !empty($syncedRestaurantIds)) {
-                try {
-                    $markResponse = Http::timeout(30)
-                        ->withToken(config('services.live_server.token'))
-                        ->withoutVerifying() // disables SSL certificate verification
-                        ->post(config('services.live_server.url') . '/branches-restaurants/mark-pushed', [
-                            'branch_ids' => $syncedBranchIds,
-                            'restaurant_ids' => $syncedRestaurantIds,
-                        ]);
-
-                    if ($markResponse->successful()) {
-                        Log::info('Items marked as pushed on live server');
-                    } else {
-                        Log::warning('Failed to mark items as pushed on live server', [
-                            'status' => $markResponse->status()
-                        ]);
-                    }
-                } catch (\Exception $e) {
-                    Log::error('Failed to mark items as pushed', [
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
+            $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
             Log::info('SyncBranchesRestaurantsJob completed successfully', [
                 'synced_branches' => count($syncedBranchIds),
@@ -173,6 +176,94 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
 
         } catch (\Exception $e) {
             Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
+        }
+    }
+
+    private function pickLatestTimestamp(?string $current, ?string $candidate): ?string
+    {
+        if (empty($candidate)) {
+            return $current;
+        }
+
+        try {
+            $candidateCarbon = Carbon::parse($candidate);
+        } catch (\Exception $e) {
+            Log::warning('Invalid candidate timestamp received during branch sync', [
+                'value' => $candidate,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $current;
+        }
+
+        if (empty($current)) {
+            return $candidateCarbon->toIso8601String();
+        }
+
+        try {
+            $currentCarbon = Carbon::parse($current);
+        } catch (\Exception $e) {
+            Log::warning('Invalid stored timestamp during branch sync, overriding', [
+                'value' => $current,
+                'error' => $e->getMessage(),
+            ]);
+
+            return $candidateCarbon->toIso8601String();
+        }
+
+        return $candidateCarbon->greaterThan($currentCarbon)
+            ? $candidateCarbon->toIso8601String()
+            : $currentCarbon->toIso8601String();
+    }
+
+    private function sendSyncStateUpdate(int $branchId, array $latestSyncedTimestamps): void
+    {
+        $payload = [
+            'branch_id' => $branchId,
+        ];
+
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            if (empty($latestSyncedTimestamps[$entity])) {
+                continue;
+            }
+
+            try {
+                $payload[$entity . '_last_synced_at'] = Carbon::parse($latestSyncedTimestamps[$entity])->toIso8601String();
+            } catch (\Exception $e) {
+                Log::warning('Invalid timestamp while preparing branch sync update', [
+                    'entity' => $entity,
+                    'timestamp' => $latestSyncedTimestamps[$entity],
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if (count($payload) === 1) {
+            return;
+        }
+
+        try {
+            $response = Http::timeout(30)
+                ->withToken(config('services.live_server.token'))
+                ->withoutVerifying()
+                ->post(config('services.live_server.url') . '/branches-restaurants/update-sync-state', $payload);
+
+            if ($response->successful()) {
+                Log::info('Branch sync state updated on live server (branches/restaurants)', [
+                    'branch_id' => $branchId,
+                    'entities' => array_keys(array_diff_key($payload, ['branch_id' => null])),
+                ]);
+            } else {
+                Log::warning('Failed to update branch sync state on live server (branches/restaurants)', [
+                    'branch_id' => $branchId,
+                    'status' => $response->status(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Exception while updating branch sync state (branches/restaurants)', [
+                'branch_id' => $branchId,
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 }

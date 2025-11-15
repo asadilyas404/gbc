@@ -3,19 +3,32 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class BranchRestaurantSyncController extends Controller
 {
+    private const SYNC_ENTITY_TYPES = [
+        'branches',
+        'restaurants',
+    ];
+
     /**
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getData()
+    public function getData(Request $request)
     {
         try {
+            $validated = $request->validate([
+                'branch_id' => 'required|integer',
+            ]);
+
+            $branchId = (int) $validated['branch_id'];
+            $cursorMap = $this->resolveLastSyncedMap($branchId);
+
             $data = [
                 'branches' => [],
                 'restaurants' => [],
@@ -23,21 +36,37 @@ class BranchRestaurantSyncController extends Controller
 
             $branches = DB::connection('oracle')
                 ->table('tbl_soft_branch')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
+                ->when($cursorMap['branches'], function ($query, Carbon $cursor) {
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
+                })
+                ->orderBy('updated_at')
                 ->get();
 
             foreach ($branches as $branch) {
-                $data['branches'][] = (array) $branch;
+                $branchRecord = $this->ensureUpdatedAt((array) $branch, 'tbl_soft_branch', 'branch_id');
+                $branch->updated_at = $branchRecord['updated_at'] ?? $branch->updated_at;
+
+                $data['branches'][] = $branchRecord;
             }
 
             $restaurants = DB::connection('oracle')
                 ->table('restaurants')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
+                ->when($cursorMap['restaurants'], function ($query, Carbon $cursor) {
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
+                })
+                ->orderBy('updated_at')
                 ->get();
 
             foreach ($restaurants as $restaurant) {
+                $restaurantRecord = $this->ensureUpdatedAt((array) $restaurant, 'restaurants', 'id');
+                $restaurant->updated_at = $restaurantRecord['updated_at'] ?? $restaurant->updated_at;
+
                 $translations = DB::connection('oracle')
                     ->table('translations')
                     ->where('translationable_id', $restaurant->id)
@@ -49,12 +78,13 @@ class BranchRestaurantSyncController extends Controller
                     ->toArray();
 
                 $data['restaurants'][] = [
-                    'restaurant' => (array) $restaurant,
+                    'restaurant' => $restaurantRecord,
                     'translations' => $translations,
                 ];
             }
 
             Log::info('Branch and restaurant data retrieved for sync', [
+                'branch_id' => $branchId,
                 'branches_count' => count($data['branches']),
                 'restaurants_count' => count($data['restaurants']),
             ]);
@@ -65,7 +95,10 @@ class BranchRestaurantSyncController extends Controller
                 'counts' => [
                     'branches' => count($data['branches']),
                     'restaurants' => count($data['restaurants']),
-                ]
+                ],
+                'cursor' => array_map(function ($item) {
+                    return $item ? $item->toIso8601String() : null;
+                }, $this->collectLatestTimestamps($data)),
             ], 200);
 
         } catch (\Exception $e) {
@@ -87,53 +120,197 @@ class BranchRestaurantSyncController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function markAsPushed(Request $request)
+    public function updateSyncState(Request $request)
     {
         try {
-            $branchIds = $request->input('branch_ids', []);
-            $restaurantIds = $request->input('restaurant_ids', []);
+            $validated = $request->validate([
+                'branch_id' => 'required|integer',
+                'branches_last_synced_at' => 'nullable|string',
+                'restaurants_last_synced_at' => 'nullable|string',
+            ]);
 
-            DB::connection('oracle')->beginTransaction();
+            $branchId = (int) $validated['branch_id'];
+            $timestamps = $this->parseTimestampPayload($validated);
+            $this->persistBranchSyncState($branchId, $timestamps);
 
-            if (!empty($branchIds)) {
-                DB::connection('oracle')
-                    ->table('tbl_soft_branch')
-                    ->whereIn('branch_id', $branchIds)
-                    ->update(['is_pushed' => 'Y']);
-            }
-
-            if (!empty($restaurantIds)) {
-                DB::connection('oracle')
-                    ->table('restaurants')
-                    ->whereIn('id', $restaurantIds)
-                    ->update(['is_pushed' => 'Y']);
-            }
-
-            DB::connection('oracle')->commit();
-
-            Log::info('Branches and restaurants marked as pushed', [
-                'branch_count' => count($branchIds),
-                'restaurant_count' => count($restaurantIds),
+            Log::info('Branch sync state updated for branches/restaurants', [
+                'branch_id' => $branchId,
+                'payload' => array_intersect_key(
+                    $validated,
+                    array_flip(array_map(function ($entity) {
+                        return $entity . '_last_synced_at';
+                    }, self::SYNC_ENTITY_TYPES))
+                ),
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Items marked as pushed successfully'
+                'message' => 'Branch sync state updated successfully'
             ], 200);
 
         } catch (\Exception $e) {
-            DB::connection('oracle')->rollBack();
-
-            Log::error('Failed to mark items as pushed', [
+            Log::error('Failed to update branch sync state', [
                 'error' => $e->getMessage()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to mark items as pushed',
+                'message' => 'Failed to update branch sync state',
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function resolveLastSyncedMap(int $branchId): array
+    {
+        $rows = $this->fetchBranchSyncState($branchId);
+
+        $map = [];
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            $map[$entity] = $rows[$entity] ?? null;
+        }
+
+        return $map;
+    }
+
+    private function fetchBranchSyncState(int $branchId): array
+    {
+        $rows = DB::connection('oracle')
+            ->table('branch_sync_state')
+            ->where('restaurant_id', $branchId)
+            ->whereIn('entity_type', self::SYNC_ENTITY_TYPES)
+            ->get()
+            ->keyBy('entity_type');
+
+        $map = [];
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            $timestamp = optional($rows->get($entity))->last_synced_at;
+            $map[$entity] = $timestamp ? $this->parseTimestamp($timestamp) : null;
+        }
+
+        return $map;
+    }
+
+    private function collectLatestTimestamps(array $data): array
+    {
+        return [
+            'branches' => $this->extractMaxTimestamp($data['branches']),
+            'restaurants' => $this->extractMaxTimestamp($data['restaurants'], 'restaurant'),
+        ];
+    }
+
+    private function extractMaxTimestamp(array $items, string $key = null): ?Carbon
+    {
+        $max = null;
+
+        foreach ($items as $item) {
+            $source = $key ? ($item[$key] ?? []) : $item;
+            $value = $source['updated_at'] ?? null;
+            $timestamp = $this->parseTimestamp($value);
+
+            if (!$timestamp) {
+                continue;
+            }
+
+            if (!$max || $timestamp->greaterThan($max)) {
+                $max = $timestamp;
+            }
+        }
+
+        return $max;
+    }
+
+    private function parseTimestamp(?string $value): ?Carbon
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value);
+        } catch (\Exception $e) {
+            Log::warning('Invalid timestamp received during branch sync', [
+                'value' => $value,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    private function parseTimestampPayload(array $validated): array
+    {
+        $result = [];
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            $field = $entity . '_last_synced_at';
+            $timestamp = $this->parseTimestamp($validated[$field] ?? null);
+            if ($timestamp) {
+                $result[$entity] = $timestamp;
+            }
+        }
+
+        return $result;
+    }
+
+    private function persistBranchSyncState(int $branchId, array $timestamps): void
+    {
+        if (empty($timestamps)) {
+            return;
+        }
+
+        foreach ($timestamps as $entity => $timestamp) {
+            $query = DB::connection('oracle')
+                ->table('branch_sync_state')
+                ->where('restaurant_id', $branchId)
+                ->where('entity_type', $entity);
+
+            $values = [
+                'last_synced_at' => $timestamp->utc()->format('Y-m-d H:i:s'),
+                'updated_at' => Carbon::now()->utc()->format('Y-m-d H:i:s'),
+            ];
+
+            if ($query->exists()) {
+                $query->update($values);
+                continue;
+            }
+
+            DB::connection('oracle')
+                ->table('branch_sync_state')
+                ->insert(array_merge($values, [
+                    'restaurant_id' => $branchId,
+                    'entity_type' => $entity,
+                    'created_at' => Carbon::now()->utc()->format('Y-m-d H:i:s'),
+                ]));
+        }
+    }
+
+    private function ensureUpdatedAt(array $record, string $table, string $primaryKey): array
+    {
+        if (!array_key_exists($primaryKey, $record)) {
+            Log::warning('Missing primary key while ensuring updated_at', [
+                'table' => $table,
+                'primary_key' => $primaryKey,
+            ]);
+
+            return $record;
+        }
+
+        if (!empty($record['updated_at'])) {
+            return $record;
+        }
+
+        $timestamp = Carbon::now()->utc()->format('Y-m-d H:i:s');
+
+        DB::connection('oracle')
+            ->table($table)
+            ->where($primaryKey, $record[$primaryKey])
+            ->update([
+                'updated_at' => $timestamp,
+            ]);
+
+        $record['updated_at'] = $timestamp;
+
+        return $record;
     }
 }
 

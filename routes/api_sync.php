@@ -19,15 +19,15 @@ Route::middleware('validate.api.token')->group(function () {
     Route::post('/orders/sync-complete', [OrderSyncController::class, 'syncComplete']);
 
     Route::get('/customers/get-data', [\App\Http\Controllers\Api\CustomerSyncController::class, 'getData']);
-    Route::post('/customers/mark-pushed', [\App\Http\Controllers\Api\CustomerSyncController::class, 'markAsPushed']);
+    Route::post('/customers/update-sync-state', [\App\Http\Controllers\Api\CustomerSyncController::class, 'updateSyncState']);
 
     Route::get('/food/get-data', [\App\Http\Controllers\Api\FoodSyncController::class, 'getFoodData']);
-    Route::post('/food/mark-pushed', [\App\Http\Controllers\Api\FoodSyncController::class, 'markAsPushed']);
+    Route::post('/food/update-sync-state', [\App\Http\Controllers\Api\FoodSyncController::class, 'updateSyncState']);
 
     Route::get('/branches-restaurants/get-data', [\App\Http\Controllers\Api\BranchRestaurantSyncController::class, 'getData']);
-    Route::post('/branches-restaurants/mark-pushed', [\App\Http\Controllers\Api\BranchRestaurantSyncController::class, 'markAsPushed']);
+    Route::post('/branches-restaurants/update-sync-state', [\App\Http\Controllers\Api\BranchRestaurantSyncController::class, 'updateSyncState']);
 
     Route::get('/employees-users/get-data', [\App\Http\Controllers\Api\EmployeeUserSyncController::class, 'getData']);
-    Route::post('/employees-users/mark-pushed', [\App\Http\Controllers\Api\EmployeeUserSyncController::class, 'markAsPushed']);
+    Route::post('/employees-users/update-sync-state', [\App\Http\Controllers\Api\EmployeeUserSyncController::class, 'updateSyncState']);
 });
 

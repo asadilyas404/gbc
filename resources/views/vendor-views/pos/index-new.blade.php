@@ -296,7 +296,8 @@
                         <div class="row g-2 mb-1">
                             <div class="col-sm-12">
                                 <div class="input-group">
-                                    <select name="order_partner" id="order_partner"
+                                    <select name="order_partner" id="order_partner" 
+                                            {{ ($editingOrder) ? 'disabled' : '' }}
                                             class="form-control js-select2-custom"
                                             title="{{ translate('messages.select_category') }}">
                                         <option value="">{{ config('app.name') }}</option>
@@ -307,6 +308,9 @@
                                                 {{ $partner->partner_name }}</option>
                                         @endforeach
                                     </select>
+                                    @if ($editingOrder)
+                                        <input type="hidden" name="order_partner" value="{{ $orderPartner }}">
+                                    @endif
                                 </div>
                             </div>
                             <div class="col-sm-12">

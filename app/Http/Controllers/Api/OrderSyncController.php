@@ -22,6 +22,8 @@ class OrderSyncController extends Controller
             'orders' => 'required|array',
             'orders.*.order' => 'required|array',
             'orders.*.order.id' => 'required',
+            'shift_sessions' => 'nullable|array',
+            'shift_sessions.*.session_id' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -33,9 +35,13 @@ class OrderSyncController extends Controller
         }
 
         $orders = $request->input('orders');
+        $shiftSessions = $request->input('shift_sessions', []);
         $syncedCount = 0;
         $failedCount = 0;
         $orderIds = [];
+        $shiftSyncedCount = 0;
+        $shiftFailedCount = 0;
+        $shiftSessionIds = [];
 
         DB::connection('oracle')->beginTransaction();
 
@@ -99,13 +105,40 @@ class OrderSyncController extends Controller
                 }
             }
 
+            if (!empty($shiftSessions)) {
+                foreach ($shiftSessions as $session) {
+                    try {
+                        $shiftSessionIds[] = $session['session_id'];
+
+                        DB::connection('oracle')
+                            ->table('shift_sessions')
+                            ->updateOrInsert(
+                                ['session_id' => $session['session_id']],
+                                $session
+                            );
+
+                        $shiftSyncedCount++;
+                    } catch (\Exception $e) {
+                        $shiftFailedCount++;
+                        Log::error("Failed syncing shift session in bulk", [
+                            'session_id' => $session['session_id'] ?? null,
+                            'error' => $e->getMessage()
+                        ]);
+                    }
+                }
+            }
+
             DB::connection('oracle')->commit();
 
             Log::info("Bulk orders synced successfully via API", [
                 'total' => count($orders),
                 'synced' => $syncedCount,
                 'failed' => $failedCount,
-                'order_ids' => $orderIds
+                'order_ids' => $orderIds,
+                'shift_sessions_total' => count($shiftSessions),
+                'shift_sessions_synced' => $shiftSyncedCount,
+                'shift_sessions_failed' => $shiftFailedCount,
+                'shift_session_ids' => $shiftSessionIds
             ]);
 
             return response()->json([
@@ -114,7 +147,11 @@ class OrderSyncController extends Controller
                 'total' => count($orders),
                 'synced' => $syncedCount,
                 'failed' => $failedCount,
-                'order_ids' => $orderIds
+                'order_ids' => $orderIds,
+                'shift_sessions_total' => count($shiftSessions),
+                'shift_sessions_synced' => $shiftSyncedCount,
+                'shift_sessions_failed' => $shiftFailedCount,
+                'shift_session_ids' => $shiftSessionIds
             ], 200);
 
         } catch (\Exception $e) {
@@ -122,6 +159,7 @@ class OrderSyncController extends Controller
 
             Log::error("Failed syncing orders bulk via API", [
                 'total_orders' => count($orders),
+                'total_shift_sessions' => count($shiftSessions),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
@@ -148,6 +186,8 @@ class OrderSyncController extends Controller
             'order_details' => 'nullable|array',
             'additional_details' => 'nullable|array',
             'kitchen_status' => 'nullable|array',
+            'shift_sessions' => 'nullable|array',
+            'shift_sessions.*.session_id' => 'required'
         ]);
 
         if ($validator->fails()) {
@@ -159,6 +199,7 @@ class OrderSyncController extends Controller
         }
 
         $data = $request->all();
+        $shiftSessions = $request->input('shift_sessions', []);
 
         DB::connection('oracle')->beginTransaction();
 
@@ -204,6 +245,17 @@ class OrderSyncController extends Controller
                             ->table('kitchen_order_status_logs')
                             ->insert($status);
                     }
+                }
+            }
+
+            if (!empty($shiftSessions)) {
+                foreach ($shiftSessions as $session) {
+                    DB::connection('oracle')
+                        ->table('shift_sessions')
+                        ->updateOrInsert(
+                            ['session_id' => $session['session_id']],
+                            $session
+                        );
                 }
             }
 

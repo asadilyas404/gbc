@@ -3,19 +3,38 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class FoodSyncController extends Controller
 {
+    private const SYNC_ENTITY_TYPES = [
+        'foods',
+        'addons',
+        'categories',
+        'options_list',
+    ];
+
     /**
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getFoodData()
+    public function getFoodData(Request $request)
     {
         try {
+            $validated = $request->validate([
+                'branch_id' => 'required|integer',
+                'foods_last_synced_at' => 'nullable|string',
+                'addons_last_synced_at' => 'nullable|string',
+                'categories_last_synced_at' => 'nullable|string',
+                'options_list_last_synced_at' => 'nullable|string',
+            ]);
+
+            $branchId = (int) $validated['branch_id'];
+            $cursorMap = $this->resolveLastSyncedMap($branchId, $validated);
+
             $data = [
                 'foods' => [],
                 'addons' => [],
@@ -25,8 +44,10 @@ class FoodSyncController extends Controller
 
             $foods = DB::connection('oracle')
                 ->table('food')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
+                ->when($cursorMap['foods'], function ($query, Carbon $cursor) {
+                    $query->where('updated_at', '>', $cursor->toDateTimeString());
+                })
+                ->orderBy('updated_at')
                 ->get();
 
             foreach ($foods as $food) {
@@ -48,6 +69,15 @@ class FoodSyncController extends Controller
                     })
                     ->toArray();
 
+                $partnerVariationOptions = DB::connection('oracle')
+                    ->table('partner_variation_option')
+                    ->where('food_id', $food->id)
+                    ->get()
+                    ->map(function ($pvo) {
+                        return (array) $pvo;
+                    })
+                    ->toArray();
+
                 $translations = DB::connection('oracle')
                     ->table('translations')
                     ->where('translationable_id', $food->id)
@@ -62,14 +92,17 @@ class FoodSyncController extends Controller
                     'food' => (array) $food,
                     'variations' => $variations,
                     'variation_options' => $variationOptions,
+                    'partner_variation_options' => $partnerVariationOptions,
                     'translations' => $translations,
                 ];
             }
 
             $addons = DB::connection('oracle')
                 ->table('add_ons')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
+                ->when($cursorMap['addons'], function ($query, Carbon $cursor) {
+                    $query->where('updated_at', '>', $cursor->toDateTimeString());
+                })
+                ->orderBy('updated_at')
                 ->get();
 
             foreach ($addons as $addon) {
@@ -91,8 +124,10 @@ class FoodSyncController extends Controller
 
             $categories = DB::connection('oracle')
                 ->table('categories')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
+                ->when($cursorMap['categories'], function ($query, Carbon $cursor) {
+                    $query->where('updated_at', '>', $cursor->toDateTimeString());
+                })
+                ->orderBy('updated_at')
                 ->get();
 
             foreach ($categories as $category) {
@@ -114,8 +149,10 @@ class FoodSyncController extends Controller
 
             $optionsList = DB::connection('oracle')
                 ->table('options_list')
-                ->where('is_pushed', '!=', 'Y')
-                ->orWhereNull('is_pushed')
+                ->when($cursorMap['options_list'], function ($query, Carbon $cursor) {
+                    $query->where('updated_at', '>', $cursor->toDateTimeString());
+                })
+                ->orderBy('updated_at')
                 ->get();
 
             foreach ($optionsList as $option) {
@@ -135,11 +172,17 @@ class FoodSyncController extends Controller
                 ];
             }
 
+            $partnerVariationOptionsCount = array_sum(array_map(function ($food) {
+                return count($food['partner_variation_options'] ?? []);
+            }, $data['foods']));
+
             Log::info('Food data retrieved for sync', [
+                'branch_id' => $branchId,
                 'foods_count' => count($data['foods']),
                 'addons_count' => count($data['addons']),
                 'categories_count' => count($data['categories']),
                 'options_list_count' => count($data['options_list']),
+                'partner_variation_options_count' => $partnerVariationOptionsCount,
             ]);
 
             return response()->json([
@@ -150,7 +193,11 @@ class FoodSyncController extends Controller
                     'addons' => count($data['addons']),
                     'categories' => count($data['categories']),
                     'options_list' => count($data['options_list']),
-                ]
+                    'partner_variation_options' => $partnerVariationOptionsCount,
+                ],
+                'cursor' => array_map(function ($item) {
+                    return $item ? $item->toIso8601String() : null;
+                }, $this->collectLatestTimestamps($data)),
             ], 200);
 
         } catch (\Exception $e) {
@@ -175,67 +222,170 @@ class FoodSyncController extends Controller
     public function markAsPushed(Request $request)
     {
         try {
-            $foodIds = $request->input('food_ids', []);
-            $addonIds = $request->input('addon_ids', []);
-            $categoryIds = $request->input('category_ids', []);
-            $optionsListIds = $request->input('options_list_ids', []);
+            $validated = $request->validate([
+                'branch_id' => 'required|integer',
+                'foods_last_synced_at' => 'nullable|string',
+                'addons_last_synced_at' => 'nullable|string',
+                'categories_last_synced_at' => 'nullable|string',
+                'options_list_last_synced_at' => 'nullable|string',
+            ]);
 
-            DB::connection('oracle')->beginTransaction();
+            $branchId = (int) $validated['branch_id'];
+            $timestamps = $this->parseTimestampPayload($validated);
+            $this->persistBranchSyncState($branchId, $timestamps);
 
-            if (!empty($foodIds)) {
-                DB::connection('oracle')
-                    ->table('food')
-                    ->whereIn('id', $foodIds)
-                    ->update(['is_pushed' => 'Y']);
-            }
-
-            if (!empty($addonIds)) {
-                DB::connection('oracle')
-                    ->table('add_ons')
-                    ->whereIn('id', $addonIds)
-                    ->update(['is_pushed' => 'Y']);
-            }
-
-            if (!empty($categoryIds)) {
-                DB::connection('oracle')
-                    ->table('categories')
-                    ->whereIn('id', $categoryIds)
-                    ->update(['is_pushed' => 'Y']);
-            }
-
-            if (!empty($optionsListIds)) {
-                DB::connection('oracle')
-                    ->table('options_list')
-                    ->whereIn('id', $optionsListIds)
-                    ->update(['is_pushed' => 'Y']);
-            }
-
-            DB::connection('oracle')->commit();
-
-            Log::info('Food items marked as pushed', [
-                'food_count' => count($foodIds),
-                'addon_count' => count($addonIds),
-                'category_count' => count($categoryIds),
-                'options_list_count' => count($optionsListIds),
+            Log::info('Branch sync state updated', [
+                'branch_id' => $branchId,
+                'payload' => array_intersect_key(
+                    $validated,
+                    array_flip(array_map(function ($entity) {
+                        return $entity . '_last_synced_at';
+                    }, self::SYNC_ENTITY_TYPES))
+                ),
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Items marked as pushed successfully'
+                'message' => 'Branch sync state updated successfully'
             ], 200);
 
         } catch (\Exception $e) {
-            DB::connection('oracle')->rollBack();
-
-            Log::error('Failed to mark items as pushed', [
+            Log::error('Failed to update branch sync state', [
                 'error' => $e->getMessage()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to mark items as pushed',
+                'message' => 'Failed to update branch sync state',
                 'error' => $e->getMessage()
             ], 500);
+        }
+    }
+
+    private function resolveLastSyncedMap(int $branchId, array $validated): array
+    {
+        $remoteMap = $this->fetchBranchSyncState($branchId);
+
+        $cursors = [];
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            $field = $entity . '_last_synced_at';
+            $cursors[$entity] = $this->parseTimestamp($validated[$field] ?? null)
+                ?? $remoteMap[$entity]
+                ?? null;
+        }
+
+        return $cursors;
+    }
+
+    private function fetchBranchSyncState(int $branchId): array
+    {
+        $rows = DB::connection('oracle')
+            ->table('branch_sync_state')
+            ->where('restaurant_id', $branchId)
+            ->whereIn('entity_type', self::SYNC_ENTITY_TYPES)
+            ->get()
+            ->keyBy('entity_type');
+
+        $map = [];
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            $timestamp = optional($rows->get($entity))->last_synced_at;
+            $map[$entity] = $timestamp ? $this->parseTimestamp($timestamp) : null;
+        }
+
+        return $map;
+    }
+
+    private function collectLatestTimestamps(array $data): array
+    {
+        return [
+            'foods' => $this->extractMaxTimestamp($data['foods'], 'food'),
+            'addons' => $this->extractMaxTimestamp($data['addons'], 'addon'),
+            'categories' => $this->extractMaxTimestamp($data['categories'], 'category'),
+            'options_list' => $this->extractMaxTimestamp($data['options_list'], 'option'),
+        ];
+    }
+
+    private function extractMaxTimestamp(array $items, string $key): ?Carbon
+    {
+        $max = null;
+        foreach ($items as $item) {
+            $value = $item[$key]['updated_at'] ?? null;
+            $timestamp = $this->parseTimestamp($value);
+
+            if (!$timestamp) {
+                continue;
+            }
+
+            if (!$max || $timestamp->greaterThan($max)) {
+                $max = $timestamp;
+            }
+        }
+
+        return $max;
+    }
+
+    private function parseTimestamp(?string $value): ?Carbon
+    {
+        if (empty($value)) {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value);
+        } catch (\Exception $e) {
+            Log::warning('Invalid timestamp received during sync', [
+                'value' => $value,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
+
+    private function parseTimestampPayload(array $validated): array
+    {
+        $result = [];
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            $field = $entity . '_last_synced_at';
+            $timestamp = $this->parseTimestamp($validated[$field] ?? null);
+            if ($timestamp) {
+                $result[$entity] = $timestamp;
+            }
+        }
+
+        return $result;
+    }
+
+    private function persistBranchSyncState(int $branchId, array $timestamps): void
+    {
+        if (empty($timestamps)) {
+            return;
+        }
+
+        foreach ($timestamps as $entity => $timestamp) {
+            $query = DB::connection('oracle')
+                ->table('branch_sync_state')
+                ->where('restaurant_id', $branchId)
+                ->where('entity_type', $entity);
+
+            if ($query->exists()) {
+                $query->update([
+                    'last_synced_at' => $timestamp->utc()->format('Y-m-d H:i:s'),
+                    'updated_at' => Carbon::now()->utc()->format('Y-m-d H:i:s'),
+                ]);
+
+                continue;
+            }
+
+            DB::connection('oracle')
+                ->table('branch_sync_state')
+                ->insert([
+                    'restaurant_id' => $branchId,
+                    'entity_type' => $entity,
+                    'last_synced_at' => $timestamp->utc()->format('Y-m-d H:i:s'),
+                    'created_at' => Carbon::now()->utc()->format('Y-m-d H:i:s'),
+                    'updated_at' => Carbon::now()->utc()->format('Y-m-d H:i:s'),
+                ]);
         }
     }
 }

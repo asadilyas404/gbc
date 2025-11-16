@@ -17,7 +17,11 @@ class ValidateApiToken
      */
     public function handle(Request $request, Closure $next)
     {
-        $token = $request->bearerToken();
+        $token = $request->header('Authorization');
+
+        if ($token) {
+            $token = str_replace('Bearer ', '', $token);
+        }
 
         $expectedToken = config('services.sync_api.token');
 

@@ -24,7 +24,7 @@ class ValidateApiToken
         if (empty($token) || $token != $expectedToken) {
             return response()->json([
                 'success' => false,
-                'message' => 'Unauthorized. Invalid API token.'
+                'message' => 'Unauthorized. Invalid API token: ' . $token . ' & ' . $expectedToken
             ], 401);
         }
 

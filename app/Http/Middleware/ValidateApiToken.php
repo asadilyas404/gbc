@@ -21,7 +21,7 @@ class ValidateApiToken
 
         $expectedToken = config('services.sync_api.token');
 
-        if (empty($token) || $token !== $expectedToken) {
+        if (empty($token) || $token != $expectedToken) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized. Invalid API token.'

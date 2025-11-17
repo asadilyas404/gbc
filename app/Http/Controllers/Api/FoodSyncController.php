@@ -387,8 +387,8 @@ class FoodSyncController extends Controller
 
             if ($query->exists()) {
                 $query->update([
-                    'last_synced_at' => $timestamp->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'),
-                    'updated_at' => Carbon::now()->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'),
+                    'last_synced_at' => $timestamp->format('Y-m-d H:i:s'),
+                    'updated_at' => Carbon::now()->format('Y-m-d H:i:s'),
                 ]);
 
                 continue;
@@ -399,9 +399,9 @@ class FoodSyncController extends Controller
                 ->insert([
                     'restaurant_id' => $branchId,
                     'entity_type' => $entity,
-                    'last_synced_at' => $timestamp->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'),
-                    'created_at' => Carbon::now()->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'),
-                    'updated_at' => Carbon::now()->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s'),
+                    'last_synced_at' => $timestamp->format('Y-m-d H:i:s'),
+                    'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                    'updated_at' => Carbon::now()->format('Y-m-d H:i:s'),
                 ]);
         }
     }
@@ -421,7 +421,7 @@ class FoodSyncController extends Controller
             return $record;
         }
 
-        $timestamp = Carbon::now()->setTimezone(config('app.timezone'))->format('Y-m-d H:i:s');
+        $timestamp = Carbon::now()->format('Y-m-d H:i:s');
 
         DB::connection('oracle')
             ->table($table)

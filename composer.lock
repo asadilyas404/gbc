@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "707a67eb5ddfdde6e32f809aed2a11e0",
+    "content-hash": "88ed8374dee3c98a3dfde1dd40fb179c",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -12581,6 +12581,38 @@
                 "source": "https://github.com/yajra/pdo-via-oci8/tree/v2.4.0"
             },
             "time": "2022-02-09T04:51:42+00:00"
+        },
+        {
+            "name": "zaryab/oracle-schema-sync",
+            "version": "dev-main",
+            "dist": {
+                "type": "path",
+                "url": "./packages/Zaryab/OracleSchemaSync",
+                "reference": "dd35ab9717b75921a58c7693ac364f1effda1c64"
+            },
+            "require": {
+                "illuminate/console": "^8.0",
+                "illuminate/database": "^8.0",
+                "illuminate/support": "^8.0",
+                "php": "^7.4"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Zaryab\\OracleSchemaSync\\OracleSchemaSyncServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Zaryab\\OracleSchemaSync\\": "src/"
+                }
+            },
+            "description": "Sync Oracle table schemas between local and live Oracle databases",
+            "transport-options": {
+                "relative": true
+            }
         }
     ],
     "packages-dev": [
@@ -14973,7 +15005,8 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "laravelpkg/laravelchk": 20,
-        "psy/psysh": 0
+        "psy/psysh": 0,
+        "zaryab/oracle-schema-sync": 20
     },
     "prefer-stable": true,
     "prefer-lowest": false,
@@ -14983,6 +15016,6 @@
         "ext-json": "*",
         "ext-simplexml": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }

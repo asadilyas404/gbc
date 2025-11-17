@@ -303,21 +303,21 @@ class BusinessSettingsController extends Controller
 
     public function syncUsers()
     {
-        SyncEmployeesJob::dispatch();
+        SyncEmployeesJob::dispatch()->onConnection('database');
         Toastr::success('Users sync successfully!');
         return back();
     }
 
     public function syncCustomers()
     {
-        SyncCustomersJob::dispatch();
+        SyncCustomersJob::dispatch()->onConnection('database');
         Toastr::success('Customers sync successfully!');
         return back();
     }
 
     public function syncBranchesRestaurants()
     {
-        SyncBranchesRestaurantsJob::dispatch();
+        SyncBranchesRestaurantsJob::dispatch()->onConnection('database');
         Toastr::success('Branches & Restaurants sync successfully!');
         return back();
     }

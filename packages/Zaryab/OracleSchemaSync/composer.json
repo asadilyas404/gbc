@@ -1,0 +1,23 @@
+{
+    "name": "zaryab/oracle-schema-sync",
+    "description": "Sync Oracle table schemas between local and live Oracle databases",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "Zaryab\\OracleSchemaSync\\": "src/"
+        }
+    },
+    "require": {
+        "php": "^7.4",
+        "illuminate/support": "^8.0",
+        "illuminate/console": "^8.0",
+        "illuminate/database": "^8.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Zaryab\\OracleSchemaSync\\OracleSchemaSyncServiceProvider"
+            ]
+        }
+    }
+}

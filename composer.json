@@ -48,7 +48,8 @@
         "twilio/sdk": "^6.20",
         "unicodeveloper/laravel-paystack": "^1.0",
         "xendit/xendit-php": "^2.19",
-        "yajra/laravel-oci8": "^8.0"
+        "yajra/laravel-oci8": "^8.0",
+        "zaryab/oracle-schema-sync": "dev-main"
     },
     "require-dev": {
         "facade/ignition": "^2.3.6",
@@ -113,5 +114,11 @@
         "post-create-project-cmd": [
             "@php artisan key:generate --ansi"
         ]
-    }
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./packages/Zaryab/OracleSchemaSync"
+        }
+    ]
 }

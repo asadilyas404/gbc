@@ -40,6 +40,7 @@ return [
         'url' => env('LIVE_SERVER_API_URL', 'https://malikalpizza.royalerp.net/api/v1'),
         'token' => env('SYNC_API_TOKEN'),
         'timeout' => env('LIVE_SERVER_API_TIMEOUT', 60), // seconds
+        'restaurant_id' => env('RESTAURANT_ID')
     ],
 
     /*

@@ -269,8 +269,12 @@ class syncTableColumns extends Command
 
                         Schema::connection($connectionLocal)->table($table, function (Blueprint $tbl) use ($col) {
                             $default = $col->data_default ? rtrim(trim($col->data_default), " ;") : null;
+                            // Handle SYSDATE / timestamps
                             if (strtoupper($default) === 'SYSDATE') {
                                 $default = DB::raw('CURRENT_TIMESTAMP');
+                            } elseif ($default !== null) {
+                                // Strip surrounding quotes if present (Oracle returns default as "'N'")
+                                $default = preg_replace("/^'(.*)'$/", '$1', $default);
                             }
 
                             $columnType = strtoupper($col->data_type);

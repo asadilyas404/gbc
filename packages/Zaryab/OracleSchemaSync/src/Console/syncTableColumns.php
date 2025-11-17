@@ -283,39 +283,39 @@ class syncTableColumns extends Command
 
                 // ---------------------------
                 // Add missing columns to live DB (if any)
-                $missingInLive = array_diff($localColNames, $liveColNames);
-                if (!empty($missingInLive)) {
-                    foreach ($missingInLive as $colName) {
-                        $col = collect($localCols)->first(fn($c) => strtolower($c->column_name) === $colName);
-                        $sql = "ALTER TABLE " . strtoupper($table) . " ADD " . strtoupper($col->column_name) . " ";
+                //$missingInLive = array_diff($localColNames, $liveColNames);
+                // if (!empty($missingInLive)) {
+                //     foreach ($missingInLive as $colName) {
+                //         $col = collect($localCols)->first(fn($c) => strtolower($c->column_name) === $colName);
+                //         $sql = "ALTER TABLE " . strtoupper($table) . " ADD " . strtoupper($col->column_name) . " ";
 
-                        switch ($col->data_type) {
-                            case 'NUMBER': $sql .= "NUMBER"; break;
-                            case 'INTEGER': $sql .= "NUMBER"; break;
-                            case 'VARCHAR2':
-                            case 'NVARCHAR2': $sql .= "VARCHAR2(" . $col->data_length . ")"; break;
-                            case 'CHAR': $sql .= "CHAR(" . $col->data_length . ")"; break;
-                            case 'CLOB':
-                            case 'LONG': $sql .= "CLOB"; break;
-                            case 'FLOAT': $sql .= "FLOAT"; break;
-                            case 'DATE':
-                            case 'TIMESTAMP':
-                            case 'TIMESTAMP(0)':
-                            case 'TIMESTAMP(6)': $sql .= "DATE"; break;
-                            default: $sql .= "VARCHAR2(255)"; break;
-                        }
+                //         switch ($col->data_type) {
+                //             case 'NUMBER': $sql .= "NUMBER"; break;
+                //             case 'INTEGER': $sql .= "NUMBER"; break;
+                //             case 'VARCHAR2':
+                //             case 'NVARCHAR2': $sql .= "VARCHAR2(" . $col->data_length . ")"; break;
+                //             case 'CHAR': $sql .= "CHAR(" . $col->data_length . ")"; break;
+                //             case 'CLOB':
+                //             case 'LONG': $sql .= "CLOB"; break;
+                //             case 'FLOAT': $sql .= "FLOAT"; break;
+                //             case 'DATE':
+                //             case 'TIMESTAMP':
+                //             case 'TIMESTAMP(0)':
+                //             case 'TIMESTAMP(6)': $sql .= "DATE"; break;
+                //             default: $sql .= "VARCHAR2(255)"; break;
+                //         }
 
-                        $default = $col->data_default ? rtrim(trim($col->data_default), " ;") : null;
-                        if ($default) {
-                            if (strtoupper($default) === 'SYSDATE') $default = 'CURRENT_TIMESTAMP';
-                            $sql .= " DEFAULT " . $default;
-                        }
+                //         $default = $col->data_default ? rtrim(trim($col->data_default), " ;") : null;
+                //         if ($default) {
+                //             if (strtoupper($default) === 'SYSDATE') $default = 'CURRENT_TIMESTAMP';
+                //             $sql .= " DEFAULT " . $default;
+                //         }
 
-                        $sql .= " NULL";
+                //         $sql .= " NULL";
 
-                        DB::connection($connectionLive)->statement($sql);
-                    }
-                }
+                //         DB::connection($connectionLive)->statement($sql);
+                //     }
+                // }
 
             }
             DB::connection($connectionLocal)->commit();

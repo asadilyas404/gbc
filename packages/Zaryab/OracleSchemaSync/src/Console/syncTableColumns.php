@@ -233,22 +233,13 @@ class syncTableColumns extends Command
                 // ============================================================
                 echo "Table exists on local connection. Syncing missing columns...\n\r";
 
-                try {
-                    // Fetch columns from live DB
-                    $liveCols = DB::connection($connectionLive)->select("
-                        SELECT COLUMN_NAME
-                        FROM ALL_TAB_COLUMNS
-                        WHERE OWNER = '" . strtoupper(Config::get('oracle.' . $connectionLive)['username']) . "'
-                        AND TABLE_NAME = '" . strtoupper($table) . "'
-                        ORDER BY COLUMN_ID
-                    ");
-                } catch (\Exception $e) {
-                    $this->error("Could not connect to the live Oracle database. Please make sure the configuration is set correctly.");
-                    $this->info("You can publish the config file with:");
-                    $this->line("php artisan vendor:publish --provider=\"Zaryab\\OracleSchemaSync\\OracleSchemaSyncServiceProvider\" --tag=config");
-                    $this->info("Then fill in the live database values in config/oracle.php");
-                    return 1; // Stop command execution
-                }
+                $liveCols = DB::connection($connectionLive)->select("
+                    SELECT COLUMN_NAME, DATA_TYPE, DATA_LENGTH, DATA_DEFAULT, NULLABLE
+                    FROM ALL_TAB_COLUMNS
+                    WHERE OWNER = '" . strtoupper(Config::get('oracle.' . $connectionLive)['username']) . "'
+                    AND TABLE_NAME = '" . strtoupper($table) . "'
+                    ORDER BY COLUMN_ID
+                ");
 
                 $liveColNames = array_map(fn($c) => strtolower($c->column_name), $liveCols);
                 // Fetch columns from local DB
@@ -270,9 +261,9 @@ class syncTableColumns extends Command
                     foreach ($missingInLocal as $colName) {
                         // Get column definition from live DB
                         $col = collect($liveCols)->first(fn($c) => strtolower($c->column_name) === $colName);
-
+                        
                         if (!$col) {
-                            $this->error("Column '$colName' not found in local DB. Skipping.");
+                            $this->error("Column '$colName' not found in live DB. Skipping.");
                             continue;
                         }
 

@@ -2,10 +2,13 @@
 
 namespace App\Console;
 
-use App\Models\BusinessSetting;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Jobs\SyncOrdersJob;
+use App\Jobs\SyncFoodJob;
+use App\Jobs\SyncEmployeesJob;
+use App\Jobs\SyncBranchesRestaurantsJob;
+use App\Jobs\SyncCustomersJob;
 
 class Kernel extends ConsoleKernel
 {
@@ -26,10 +29,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->job(new SyncOrdersJob)->everyFiveMinutes();
-        $schedule->job(new SyncFoodJob)->everyFiveMinutes();
-        $schedule->job(new SyncEmployeesJob)->everyFiveMinutes();
-
+        $schedule->job(new SyncOrdersJob)->everyTenMinutes();
+        $schedule->job(new SyncBranchesRestaurantsJob)->dailyAt('23:30');
+        $schedule->job(new SyncEmployeesJob)->dailyAt('23:35');
+        $schedule->job(new SyncFoodJob)->dailyAt('23:40');
+        $schedule->job(new SyncCustomersJob)->dailyAt('23:45');
     }
 
     /**

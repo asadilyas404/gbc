@@ -46,6 +46,18 @@ class syncTableColumns extends Command
         // Fetch all tables from live Oracle DB
         $tableName = $this->argument('table');
 
+        echo "Establishing Connection With LIVE DB...";
+        try {
+            // Test connection to live DB
+            DB::connection($connectionLive)->getPdo();
+        } catch (\Exception $e) {
+            $this->error("Could not connect to the live Oracle database. Please make sure the configuration is correct.");
+            $this->info("You can publish the config file with:");
+            $this->line("php artisan vendor:publish --provider=\"Zaryab\\OracleSchemaSync\\OracleSchemaSyncServiceProvider\" --tag=config");
+            $this->info("Then fill in the live database values in config/oracle.php");
+            return 1; // Stop command execution
+        }
+
         if ($tableName) {
             echo "Syncing table: " . strtoupper($tableName) . "\n";
             $tables = [$tableName]; // only this table

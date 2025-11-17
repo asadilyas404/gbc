@@ -1326,7 +1326,7 @@ class FoodController extends Controller
 
     public function sync()
     {
-        SyncFoodJob::dispatch()->onConnection('database');
+        SyncFoodJob::dispatch();
         Toastr::success('Foods Sync completed!');
         return back();
     }

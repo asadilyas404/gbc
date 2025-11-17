@@ -987,11 +987,14 @@
                 name: 'select_payment_type',
                 value: 'credit_payment'
                 }).appendTo('#order_place');
-            
+                
+                // Disable the Unpaid Order Button
+                $('#unpaidOrderBtn').prop('disabled', true);
             @else
                 $('#payment_type_credit').prop('checked', false);
                 $('#payment_type_credit').hide();
                 $('.payment_type').prop('disabled', false);
+                $('#unpaidOrderBtn').prop('disabled', false);
             @endif   
             
 

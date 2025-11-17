@@ -1151,7 +1151,12 @@ class POSController extends Controller
                 Toastr::success(translate('messages.order_placed_successfully'));
             }
 
-            return redirect()->to('restaurant-panel/pos/new');
+            if(isset($request->partner_id) && !empty($request->partner_id)){
+                return redirect()->to('restaurant-panel/pos/new');
+            }else{
+                return redirect()->back();
+            }
+            
             // return back();
         } catch (\Exception $exception) {
             DB::rollBack();

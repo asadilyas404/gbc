@@ -449,7 +449,6 @@ if (isset($cart['paid'])) {
                                         </span>
                                     </label>
                                 </div>
-                                
                             </div>
                             <div class="row">
                                 <div class="col-12 col-lg-6">
@@ -518,6 +517,7 @@ if (isset($cart['paid'])) {
                                     <button type="submit"
                                         class="btn btn--primary">{{ translate('Place Order') }}</button>
                                     <button type="submit" class="btn btn--warning"
+                                        id="unpaidOrderBtn"
                                         onclick="document.getElementById('order_draft').value='draft'">
                                         {{ translate('Unpaid Order') }}
                                     </button>

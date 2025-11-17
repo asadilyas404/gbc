@@ -46,7 +46,7 @@ class syncTableColumns extends Command
         // Fetch all tables from live Oracle DB
         $tableName = $this->argument('table');
 
-        echo "Establishing Connection With LIVE DB...";
+        echo "Establishing Connection With LIVE DB...\n";
         try {
             // Test connection to live DB
             DB::connection($connectionLive)->getPdo();

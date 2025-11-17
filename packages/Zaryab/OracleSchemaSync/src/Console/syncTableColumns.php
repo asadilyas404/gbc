@@ -265,31 +265,67 @@ class syncTableColumns extends Command
                 // ---------------------------
                 // Add missing columns to local DB (if any)
                 $missingInLocal = array_diff($liveColNames, $localColNames);
-                
+
                 if (!empty($missingInLocal)) {
                     foreach ($missingInLocal as $colName) {
-                        $col = collect($localCols)->first(fn($c) => strtolower($c->column_name) === $colName);
+                        // Get column definition from live DB
+                        $col = collect($liveCols)->first(fn($c) => strtolower($c->column_name) === $colName);
+
+                        if (!$col) {
+                            $this->error("Column '$colName' not found in local DB. Skipping.");
+                            continue;
+                        }
+
                         Schema::connection($connectionLocal)->table($table, function (Blueprint $tbl) use ($col) {
                             $default = $col->data_default ? rtrim(trim($col->data_default), " ;") : null;
-                            if (strtoupper($default) === 'SYSDATE') $default = DB::raw('CURRENT_TIMESTAMP');
+                            if (strtoupper($default) === 'SYSDATE') {
+                                $default = DB::raw('CURRENT_TIMESTAMP');
+                            }
 
-                            switch ($col->data_type) {
-                                case 'NUMBER': $c = $tbl->bigInteger($col->column_name)->nullable(); break;
-                                case 'INTEGER': $c = $tbl->integer($col->column_name)->nullable(); break;
+                            $columnType = strtoupper($col->data_type);
+
+                            switch ($columnType) {
+                                case 'NUMBER':
+                                case 'INTEGER':
+                                    $c = $tbl->bigInteger($col->column_name)->nullable();
+                                    break;
                                 case 'VARCHAR2':
-                                case 'NVARCHAR2': $c = $tbl->string($col->column_name, $col->data_length)->nullable(); break;
-                                case 'CHAR': $c = $tbl->char($col->column_name, $col->data_length)->nullable(); break;
+                                case 'NVARCHAR2':
+                                    $c = $tbl->string($col->column_name, $col->data_length)->nullable();
+                                    break;
+                                case 'CHAR':
+                                    $c = $tbl->char($col->column_name, $col->data_length)->nullable();
+                                    break;
                                 case 'CLOB':
-                                case 'LONG': $tbl->longText($col->column_name)->nullable(); break;
-                                case 'FLOAT': $c = $tbl->float($col->column_name)->nullable(); break;
+                                case 'LONG':
+                                    $c = $tbl->longText($col->column_name)->nullable();
+                                    break;
+                                case 'FLOAT':
+                                    $c = $tbl->float($col->column_name)->nullable();
+                                    break;
                                 case 'DATE':
                                 case 'TIMESTAMP':
                                 case 'TIMESTAMP(0)':
-                                case 'TIMESTAMP(6)': $c = $tbl->dateTime($col->column_name)->nullable(); break;
-                                default: $c = $tbl->string($col->column_name)->nullable(); break;
+                                case 'TIMESTAMP(6)':
+                                    $c = $tbl->dateTime($col->column_name)->nullable();
+                                    break;
+                                default:
+                                    $c = $tbl->string($col->column_name)->nullable();
+                                    break;
                             }
-                            if (isset($c) && $default !== null) $c->default($default);
+
+                            // Set default safely
+                            if ($default !== null) {
+                                if ($c instanceof \Illuminate\Database\Schema\ForeignIdColumnDefinition || $columnType === 'CLOB' || $columnType === 'LONG') {
+                                    // Cannot set default for CLOB/LONG or foreign keys
+                                } elseif ($default instanceof \Illuminate\Database\Query\Expression) {
+                                    $c->default($default); // DB::raw for SYSDATE/CURRENT_TIMESTAMP
+                                } else {
+                                    $c->default($default);
+                                }
+                            }
                         });
+
                     }
                 }
 

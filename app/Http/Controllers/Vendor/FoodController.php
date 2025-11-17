@@ -180,7 +180,7 @@ class FoodController extends Controller
             $partner_price=$request->partner_price;
             foreach($partner_price as $partner_id=>$price){
                 $arr[]=['partner_id'=>$partner_id,'price'=>$price];
-            }   
+            }
         }
 
         $food->partner_price= json_encode($arr);
@@ -398,7 +398,7 @@ class FoodController extends Controller
                         'current_stock' => $opt->total_stock,
                     ];
                 }
-                $variationsPayload[] = $entry;    
+                $variationsPayload[] = $entry;
             }
         }
 
@@ -408,7 +408,7 @@ class FoodController extends Controller
         //             $join->on('op.partner_id', '=', 'p.partner_id')
         //                 ->whereNull('variation_option_id')
         //                 ->where('food_id',$id)
-                        
+
         //                 ->where('is_deleted',0);
         //         })
         //         ->select('p.*','op.*','p.partner_id as p_id')
@@ -685,7 +685,7 @@ class FoodController extends Controller
         //                         'updated_at' =>date('Y/m/d H:is'),
         //                         ]
         //             );
-                   
+
         //         }
         //     }
         // }
@@ -709,7 +709,7 @@ class FoodController extends Controller
         //             ]
         //         );
         //     }
-            
+
         // }
 
         $arr=[];
@@ -717,7 +717,7 @@ class FoodController extends Controller
             $partner_price=$request->partner_price;
             foreach($partner_price as $partner_id=>$price){
                 $arr[]=['partner_id'=>$partner_id,'price'=>$price];
-            }   
+            }
         }
 
         $p->partner_price= json_encode($arr);
@@ -733,7 +733,7 @@ class FoodController extends Controller
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
                 if ($option['max'] > count($option['values'])) {
-                    $validator->getMessageBag()->add('name', translate('messages.please_add_more_options_or_change_the_max_value_for') . $option['name']); 
+                    $validator->getMessageBag()->add('name', translate('messages.please_add_more_options_or_change_the_max_value_for') . $option['name']);
                     return response()->json(['errors' => Helpers::error_processor($validator)]);
                 }
 
@@ -781,7 +781,7 @@ class FoodController extends Controller
                         $v->sell_count = 0;
                         $v->save();
 
-                        
+
                     } else {
                         $v = VariationOption::create([
                             "food_id" => $p->id,
@@ -793,7 +793,7 @@ class FoodController extends Controller
                             "stock_type" => $request->stock_type ?? 'unlimited',
                             "sell_count" => 0,
                         ]);
-                        
+
                     }
                     $partner_price=$value['partneroptionPrice'];
 
@@ -1311,7 +1311,7 @@ class FoodController extends Controller
 
             DB::table('PARTNER_VARIATION_OPTION')->where('VARIATION_OPTION_ID',$request->option_id)->update(['is_deleted'=>1]);
 
-            
+
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
@@ -1326,7 +1326,7 @@ class FoodController extends Controller
 
     public function sync()
     {
-        SyncFoodJob::dispatch()->onConnection('database');
+        SyncFoodJob::dispatch();
         Toastr::success('Foods Sync completed!');
         return back();
     }

@@ -68,7 +68,7 @@ class syncTableColumns extends Command
                 FROM ALL_TABLES
                 WHERE OWNER = '" . strtoupper(config('oracle.' . $connectionLive)['username']) . "'
             ");
-            $tables = array_map(fn($t) => $t->TABLE_NAME, $tables);
+            $tables = array_map(fn($t) => $t->table_name, $tables);
         }
         
         try {

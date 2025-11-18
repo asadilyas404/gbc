@@ -50,6 +50,7 @@ class syncTableColumns extends Command
         try {
             // Test connection to live DB
             DB::connection($connectionLive)->getPdo();
+            dump('Connected!');
         } catch (\Exception $e) {
             $this->error("Could not connect to the live Oracle database. Please make sure the configuration is correct.");
             $this->info("You can publish the config file with:");
@@ -70,7 +71,7 @@ class syncTableColumns extends Command
             ");
             $tables = array_map(fn($t) => $t->table_name, $tables);
         }
-        
+
         try {
             foreach ($tables as $table) {
 
@@ -89,7 +90,7 @@ class syncTableColumns extends Command
                     $tableName = strtoupper($table);
 
                     $this->info("Error While Creating Table On Local Database.");
-                    $this->error("Table Not Found On Local Database:" . $tableName . " Make this table manually.");
+                    $this->error("Table Not Found On Local Database: " . $tableName . " Make this table manually.");
                     continue;
 
                     // 1. Fetch ALL columns
@@ -272,7 +273,7 @@ class syncTableColumns extends Command
                     foreach ($missingInLocal as $colName) {
                         // Get column definition from live DB
                         $col = collect($liveCols)->first(fn($c) => strtolower($c->column_name) === $colName);
-                        
+
                         if (!$col) {
                             $this->error("Column '$colName' not found in live DB. Skipping.");
                             continue;
@@ -280,51 +281,61 @@ class syncTableColumns extends Command
 
                         Schema::connection($connectionLocal)->table($table, function (Blueprint $tbl) use ($col) {
                             $default = $this->normalizeOracleDefault($col->data_default);
-
                             $columnType = strtoupper($col->data_type);
 
                             switch ($columnType) {
                                 case 'NUMBER':
                                 case 'INTEGER':
-                                    $c = $tbl->bigInteger($col->column_name)->nullable();
+                                    $c = $tbl->bigInteger($col->column_name);
+                                    $col->nullable === 'Y' ? $c->nullable() : $c->nullable(false);
                                     break;
+
                                 case 'VARCHAR2':
                                 case 'NVARCHAR2':
-                                    $c = $tbl->string($col->column_name, $col->data_length)->nullable();
+                                    $c = $tbl->string($col->column_name, $col->data_length);
+                                    $col->nullable === 'Y' ? $c->nullable() : $c->nullable(false);
                                     break;
+
                                 case 'CHAR':
-                                    $c = $tbl->char($col->column_name, $col->data_length)->nullable();
+                                    $c = $tbl->char($col->column_name, $col->data_length);
+                                    $col->nullable === 'Y' ? $c->nullable() : $c->nullable(false);
                                     break;
+
                                 case 'CLOB':
                                 case 'LONG':
-                                    $c = $tbl->longText($col->column_name)->nullable();
+                                    $c = $tbl->longText($col->column_name);
                                     break;
+
                                 case 'FLOAT':
-                                    $c = $tbl->float($col->column_name)->nullable();
+                                    $c = $tbl->float($col->column_name);
+                                    $col->nullable === 'Y' ? $c->nullable() : $c->nullable(false);
                                     break;
+
                                 case 'DATE':
                                 case 'TIMESTAMP':
                                 case 'TIMESTAMP(0)':
                                 case 'TIMESTAMP(6)':
-                                    $c = $tbl->dateTime($col->column_name)->nullable();
+                                    $c = $tbl->dateTime($col->column_name);
+                                    $col->nullable === 'Y' ? $c->nullable() : $c->nullable(false);
                                     break;
+
                                 default:
-                                    $c = $tbl->string($col->column_name)->nullable();
+                                    $c = $tbl->string($col->column_name);
+                                    $col->nullable === 'Y' ? $c->nullable() : $c->nullable(false);
                                     break;
                             }
 
                             // Set default safely
                             if ($default !== null) {
-                                if ($c instanceof \Illuminate\Database\Schema\ForeignIdColumnDefinition || $columnType === 'CLOB' || $columnType === 'LONG') {
+                                if ($c instanceof \Illuminate\Database\Schema\ForeignIdColumnDefinition || in_array($columnType, ['CLOB', 'LONG'])) {
                                     // Cannot set default for CLOB/LONG or foreign keys
                                 } elseif ($default instanceof \Illuminate\Database\Query\Expression) {
-                                    $c->default($default); // DB::raw for SYSDATE/CURRENT_TIMESTAMP
+                                    $c->default($default); // e.g., DB::raw('CURRENT_TIMESTAMP')
                                 } else {
                                     $c->default($default);
                                 }
                             }
                         });
-
                     }
                 }
 
@@ -411,13 +422,13 @@ class syncTableColumns extends Command
     }
 
     /**
-    * Sync Oracle Sequence and Trigger from live DB to local DB.
-    *
-    * @param string $tableName
-    * @param string $connectionLive
-    * @param string $connectionLocal
-    * @return void
-    */
+     * Sync Oracle Sequence and Trigger from live DB to local DB.
+     *
+     * @param string $tableName
+     * @param string $connectionLive
+     * @param string $connectionLocal
+     * @return void
+     */
     protected function syncSequenceAndTrigger(string $tableName, string $connectionLive, string $connectionLocal)
     {
         $ownerLive = strtoupper(config('oracle.' . $connectionLive)['username']);

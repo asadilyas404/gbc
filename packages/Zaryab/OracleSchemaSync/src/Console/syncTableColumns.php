@@ -359,31 +359,36 @@ class syncTableColumns extends Command
 
     private function normalizeOracleDefault($default)
     {
-        if ($default === null) return null;
+        if ($default === null) {
+            return null;
+        }
 
         $default = trim($default);
-        $default = rtrim($default, " ;");
 
-        // Remove surrounding quotes
-        $default = preg_replace("/^'(.*)'$/", "$1", $default);
+        // Handle NULL default
+        if (strtoupper($default) === 'NULL') {
+            return null;
+        }
 
-        // Oracle SYSDATE → MySQL CURRENT_TIMESTAMP
-        if (strtoupper($default) === 'SYSDATE') {
+        // Remove trailing whitespace or extra characters
+        $default = rtrim($default, " \t\n\r\0\x0B");
+
+        // Handle CURRENT_TIMESTAMP / SYSDATE / SYSTIMESTAMP (NO QUOTES)
+        if (preg_match('/CURRENT_TIMESTAMP|SYSDATE|SYSTIMESTAMP/i', $default)) {
             return DB::raw('CURRENT_TIMESTAMP');
         }
 
-        // Oracle CURRENT_TIMESTAMP
-        if (strtoupper($default) === 'CURRENT_TIMESTAMP') {
-            return DB::raw('CURRENT_TIMESTAMP');
-        }
-
-        // Oracle number defaults come like "0 " or " 1"
+        // Handle numeric defaults (NUMBER columns)
         if (is_numeric($default)) {
             return $default + 0;
         }
 
-        // Fallback: return raw string
+        // Handle quoted string defaults: `'ABC'`, `'N'`, `'0'`
+        if (preg_match("/^'(.*)'$/", $default, $m)) {
+            return $m[1]; // return ABC, N, etc.
+        }
+
+        // If string without quotes → wrap it
         return $default;
     }
-
 }

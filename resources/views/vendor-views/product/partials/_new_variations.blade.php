@@ -153,9 +153,7 @@
 
                                         <input class="form-control" required type="number" min="0" step="0.01"
                                         name="options[{{ $key }}][values][{{ $key_value }}][partneroptionPrice][{{$row->p_id}}]"
-                                        value="{{ $row->price  }}">
-
-                               
+                                        value="{{ $row->price ?? ($value['optionPrice'] == 0 ? 0 : '') }}">
                                     </div>
                                     <!-- @php dump( $row->p_id) @endphp -->
 

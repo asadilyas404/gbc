@@ -16,7 +16,7 @@
             $tax = Helpers::get_restaurant_data()->tax;
             $delivery_fee = 0;
             $discount = 0;
-            $discount_type = 'amount';
+            $discount_type = 'percent';
             $discount_on_product = 0;
             $variation_price = 0;
             ?>
@@ -618,13 +618,13 @@ if (isset($cart['paid'])) {
                     <div class="form-group col-sm-6">
                         <label for="discount_input_type">{{ translate('messages.type') }}</label>
                         <select name="type" class="form-control discount-type" id="discount_input_type">
-                            <option value="amount" {{ $discount_type == 'amount' ? 'selected' : '' }}>
-                                {{ translate('messages.amount') }}
-                                ({{ Helpers::currency_symbol() }})
-                            </option>
                             <option value="percent" {{ $discount_type == 'percent' ? 'selected' : '' }}>
                                 {{ translate('messages.percent') }}
                                 (%)
+                            </option>
+                            <option value="amount" {{ $discount_type == 'amount' ? 'selected' : '' }}>
+                                {{ translate('messages.amount') }}
+                                ({{ Helpers::currency_symbol() }})
                             </option>
                         </select>
                     </div>

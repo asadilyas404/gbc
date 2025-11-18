@@ -210,4 +210,12 @@ class ShiftSessionController extends Controller
         return response()->json(['sucess' => true, 'message' => 'Session rejected successfully.']);
     }
 
+    public function postCashAdjustment($date, $closingCash = 0){
+
+    }
+
+    public function removeCashAdjustment($id, $date, $closingCash = 0){
+
+    }
+
 }

@@ -78,9 +78,9 @@ class syncTableColumns extends Command
 
                 $tableExists = Schema::connection($connectionLocal)->hasTable($table);
 
-                // ============================================================
-                // CREATE TABLE IF NOT EXISTS
-                // ============================================================
+                // ===============================================
+                // FIXED TABLE CREATION FOR ORACLE
+                // ===============================================
                 if (!$tableExists) {
 
                     echo "Table not found. Creating: " . strtoupper($table) . "\n\r";
@@ -88,9 +88,7 @@ class syncTableColumns extends Command
                     $owner = strtoupper(Config::get('oracle.' . $connectionLive)['username']);
                     $tableName = strtoupper($table);
 
-                    // ==============================================
-                    // 1. Fetch all columns
-                    // ==============================================
+                    // 1. Fetch ALL columns
                     $liveColumnsDetails = DB::connection($connectionLive)->select("
                         SELECT OWNER,
                             TABLE_NAME,
@@ -106,9 +104,7 @@ class syncTableColumns extends Command
                         ORDER BY COLUMN_ID
                     ");
 
-                    // ==============================================
-                    // 2. Fetch PRIMARY KEY columns
-                    // ==============================================
+                    // 2. Primary Keys
                     $primaryKeys = DB::connection($connectionLive)->select("
                         SELECT acc.COLUMN_NAME
                         FROM ALL_CONSTRAINTS ac
@@ -119,12 +115,9 @@ class syncTableColumns extends Command
                         AND ac.CONSTRAINT_TYPE = 'P'
                         ORDER BY acc.POSITION
                     ");
-
                     $pkColumns = array_map(fn($c) => $c->column_name, $primaryKeys);
 
-                    // ==============================================
-                    // 3. Detect auto-increment SEQUENCE and TRIGGER
-                    // ==============================================
+                    // 3. Detect sequence from trigger
                     $triggerInfo = DB::connection($connectionLive)->select("
                         SELECT TRIGGER_NAME, TRIGGER_BODY
                         FROM ALL_TRIGGERS
@@ -145,72 +138,90 @@ class syncTableColumns extends Command
                     echo "Detected PK: " . implode(',', $pkColumns) . "\n\r";
                     echo "Detected Oracle Sequence: " . ($sequenceName ?: 'None') . "\n\r";
 
-                    // ==============================================
-                    // 4. Create TABLE in MySQL/MariaDB
-                    // ==============================================
-                    Schema::connection($connectionLocal)->create($table, function (Blueprint $tbl) use ($liveColumnsDetails, $pkColumns) {
+                    // ===============================================
+                    // Build RAW Oracle CREATE TABLE SQL
+                    // ===============================================
 
-                        foreach ($liveColumnsDetails as $col) {
+                    $sql = "CREATE TABLE $tableName (\n";
 
-                            $default = $this->normalizeOracleDefault($col->data_default);
+                    foreach ($liveColumnsDetails as $col) {
+                        $colName = $col->column_name;
+                        $type = strtoupper($col->data_type);
+                        $length = $col->data_length;
+                        $nullable = $col->nullable === 'Y' ? 'NULL' : 'NOT NULL';
 
-                            switch ($col->data_type) {
+                        // Build datatype
+                        switch ($type) {
+                            case 'VARCHAR2':
+                            case 'NVARCHAR2':
+                                $dt = "$type($length)";
+                                break;
 
-                                case 'NUMBER':
-                                    $c = $tbl->bigInteger($col->column_name)->nullable();
-                                    if ($default !== null) $c->default($default);
-                                    break;
+                            case 'NUMBER':
+                                $dt = "NUMBER";
+                                break;
 
-                                case 'INTEGER':
-                                    $c = $tbl->integer($col->column_name)->nullable();
-                                    if ($default !== null) $c->default($default);
-                                    break;
+                            case 'INTEGER':
+                                $dt = "NUMBER";
+                                break;
 
-                                case 'VARCHAR2':
-                                case 'NVARCHAR2':
-                                    $c = $tbl->string($col->column_name, $col->data_length)->nullable();
-                                    if ($default !== null) $c->default($default);
-                                    break;
+                            case 'FLOAT':
+                                $dt = "FLOAT";
+                                break;
 
-                                case 'CHAR':
-                                    $c = $tbl->char($col->column_name, $col->data_length)->nullable();
-                                    if ($default !== null) $c->default($default);
-                                    break;
+                            case 'DATE':
+                                $dt = "DATE";
+                                break;
 
-                                case 'CLOB':
-                                case 'LONG':
-                                    $tbl->longText($col->column_name)->nullable();
-                                    break;
+                            case 'TIMESTAMP':
+                            case 'TIMESTAMP(0)':
+                            case 'TIMESTAMP(6)':
+                                $dt = "TIMESTAMP";
+                                break;
 
-                                case 'FLOAT':
-                                    $c = $tbl->float($col->column_name)->nullable();
-                                    if ($default !== null) $c->default($default);
-                                    break;
+                            case 'CLOB':
+                            case 'LONG':
+                                $dt = "CLOB";
+                                break;
 
-                                case 'DATE':
-                                case 'TIMESTAMP':
-                                case 'TIMESTAMP(0)':
-                                case 'TIMESTAMP(6)':
-                                    $c = $tbl->dateTime($col->column_name)->nullable();
-                                    if ($default !== null) $c->default($default);
-                                    break;
+                            default:
+                                $dt = "VARCHAR2(4000)";
+                                break;
+                        }
 
-                                default:
-                                    $c = $tbl->string($col->column_name)->nullable();
-                                    if ($default !== null) $c->default($default);
-                                    break;
+                        // Fix default
+                        $default = null;
+
+                        if ($colName === 'ID' && $sequenceName) {
+                            $default = "DEFAULT $sequenceName.NEXTVAL";
+                        } else {
+                            $normalized = $this->normalizeOracleDefault($col->data_default);
+
+                            if ($normalized instanceof \Illuminate\Database\Query\Expression) {
+                                $default = "DEFAULT " . $normalized->getValue();
+                            } elseif ($normalized !== null) {
+                                $default = "DEFAULT '" . addslashes($normalized) . "'";
                             }
                         }
 
-                        // Add PRIMARY KEY if exists
-                        if (!empty($pkColumns)) {
-                            $tbl->primary($pkColumns);
-                        }
-                    });
+                        $sql .= "    $colName $dt " . ($default ? $default . " " : "") . "$nullable,\n";
+                    }
 
-                    echo "Table created successfully: " . strtoupper($table) . "\n\r";
+                    // Append primary key constraint
+                    if (!empty($pkColumns)) {
+                        $sql .= "    CONSTRAINT {$tableName}_PK PRIMARY KEY (" . implode(',', $pkColumns) . ")\n";
+                    } else {
+                        $sql = rtrim($sql, ",\n") . "\n"; // Remove trailing comma
+                    }
 
-                    // Store sequence info so you can use NEXTVAL when inserting back
+                    $sql .= ");";
+
+                    // Execute CREATE TABLE
+                    DB::connection($connectionLocal)->unprepared($sql);
+
+                    echo "Created Table Using RAW SQL: $tableName\n\r";
+
+                    // Save sequence info for inserts
                     if ($sequenceName) {
                         DB::table('oracle_sequences_map')->updateOrInsert(
                             ['table_name' => $tableName],

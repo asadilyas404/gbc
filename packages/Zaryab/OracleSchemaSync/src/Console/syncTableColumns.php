@@ -88,6 +88,10 @@ class syncTableColumns extends Command
                     $owner = strtoupper(Config::get('oracle.' . $connectionLive)['username']);
                     $tableName = strtoupper($table);
 
+                    $this->info("Error While Creating Table On Local Database.");
+                    $this->error("Table Not Found On Local Database:" . $tableName . " Make this table manually.");
+                    continue;
+
                     // 1. Fetch ALL columns
                     $liveColumnsDetails = DB::connection($connectionLive)->select("
                         SELECT OWNER,
@@ -145,7 +149,7 @@ class syncTableColumns extends Command
                     // Build RAW Oracle CREATE TABLE SQL
                     // ===============================================
 
-                    $sql = "CREATE TABLE $tableName (\n";
+                    $sql = "CREATE TABLE $tableName (";
 
                     foreach ($liveColumnsDetails as $col) {
                         $colName = $col->column_name;
@@ -418,23 +422,24 @@ class syncTableColumns extends Command
     {
         $ownerLive = strtoupper(config('oracle.' . $connectionLive)['username']);
         $ownerLocal = strtoupper(config('oracle.' . $connectionLocal)['username']);
+        $tableNameUpper = strtoupper($tableName);
 
         // 1. Detect sequence from live triggers
         $triggerInfo = DB::connection($connectionLive)->select("
             SELECT TRIGGER_NAME, TRIGGER_BODY
             FROM ALL_TRIGGERS
-            WHERE TABLE_OWNER = :owner
-            AND TABLE_NAME = :table
+            WHERE TABLE_OWNER = '$ownerLive'
+            AND TABLE_NAME = '$tableNameUpper'
             AND STATUS = 'ENABLED'
-        ", ['owner' => $ownerLive, 'table' => strtoupper($tableName)]);
+        ");
 
         $sequenceName = null;
         $triggerName = null;
 
         foreach ($triggerInfo as $trigger) {
-            if (preg_match('/([A-Za-z0-9_]+)\.NEXTVAL/i', $trigger->trigger_body, $m)) {
-                $sequenceName = $m[1];
-                $triggerName = $trigger->TRIGGER_NAME;
+            if (preg_match('/([A-Za-z0-9_]+)\.NEXTVAL/i', $trigger->TRIGGER_BODY, $m)) {
+                $sequenceName = strtoupper($m[1]);
+                $triggerName = strtoupper($trigger->TRIGGER_NAME);
                 break;
             }
         }
@@ -448,9 +453,9 @@ class syncTableColumns extends Command
         $sequenceExists = DB::connection($connectionLocal)->selectOne("
             SELECT SEQUENCE_NAME 
             FROM ALL_SEQUENCES 
-            WHERE SEQUENCE_OWNER = :owner 
-            AND SEQUENCE_NAME = :seq
-        ", ['owner' => $ownerLocal, 'seq' => strtoupper($sequenceName)]);
+            WHERE SEQUENCE_OWNER = '$ownerLocal' 
+            AND SEQUENCE_NAME = '$sequenceName'
+        ");
 
         // 3. Create sequence if missing
         if (!$sequenceExists) {
@@ -466,26 +471,26 @@ class syncTableColumns extends Command
 
         // 4. Check if trigger exists on local DB
         $triggerExists = DB::connection($connectionLocal)->selectOne("
-            SELECT TRIGGER_NAME 
-            FROM ALL_TRIGGERS 
-            WHERE TABLE_OWNER = :owner 
-            AND TABLE_NAME = :table
-            AND TRIGGER_NAME = :trigger
-        ", ['owner' => $ownerLocal, 'table' => strtoupper($tableName), 'trigger' => strtoupper($triggerName)]);
+            SELECT TRIGGER_NAME
+            FROM ALL_TRIGGERS
+            WHERE TABLE_OWNER = '$ownerLocal'
+            AND TABLE_NAME = '$tableNameUpper'
+            AND TRIGGER_NAME = '$triggerName'
+        ");
 
         // 5. Create trigger if missing
         if (!$triggerExists) {
             $this->info("Creating trigger $triggerName on local DB...");
 
             $triggerSQL = "
-            CREATE OR REPLACE TRIGGER $triggerName
-            BEFORE INSERT ON $tableName
-            FOR EACH ROW
-            BEGIN
-                IF :NEW.ID IS NULL THEN
-                    SELECT $sequenceName.NEXTVAL INTO :NEW.ID FROM dual;
-                END IF;
-            END;
+                CREATE OR REPLACE TRIGGER $triggerName
+                BEFORE INSERT ON $tableNameUpper
+                FOR EACH ROW
+                BEGIN
+                    IF :NEW.ID IS NULL THEN
+                        SELECT $sequenceName.NEXTVAL INTO :NEW.ID FROM dual;
+                    END IF;
+                END;
             ";
 
             DB::connection($connectionLocal)->statement($triggerSQL);
@@ -493,5 +498,4 @@ class syncTableColumns extends Command
 
         $this->info("Sequence and trigger synced successfully for table $tableName.");
     }
-
 }

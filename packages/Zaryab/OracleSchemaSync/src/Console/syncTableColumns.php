@@ -152,18 +152,10 @@ class syncTableColumns extends Command
 
                         foreach ($liveColumnsDetails as $col) {
 
-                            $default = null;
-
-                            if (!empty($col->data_default)) {
-                                $default = trim($col->data_default);
-                                $default = rtrim($default, " ;");
-
-                                if (strtoupper($default) === 'SYSDATE') {
-                                    $default = DB::raw('CURRENT_TIMESTAMP');
-                                }
-                            }
+                            $default = $this->normalizeOracleDefault($col->data_default);
 
                             switch ($col->data_type) {
+
                                 case 'NUMBER':
                                     $c = $tbl->bigInteger($col->column_name)->nullable();
                                     if ($default !== null) $c->default($default);
@@ -185,8 +177,8 @@ class syncTableColumns extends Command
                                     if ($default !== null) $c->default($default);
                                     break;
 
-                                case 'LONG':
                                 case 'CLOB':
+                                case 'LONG':
                                     $tbl->longText($col->column_name)->nullable();
                                     break;
 
@@ -202,9 +194,10 @@ class syncTableColumns extends Command
                                     $c = $tbl->dateTime($col->column_name)->nullable();
                                     if ($default !== null) $c->default($default);
                                     break;
+
                                 default:
-                                    // Unknown type → fallback to string
-                                    $c = $tbl->string($col->column_name)->nullable()->default('');
+                                    $c = $tbl->string($col->column_name)->nullable();
+                                    if ($default !== null) $c->default($default);
                                     break;
                             }
                         }
@@ -268,14 +261,7 @@ class syncTableColumns extends Command
                         }
 
                         Schema::connection($connectionLocal)->table($table, function (Blueprint $tbl) use ($col) {
-                            $default = $col->data_default ? rtrim(trim($col->data_default), " ;") : null;
-                            // Handle SYSDATE / timestamps
-                            if (strtoupper($default) === 'SYSDATE') {
-                                $default = DB::raw('CURRENT_TIMESTAMP');
-                            } elseif ($default !== null) {
-                                // Strip surrounding quotes if present (Oracle returns default as "'N'")
-                                $default = preg_replace("/^'(.*)'$/", '$1', $default);
-                            }
+                            $default = $this->normalizeOracleDefault($col->data_default);
 
                             $columnType = strtoupper($col->data_type);
 
@@ -370,4 +356,34 @@ class syncTableColumns extends Command
             dump($th->getMessage());
         }
     }
+
+    private function normalizeOracleDefault($default)
+    {
+        if ($default === null) return null;
+
+        $default = trim($default);
+        $default = rtrim($default, " ;");
+
+        // Remove surrounding quotes
+        $default = preg_replace("/^'(.*)'$/", "$1", $default);
+
+        // Oracle SYSDATE → MySQL CURRENT_TIMESTAMP
+        if (strtoupper($default) === 'SYSDATE') {
+            return DB::raw('CURRENT_TIMESTAMP');
+        }
+
+        // Oracle CURRENT_TIMESTAMP
+        if (strtoupper($default) === 'CURRENT_TIMESTAMP') {
+            return DB::raw('CURRENT_TIMESTAMP');
+        }
+
+        // Oracle number defaults come like "0 " or " 1"
+        if (is_numeric($default)) {
+            return $default + 0;
+        }
+
+        // Fallback: return raw string
+        return $default;
+    }
+
 }

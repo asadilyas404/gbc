@@ -117,6 +117,9 @@ class syncTableColumns extends Command
                     ");
                     $pkColumns = array_map(fn($c) => $c->column_name, $primaryKeys);
 
+                    // 3. Sync the sequence and trigger
+                    $this->syncSequenceAndTrigger($tableName, $connectionLive, $connectionLocal);
+
                     // 3. Detect sequence from trigger
                     $triggerInfo = DB::connection($connectionLive)->select("
                         SELECT TRIGGER_NAME, TRIGGER_BODY
@@ -402,4 +405,93 @@ class syncTableColumns extends Command
         // If string without quotes → wrap it
         return $default;
     }
+
+    /**
+    * Sync Oracle Sequence and Trigger from live DB to local DB.
+    *
+    * @param string $tableName
+    * @param string $connectionLive
+    * @param string $connectionLocal
+    * @return void
+    */
+    protected function syncSequenceAndTrigger(string $tableName, string $connectionLive, string $connectionLocal)
+    {
+        $ownerLive = strtoupper(config('oracle.' . $connectionLive)['username']);
+        $ownerLocal = strtoupper(config('oracle.' . $connectionLocal)['username']);
+
+        // 1. Detect sequence from live triggers
+        $triggerInfo = DB::connection($connectionLive)->select("
+            SELECT TRIGGER_NAME, TRIGGER_BODY
+            FROM ALL_TRIGGERS
+            WHERE TABLE_OWNER = :owner
+            AND TABLE_NAME = :table
+            AND STATUS = 'ENABLED'
+        ", ['owner' => $ownerLive, 'table' => strtoupper($tableName)]);
+
+        $sequenceName = null;
+        $triggerName = null;
+
+        foreach ($triggerInfo as $trigger) {
+            if (preg_match('/([A-Za-z0-9_]+)\.NEXTVAL/i', $trigger->trigger_body, $m)) {
+                $sequenceName = $m[1];
+                $triggerName = $trigger->TRIGGER_NAME;
+                break;
+            }
+        }
+
+        if (!$sequenceName || !$triggerName) {
+            $this->info("No sequence/trigger found on live database for table $tableName.");
+            return;
+        }
+
+        // 2. Check if sequence exists on local DB
+        $sequenceExists = DB::connection($connectionLocal)->selectOne("
+            SELECT SEQUENCE_NAME 
+            FROM ALL_SEQUENCES 
+            WHERE SEQUENCE_OWNER = :owner 
+            AND SEQUENCE_NAME = :seq
+        ", ['owner' => $ownerLocal, 'seq' => strtoupper($sequenceName)]);
+
+        // 3. Create sequence if missing
+        if (!$sequenceExists) {
+            $this->info("Creating sequence $sequenceName on local DB...");
+            DB::connection($connectionLocal)->statement("
+                CREATE SEQUENCE $sequenceName
+                START WITH 1
+                INCREMENT BY 1
+                NOCACHE
+                NOCYCLE
+            ");
+        }
+
+        // 4. Check if trigger exists on local DB
+        $triggerExists = DB::connection($connectionLocal)->selectOne("
+            SELECT TRIGGER_NAME 
+            FROM ALL_TRIGGERS 
+            WHERE TABLE_OWNER = :owner 
+            AND TABLE_NAME = :table
+            AND TRIGGER_NAME = :trigger
+        ", ['owner' => $ownerLocal, 'table' => strtoupper($tableName), 'trigger' => strtoupper($triggerName)]);
+
+        // 5. Create trigger if missing
+        if (!$triggerExists) {
+            $this->info("Creating trigger $triggerName on local DB...");
+
+            $triggerSQL = "
+            CREATE OR REPLACE TRIGGER $triggerName
+            BEFORE INSERT ON $tableName
+            FOR EACH ROW
+            BEGIN
+                IF :NEW.ID IS NULL THEN
+                    SELECT $sequenceName.NEXTVAL INTO :NEW.ID FROM dual;
+                END IF;
+            END;
+            ";
+
+            DB::connection($connectionLocal)->statement($triggerSQL);
+        }
+
+        $this->info("Sequence and trigger synced successfully for table $tableName.");
+    }
+
 }

@@ -88,60 +88,83 @@ class SyncOrdersJob implements ShouldQueue
                 'shift_session_count' => count($shiftSessionsPayload)
             ]);
 
-            try {
-                $response = Http::timeout(config('services.live_server.timeout', 60))
-                    ->withToken(config('services.live_server.token'))
-                    ->withoutVerifying() // disables SSL certificate verification
-                    ->retry(3, 1000)
-                    ->post(config('services.live_server.url') . '/orders/sync-bulk', [
-                        'orders' => $allOrdersData,
-                        'shift_sessions' => $shiftSessionsPayload
-                    ]);
+            $chunkSize = 200; // tune this based on your server/API limits
+            $orderChunks         = array_chunk($allOrdersData, $chunkSize);
+            $shiftSessionChunks  = array_chunk($shiftSessionsPayload, $chunkSize, true); // keep keys if assoc
 
-                if ($response->successful()) {
-                    if (!empty($orderIds)) {
-                        DB::connection('oracle')
-                            ->table('orders')
-                            ->whereIn('id', $orderIds)
-                            ->update(['is_pushed' => 'Y']);
+            foreach ($orderChunks as $index => $ordersChunk) {
 
-                        Log::info('Orders synced successfully via API', [
-                            'order_count' => count($orderIds),
-                            'order_ids' => $orderIds
+                // Match shift sessions chunk for this batch if they’re parallel arrays
+                $shiftChunk = $shiftSessionChunks[$index] ?? [];
+
+                // Collect IDs for DB updates (assuming each has id / session_id)
+                $orderIds = array_column($ordersChunk, 'id');
+
+                // If $shiftChunk is an array of items with 'session_id':
+                $shiftSessionIds = array_column($shiftChunk, 'session_id');
+
+                // If instead $shiftSessionsPayload is keyed by session_id,
+                // then replace the above with:
+                // $shiftSessionIds = array_keys($shiftChunk);
+
+                try {
+                    $response = Http::timeout(config('services.live_server.timeout', 60))
+                        ->withToken(config('services.live_server.token'))
+                        ->withoutVerifying()
+                        ->retry(3, 1000)
+                        ->post(config('services.live_server.url') . '/orders/sync-bulk', [
+                            'orders'         => $ordersChunk,
+                            'shift_sessions' => $shiftChunk,
+                        ]);
+
+                    if ($response->successful()) {
+
+                        if (!empty($orderIds)) {
+                            DB::connection('oracle')
+                                ->table('orders')
+                                ->whereIn('id', $orderIds)
+                                ->update(['is_pushed' => 'Y']);
+                        }
+
+                        if (!empty($shiftSessionIds)) {
+                            DB::connection('oracle')
+                                ->table('shift_sessions')
+                                ->whereIn('session_id', $shiftSessionIds)
+                                ->update(['is_pushed' => 'Y']);
+                        }
+
+                        Log::info('Orders chunk synced successfully via API', [
+                            'chunk'              => $index + 1,
+                            'order_count'        => count($orderIds),
+                            'shift_session_count'=> count($shiftSessionIds),
+                            'order_ids'          => $orderIds,
+                            'session_ids'        => $shiftSessionIds,
+                        ]);
+
+                    } else {
+                        Log::error('Failed syncing orders chunk via API', [
+                            'chunk'              => $index + 1,
+                            'order_count'        => count($orderIds),
+                            'shift_session_count'=> count($shiftSessionIds),
+                            'status'             => $response->status(),
+                            'response'           => $response->body(),
                         ]);
                     }
 
-                    if (!empty($shiftSessionIds)) {
-                        DB::connection('oracle')
-                            ->table('shift_sessions')
-                            ->whereIn('session_id', $shiftSessionIds)
-                            ->update(['is_pushed' => 'Y']);
-
-                        Log::info('Shift sessions synced successfully via orders API', [
-                            'session_count' => count($shiftSessionIds),
-                            'session_ids' => $shiftSessionIds
-                        ]);
-                    }
-                } else {
-                    Log::error('Failed syncing orders via API', [
+                } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                    Log::error('Connection error while syncing orders chunk', [
+                        'chunk'       => $index + 1,
                         'order_count' => count($orderIds),
-                        'shift_session_count' => count($shiftSessionIds),
-                        'status' => $response->status(),
-                        'response' => $response->body()
+                        'error'       => $e->getMessage(),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Failed syncing orders chunk', [
+                        'chunk'       => $index + 1,
+                        'order_count' => count($orderIds),
+                        'error'       => $e->getMessage(),
+                        'trace'       => $e->getTraceAsString(),
                     ]);
                 }
-
-            } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                Log::error('Connection error while syncing orders', [
-                    'order_count' => count($orderIds),
-                    'error' => $e->getMessage()
-                ]);
-            } catch (\Exception $e) {
-                Log::error('Failed syncing orders', [
-                    'order_count' => count($orderIds),
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString()
-                ]);
             }
 
             Log::info('SyncOrdersJob completed');

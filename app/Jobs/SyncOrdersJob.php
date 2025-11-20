@@ -88,26 +88,28 @@ class SyncOrdersJob implements ShouldQueue
                 'shift_session_count' => count($shiftSessionsPayload)
             ]);
 
-            $chunkSize = 200; // tune this based on your server/API limits
-            $orderChunks         = array_chunk($allOrdersData, $chunkSize);
-            $shiftSessionChunks  = array_chunk($shiftSessionsPayload, $chunkSize, true); // keep keys if assoc
+            $chunkSize = 200; // adjust based on payload size
+
+            $orderChunks = array_chunk($allOrdersData, $chunkSize);
+            $shiftSessionChunks = array_chunk($shiftSessionsPayload, $chunkSize, true); // keep associative keys if needed
 
             foreach ($orderChunks as $index => $ordersChunk) {
 
-                // Match shift sessions chunk for this batch if they’re parallel arrays
+                // Match correct shift sessions chunk (parallel arrays)
                 $shiftChunk = $shiftSessionChunks[$index] ?? [];
 
-                // Collect IDs for DB updates (assuming each has id / session_id)
-                $orderIds = array_column($ordersChunk, 'id');
+                // Extract order IDs from nested structure
+                $orderIds = array_map(function ($item) {
+                    return $item['order']['id'];  // ORDER ID LOCATION
+                }, $ordersChunk);
 
-                // If $shiftChunk is an array of items with 'session_id':
-                $shiftSessionIds = array_column($shiftChunk, 'session_id');
-
-                // If instead $shiftSessionsPayload is keyed by session_id,
-                // then replace the above with:
-                // $shiftSessionIds = array_keys($shiftChunk);
+                // Extract shift session IDs
+                $shiftSessionIds = array_map(function ($ss) {
+                    return $ss['session_id'];
+                }, $shiftChunk);
 
                 try {
+
                     $response = Http::timeout(config('services.live_server.timeout', 60))
                         ->withToken(config('services.live_server.token'))
                         ->withoutVerifying()
@@ -119,6 +121,7 @@ class SyncOrdersJob implements ShouldQueue
 
                     if ($response->successful()) {
 
+                        // Mark orders pushed
                         if (!empty($orderIds)) {
                             DB::connection('oracle')
                                 ->table('orders')
@@ -126,6 +129,7 @@ class SyncOrdersJob implements ShouldQueue
                                 ->update(['is_pushed' => 'Y']);
                         }
 
+                        // Mark shift sessions pushed
                         if (!empty($shiftSessionIds)) {
                             DB::connection('oracle')
                                 ->table('shift_sessions')
@@ -133,42 +137,37 @@ class SyncOrdersJob implements ShouldQueue
                                 ->update(['is_pushed' => 'Y']);
                         }
 
-                        Log::info('Orders chunk synced successfully via API', [
-                            'chunk'              => $index + 1,
-                            'order_count'        => count($orderIds),
-                            'shift_session_count'=> count($shiftSessionIds),
-                            'order_ids'          => $orderIds,
-                            'session_ids'        => $shiftSessionIds,
+                        Log::info('Orders chunk synced successfully', [
+                            'chunk' => $index + 1,
+                            'orders_count' => count($orderIds),
+                            'shift_sessions_count' => count($shiftSessionIds),
+                            'order_ids' => $orderIds,
+                            'session_ids' => $shiftSessionIds,
                         ]);
-
                     } else {
-                        Log::error('Failed syncing orders chunk via API', [
-                            'chunk'              => $index + 1,
-                            'order_count'        => count($orderIds),
-                            'shift_session_count'=> count($shiftSessionIds),
-                            'status'             => $response->status(),
-                            'response'           => $response->body(),
+
+                        Log::error('Failed syncing orders chunk', [
+                            'chunk' => $index + 1,
+                            'status' => $response->status(),
+                            'response' => $response->body(),
+                            'orders_count' => count($orderIds),
+                            'shift_sessions_count' => count($shiftSessionIds),
                         ]);
                     }
-
                 } catch (\Illuminate\Http\Client\ConnectionException $e) {
-                    Log::error('Connection error while syncing orders chunk', [
-                        'chunk'       => $index + 1,
-                        'order_count' => count($orderIds),
-                        'error'       => $e->getMessage(),
+                    Log::error('Connection error syncing chunk', [
+                        'chunk' => $index + 1,
+                        'error' => $e->getMessage(),
                     ]);
                 } catch (\Exception $e) {
-                    Log::error('Failed syncing orders chunk', [
-                        'chunk'       => $index + 1,
-                        'order_count' => count($orderIds),
-                        'error'       => $e->getMessage(),
-                        'trace'       => $e->getTraceAsString(),
+                    Log::error('Unexpected error syncing chunk', [
+                        'chunk' => $index + 1,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
                     ]);
                 }
             }
-
             Log::info('SyncOrdersJob completed');
-
         } catch (\Exception $e) {
             Log::error('SyncOrdersJob failed', [
                 'error' => $e->getMessage(),

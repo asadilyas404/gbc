@@ -714,23 +714,24 @@ class OrderController extends Controller
         );
 
         $css = '<style>
-            * { box-sizing: border-box; }
-            body { margin: 0; padding: 5px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; font-size: 10px; }
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { margin: 0; padding: 5px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; text-align: center; }
 
-            .row { display: flex; flex-wrap: wrap; margin-left: -5px; margin-right: -5px; }
+            .row { display: flex; flex-wrap: wrap; margin: 0; }
             .row::before, .row::after { content: ""; display: table; }
             .row::after { clear: both; }
-            .col-md-12 { position: relative; width: 100%; padding-left: 5px; padding-right: 5px; }
+            .col-md-12 { position: relative; width: 100%; padding: 0; margin: 0 auto; text-align: center; }
             .justify-content-center { justify-content: center !important; }
             .text-center { text-align: center !important; }
             .text-right { text-align: right !important; }
             .text-left { text-align: left !important; }
-            .container-fluid { width: 100%; padding-left: 5px; padding-right: 5px; margin-left: auto; margin-right: auto; }
+            .container-fluid { width: 100%; padding: 0; margin: 0 auto; text-align: center; }
 
             .initial-38-1 {
                 max-width: 382px;
                 margin: 0 auto;
-                padding-inline-end: 2px;
+                padding: 0;
+                text-align: center;
             }
             .initial-38-1 * {
                 font-family: "Roboto Mono", monospace !important;
@@ -739,10 +740,11 @@ class OrderController extends Controller
             }
             .initial-38-1 .pt-3:first-child {
                 padding-top: 0 !important;
+                padding-bottom: 5px !important;
                 text-align: center !important;
                 display: block;
                 width: 100%;
-                margin-bottom: 5px !important;
+                margin: 0;
             }
             .initial-38-1 .pt-3:first-child img,
             .initial-38-1 img.initial-38-2,
@@ -767,96 +769,70 @@ class OrderController extends Controller
                 line-height: 1.2;
             }
             .initial-38-4 {
-                font-size: 12px;
+                font-size: 14px;
                 font-weight: lighter;
             }
             .initial-38-9 {
-                width: 98%;
-                margin-inline-start: auto;
-                margin-inline-end: auto;
+                width: 100%;
+                margin: 0 auto;
             }
             .initial-38 #printableArea * { color: #000000; }
-            #printableArea { margin: 0 !important; }
-            #printableArea > .col-md-12 { padding: 0 !important; }
-            .content { max-width: 100%; }
+            #printableArea { margin: 0 !important; padding: 0 !important; text-align: center !important; }
+            #printableArea > .col-md-12 { padding: 0 !important; margin: 0 auto !important; text-align: center !important; }
+            .content { max-width: 100%; margin: 0 auto; text-align: center; }
 
-            table { width: 100%; border-collapse: collapse; margin: 0; }
-            .table { width: 100%; margin-bottom: 0.3rem; }
+            table { width: 100%; border-collapse: collapse; margin: 5px 0; }
+            .table { width: 100%; margin-bottom: 5px; }
             .table-borderless { border: none; }
             .table-borderless th, .table-borderless td { border: none; }
             .table-bordered { border: 1px solid #dee2e6; }
-            .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; padding: 0.3rem; font-size: 9px; }
+            .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; padding: 3px 5px; }
             .table-bordered th:first-child, .table-bordered td:first-child { padding-inline-start: 0 !important; }
             .table-bordered th:last-child, .table-bordered td:last-child { text-align: end; padding-inline-end: 5px; }
             .table-align-middle th, .table-align-middle td { vertical-align: middle; }
-            th, td { padding: 0.3rem; font-size: 9px; }
+            th, td { padding: 3px 5px; }
             .w-28p { width: 28%; }
 
-            dl.row {
-                display: flex;
-                flex-wrap: wrap;
-                margin: 0 auto !important;
-                max-width: 300px !important;
-                padding: 0 !important;
-            }
-            dl.row dt {
-                width: 50%;
-                padding: 0.2rem 0.3rem !important;
-                font-size: 9px !important;
-                text-align: left !important;
-            }
-            dl.row dd {
-                width: 50%;
-                padding: 0.2rem 0.3rem !important;
-                margin: 0 !important;
-                font-size: 9px !important;
-                text-align: right !important;
-            }
+            dl.row { display: flex; flex-wrap: wrap; margin: 0; }
+            dl.row dt { width: 50%; padding: 2px 5px; }
+            dl.row dd { width: 50%; padding: 2px 5px; margin: 0; }
             .col-6 { width: 50%; padding: 0 5px; }
 
-            .pt-3 { padding-top: 0.3rem !important; }
-            .pt-1 { padding-top: 0.15rem !important; }
-            .mb-3 { margin-bottom: 0.3rem !important; }
-            .mb-2 { margin-bottom: 0.2rem !important; }
+            .pt-3 { padding-top: 5px !important; }
+            .pt-1 { padding-top: 2px !important; }
+            .mb-3 { margin-bottom: 5px !important; }
             .mb-0 { margin-bottom: 0 !important; }
             .text-break { word-wrap: break-word !important; }
             .d-flex { display: flex !important; }
-            .gap-2 { gap: 0.3rem; }
+            .gap-2 { gap: 0.25rem; }
             .fw-bold { font-weight: bold !important; }
             .font-weight-bold { font-weight: bold !important; }
             .text-muted { color: #6c757d !important; }
             .border { border: 1px solid #dee2e6 !important; }
             .border-dashed { border-style: dashed !important; }
-            .border-bottom-dashed { border-bottom: 1px dashed #dee2e6 !important; }
             .border-secondary { border-color: #6c757d !important; }
             .rounded { border-radius: 0.25rem !important; }
-            .p-3 { padding: 0.3rem !important; }
-            .px-3 { padding-left: 0.3rem !important; padding-right: 0.3rem !important; }
+            .p-3 { padding: 5px !important; }
+            .px-3 { padding-left: 5px !important; padding-right: 5px !important; }
             .align-items-center { align-items: center !important; }
-            .mt-1 { margin-top: 0.15rem !important; }
-            .mb-1 { margin-bottom: 0.15rem !important; }
-            .ml-3 { margin-left: 0.3rem !important; }
+            .mt-1 { margin-top: 2px !important; }
+            .mb-1 { margin-bottom: 2px !important; }
+            .ml-3 { margin-left: 5px !important; }
             .d-block { display: block !important; }
             .text-capitalize { text-transform: capitalize !important; }
             .fw-500 { font-weight: 500 !important; }
-            .fz-12px { font-size: 10px !important; }
-            .fz-20px { font-size: 12px !important; }
-            h5 { margin: 0.2rem 0 !important; font-size: 14px !important; }
-            h5.text-center.pt-1 { font-size: 20px !important; padding-top: 0.2rem !important; }
+            .fz-12px { font-size: 11px !important; }
+            h5 { margin: 3px 0; font-size: 18px; text-align: center !important; }
+            h6 { margin: 2px 0; font-size: 14px; }
+            p { margin: 2px 0; }
             img { max-width: 100%; height: auto; display: block; }
-
-            .initial-38-1 {
-                text-align: left;
-                display: block;
-                width: 100%;
-            }
-            .initial-38-1 .text-center { text-align: center !important; }
 
             .initial-38-1 > div {
                 width: 100%;
+                text-align: center;
             }
             .initial-38-1 h5 {
-                text-align: inherit;
+                text-align: center !important;
             }
             .initial-38-1 h5.text-center {
                 text-align: center !important;
@@ -872,7 +848,7 @@ class OrderController extends Controller
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     ' . $css . '
 </head>
-<body style="padding: 0; margin: 0;">
+<body>
     <div class="content container-fluid initial-38 new-invoice">
         <div class="row justify-content-center" id="printableArea">
             ' . $printableContent . '

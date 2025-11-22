@@ -714,51 +714,51 @@ class OrderController extends Controller
         );
 
         $css = '<style>
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body { margin: 0; padding: 5px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; text-align: center; }
+            * { box-sizing: border-box; }
+            body { margin: 0; padding: 20px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; }
 
-            .row { display: flex; flex-wrap: wrap; margin: 0; }
+            /* Bootstrap utilities for centering */
+            .row { display: flex; flex-wrap: wrap; margin-left: -15px; margin-right: -15px; }
             .row::before, .row::after { content: ""; display: table; }
             .row::after { clear: both; }
-            .col-md-12 { position: relative; width: 100%; padding: 0; margin: 0 auto; text-align: center; }
+            .col-md-12 { position: relative; width: 100%; padding-left: 15px; padding-right: 15px; }
             .justify-content-center { justify-content: center !important; }
             .text-center { text-align: center !important; }
             .text-right { text-align: right !important; }
             .text-left { text-align: left !important; }
-            .container-fluid { width: 100%; padding: 0; margin: 0 auto; text-align: center; }
+            .container-fluid { width: 100%; padding-left: 15px; padding-right: 15px; margin-left: auto; margin-right: auto; }
 
+            /* Invoice specific styles for centering */
             .initial-38-1 {
                 max-width: 382px;
                 margin: 0 auto;
-                padding: 0;
-                text-align: center;
+                padding-inline-end: 4px;
             }
             .initial-38-1 * {
                 font-family: "Roboto Mono", monospace !important;
                 font-weight: 500;
                 color: #000000;
             }
+            /* Logo centering - ensure logo is properly centered and not stretched */
             .initial-38-1 .pt-3:first-child {
                 padding-top: 0 !important;
-                padding-bottom: 5px !important;
                 text-align: center !important;
                 display: block;
                 width: 100%;
-                margin: 0;
             }
             .initial-38-1 .pt-3:first-child img,
             .initial-38-1 img.initial-38-2,
             img.initial-38-2 {
                 margin: 0 auto !important;
                 display: block !important;
-                height: 50px !important;
+                height: 70px !important;
                 width: auto !important;
                 max-width: 100% !important;
                 object-fit: contain !important;
                 object-position: center !important;
             }
             .initial-38-2 {
-                height: 50px !important;
+                height: 70px !important;
                 width: auto !important;
                 max-width: 100% !important;
                 object-fit: contain !important;
@@ -766,45 +766,49 @@ class OrderController extends Controller
                 margin: 0 auto !important;
             }
             .initial-38-3 {
-                line-height: 1.2;
+                line-height: 1;
             }
             .initial-38-4 {
-                font-size: 14px;
+                font-size: 16px;
                 font-weight: lighter;
             }
             .initial-38-9 {
-                width: 100%;
-                margin: 0 auto;
+                width: 98%;
+                margin-inline-start: auto;
+                margin-inline-end: auto;
             }
             .initial-38 #printableArea * { color: #000000; }
-            #printableArea { margin: 0 !important; padding: 0 !important; text-align: center !important; }
-            #printableArea > .col-md-12 { padding: 0 !important; margin: 0 auto !important; text-align: center !important; }
-            .content { max-width: 100%; margin: 0 auto; text-align: center; }
+            #printableArea { margin: 0 !important; }
+            #printableArea > .col-md-12 { padding: 0 !important; }
+            .content { max-width: 100%; }
 
-            table { width: 100%; border-collapse: collapse; margin: 5px 0; }
-            .table { width: 100%; margin-bottom: 5px; }
+            /* Table styles for proper alignment */
+            table { width: 100%; border-collapse: collapse; margin: 0; }
+            .table { width: 100%; margin-bottom: 1rem; }
             .table-borderless { border: none; }
             .table-borderless th, .table-borderless td { border: none; }
             .table-bordered { border: 1px solid #dee2e6; }
-            .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; padding: 3px 5px; }
+            .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; padding: 0.75rem; }
             .table-bordered th:first-child, .table-bordered td:first-child { padding-inline-start: 0 !important; }
-            .table-bordered th:last-child, .table-bordered td:last-child { text-align: end; padding-inline-end: 5px; }
+            .table-bordered th:last-child, .table-bordered td:last-child { text-align: end; padding-inline-end: 10px; }
             .table-align-middle th, .table-align-middle td { vertical-align: middle; }
-            th, td { padding: 3px 5px; }
+            th, td { padding: 0.75rem; }
             .w-28p { width: 28%; }
 
+            /* Description list (dl) styles for totals section */
             dl.row { display: flex; flex-wrap: wrap; margin: 0; }
-            dl.row dt { width: 50%; padding: 2px 5px; }
-            dl.row dd { width: 50%; padding: 2px 5px; margin: 0; }
-            .col-6 { width: 50%; padding: 0 5px; }
+            dl.row dt { width: 50%; padding: 0.5rem; }
+            dl.row dd { width: 50%; padding: 0.5rem; margin: 0; }
+            .col-6 { width: 50%; padding: 0 15px; }
 
-            .pt-3 { padding-top: 5px !important; }
-            .pt-1 { padding-top: 2px !important; }
-            .mb-3 { margin-bottom: 5px !important; }
+            /* Common utility classes */
+            .pt-3 { padding-top: 1rem !important; }
+            .pt-1 { padding-top: 0.25rem !important; }
+            .mb-3 { margin-bottom: 1rem !important; }
             .mb-0 { margin-bottom: 0 !important; }
             .text-break { word-wrap: break-word !important; }
             .d-flex { display: flex !important; }
-            .gap-2 { gap: 0.25rem; }
+            .gap-2 { gap: 0.5rem; }
             .fw-bold { font-weight: bold !important; }
             .font-weight-bold { font-weight: bold !important; }
             .text-muted { color: #6c757d !important; }
@@ -812,33 +816,39 @@ class OrderController extends Controller
             .border-dashed { border-style: dashed !important; }
             .border-secondary { border-color: #6c757d !important; }
             .rounded { border-radius: 0.25rem !important; }
-            .p-3 { padding: 5px !important; }
-            .px-3 { padding-left: 5px !important; padding-right: 5px !important; }
+            .p-3 { padding: 1rem !important; }
+            .px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
             .align-items-center { align-items: center !important; }
-            .mt-1 { margin-top: 2px !important; }
-            .mb-1 { margin-bottom: 2px !important; }
-            .ml-3 { margin-left: 5px !important; }
+            .mt-1 { margin-top: 0.25rem !important; }
+            .mb-1 { margin-bottom: 0.25rem !important; }
+            .ml-3 { margin-left: 1rem !important; }
             .d-block { display: block !important; }
             .text-capitalize { text-transform: capitalize !important; }
             .fw-500 { font-weight: 500 !important; }
-            .fz-12px { font-size: 11px !important; }
-            h5 { margin: 3px 0; font-size: 18px; text-align: center !important; }
-            h6 { margin: 2px 0; font-size: 14px; }
-            p { margin: 2px 0; }
+            .fz-12px { font-size: 12px !important; }
+            h5 { margin: 0.5rem 0; font-size: 1.25rem; }
             img { max-width: 100%; height: auto; display: block; }
 
+            /* Ensure proper alignment for all content */
+            .initial-38-1 {
+                text-align: left;
+                display: block;
+                width: 100%;
+            }
+            .initial-38-1 .text-center { text-align: center !important; }
+
+            /* Fix for content alignment issues */
             .initial-38-1 > div {
                 width: 100%;
-                text-align: center;
             }
             .initial-38-1 h5 {
-                text-align: center !important;
+                text-align: inherit;
             }
             .initial-38-1 h5.text-center {
                 text-align: center !important;
             }
 
-            @page { margin: 5mm; size: A4; }
+            @page { margin: 10mm; }
         </style>';
 
         $view = '<!DOCTYPE html>
@@ -892,10 +902,10 @@ class OrderController extends Controller
             'mode' => 'utf-8',
             'format' => 'A4',
             'orientation' => 'P',
-            'margin_left' => 5,
-            'margin_right' => 5,
-            'margin_top' => 5,
-            'margin_bottom' => 5,
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
             'tempDir' => $tempDir,
             'default_font' => 'FreeSerif',
             'autoScriptToLang' => true,

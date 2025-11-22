@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Invoice - {{ $order->order_serial }}</title>
     <style>
@@ -12,13 +13,14 @@
         }
 
         body {
-            font-family: 'Helvetica', Arial, sans-serif;
+            font-family: 'DejaVu Sans', 'Helvetica', Arial, sans-serif;
             font-size: 12px;
             line-height: 1.6;
             color: #333;
             background: #fff;
             padding: 20px;
         }
+
 
         .invoice-container {
             max-width: 600px;
@@ -303,6 +305,7 @@
                     @if ($detail->food_id || $detail->campaign == null)
                         @php
                             $foodDetails = json_decode($detail->food_details, true);
+                            $food = \App\Models\Food::where(['id' => $foodDetails['id'] ?? null])->first();
                             $variations = json_decode($detail->variation, true) ?? [];
                             $addOns = json_decode($detail->add_ons, true) ?? [];
 
@@ -327,28 +330,50 @@
                         @endphp
                         <tr>
                             <td>
-                                <div class="item-name">{{ $foodDetails['name'] ?? 'Unknown Item' }}</div>
+                                <div class="item-name">
+                                    {{ $foodDetails['name'] ?? 'Unknown Item' }}
+                                    @if($food)
+                                        <br><span style="font-size: 10px; color: #666;">{{ $food->getTranslationValue('name', 'ar') }}</span>
+                                    @endif
+                                </div>
                                 @if(count($variations) > 0 || count($addOns) > 0)
                                 <div class="item-details">
                                     @if(count($variations) > 0)
+                                        <strong>{{ translate('messages.variation') }} | تفاوت:</strong>
                                         @foreach($variations as $variation)
                                             @if(isset($variation['values']))
                                                 @foreach($variation['values'] as $value)
-                                                    {{ $value['label'] ?? '' }}@if(!$loop->last), @endif
+                                                    @php
+                                                        $optionList = \App\Models\OptionsList::find($value['options_list_id'] ?? null);
+                                                    @endphp
+                                                    {{ $value['label'] ?? ($optionList ? $optionList->name : '') }}
+                                                    @if($optionList)
+                                                        <span style="font-size: 10px; color: #666;">({{ $optionList->getTranslationValue('name', 'ar') }})</span>
+                                                    @endif
+                                                    @if(!$loop->last), @endif
                                                 @endforeach
                                             @endif
                                         @endforeach
                                     @endif
                                     @if(count($addOns) > 0)
                                         @if(count($variations) > 0) | @endif
-                                        Addons: @foreach($addOns as $addon){{ $addon['name'] }}@if(!$loop->last), @endif
+                                        <strong>{{ translate('messages.addons') }} | الإضافات:</strong>
+                                        @foreach($addOns as $addon)
+                                            @php
+                                                $addonModel = \App\Models\AddOn::find($addon['id'] ?? null);
+                                            @endphp
+                                            {{ $addon['name'] }}
+                                            @if($addonModel)
+                                                <span style="font-size: 10px; color: #666;">({{ $addonModel->getTranslationValue('name', 'ar') }})</span>
+                                            @endif
+                                            @if(!$loop->last), @endif
                                         @endforeach
                                     @endif
                                 </div>
                                 @endif
                                 @if($detail->notes)
                                 <div class="item-details" style="font-style: italic; color: #555;">
-                                    Note: {{ $detail->notes }}
+                                    {{ translate('messages.note') }} | ملاحظة: {{ $detail->notes }}
                                 </div>
                                 @endif
                             </td>
@@ -364,39 +389,39 @@
         <!-- Totals -->
         <div class="totals-section">
             <div class="total-row">
-                <span>Subtotal:</span>
+                <span>{{ translate('messages.subtotal') }} | المجموع الفرعي:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($sub_total) }}</span>
             </div>
             @if($order->restaurant_discount_amount > 0)
             <div class="total-row">
-                <span>Discount:</span>
+                <span>{{ translate('messages.discount') }} | تخفيض:</span>
                 <span>-{{ \App\CentralLogics\Helpers::format_currency($order->restaurant_discount_amount) }}</span>
             </div>
             @endif
             @if($order->total_tax_amount > 0)
             <div class="total-row">
-                <span>Tax:</span>
+                <span>{{ translate('messages.tax') }} | ضريبة:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($order->total_tax_amount) }}</span>
             </div>
             @endif
             @if($order->delivery_charge > 0)
             <div class="total-row">
-                <span>Delivery Charge:</span>
+                <span>{{ translate('messages.delivery_charge') }} | رسوم التوصيل:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($order->delivery_charge) }}</span>
             </div>
             @endif
             @if($order->additional_charge > 0)
             <div class="total-row">
-                <span>Additional Charge:</span>
+                <span>{{ translate('messages.additional_charge') }} | رسوم إضافية:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($order->additional_charge) }}</span>
             </div>
             @endif
             <div class="total-row grand-total">
-                <span>Total Amount:</span>
+                <span>{{ translate('messages.total_amount') }} | المبلغ الإجمالي:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}</span>
             </div>
             <div class="total-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
-                <span>Payment Method:</span>
+                <span>{{ translate('messages.payment_method') }} | طريقة الدفع:</span>
                 <span>{{ ucfirst(str_replace('_', ' ', $order->payment_method)) }}</span>
             </div>
         </div>

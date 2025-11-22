@@ -655,7 +655,7 @@ class OrderController extends Controller
         $options->set('isPhpEnabled', true);
         $options->set('isHtml5ParserEnabled', true);
         $options->set('isRemoteEnabled', true);
-        $options->setDefaultFont('Helvetica');
+        $options->setDefaultFont('DejaVu Sans');
         $options->set('fontDir', storage_path('fonts/'));
         $options->set('fontCache', storage_path('fonts/'));
         $options->set('tempDir', sys_get_temp_dir());

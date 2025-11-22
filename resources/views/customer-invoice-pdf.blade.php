@@ -1,3 +1,26 @@
+@php
+    // Helper function to shape Arabic text properly
+    function shapeArabic($text) {
+        if (empty($text) || !is_string($text)) {
+            return $text;
+        }
+        try {
+            // Try new namespace first
+            if (class_exists('\ArPHP\I18N\Arabic')) {
+                $arabic = new \ArPHP\I18N\Arabic('Glyphs');
+                return $arabic->utf8Glyphs($text);
+            }
+            // Fallback to old class name
+            if (class_exists('I18N_Arabic')) {
+                $arabic = new \I18N_Arabic('Glyphs');
+                return $arabic->utf8Glyphs($text);
+            }
+        } catch (\Exception $e) {
+            // Fallback if Arabic library is not available
+        }
+        return $text;
+    }
+@endphp
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -19,6 +42,13 @@
             color: #333;
             background: #fff;
             padding: 20px;
+        }
+
+        /* Arabic text styling */
+        [dir="rtl"], .rtl {
+            direction: rtl;
+            unicode-bidi: embed;
+            font-family: 'DejaVu Sans', 'Arial Unicode MS', 'Tahoma', sans-serif;
         }
 
 
@@ -333,13 +363,16 @@
                                 <div class="item-name">
                                     {{ $foodDetails['name'] ?? 'Unknown Item' }}
                                     @if($food)
-                                        <br><span style="font-size: 10px; color: #666;">{{ $food->getTranslationValue('name', 'ar') }}</span>
+                                        @php $arabicName = $food->getTranslationValue('name', 'ar'); @endphp
+                                        @if($arabicName)
+                                            <br><span style="font-size: 10px; color: #666; direction: rtl; unicode-bidi: embed;">{{ shapeArabic($arabicName) }}</span>
+                                        @endif
                                     @endif
                                 </div>
                                 @if(count($variations) > 0 || count($addOns) > 0)
                                 <div class="item-details">
                                     @if(count($variations) > 0)
-                                        <strong>{{ translate('messages.variation') }} | تفاوت:</strong>
+                                        <strong>{{ translate('messages.variation') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('تفاوت') }}</span>:</strong>
                                         @foreach($variations as $variation)
                                             @if(isset($variation['values']))
                                                 @foreach($variation['values'] as $value)
@@ -348,7 +381,10 @@
                                                     @endphp
                                                     {{ $value['label'] ?? ($optionList ? $optionList->name : '') }}
                                                     @if($optionList)
-                                                        <span style="font-size: 10px; color: #666;">({{ $optionList->getTranslationValue('name', 'ar') }})</span>
+                                                        @php $arabicOptionName = $optionList->getTranslationValue('name', 'ar'); @endphp
+                                                        @if($arabicOptionName)
+                                                            <span style="font-size: 10px; color: #666; direction: rtl; unicode-bidi: embed;">({{ shapeArabic($arabicOptionName) }})</span>
+                                                        @endif
                                                     @endif
                                                     @if(!$loop->last), @endif
                                                 @endforeach
@@ -357,14 +393,17 @@
                                     @endif
                                     @if(count($addOns) > 0)
                                         @if(count($variations) > 0) | @endif
-                                        <strong>{{ translate('messages.addons') }} | الإضافات:</strong>
+                                        <strong>{{ translate('messages.addons') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('الإضافات') }}</span>:</strong>
                                         @foreach($addOns as $addon)
                                             @php
                                                 $addonModel = \App\Models\AddOn::find($addon['id'] ?? null);
                                             @endphp
                                             {{ $addon['name'] }}
                                             @if($addonModel)
-                                                <span style="font-size: 10px; color: #666;">({{ $addonModel->getTranslationValue('name', 'ar') }})</span>
+                                                @php $arabicAddonName = $addonModel->getTranslationValue('name', 'ar'); @endphp
+                                                @if($arabicAddonName)
+                                                    <span style="font-size: 10px; color: #666; direction: rtl; unicode-bidi: embed;">({{ shapeArabic($arabicAddonName) }})</span>
+                                                @endif
                                             @endif
                                             @if(!$loop->last), @endif
                                         @endforeach
@@ -373,7 +412,7 @@
                                 @endif
                                 @if($detail->notes)
                                 <div class="item-details" style="font-style: italic; color: #555;">
-                                    {{ translate('messages.note') }} | ملاحظة: {{ $detail->notes }}
+                                    {{ translate('messages.note') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('ملاحظة') }}</span>: {{ $detail->notes }}
                                 </div>
                                 @endif
                             </td>
@@ -389,39 +428,39 @@
         <!-- Totals -->
         <div class="totals-section">
             <div class="total-row">
-                <span>{{ translate('messages.subtotal') }} | المجموع الفرعي:</span>
+                <span>{{ translate('messages.subtotal') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('المجموع الفرعي') }}</span>:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($sub_total) }}</span>
             </div>
             @if($order->restaurant_discount_amount > 0)
             <div class="total-row">
-                <span>{{ translate('messages.discount') }} | تخفيض:</span>
+                <span>{{ translate('messages.discount') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('تخفيض') }}</span>:</span>
                 <span>-{{ \App\CentralLogics\Helpers::format_currency($order->restaurant_discount_amount) }}</span>
             </div>
             @endif
             @if($order->total_tax_amount > 0)
             <div class="total-row">
-                <span>{{ translate('messages.tax') }} | ضريبة:</span>
+                <span>{{ translate('messages.tax') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('ضريبة') }}</span>:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($order->total_tax_amount) }}</span>
             </div>
             @endif
             @if($order->delivery_charge > 0)
             <div class="total-row">
-                <span>{{ translate('messages.delivery_charge') }} | رسوم التوصيل:</span>
+                <span>{{ translate('messages.delivery_charge') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('رسوم التوصيل') }}</span>:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($order->delivery_charge) }}</span>
             </div>
             @endif
             @if($order->additional_charge > 0)
             <div class="total-row">
-                <span>{{ translate('messages.additional_charge') }} | رسوم إضافية:</span>
+                <span>{{ translate('messages.additional_charge') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('رسوم إضافية') }}</span>:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($order->additional_charge) }}</span>
             </div>
             @endif
             <div class="total-row grand-total">
-                <span>{{ translate('messages.total_amount') }} | المبلغ الإجمالي:</span>
+                <span>{{ translate('messages.total_amount') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('المبلغ الإجمالي') }}</span>:</span>
                 <span>{{ \App\CentralLogics\Helpers::format_currency($order->order_amount) }}</span>
             </div>
             <div class="total-row" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #ddd;">
-                <span>{{ translate('messages.payment_method') }} | طريقة الدفع:</span>
+                <span>{{ translate('messages.payment_method') }} | <span style="direction: rtl; unicode-bidi: embed;">{{ shapeArabic('طريقة الدفع') }}</span>:</span>
                 <span>{{ ucfirst(str_replace('_', ' ', $order->payment_method)) }}</span>
             </div>
         </div>

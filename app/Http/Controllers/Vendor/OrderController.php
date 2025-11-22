@@ -613,9 +613,6 @@ class OrderController extends Controller
         return back();
     }
 
-    /**
-     * Fetch customer phone number for WhatsApp
-     */
     public function fetchCustomerPhone(Request $request, $id)
     {
         $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])
@@ -626,7 +623,6 @@ class OrderController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        // Try to get phone from customer first, then from pos_details
         $phone = null;
         if ($order->customer && $order->customer->phone) {
             $phone = $order->customer->phone;
@@ -641,9 +637,6 @@ class OrderController extends Controller
         return response()->json(['phone' => $phone]);
     }
 
-    /**
-     * Generate PDF for WhatsApp attachment
-     */
     public function generatePdfForWhatsApp(Request $request, $id)
     {
         $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])
@@ -654,7 +647,6 @@ class OrderController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        // Generate PDF using the invoice template
         $view = view('new_invoice', compact('order'))->render();
 
         $dompdf = new Dompdf();
@@ -668,20 +660,16 @@ class OrderController extends Controller
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        // Save PDF to storage using Laravel Storage facade
         $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
         $directory = 'orders';
 
         try {
-            // Ensure directory exists using Storage facade (handles permissions better)
             if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($directory)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory($directory);
             }
 
-            // Save PDF file
             \Illuminate\Support\Facades\Storage::disk('public')->put($directory . '/' . $filename, $dompdf->output());
 
-            // Return public URL - using project's dynamicStorage helper
             $publicUrl = dynamicStorage('storage/app/public') . '/' . $directory . '/' . $filename;
 
             return response()->json([
@@ -696,9 +684,6 @@ class OrderController extends Controller
         }
     }
 
-    /**
-     * Send WhatsApp message via WhatsApp Intelligent API
-     */
     public function sendWhatsappMsg(Request $request)
     {
         $to = $request->to;
@@ -707,12 +692,11 @@ class OrderController extends Controller
         $orderId = $request->orderId;
         $orderSerial = $request->orderSerial;
 
-        // Get configuration from config file
         $apiUrl = config('whatsapp.intelligent.api_url');
         $appkey = config('whatsapp.intelligent.appkey');
         $authkey = config('whatsapp.intelligent.authkey');
         $sandbox = config('whatsapp.intelligent.sandbox');
-
+dd($apiUrl, $appkey, $authkey, $sandbox, $filePath);
         if (!$apiUrl || !$appkey || !$authkey) {
             return response()->json(['error' => 'WhatsApp API configuration is missing'], 500);
         }
@@ -720,7 +704,6 @@ class OrderController extends Controller
         $curl = curl_init();
 
         if($filePath == '' || $filePath == null) {
-            // Send message without attachment
             curl_setopt_array($curl, array(
                 CURLOPT_URL => $apiUrl,
                 CURLOPT_RETURNTRANSFER => true,
@@ -739,7 +722,6 @@ class OrderController extends Controller
                 ),
             ));
         } else {
-            // Send message with PDF attachment
             curl_setopt_array($curl, array(
                 CURLOPT_URL => $apiUrl,
                 CURLOPT_RETURNTRANSFER => true,

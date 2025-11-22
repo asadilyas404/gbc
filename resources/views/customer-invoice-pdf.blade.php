@@ -214,29 +214,6 @@
             color: #7f8c8d;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 3px;
-            font-size: 10px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .status-confirmed {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-delivered {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
     </style>
 </head>
 <body>
@@ -265,14 +242,6 @@
             <div class="order-info-row">
                 <span class="order-info-label">Order Type:</span>
                 <span class="order-info-value">{{ ucfirst(str_replace('_', ' ', $order->order_type)) }}</span>
-            </div>
-            <div class="order-info-row">
-                <span class="order-info-label">Status:</span>
-                <span class="order-info-value">
-                    <span class="status-badge status-{{ $order->order_status }}">
-                        {{ ucfirst(str_replace('_', ' ', $order->order_status)) }}
-                    </span>
-                </span>
             </div>
         </div>
 

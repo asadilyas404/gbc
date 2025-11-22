@@ -647,7 +647,7 @@ class OrderController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        $view = view('customer-invoice-pdf', compact('order'))->render();
+        $view = view('new_invoice', compact('order'))->render();
 
         $dompdf = new Dompdf();
         $options = $dompdf->getOptions();

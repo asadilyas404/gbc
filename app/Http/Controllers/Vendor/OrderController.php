@@ -651,15 +651,32 @@ class OrderController extends Controller
         $mpdf_view = view('new_invoice', compact('order'));
 
         try {
-            // Ensure temp directory exists
+            // Ensure temp directory exists with proper permissions (same as project's helpers.php)
             $tempDir = storage_path('tmp');
+            $mpdfTempDir = $tempDir . '/mpdf';
+
+            // Try to create and set permissions
             if (!file_exists($tempDir)) {
-                mkdir($tempDir, 0755, true);
+                @mkdir($tempDir, 0777, true);
+            }
+
+            if (!file_exists($mpdfTempDir)) {
+                @mkdir($mpdfTempDir, 0777, true);
+            }
+
+            // Make sure directory is writable, if not use system temp
+            if (!is_writable($mpdfTempDir)) {
+                @chmod($mpdfTempDir, 0777);
+                // If still not writable, use system temp directory as fallback
+                if (!is_writable($mpdfTempDir)) {
+                    $mpdfTempDir = sys_get_temp_dir() . '/mpdf_' . uniqid();
+                    @mkdir($mpdfTempDir, 0777, true);
+                }
             }
 
             // Use mPDF with proper configuration for Arabic text
             $mpdf = new \Mpdf\Mpdf([
-                'tempDir' => $tempDir,
+                'tempDir' => $mpdfTempDir,
                 'default_font' => 'FreeSerif',
                 'mode' => 'utf-8',
                 'format' => 'A4',

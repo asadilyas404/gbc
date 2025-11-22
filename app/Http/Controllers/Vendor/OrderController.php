@@ -20,6 +20,7 @@ use App\Jobs\SyncOrdersJob;
 use Illuminate\Support\Str;
 use App\Events\myevent;
 use Carbon\Carbon;
+use Dompdf\Dompdf;
 class OrderController extends Controller
 {
     public function list($status , Request $request)
@@ -638,50 +639,242 @@ class OrderController extends Controller
 
     public function generatePdfForWhatsApp(Request $request, $id)
     {
-        // Load order with all necessary relationships
         $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])
-            ->with(['payments', 'details.food', 'restaurant', 'customer', 'pos_details', 'takenBy'])
+            ->with(['payments', 'details.food', 'restaurant', 'customer'])
             ->first();
 
         if (!$order) {
             return response()->json(['error' => 'Order not found'], 404);
         }
 
+        // Render the invoice view
+        $view = view('new_invoice', compact('order'))->render();
+
+        // Remove JavaScript and non-printable elements
+        $view = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $view);
+        $view = preg_replace('/<input[^>]*class="[^"]*non-printable[^"]*"[^>]*>/i', '', $view);
+        $view = preg_replace('/<button[^>]*class="[^"]*non-printable[^"]*"[^>]*>.*?<\/button>/is', '', $view);
+        $view = preg_replace('/<a[^>]*class="[^"]*non-printable[^"]*"[^>]*>.*?<\/a>/is', '', $view);
+        $view = preg_replace('/<hr[^>]*class="[^"]*non-printable[^"]*"[^>]*>/i', '', $view);
+
+        // Convert relative image paths to absolute URLs
+        $baseUrl = url('/');
+        $view = preg_replace_callback('/src=["\']([^"\']+)["\']/i', function($matches) use ($baseUrl) {
+            $src = $matches[1];
+            // If it's already an absolute URL, keep it
+            if (preg_match('/^(https?:\/\/|data:)/i', $src)) {
+                return $matches[0];
+            }
+            // Convert relative paths to absolute
+            if (strpos($src, '/') === 0) {
+                $src = $baseUrl . $src;
+            } else {
+                $src = $baseUrl . '/' . ltrim($src, '/');
+            }
+            return 'src="' . $src . '"';
+        }, $view);
+
+        // Wrap in proper HTML structure with inline CSS for PDF
+        $html = '<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: DejaVu Sans, Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+            padding: 10px;
+        }
+        .container-fluid {
+            width: 100%;
+            padding: 0 15px;
+        }
+        .row {
+            display: table;
+            width: 100%;
+            margin: 0;
+        }
+        .col-md-12 {
+            width: 100%;
+            display: block;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-left {
+            text-align: left;
+        }
+        .text-break {
+            word-wrap: break-word;
+            word-break: break-word;
+        }
+        .text-muted {
+            color: #6c757d;
+        }
+        .pt-1 { padding-top: 0.25rem; }
+        .pt-3 { padding-top: 1rem; }
+        .pb-3 { padding-bottom: 1rem; }
+        .mb-0 { margin-bottom: 0; }
+        .mb-1 { margin-bottom: 0.25rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 1rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .my-2 { margin-top: 0.5rem; margin-bottom: 0.5rem; }
+        .px-3 { padding-left: 1rem; padding-right: 1rem; }
+        .p-3 { padding: 1rem; }
+        .rounded { border-radius: 0.25rem; }
+        .border { border: 1px solid #dee2e6; }
+        .border-dashed { border-style: dashed; }
+        .border-secondary { border-color: #6c757d; }
+        .border-bottom { border-bottom: 1px solid #dee2e6; }
+        .border-bottom-dashed {
+            border-bottom: 1px dashed #979797;
+            margin: 0.5rem 0;
+        }
+        .d-flex { display: flex; }
+        .flex-row { flex-direction: row; }
+        .justify-content-between { justify-content: space-between; }
+        .justify-content-center { justify-content: center; }
+        .justify-content-end { justify-content: flex-end; }
+        .align-items-center { align-items: center; }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .w-28p { width: 28%; }
+        .fw-500 { font-weight: 500; }
+        .fw-bold { font-weight: bold; }
+        .font-weight-bold { font-weight: bold; }
+        .font-light { font-weight: 300; }
+        .fz-12px { font-size: 12px; }
+        .fz-20px { font-size: 20px; }
+        .text-capitalize { text-transform: capitalize; }
+        .text-nowrap { white-space: nowrap; }
+        .d-block { display: block; }
+        h5 {
+            font-size: 14px;
+            margin: 0.5rem 0;
+            font-weight: 500;
+        }
+        .initial-38-1 {
+            width: 100%;
+        }
+        .initial-38-2 {
+            max-width: 200px;
+            height: auto;
+        }
+        .initial-38-3 {
+            font-weight: 600;
+            font-size: 16px;
+        }
+        .initial-38-4 {
+            font-size: 13px;
+        }
+        .initial-38-9 {
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.5rem 0;
+        }
+        table th, table td {
+            padding: 8px;
+            text-align: left;
+            border: none;
+        }
+        table th {
+            font-weight: 600;
+        }
+        table.table-borderless th,
+        table.table-borderless td {
+            border: none;
+        }
+        table.table-align-middle th,
+        table.table-align-middle td {
+            vertical-align: middle;
+        }
+        .table thead th {
+            border-bottom: 1px dashed #979797 !important;
+        }
+        dl.row {
+            display: table;
+            width: 100%;
+            margin: 0;
+        }
+        dl.row dt {
+            display: table-cell;
+            width: 50%;
+            padding: 4px 8px;
+        }
+        dl.row dd {
+            display: table-cell;
+            width: 50%;
+            padding: 4px 8px;
+        }
+        .col-6 {
+            width: 50%;
+            display: inline-block;
+        }
+        .col-12 {
+            width: 100%;
+            display: block;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .ml-3 { margin-left: 1rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .font-size-sm { font-size: 0.875rem; }
+        .text-body { color: #212529; }
+        u { text-decoration: underline; }
+        strong { font-weight: bold; }
+        hr {
+            border: none;
+            border-top: 1px solid #dee2e6;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+' . $view . '
+</body>
+</html>';
+
+        $dompdf = new Dompdf();
+        $options = $dompdf->getOptions();
+        $options->set('dpi', 150);
+        $options->set('isPhpEnabled', true);
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $options->set('fontHeightRatio', 1.1);
+        $dompdf->setOptions($options);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
+        $directory = 'orders';
+
         try {
-            // Ensure temp directory exists with proper permissions before generating PDF
-            // The helper uses: __DIR__ . '/../../storage/tmp' from app/CentralLogics/helpers.php
-            // This resolves to: app/CentralLogics/../../storage/tmp = storage/tmp
-            $helperTempDir = storage_path('tmp');
-            $helperMpdfDir = $helperTempDir . '/mpdf';
-
-            // Create directories if they don't exist
-            if (!file_exists($helperTempDir)) {
-                @mkdir($helperTempDir, 0777, true);
-            }
-            if (!file_exists($helperMpdfDir)) {
-                @mkdir($helperMpdfDir, 0777, true);
+            if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($directory)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory($directory);
             }
 
-            // Make sure directories are writable
-            if (!is_writable($helperTempDir)) {
-                @chmod($helperTempDir, 0777);
-            }
-            if (!is_writable($helperMpdfDir)) {
-                @chmod($helperMpdfDir, 0777);
-            }
+            \Illuminate\Support\Facades\Storage::disk('public')->put($directory . '/' . $filename, $dompdf->output());
 
-            // Use View::make to create the view (same pattern as other PDFs in project)
-            $mpdf_view = \Illuminate\Support\Facades\View::make('new_invoice', compact('order'));
-
-            // Use the project's helper method to generate PDF (same as other controllers)
-            $file_name = Helpers::down_mpdf($mpdf_view, 'order_', $order->order_serial . '_' . time());
-
-            if (!$file_name) {
-                return response()->json(['error' => 'Failed to generate PDF'], 500);
-            }
-
-            // Return public URL (same pattern as API controller)
-            $publicUrl = dynamicStorage('storage/app/public/pdfs') . '/' . $file_name;
+            $publicUrl = dynamicStorage('storage/app/public') . '/' . $directory . '/' . $filename;
 
             return response()->json([
                 'success' => true,
@@ -689,9 +882,8 @@ class OrderController extends Controller
                 'filePath' => $publicUrl
             ]);
         } catch (\Exception $e) {
-            Log::error('PDF Generation Error: ' . $e->getMessage());
             return response()->json([
-                'error' => 'Failed to generate PDF: ' . $e->getMessage()
+                'error' => 'Failed to save PDF: ' . $e->getMessage()
             ], 500);
         }
     }

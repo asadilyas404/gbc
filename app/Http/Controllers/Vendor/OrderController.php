@@ -701,6 +701,36 @@ class OrderController extends Controller
             $printableContent = preg_replace('/<[^>]*class="[^"]*non-printable[^"]*"[^>]*\/?>/i', '', $printableContent);
         }
 
+        // Convert image paths from dynamicAsset() to absolute paths for mPDF
+        // mPDF needs absolute file paths or full URLs
+        $printableContent = preg_replace_callback(
+            '/src=["\']([^"\']+)["\']/i',
+            function($matches) {
+                $src = $matches[1];
+                // If it's a dynamicAsset path, convert to absolute path
+                if (strpos($src, '/public/assets/') !== false || strpos($src, 'assets/') !== false) {
+                    // Remove /public/ prefix if present and convert to public_path
+                    $path = str_replace('/public/', '', $src);
+                    $path = str_replace('public/', '', $path);
+                    $absolutePath = public_path($path);
+                    if (file_exists($absolutePath)) {
+                        return 'src="' . $absolutePath . '"';
+                    }
+                }
+                // If it's already a full URL or absolute path, keep it
+                if (strpos($src, 'http') === 0 || strpos($src, '/') === 0) {
+                    return $matches[0];
+                }
+                // Try to convert relative paths
+                $absolutePath = public_path($src);
+                if (file_exists($absolutePath)) {
+                    return 'src="' . $absolutePath . '"';
+                }
+                return $matches[0];
+            },
+            $printableContent
+        );
+
         // Wrap in proper HTML structure with CSS (matching the print styling)
         // Include Bootstrap utilities and invoice-specific styles for proper centering
         $css = '<style>
@@ -714,6 +744,8 @@ class OrderController extends Controller
             .col-md-12 { position: relative; width: 100%; padding-left: 15px; padding-right: 15px; }
             .justify-content-center { justify-content: center !important; }
             .text-center { text-align: center !important; }
+            .text-right { text-align: right !important; }
+            .text-left { text-align: left !important; }
             .container-fluid { width: 100%; padding-left: 15px; padding-right: 15px; margin-left: auto; margin-right: auto; }
 
             /* Invoice specific styles for centering */
@@ -727,10 +759,30 @@ class OrderController extends Controller
                 font-weight: 500;
                 color: #000000;
             }
-            .initial-38-2 {
+            /* Logo centering - ensure logo is properly centered */
+            .initial-38-1 .pt-3:first-child {
+                padding-top: 0 !important;
+                text-align: center !important;
+                display: block;
                 width: 100%;
-                height: 70px;
-                object-fit: contain;
+            }
+            .initial-38-1 .pt-3:first-child img,
+            .initial-38-1 img.initial-38-2 {
+                margin: 0 auto !important;
+                display: block !important;
+                width: 100% !important;
+                height: 70px !important;
+                object-fit: contain !important;
+                max-width: 100% !important;
+                text-align: center !important;
+            }
+            .initial-38-2 {
+                width: 100% !important;
+                height: 70px !important;
+                object-fit: contain !important;
+                display: block !important;
+                margin: 0 auto !important;
+                max-width: 100% !important;
             }
             .initial-38-3 {
                 line-height: 1;
@@ -749,19 +801,71 @@ class OrderController extends Controller
             #printableArea > .col-md-12 { padding: 0 !important; }
             .content { max-width: 100%; }
 
+            /* Table styles for proper alignment */
+            table { width: 100%; border-collapse: collapse; margin: 0; }
+            .table { width: 100%; margin-bottom: 1rem; }
+            .table-borderless { border: none; }
+            .table-borderless th, .table-borderless td { border: none; }
+            .table-bordered { border: 1px solid #dee2e6; }
+            .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; padding: 0.75rem; }
+            .table-bordered th:first-child, .table-bordered td:first-child { padding-inline-start: 0 !important; }
+            .table-bordered th:last-child, .table-bordered td:last-child { text-align: end; padding-inline-end: 10px; }
+            .table-align-middle th, .table-align-middle td { vertical-align: middle; }
+            th, td { padding: 0.75rem; }
+            .w-28p { width: 28%; }
+
+            /* Description list (dl) styles for totals section */
+            dl.row { display: flex; flex-wrap: wrap; margin: 0; }
+            dl.row dt { width: 50%; padding: 0.5rem; }
+            dl.row dd { width: 50%; padding: 0.5rem; margin: 0; }
+            .col-6 { width: 50%; padding: 0 15px; }
+
             /* Common utility classes */
             .pt-3 { padding-top: 1rem !important; }
+            .pt-1 { padding-top: 0.25rem !important; }
             .mb-3 { margin-bottom: 1rem !important; }
+            .mb-0 { margin-bottom: 0 !important; }
             .text-break { word-wrap: break-word !important; }
             .d-flex { display: flex !important; }
             .gap-2 { gap: 0.5rem; }
             .fw-bold { font-weight: bold !important; }
+            .font-weight-bold { font-weight: bold !important; }
             .text-muted { color: #6c757d !important; }
             .border { border: 1px solid #dee2e6 !important; }
             .border-dashed { border-style: dashed !important; }
             .border-secondary { border-color: #6c757d !important; }
             .rounded { border-radius: 0.25rem !important; }
             .p-3 { padding: 1rem !important; }
+            .px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .align-items-center { align-items: center !important; }
+            .mt-1 { margin-top: 0.25rem !important; }
+            .mb-1 { margin-bottom: 0.25rem !important; }
+            .ml-3 { margin-left: 1rem !important; }
+            .d-block { display: block !important; }
+            .text-capitalize { text-transform: capitalize !important; }
+            .fw-500 { font-weight: 500 !important; }
+            .fz-12px { font-size: 12px !important; }
+            h5 { margin: 0.5rem 0; font-size: 1.25rem; }
+            img { max-width: 100%; height: auto; display: block; }
+
+            /* Ensure proper alignment for all content */
+            .initial-38-1 {
+                text-align: left;
+                display: block;
+                width: 100%;
+            }
+            .initial-38-1 .text-center { text-align: center !important; }
+
+            /* Fix for content alignment issues */
+            .initial-38-1 > div {
+                width: 100%;
+            }
+            .initial-38-1 h5 {
+                text-align: inherit;
+            }
+            .initial-38-1 h5.text-center {
+                text-align: center !important;
+            }
 
             @page { margin: 10mm; }
         </style>';

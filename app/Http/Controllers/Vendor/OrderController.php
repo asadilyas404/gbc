@@ -759,7 +759,7 @@ class OrderController extends Controller
                 font-weight: 500;
                 color: #000000;
             }
-            /* Logo centering - ensure logo is properly centered */
+            /* Logo centering - ensure logo is properly centered and not stretched */
             .initial-38-1 .pt-3:first-child {
                 padding-top: 0 !important;
                 text-align: center !important;
@@ -767,22 +767,23 @@ class OrderController extends Controller
                 width: 100%;
             }
             .initial-38-1 .pt-3:first-child img,
-            .initial-38-1 img.initial-38-2 {
+            .initial-38-1 img.initial-38-2,
+            img.initial-38-2 {
                 margin: 0 auto !important;
                 display: block !important;
-                width: 100% !important;
                 height: 70px !important;
-                object-fit: contain !important;
+                width: auto !important;
                 max-width: 100% !important;
-                text-align: center !important;
+                object-fit: contain !important;
+                object-position: center !important;
             }
             .initial-38-2 {
-                width: 100% !important;
                 height: 70px !important;
+                width: auto !important;
+                max-width: 100% !important;
                 object-fit: contain !important;
                 display: block !important;
                 margin: 0 auto !important;
-                max-width: 100% !important;
             }
             .initial-38-3 {
                 line-height: 1;

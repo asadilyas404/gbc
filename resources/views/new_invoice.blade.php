@@ -1,28 +1,6 @@
 @php
     use App\Models\OptionsList;
 
-    // Helper function to shape Arabic text properly for PDF
-    function shapeArabic($text) {
-        if (empty($text) || !is_string($text)) {
-            return $text;
-        }
-        try {
-            // Try new namespace first
-            if (class_exists('\ArPHP\I18N\Arabic')) {
-                $arabic = new \ArPHP\I18N\Arabic('Glyphs');
-                return $arabic->utf8Glyphs($text);
-            }
-            // Fallback to old class name
-            if (class_exists('I18N_Arabic')) {
-                $arabic = new \I18N_Arabic('Glyphs');
-                return $arabic->utf8Glyphs($text);
-            }
-        } catch (\Exception $e) {
-            // Fallback if Arabic library is not available
-        }
-        return $text;
-    }
-
     // $setting = \DB::table('business_settings')->where('key', 'print_keys')->first();
     $printer = null;
 

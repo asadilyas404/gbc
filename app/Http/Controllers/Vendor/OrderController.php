@@ -647,7 +647,29 @@ class OrderController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
+        // Use the same template as print_order for consistency
+        // This ensures the PDF matches exactly what customers see when printing
         $view = view('new_invoice', compact('order'))->render();
+
+        // Add CSS to hide non-printable elements and optimize for PDF
+        $css = '<style>
+            .non-printable { display: none !important; visibility: hidden !important; }
+            body { margin: 0; padding: 20px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; }
+            .content { max-width: 100%; }
+            #printableArea { margin: 0 !important; }
+            #printableArea > .col-md-12 { padding: 0 !important; }
+            @page { margin: 10mm; }
+        </style>';
+
+        // Inject CSS into the view - try to find head tag first
+        if (preg_match('/<head[^>]*>/i', $view)) {
+            $view = preg_replace('/(<head[^>]*>)/i', '$1' . $css, $view);
+        } elseif (preg_match('/<html[^>]*>/i', $view)) {
+            $view = preg_replace('/(<html[^>]*>)/i', '$1' . '<head>' . $css . '</head>', $view);
+        } else {
+            // If no HTML structure, wrap it
+            $view = '<!DOCTYPE html><html><head>' . $css . '</head><body>' . $view . '</body></html>';
+        }
 
         $dompdf = new Dompdf();
         $options = $dompdf->getOptions();

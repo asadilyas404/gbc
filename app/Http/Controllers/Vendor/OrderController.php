@@ -20,7 +20,7 @@ use App\Jobs\SyncOrdersJob;
 use Illuminate\Support\Str;
 use App\Events\myevent;
 use Carbon\Carbon;
-use Dompdf\Dompdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 class OrderController extends Controller
 {
     public function list($status , Request $request)
@@ -647,24 +647,6 @@ class OrderController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        $view = view('new_invoice', compact('order'))->render();
-
-        $dompdf = new Dompdf();
-        $options = $dompdf->getOptions();
-        $options->set('dpi', 96);
-        $options->set('isPhpEnabled', true);
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
-        $options->setDefaultFont('Helvetica');
-        $options->set('fontDir', storage_path('fonts/'));
-        $options->set('fontCache', storage_path('fonts/'));
-        $options->set('tempDir', sys_get_temp_dir());
-        $options->set('chroot', realpath(base_path()));
-        $dompdf->setOptions($options);
-        $dompdf->loadHtml($view, 'UTF-8');
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-
         $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
         $directory = 'orders';
 
@@ -673,7 +655,21 @@ class OrderController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory($directory);
             }
 
-            \Illuminate\Support\Facades\Storage::disk('public')->put($directory . '/' . $filename, $dompdf->output());
+            $pdf = Pdf::loadView('new_invoice', compact('order'))
+                ->setPaper('A4', 'portrait')
+                ->setOptions([
+                    'dpi' => 96,
+                    'isPhpEnabled' => true,
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => true,
+                    'defaultFont' => 'Helvetica',
+                    'fontDir' => storage_path('fonts/'),
+                    'fontCache' => storage_path('fonts/'),
+                    'tempDir' => sys_get_temp_dir(),
+                    'chroot' => realpath(base_path()),
+                ]);
+
+            \Illuminate\Support\Facades\Storage::disk('public')->put($directory . '/' . $filename, $pdf->output());
 
             $publicUrl = dynamicStorage('storage/app/public') . '/' . $directory . '/' . $filename;
 

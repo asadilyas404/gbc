@@ -647,160 +647,19 @@ class OrderController extends Controller
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        // Generate PDF using mPDF (better Arabic support and formatting)
-        $mpdf_view = view('new_invoice', compact('order'));
-
         try {
-            // Ensure temp directory exists with proper permissions (same as project's helpers.php)
-            $tempDir = storage_path('tmp');
-            $mpdfTempDir = $tempDir . '/mpdf';
+            // Use View::make to create the view (same pattern as other PDFs in project)
+            $mpdf_view = \Illuminate\Support\Facades\View::make('new_invoice', compact('order'));
 
-            // Try to create and set permissions
-            if (!file_exists($tempDir)) {
-                @mkdir($tempDir, 0777, true);
+            // Use the project's helper method to generate PDF (same as other controllers)
+            $file_name = Helpers::down_mpdf($mpdf_view, 'order_', $order->order_serial . '_' . time());
+
+            if (!$file_name) {
+                return response()->json(['error' => 'Failed to generate PDF'], 500);
             }
 
-            if (!file_exists($mpdfTempDir)) {
-                @mkdir($mpdfTempDir, 0777, true);
-            }
-
-            // Make sure directory is writable, if not use system temp
-            if (!is_writable($mpdfTempDir)) {
-                @chmod($mpdfTempDir, 0777);
-                // If still not writable, use system temp directory as fallback
-                if (!is_writable($mpdfTempDir)) {
-                    $mpdfTempDir = sys_get_temp_dir() . '/mpdf_' . uniqid();
-                    @mkdir($mpdfTempDir, 0777, true);
-                }
-            }
-
-            // Use mPDF with proper configuration for Arabic text
-            $mpdf = new \Mpdf\Mpdf([
-                'tempDir' => $mpdfTempDir,
-                'default_font' => 'FreeSerif',
-                'mode' => 'utf-8',
-                'format' => 'A4',
-                'orientation' => 'P',
-                'margin_left' => 10,
-                'margin_right' => 10,
-                'margin_top' => 10,
-                'margin_bottom' => 10,
-                'autoScriptToLang' => true,
-                'autoLangToFont' => true,
-                'img_dpi' => 96,
-            ]);
-
-            // Render view and clean HTML for PDF
-            $mpdf_view_rendered = $mpdf_view->render();
-
-            // Remove non-printable elements and scripts
-            $mpdf_view_rendered = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $mpdf_view_rendered);
-            $mpdf_view_rendered = preg_replace('/<div[^>]*class="[^"]*non-printable[^"]*"[^>]*>.*?<\/div>/is', '', $mpdf_view_rendered);
-            $mpdf_view_rendered = preg_replace('/<input[^>]*class="[^"]*non-printable[^"]*"[^>]*>/i', '', $mpdf_view_rendered);
-            $mpdf_view_rendered = preg_replace('/<a[^>]*class="[^"]*non-printable[^"]*"[^>]*>.*?<\/a>/is', '', $mpdf_view_rendered);
-            $mpdf_view_rendered = preg_replace('/<hr[^>]*class="[^"]*non-printable[^"]*"[^>]*>/i', '', $mpdf_view_rendered);
-
-            // Extract only the printable area content
-            if (preg_match('/<div[^>]*id=["\']printableArea["\'][^>]*>(.*?)<\/div>/is', $mpdf_view_rendered, $matches)) {
-                $mpdf_view_rendered = $matches[1];
-            }
-
-            // Wrap in proper HTML structure for mPDF
-            $html = '<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 8px; border: 1px solid #ddd; }
-        .text-center { text-align: center; }
-        .text-right { text-align: right; }
-        .text-left { text-align: left; }
-        .fw-bold { font-weight: bold; }
-        .fw-500 { font-weight: 500; }
-        .text-muted { color: #6c757d; }
-        .border-bottom-dashed { border-bottom: 1px dashed #979797; }
-        .d-flex { display: flex; }
-        .justify-content-between { justify-content: space-between; }
-        .gap-2 { gap: 0.5rem; }
-        .mb-2 { margin-bottom: 0.5rem; }
-        .mb-3 { margin-bottom: 1rem; }
-        .mt-1 { margin-top: 0.25rem; }
-        .mt-2 { margin-top: 0.5rem; }
-        .pt-3 { padding-top: 1rem; }
-        .px-3 { padding-left: 1rem; padding-right: 1rem; }
-        .p-3 { padding: 1rem; }
-        .rounded { border-radius: 0.25rem; }
-        .border { border: 1px solid #dee2e6; }
-        .border-dashed { border-style: dashed; }
-        .border-secondary { border-color: #6c757d; }
-        .text-break { word-break: break-word; }
-        .text-nowrap { white-space: nowrap; }
-        .font-light { font-weight: 300; }
-        .font-weight-bold { font-weight: bold; }
-        .font-size-sm { font-size: 0.875rem; }
-        .fz-12px { font-size: 12px; }
-        .fz-20px { font-size: 20px; }
-        .initial-38-1 { }
-        .initial-38-2 { max-width: 200px; }
-        .initial-38-3 { font-size: 18px; font-weight: bold; }
-        .initial-38-4 { font-size: 14px; }
-        .initial-38-9 { }
-        .w-28p { width: 28%; }
-        .col-6 { width: 50%; }
-        .col-12 { width: 100%; }
-        .row { display: flex; flex-wrap: wrap; }
-        dl.row { display: flex; flex-wrap: wrap; }
-        dt.col-6 { width: 50%; }
-        dd.col-6 { width: 50%; }
-        dd.col-12 { width: 100%; }
-        img { max-width: 100%; height: auto; }
-    </style>
-</head>
-<body>
-' . $mpdf_view_rendered . '
-</body>
-</html>';
-
-            // Convert relative image paths to absolute paths
-            $html = preg_replace_callback(
-                '/src=["\']([^"\']+)["\']/',
-                function($matches) {
-                    $url = $matches[1];
-                    // If it's a relative URL, convert to absolute
-                    if (strpos($url, 'http') !== 0 && strpos($url, '//') !== 0) {
-                        // Handle dynamicAsset paths
-                        if (strpos($url, '/public/') !== false) {
-                            $url = url($url);
-                        } elseif (strpos($url, 'storage/') !== false) {
-                            $url = url($url);
-                        } else {
-                            $url = url($url);
-                        }
-                    }
-                    return 'src="' . $url . '"';
-                },
-                $html
-            );
-
-            $mpdf->WriteHTML($html);
-
-            // Save PDF to storage
-            $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
-            $directory = 'orders';
-
-            // Ensure directory exists
-            if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($directory)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory($directory);
-            }
-
-            // Save PDF file
-            $filePath = storage_path('app/public/' . $directory . '/' . $filename);
-            $mpdf->Output($filePath, 'F');
-
-            // Return public URL
-            $publicUrl = dynamicStorage('storage/app/public') . '/' . $directory . '/' . $filename;
+            // Return public URL (same pattern as API controller)
+            $publicUrl = dynamicStorage('storage/app/public/pdfs') . '/' . $file_name;
 
             return response()->json([
                 'success' => true,

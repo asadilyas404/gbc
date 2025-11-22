@@ -690,11 +690,81 @@ class OrderController extends Controller
                 'img_dpi' => 96,
             ]);
 
-            // Render view and convert relative URLs to absolute for images
+            // Render view and clean HTML for PDF
             $mpdf_view_rendered = $mpdf_view->render();
 
+            // Remove non-printable elements and scripts
+            $mpdf_view_rendered = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $mpdf_view_rendered);
+            $mpdf_view_rendered = preg_replace('/<div[^>]*class="[^"]*non-printable[^"]*"[^>]*>.*?<\/div>/is', '', $mpdf_view_rendered);
+            $mpdf_view_rendered = preg_replace('/<input[^>]*class="[^"]*non-printable[^"]*"[^>]*>/i', '', $mpdf_view_rendered);
+            $mpdf_view_rendered = preg_replace('/<a[^>]*class="[^"]*non-printable[^"]*"[^>]*>.*?<\/a>/is', '', $mpdf_view_rendered);
+            $mpdf_view_rendered = preg_replace('/<hr[^>]*class="[^"]*non-printable[^"]*"[^>]*>/i', '', $mpdf_view_rendered);
+
+            // Extract only the printable area content
+            if (preg_match('/<div[^>]*id=["\']printableArea["\'][^>]*>(.*?)<\/div>/is', $mpdf_view_rendered, $matches)) {
+                $mpdf_view_rendered = $matches[1];
+            }
+
+            // Wrap in proper HTML structure for mPDF
+            $html = '<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td { padding: 8px; border: 1px solid #ddd; }
+        .text-center { text-align: center; }
+        .text-right { text-align: right; }
+        .text-left { text-align: left; }
+        .fw-bold { font-weight: bold; }
+        .fw-500 { font-weight: 500; }
+        .text-muted { color: #6c757d; }
+        .border-bottom-dashed { border-bottom: 1px dashed #979797; }
+        .d-flex { display: flex; }
+        .justify-content-between { justify-content: space-between; }
+        .gap-2 { gap: 0.5rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-3 { margin-bottom: 1rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .pt-3 { padding-top: 1rem; }
+        .px-3 { padding-left: 1rem; padding-right: 1rem; }
+        .p-3 { padding: 1rem; }
+        .rounded { border-radius: 0.25rem; }
+        .border { border: 1px solid #dee2e6; }
+        .border-dashed { border-style: dashed; }
+        .border-secondary { border-color: #6c757d; }
+        .text-break { word-break: break-word; }
+        .text-nowrap { white-space: nowrap; }
+        .font-light { font-weight: 300; }
+        .font-weight-bold { font-weight: bold; }
+        .font-size-sm { font-size: 0.875rem; }
+        .fz-12px { font-size: 12px; }
+        .fz-20px { font-size: 20px; }
+        .initial-38-1 { }
+        .initial-38-2 { max-width: 200px; }
+        .initial-38-3 { font-size: 18px; font-weight: bold; }
+        .initial-38-4 { font-size: 14px; }
+        .initial-38-9 { }
+        .w-28p { width: 28%; }
+        .col-6 { width: 50%; }
+        .col-12 { width: 100%; }
+        .row { display: flex; flex-wrap: wrap; }
+        dl.row { display: flex; flex-wrap: wrap; }
+        dt.col-6 { width: 50%; }
+        dd.col-6 { width: 50%; }
+        dd.col-12 { width: 100%; }
+        img { max-width: 100%; height: auto; }
+    </style>
+</head>
+<body>
+' . $mpdf_view_rendered . '
+</body>
+</html>';
+
             // Convert relative image paths to absolute paths
-            $mpdf_view_rendered = preg_replace_callback(
+            $html = preg_replace_callback(
                 '/src=["\']([^"\']+)["\']/',
                 function($matches) {
                     $url = $matches[1];
@@ -711,10 +781,10 @@ class OrderController extends Controller
                     }
                     return 'src="' . $url . '"';
                 },
-                $mpdf_view_rendered
+                $html
             );
 
-            $mpdf->WriteHTML($mpdf_view_rendered);
+            $mpdf->WriteHTML($html);
 
             // Save PDF to storage
             $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';

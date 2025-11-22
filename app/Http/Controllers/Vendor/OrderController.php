@@ -702,12 +702,67 @@ class OrderController extends Controller
         }
 
         // Wrap in proper HTML structure with CSS (matching the print styling)
+        // Include Bootstrap utilities and invoice-specific styles for proper centering
         $css = '<style>
+            * { box-sizing: border-box; }
             body { margin: 0; padding: 20px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; }
-            .content { max-width: 100%; }
+
+            /* Bootstrap utilities for centering */
+            .row { display: flex; flex-wrap: wrap; margin-left: -15px; margin-right: -15px; }
+            .row::before, .row::after { content: ""; display: table; }
+            .row::after { clear: both; }
+            .col-md-12 { position: relative; width: 100%; padding-left: 15px; padding-right: 15px; }
+            .justify-content-center { justify-content: center !important; }
+            .text-center { text-align: center !important; }
+            .container-fluid { width: 100%; padding-left: 15px; padding-right: 15px; margin-left: auto; margin-right: auto; }
+
+            /* Invoice specific styles for centering */
+            .initial-38-1 {
+                max-width: 382px;
+                margin: 0 auto;
+                padding-inline-end: 4px;
+            }
+            .initial-38-1 * {
+                font-family: "Roboto Mono", monospace !important;
+                font-weight: 500;
+                color: #000000;
+            }
+            .initial-38-2 {
+                width: 100%;
+                height: 70px;
+                object-fit: contain;
+            }
+            .initial-38-3 {
+                line-height: 1;
+            }
+            .initial-38-4 {
+                font-size: 16px;
+                font-weight: lighter;
+            }
+            .initial-38-9 {
+                width: 98%;
+                margin-inline-start: auto;
+                margin-inline-end: auto;
+            }
             .initial-38 #printableArea * { color: #000000; }
             #printableArea { margin: 0 !important; }
             #printableArea > .col-md-12 { padding: 0 !important; }
+            .content { max-width: 100%; }
+
+            /* Common utility classes */
+            .pt-3 { padding-top: 1rem !important; }
+            .mb-3 { margin-bottom: 1rem !important; }
+            .text-break { word-wrap: break-word !important; }
+            .d-flex { display: flex !important; }
+            .gap-2 { gap: 0.5rem; }
+            .fw-bold { font-weight: bold !important; }
+            .text-muted { color: #6c757d !important; }
+            .border { border: 1px solid #dee2e6 !important; }
+            .border-dashed { border-style: dashed !important; }
+            .border-secondary { border-color: #6c757d !important; }
+            .rounded { border-radius: 0.25rem !important; }
+            .p-3 { padding: 1rem !important; }
+
             @page { margin: 10mm; }
         </style>';
 

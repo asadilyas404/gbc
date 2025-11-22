@@ -730,8 +730,41 @@ class OrderController extends Controller
         // Use mPDF instead of Dompdf - better Arabic and CSS support
         // mPDF has built-in Arabic/RTL support and better CSS handling
         $tempDir = storage_path('tmp');
-        if (!file_exists($tempDir)) {
-            mkdir($tempDir, 0777, true);
+
+        try {
+            // Create temp directory if it doesn't exist
+            if (!file_exists($tempDir)) {
+                if (!mkdir($tempDir, 0777, true)) {
+                    throw new \Exception("Failed to create temp directory: {$tempDir}");
+                }
+            }
+
+            // mPDF automatically creates a 'mpdf' subdirectory inside tempDir
+            // Ensure the parent directory is writable so mPDF can create the subdirectory
+            if (!is_writable($tempDir)) {
+                if (!chmod($tempDir, 0777)) {
+                    throw new \Exception("Temp directory is not writable: {$tempDir}");
+                }
+            }
+
+            // Also create the mpdf subdirectory preemptively and make it writable
+            $mpdfSubDir = $tempDir . '/mpdf';
+            if (!file_exists($mpdfSubDir)) {
+                if (!mkdir($mpdfSubDir, 0777, true)) {
+                    throw new \Exception("Failed to create mPDF subdirectory: {$mpdfSubDir}");
+                }
+            } else {
+                // Ensure existing directory is writable
+                if (!is_writable($mpdfSubDir)) {
+                    if (!chmod($mpdfSubDir, 0777)) {
+                        throw new \Exception("mPDF subdirectory is not writable: {$mpdfSubDir}");
+                    }
+                }
+            }
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to setup PDF temp directory: ' . $e->getMessage() . '. Please ensure storage/tmp directory exists and is writable (chmod 777).'
+            ], 500);
         }
 
         $mpdf = new Mpdf([
@@ -742,7 +775,7 @@ class OrderController extends Controller
             'margin_right' => 10,
             'margin_top' => 10,
             'margin_bottom' => 10,
-            'tempDir' => $tempDir,
+            'tempDir' => $tempDir, // mPDF will use 'mpdf' subdirectory inside this
             'default_font' => 'FreeSerif', // Better Arabic support
             'autoScriptToLang' => true,    // Automatically detect and handle Arabic/RTL
             'autoLangToFont' => true,      // Automatically use appropriate fonts

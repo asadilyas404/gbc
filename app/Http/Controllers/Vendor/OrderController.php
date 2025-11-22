@@ -649,27 +649,83 @@ class OrderController extends Controller
 
         // Use the same template as print_order for consistency
         // This ensures the PDF matches exactly what customers see when printing
-        $view = view('new_invoice', compact('order'))->render();
+        $fullView = view('new_invoice', compact('order'))->render();
 
-        // Add CSS to hide non-printable elements and optimize for PDF
+        // Extract only the #printableArea content (same as print function does)
+        // This preserves the proper styling and structure
+        $printableContent = '';
+
+        // Try to extract using DOMDocument for better reliability
+        if (class_exists('DOMDocument')) {
+            libxml_use_internal_errors(true);
+            $dom = new \DOMDocument();
+            $dom->loadHTML('<?xml encoding="UTF-8">' . $fullView, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
+            $xpath = new \DOMXPath($dom);
+            $printableArea = $xpath->query('//*[@id="printableArea"]')->item(0);
+
+            if ($printableArea) {
+                // Get inner HTML of printableArea
+                $printableContent = '';
+                foreach ($printableArea->childNodes as $child) {
+                    $printableContent .= $dom->saveHTML($child);
+                }
+
+                // Remove non-printable elements
+                $nonPrintables = $xpath->query('.//*[contains(@class, "non-printable")]', $printableArea);
+                foreach ($nonPrintables as $node) {
+                    $node->parentNode->removeChild($node);
+                }
+
+                // Get the cleaned content
+                $printableContent = '';
+                foreach ($printableArea->childNodes as $child) {
+                    $printableContent .= $dom->saveHTML($child);
+                }
+            }
+            libxml_clear_errors();
+        }
+
+        // Fallback to regex if DOMDocument failed or not available
+        if (empty($printableContent)) {
+            // Extract content inside #printableArea (including the col-md-12 wrapper)
+            if (preg_match('/<div[^>]*id=["\']printableArea["\'][^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/i', $fullView, $matches)) {
+                $printableContent = $matches[1];
+            } else {
+                // Last resort: use full view
+                $printableContent = $fullView;
+            }
+
+            // Remove non-printable elements
+            $printableContent = preg_replace('/<[^>]*class="[^"]*non-printable[^"]*"[^>]*>[\s\S]*?<\/[^>]+>/i', '', $printableContent);
+            $printableContent = preg_replace('/<[^>]*class="[^"]*non-printable[^"]*"[^>]*\/?>/i', '', $printableContent);
+        }
+
+        // Wrap in proper HTML structure with CSS (matching the print styling)
         $css = '<style>
-            .non-printable { display: none !important; visibility: hidden !important; }
             body { margin: 0; padding: 20px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; }
             .content { max-width: 100%; }
+            .initial-38 #printableArea * { color: #000000; }
             #printableArea { margin: 0 !important; }
             #printableArea > .col-md-12 { padding: 0 !important; }
             @page { margin: 10mm; }
         </style>';
 
-        // Inject CSS into the view - try to find head tag first
-        if (preg_match('/<head[^>]*>/i', $view)) {
-            $view = preg_replace('/(<head[^>]*>)/i', '$1' . $css, $view);
-        } elseif (preg_match('/<html[^>]*>/i', $view)) {
-            $view = preg_replace('/(<html[^>]*>)/i', '$1' . '<head>' . $css . '</head>', $view);
-        } else {
-            // If no HTML structure, wrap it
-            $view = '<!DOCTYPE html><html><head>' . $css . '</head><body>' . $view . '</body></html>';
-        }
+        $view = '<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    ' . $css . '
+</head>
+<body>
+    <div class="content container-fluid initial-38 new-invoice">
+        <div class="row justify-content-center" id="printableArea">
+            ' . $printableContent . '
+        </div>
+    </div>
+</body>
+</html>';
 
         $dompdf = new Dompdf();
         $options = $dompdf->getOptions();

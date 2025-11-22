@@ -111,7 +111,6 @@ class PrintController extends Controller
             // Connect to printer
             $connector = new WindowsPrintConnector($printerName);
             $printer = new Printer($connector);
-
             // Arabic text
             $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
             $currencyImagePath = storage_path('app/public/prints/arabic_currency_text.png');
@@ -267,15 +266,31 @@ class PrintController extends Controller
                                     }
                                     // Get Option Translation
 
-                                    $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
+                                    $option = OptionsList::find($value['options_list_id']);
+
+                                    $arabicOptionName = '';
+
+                                    if ($option) {
+                                        $arabicOptionName = $option->getTranslationValue('name', 'ar') ?? '';
+                                    }
 
                                     if ($arabicOptionName) {
-                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
-                                        $arabicOptionName = EscposImage::load($arabicOptionName, false);
+
+                                        $path = storage_path('app/public/prints/food_' . $count++ . '_arabic.png');
+
+                                        $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter(
+                                            $arabicOptionName,
+                                            $path,
+                                            20
+                                        );
+
+                                        $arabicOptionImage = EscposImage::load($arabicOptionName, false);
+
                                         $printer->setPrintLeftMargin(40);
-                                        $printer->bitImageColumnFormat($arabicOptionName);
+                                        $printer->bitImageColumnFormat($arabicOptionImage);
                                         $printer->setPrintLeftMargin(0);
                                     }
+
                                 }
                             }
                             //variation addon
@@ -412,7 +427,6 @@ class PrintController extends Controller
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->text("Thank you for your order!\n");
             $printer->text($linedash);
-
             // Feed & cut
             $printer->feed(2);
             $printer->cut();

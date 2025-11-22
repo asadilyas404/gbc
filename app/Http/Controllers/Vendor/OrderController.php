@@ -668,25 +668,32 @@ class OrderController extends Controller
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        // Save PDF to public storage
+        // Save PDF to storage using Laravel Storage facade
         $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
-        $directory = public_path('uploads/orders');
+        $directory = 'orders';
 
-        if (!file_exists($directory)) {
-            mkdir($directory, 0755, true);
+        try {
+            // Ensure directory exists using Storage facade (handles permissions better)
+            if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($directory)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory($directory);
+            }
+
+            // Save PDF file
+            \Illuminate\Support\Facades\Storage::disk('public')->put($directory . '/' . $filename, $dompdf->output());
+
+            // Return public URL - using project's dynamicStorage helper
+            $publicUrl = dynamicStorage('storage/app/public') . '/' . $directory . '/' . $filename;
+
+            return response()->json([
+                'success' => true,
+                'url' => $publicUrl,
+                'filePath' => $publicUrl
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Failed to save PDF: ' . $e->getMessage()
+            ], 500);
         }
-
-        $filePath = $directory . '/' . $filename;
-        file_put_contents($filePath, $dompdf->output());
-
-        // Return public URL
-        $publicUrl = url('uploads/orders/' . $filename);
-
-        return response()->json([
-            'success' => true,
-            'url' => $publicUrl,
-            'filePath' => $publicUrl
-        ]);
     }
 
     /**

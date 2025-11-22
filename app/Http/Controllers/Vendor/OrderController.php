@@ -20,7 +20,6 @@ use App\Jobs\SyncOrdersJob;
 use Illuminate\Support\Str;
 use App\Events\myevent;
 use Carbon\Carbon;
-use Dompdf\Dompdf;
 class OrderController extends Controller
 {
     public function list($status , Request $request)
@@ -639,37 +638,81 @@ class OrderController extends Controller
 
     public function generatePdfForWhatsApp(Request $request, $id)
     {
+        // Load order with all necessary relationships
         $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])
-            ->with(['payments', 'details.food', 'restaurant', 'customer'])
+            ->with(['payments', 'details.food', 'restaurant', 'customer', 'pos_details', 'takenBy'])
             ->first();
 
         if (!$order) {
             return response()->json(['error' => 'Order not found'], 404);
         }
 
-        $view = view('new_invoice', compact('order'))->render();
-
-        $dompdf = new Dompdf();
-        $options = $dompdf->getOptions();
-        $options->set('dpi', 100);
-        $options->set('isPhpEnabled', TRUE);
-        $options->set('isHtml5ParserEnabled', TRUE);
-        $options->setDefaultFont('roboto');
-        $dompdf->setOptions($options);
-        $dompdf->loadHtml($view, 'UTF-8');
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
-
-        $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
-        $directory = 'orders';
+        // Generate PDF using mPDF (better Arabic support and formatting)
+        $mpdf_view = view('new_invoice', compact('order'));
 
         try {
+            // Ensure temp directory exists
+            $tempDir = storage_path('tmp');
+            if (!file_exists($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+
+            // Use mPDF with proper configuration for Arabic text
+            $mpdf = new \Mpdf\Mpdf([
+                'tempDir' => $tempDir,
+                'default_font' => 'FreeSerif',
+                'mode' => 'utf-8',
+                'format' => 'A4',
+                'orientation' => 'P',
+                'margin_left' => 10,
+                'margin_right' => 10,
+                'margin_top' => 10,
+                'margin_bottom' => 10,
+                'autoScriptToLang' => true,
+                'autoLangToFont' => true,
+                'img_dpi' => 96,
+            ]);
+
+            // Render view and convert relative URLs to absolute for images
+            $mpdf_view_rendered = $mpdf_view->render();
+
+            // Convert relative image paths to absolute paths
+            $mpdf_view_rendered = preg_replace_callback(
+                '/src=["\']([^"\']+)["\']/',
+                function($matches) {
+                    $url = $matches[1];
+                    // If it's a relative URL, convert to absolute
+                    if (strpos($url, 'http') !== 0 && strpos($url, '//') !== 0) {
+                        // Handle dynamicAsset paths
+                        if (strpos($url, '/public/') !== false) {
+                            $url = url($url);
+                        } elseif (strpos($url, 'storage/') !== false) {
+                            $url = url($url);
+                        } else {
+                            $url = url($url);
+                        }
+                    }
+                    return 'src="' . $url . '"';
+                },
+                $mpdf_view_rendered
+            );
+
+            $mpdf->WriteHTML($mpdf_view_rendered);
+
+            // Save PDF to storage
+            $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
+            $directory = 'orders';
+
+            // Ensure directory exists
             if (!\Illuminate\Support\Facades\Storage::disk('public')->exists($directory)) {
                 \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory($directory);
             }
 
-            \Illuminate\Support\Facades\Storage::disk('public')->put($directory . '/' . $filename, $dompdf->output());
+            // Save PDF file
+            $filePath = storage_path('app/public/' . $directory . '/' . $filename);
+            $mpdf->Output($filePath, 'F');
 
+            // Return public URL
             $publicUrl = dynamicStorage('storage/app/public') . '/' . $directory . '/' . $filename;
 
             return response()->json([
@@ -678,8 +721,9 @@ class OrderController extends Controller
                 'filePath' => $publicUrl
             ]);
         } catch (\Exception $e) {
+            Log::error('PDF Generation Error: ' . $e->getMessage());
             return response()->json([
-                'error' => 'Failed to save PDF: ' . $e->getMessage()
+                'error' => 'Failed to generate PDF: ' . $e->getMessage()
             ], 500);
         }
     }

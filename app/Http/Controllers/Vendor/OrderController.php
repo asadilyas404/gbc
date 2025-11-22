@@ -20,7 +20,7 @@ use App\Jobs\SyncOrdersJob;
 use Illuminate\Support\Str;
 use App\Events\myevent;
 use Carbon\Carbon;
-use Dompdf\Dompdf;
+use Mpdf\Mpdf;
 class OrderController extends Controller
 {
     public function list($status , Request $request)
@@ -727,21 +727,28 @@ class OrderController extends Controller
 </body>
 </html>';
 
-        $dompdf = new Dompdf();
-        $options = $dompdf->getOptions();
-        $options->set('dpi', 96);
-        $options->set('isPhpEnabled', true);
-        $options->set('isHtml5ParserEnabled', true);
-        $options->set('isRemoteEnabled', true);
-        $options->setDefaultFont('DejaVu Sans');
-        $options->set('fontDir', storage_path('fonts/'));
-        $options->set('fontCache', storage_path('fonts/'));
-        $options->set('tempDir', sys_get_temp_dir());
-        $options->set('chroot', realpath(base_path()));
-        $dompdf->setOptions($options);
-        $dompdf->loadHtml($view, 'UTF-8');
-        $dompdf->setPaper('A4', 'portrait');
-        $dompdf->render();
+        // Use mPDF instead of Dompdf - better Arabic and CSS support
+        // mPDF has built-in Arabic/RTL support and better CSS handling
+        $tempDir = storage_path('tmp');
+        if (!file_exists($tempDir)) {
+            mkdir($tempDir, 0777, true);
+        }
+
+        $mpdf = new Mpdf([
+            'mode' => 'utf-8',
+            'format' => 'A4',
+            'orientation' => 'P',
+            'margin_left' => 10,
+            'margin_right' => 10,
+            'margin_top' => 10,
+            'margin_bottom' => 10,
+            'tempDir' => $tempDir,
+            'default_font' => 'FreeSerif', // Better Arabic support
+            'autoScriptToLang' => true,    // Automatically detect and handle Arabic/RTL
+            'autoLangToFont' => true,      // Automatically use appropriate fonts
+        ]);
+
+        $mpdf->WriteHTML($view);
 
         $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
         $directory = 'orders';
@@ -751,7 +758,9 @@ class OrderController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory($directory);
             }
 
-            \Illuminate\Support\Facades\Storage::disk('public')->put($directory . '/' . $filename, $dompdf->output());
+            // Save PDF to file using Storage
+            $filePath = storage_path('app/public/' . $directory . '/' . $filename);
+            $mpdf->Output($filePath, 'F');
 
             $publicUrl = dynamicStorage('storage/app/public') . '/' . $directory . '/' . $filename;
 

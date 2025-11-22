@@ -20,6 +20,7 @@ use App\Jobs\SyncOrdersJob;
 use Illuminate\Support\Str;
 use App\Events\myevent;
 use Carbon\Carbon;
+use Dompdf\Dompdf;
 class OrderController extends Controller
 {
     public function list($status , Request $request)
@@ -514,7 +515,7 @@ class OrderController extends Controller
                 info('Print error On Order Cancel: ' . $printException->getMessage());
             }
         }
-        
+
 
         // if(!Helpers::send_order_notification($order))
         // {
@@ -610,6 +611,163 @@ class OrderController extends Controller
 
         Toastr::success('Payment reference code is added!');
         return back();
+    }
+
+    /**
+     * Fetch customer phone number for WhatsApp
+     */
+    public function fetchCustomerPhone(Request $request, $id)
+    {
+        $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])
+            ->with(['customer', 'pos_details'])
+            ->first();
+
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        // Try to get phone from customer first, then from pos_details
+        $phone = null;
+        if ($order->customer && $order->customer->phone) {
+            $phone = $order->customer->phone;
+        } elseif ($order->pos_details && $order->pos_details->phone) {
+            $phone = $order->pos_details->phone;
+        }
+
+        if (!$phone) {
+            return response()->json(['error' => 'Customer phone number not found'], 404);
+        }
+
+        return response()->json(['phone' => $phone]);
+    }
+
+    /**
+     * Generate PDF for WhatsApp attachment
+     */
+    public function generatePdfForWhatsApp(Request $request, $id)
+    {
+        $order = Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])
+            ->with(['payments', 'details.food', 'restaurant', 'customer'])
+            ->first();
+
+        if (!$order) {
+            return response()->json(['error' => 'Order not found'], 404);
+        }
+
+        // Generate PDF using the invoice template
+        $view = view('new_invoice', compact('order'))->render();
+
+        $dompdf = new Dompdf();
+        $options = $dompdf->getOptions();
+        $options->set('dpi', 100);
+        $options->set('isPhpEnabled', TRUE);
+        $options->set('isHtml5ParserEnabled', TRUE);
+        $options->setDefaultFont('roboto');
+        $dompdf->setOptions($options);
+        $dompdf->loadHtml($view, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        // Save PDF to public storage
+        $filename = 'order_' . $order->order_serial . '_' . time() . '.pdf';
+        $directory = public_path('uploads/orders');
+
+        if (!file_exists($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filePath = $directory . '/' . $filename;
+        file_put_contents($filePath, $dompdf->output());
+
+        // Return public URL
+        $publicUrl = url('uploads/orders/' . $filename);
+
+        return response()->json([
+            'success' => true,
+            'url' => $publicUrl,
+            'filePath' => $publicUrl
+        ]);
+    }
+
+    /**
+     * Send WhatsApp message via WhatsApp Intelligent API
+     */
+    public function sendWhatsappMsg(Request $request)
+    {
+        $to = $request->to;
+        $message = $request->message;
+        $filePath = $request->filePath;
+        $orderId = $request->orderId;
+        $orderSerial = $request->orderSerial;
+
+        // Get configuration from config file
+        $apiUrl = config('whatsapp.intelligent.api_url');
+        $appkey = config('whatsapp.intelligent.appkey');
+        $authkey = config('whatsapp.intelligent.authkey');
+        $sandbox = config('whatsapp.intelligent.sandbox');
+
+        if (!$apiUrl || !$appkey || !$authkey) {
+            return response()->json(['error' => 'WhatsApp API configuration is missing'], 500);
+        }
+
+        $curl = curl_init();
+
+        if($filePath == '' || $filePath == null) {
+            // Send message without attachment
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $apiUrl,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => array(
+                    'appkey' => $appkey,
+                    'authkey' => $authkey,
+                    'to' => $to,
+                    'message' => $message,
+                    'sandbox' => $sandbox
+                ),
+            ));
+        } else {
+            // Send message with PDF attachment
+            curl_setopt_array($curl, array(
+                CURLOPT_URL => $apiUrl,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_ENCODING => '',
+                CURLOPT_MAXREDIRS => 10,
+                CURLOPT_TIMEOUT => 0,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+                CURLOPT_CUSTOMREQUEST => 'POST',
+                CURLOPT_POSTFIELDS => array(
+                    'appkey' => $appkey,
+                    'authkey' => $authkey,
+                    'to' => $to,
+                    'message' => $message,
+                    'sandbox' => $sandbox,
+                    'file' => $filePath
+                ),
+            ));
+        }
+
+        $response = curl_exec($curl);
+        $httpCode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        curl_close($curl);
+
+        $responseData = @json_decode($response, true);
+
+        if ($responseData) {
+            if (isset($responseData['message_status']) && $responseData['message_status'] == 'Success') {
+                return response()->json(['success' => 'Message sent successfully!']);
+            } else {
+                return response()->json(['error' => 'Message sending failed. API returned: ' . ($responseData['message_status'] ?? 'Unknown error')]);
+            }
+        } else {
+            return response()->json(['error' => 'Invalid JSON response or empty response.', 'raw_response' => $response]);
+        }
     }
 
 

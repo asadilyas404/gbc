@@ -193,6 +193,12 @@
                                     data-order-id="{{ $order['id'] }}">
                                     <i class="tio-print mr-1"></i> POS Print
                                 </button>
+                                <button type="button" class="btn btn-success m-2 whatsapp-btn"
+                                    data-order-id="{{ $order['id'] }}" data-order-serial="{{ $order['order_serial'] }}">
+                                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
+                                         alt="WhatsApp" style="width:18px;height:18px;margin-right:5px;">
+                                    Send WhatsApp
+                                </button>
                             </div>
                             <div class="text-right mt-3 order-invoice-right-contents text-capitalize">
                                 @if (isset($order->subscription))
@@ -391,7 +397,7 @@
                                                                                             :
                                                                                             <strong>{{ \App\CentralLogics\Helpers::format_currency($value['optionPrice']) }}</strong>
                                                                                         @endif
-                                                                                        
+
                                                                                     </span>
                                                                                 @endforeach
 
@@ -1959,6 +1965,120 @@
         } else {
             console.log('QZ Tray not available');
         }
+
+        // Phone number formatting functions
+        function formatPakPhoneNumber(phone) {
+            phone = phone.replace(/[^0-9]/g, '');
+            if (phone.startsWith('0')) {
+                phone = '+92' + phone.slice(1);
+            } else {
+                phone = '+92' + phone;
+            }
+            return phone;
+        }
+
+        function formatOmanPhoneNumber(phone) {
+            phone = phone.replace(/[^0-9]/g, '');
+            phone = '+968' + phone;
+            return phone;
+        }
+
+        // WhatsApp Send Function
+        $(document).on('click', '.whatsapp-btn', function() {
+            const orderId = $(this).data('order-id');
+            const orderSerial = $(this).data('order-serial');
+            const button = $(this);
+            const originalHtml = button.html();
+
+            button.prop('disabled', true);
+            button.html('<i class="tio-time"></i> Sending...');
+
+            // Fetch customer phone number
+            $.ajax({
+                url: "{{ route('vendor.order.fetch-customer-phone', ['id' => '__id__']) }}".replace('__id__', orderId),
+                type: 'GET',
+                success: function(response) {
+                    const data = typeof response === 'string' ? JSON.parse(response) : response;
+
+                    if (!data || !data.phone) {
+                        toastr.error("Customer phone number not found");
+                        button.prop('disabled', false);
+                        button.html(originalHtml);
+                        return;
+                    }
+
+                    // Format phone number (using Oman format by default, change as needed)
+                    var to = formatOmanPhoneNumber(data.phone);
+                    // OR use: var to = formatPakPhoneNumber(data.phone);
+
+                    // Generate PDF
+                    $.ajax({
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        url: "{{ route('vendor.order.generate-pdf-whatsapp', ['id' => '__id__']) }}".replace('__id__', orderId),
+                        type: 'GET',
+                        success: function(pdfResponse) {
+                            const pdfData = typeof pdfResponse === 'string' ? JSON.parse(pdfResponse) : pdfResponse;
+                            var filePath = '';
+
+                            if (pdfData.success && pdfData.filePath) {
+                                filePath = pdfData.filePath;
+                            }
+
+                            // Create message
+                            const orderDate = new Date("{{ $order['created_at'] }}").toLocaleDateString();
+                            const message = `Thank you for your valued order\n(*Order # ${orderSerial}*, Dated ${orderDate}, Amount: {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}).\n\nPlease find your order invoice attached.\n\nThank you and regards,\n{{ $order->restaurant->name ?? 'Restaurant' }}`;
+
+                            // Send WhatsApp message
+                            $.ajax({
+                                headers: {
+                                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                                },
+                                url: "{{ route('vendor.order.whatsapp-message-sending') }}",
+                                type: 'POST',
+                                data: {
+                                    to: to,
+                                    message: message,
+                                    filePath: filePath,
+                                    orderId: orderId,
+                                    orderSerial: orderSerial,
+                                },
+                                success: function(response) {
+                                    const result = typeof response === 'string' ? JSON.parse(response) : response;
+                                    if (result.success) {
+                                        toastr.success("WhatsApp message sent successfully to " + to);
+                                        button.html(originalHtml + ' <i class="tio-checkmark-circle"></i>');
+                                    } else {
+                                        toastr.error(result.error || "Failed to send message");
+                                        button.prop('disabled', false);
+                                        button.html(originalHtml);
+                                    }
+                                },
+                                error: function(xhr) {
+                                    const errorMsg = xhr.responseJSON?.error || "Failed to send WhatsApp message.";
+                                    toastr.error(errorMsg);
+                                    button.prop('disabled', false);
+                                    button.html(originalHtml);
+                                }
+                            });
+                        },
+                        error: function(xhr) {
+                            const errorMsg = xhr.responseJSON?.error || "Failed to generate PDF.";
+                            toastr.error(errorMsg);
+                            button.prop('disabled', false);
+                            button.html(originalHtml);
+                        }
+                    });
+                },
+                error: function(xhr) {
+                    const errorMsg = xhr.responseJSON?.error || "Failed to fetch customer phone number.";
+                    toastr.error(errorMsg);
+                    button.prop('disabled', false);
+                    button.html(originalHtml);
+                }
+            });
+        });
     </script>
 
     <style>

@@ -268,6 +268,11 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('print-order/{id}', 'OrderController@print_order')->name('print-order');
             Route::post('add-payment-ref-code/{id}', 'OrderController@add_payment_ref_code')->name('add-payment-ref-code');
 
+            // WhatsApp routes
+            Route::get('fetch-customer-phone/{id}', 'OrderController@fetchCustomerPhone')->name('fetch-customer-phone');
+            Route::get('generate-pdf-whatsapp/{id}', 'OrderController@generatePdfForWhatsApp')->name('generate-pdf-whatsapp');
+            Route::post('whatsapp-message-sending', 'OrderController@sendWhatsappMsg')->name('whatsapp-message-sending');
+
             Route::get('orders-export/{status}', 'OrderController@orders_export')->name('export');
             Route::post('add-order-proof/{id}', 'OrderController@add_order_proof')->name('add-order-proof');
             Route::get('remove-proof-image', 'OrderController@remove_proof_image')->name('remove-proof-image');

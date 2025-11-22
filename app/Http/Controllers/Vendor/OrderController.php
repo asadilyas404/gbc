@@ -696,7 +696,6 @@ class OrderController extends Controller
         $appkey = config('whatsapp.intelligent.appkey');
         $authkey = config('whatsapp.intelligent.authkey');
         $sandbox = config('whatsapp.intelligent.sandbox');
-dd($apiUrl, $appkey, $authkey, $sandbox, $filePath);
         if (!$apiUrl || !$appkey || !$authkey) {
             return response()->json(['error' => 'WhatsApp API configuration is missing'], 500);
         }

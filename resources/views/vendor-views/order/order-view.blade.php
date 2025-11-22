@@ -1966,7 +1966,6 @@
             console.log('QZ Tray not available');
         }
 
-        // Phone number formatting functions
         function formatPakPhoneNumber(phone) {
             phone = phone.replace(/[^0-9]/g, '');
             if (phone.startsWith('0')) {
@@ -1983,7 +1982,6 @@
             return phone;
         }
 
-        // WhatsApp Send Function
         $(document).on('click', '.whatsapp-btn', function() {
             const orderId = $(this).data('order-id');
             const orderSerial = $(this).data('order-serial');
@@ -1993,7 +1991,6 @@
             button.prop('disabled', true);
             button.html('<i class="tio-time"></i> Sending...');
 
-            // Fetch customer phone number
             $.ajax({
                 url: "{{ route('vendor.order.fetch-customer-phone', ['id' => '__id__']) }}".replace('__id__', orderId),
                 type: 'GET',
@@ -2007,11 +2004,8 @@
                         return;
                     }
 
-                    // Format phone number (using Oman format by default, change as needed)
                     var to = formatOmanPhoneNumber(data.phone);
-                    // OR use: var to = formatPakPhoneNumber(data.phone);
 
-                    // Generate PDF
                     $.ajax({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -2026,11 +2020,9 @@
                                 filePath = pdfData.filePath;
                             }
 
-                            // Create message
                             const orderDate = new Date("{{ $order['created_at'] }}").toLocaleDateString();
                             const message = `Thank you for your valued order\n(*Order # ${orderSerial}*, Dated ${orderDate}, Amount: {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}).\n\nPlease find your order invoice attached.\n\nThank you and regards,\n{{ $order->restaurant->name ?? 'Restaurant' }}`;
 
-                            // Send WhatsApp message
                             $.ajax({
                                 headers: {
                                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')

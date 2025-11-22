@@ -648,6 +648,28 @@ class OrderController extends Controller
         }
 
         try {
+            // Ensure temp directory exists with proper permissions before generating PDF
+            // The helper uses: __DIR__ . '/../../storage/tmp' from app/CentralLogics/helpers.php
+            // This resolves to: app/CentralLogics/../../storage/tmp = storage/tmp
+            $helperTempDir = storage_path('tmp');
+            $helperMpdfDir = $helperTempDir . '/mpdf';
+
+            // Create directories if they don't exist
+            if (!file_exists($helperTempDir)) {
+                @mkdir($helperTempDir, 0777, true);
+            }
+            if (!file_exists($helperMpdfDir)) {
+                @mkdir($helperMpdfDir, 0777, true);
+            }
+
+            // Make sure directories are writable
+            if (!is_writable($helperTempDir)) {
+                @chmod($helperTempDir, 0777);
+            }
+            if (!is_writable($helperMpdfDir)) {
+                @chmod($helperMpdfDir, 0777);
+            }
+
             // Use View::make to create the view (same pattern as other PDFs in project)
             $mpdf_view = \Illuminate\Support\Facades\View::make('new_invoice', compact('order'));
 

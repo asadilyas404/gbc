@@ -646,16 +646,10 @@ class OrderController extends Controller
         if (!$order) {
             return response()->json(['error' => 'Order not found'], 404);
         }
-
-        // Use the same template as print_order for consistency
-        // This ensures the PDF matches exactly what customers see when printing
         $fullView = view('new_invoice', compact('order'))->render();
 
-        // Extract only the #printableArea content (same as print function does)
-        // This preserves the proper styling and structure
         $printableContent = '';
 
-        // Try to extract using DOMDocument for better reliability
         if (class_exists('DOMDocument')) {
             libxml_use_internal_errors(true);
             $dom = new \DOMDocument();
@@ -665,19 +659,16 @@ class OrderController extends Controller
             $printableArea = $xpath->query('//*[@id="printableArea"]')->item(0);
 
             if ($printableArea) {
-                // Get inner HTML of printableArea
                 $printableContent = '';
                 foreach ($printableArea->childNodes as $child) {
                     $printableContent .= $dom->saveHTML($child);
                 }
 
-                // Remove non-printable elements
                 $nonPrintables = $xpath->query('.//*[contains(@class, "non-printable")]', $printableArea);
                 foreach ($nonPrintables as $node) {
                     $node->parentNode->removeChild($node);
                 }
 
-                // Get the cleaned content
                 $printableContent = '';
                 foreach ($printableArea->childNodes as $child) {
                     $printableContent .= $dom->saveHTML($child);
@@ -686,30 +677,23 @@ class OrderController extends Controller
             libxml_clear_errors();
         }
 
-        // Fallback to regex if DOMDocument failed or not available
         if (empty($printableContent)) {
-            // Extract content inside #printableArea (including the col-md-12 wrapper)
             if (preg_match('/<div[^>]*id=["\']printableArea["\'][^>]*>([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/i', $fullView, $matches)) {
                 $printableContent = $matches[1];
             } else {
-                // Last resort: use full view
                 $printableContent = $fullView;
             }
 
-            // Remove non-printable elements
             $printableContent = preg_replace('/<[^>]*class="[^"]*non-printable[^"]*"[^>]*>[\s\S]*?<\/[^>]+>/i', '', $printableContent);
             $printableContent = preg_replace('/<[^>]*class="[^"]*non-printable[^"]*"[^>]*\/?>/i', '', $printableContent);
         }
 
-        // Convert image paths from dynamicAsset() to absolute paths for mPDF
-        // mPDF needs absolute file paths or full URLs
         $printableContent = preg_replace_callback(
             '/src=["\']([^"\']+)["\']/i',
             function($matches) {
                 $src = $matches[1];
-                // If it's a dynamicAsset path, convert to absolute path
                 if (strpos($src, '/public/assets/') !== false || strpos($src, 'assets/') !== false) {
-                    // Remove /public/ prefix if present and convert to public_path
+
                     $path = str_replace('/public/', '', $src);
                     $path = str_replace('public/', '', $path);
                     $absolutePath = public_path($path);
@@ -717,11 +701,9 @@ class OrderController extends Controller
                         return 'src="' . $absolutePath . '"';
                     }
                 }
-                // If it's already a full URL or absolute path, keep it
                 if (strpos($src, 'http') === 0 || strpos($src, '/') === 0) {
                     return $matches[0];
                 }
-                // Try to convert relative paths
                 $absolutePath = public_path($src);
                 if (file_exists($absolutePath)) {
                     return 'src="' . $absolutePath . '"';
@@ -731,54 +713,50 @@ class OrderController extends Controller
             $printableContent
         );
 
-        // Wrap in proper HTML structure with CSS (matching the print styling)
-        // Include Bootstrap utilities and invoice-specific styles for proper centering
         $css = '<style>
             * { box-sizing: border-box; }
-            body { margin: 0; padding: 20px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; }
+            body { margin: 0; padding: 5px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; font-size: 10px; }
 
-            /* Bootstrap utilities for centering */
-            .row { display: flex; flex-wrap: wrap; margin-left: -15px; margin-right: -15px; }
+            .row { display: flex; flex-wrap: wrap; margin-left: -5px; margin-right: -5px; }
             .row::before, .row::after { content: ""; display: table; }
             .row::after { clear: both; }
-            .col-md-12 { position: relative; width: 100%; padding-left: 15px; padding-right: 15px; }
+            .col-md-12 { position: relative; width: 100%; padding-left: 5px; padding-right: 5px; }
             .justify-content-center { justify-content: center !important; }
             .text-center { text-align: center !important; }
             .text-right { text-align: right !important; }
             .text-left { text-align: left !important; }
-            .container-fluid { width: 100%; padding-left: 15px; padding-right: 15px; margin-left: auto; margin-right: auto; }
+            .container-fluid { width: 100%; padding-left: 5px; padding-right: 5px; margin-left: auto; margin-right: auto; }
 
-            /* Invoice specific styles for centering */
             .initial-38-1 {
                 max-width: 382px;
                 margin: 0 auto;
-                padding-inline-end: 4px;
+                padding-inline-end: 2px;
             }
             .initial-38-1 * {
                 font-family: "Roboto Mono", monospace !important;
                 font-weight: 500;
                 color: #000000;
             }
-            /* Logo centering - ensure logo is properly centered and not stretched */
             .initial-38-1 .pt-3:first-child {
                 padding-top: 0 !important;
                 text-align: center !important;
                 display: block;
                 width: 100%;
+                margin-bottom: 5px !important;
             }
             .initial-38-1 .pt-3:first-child img,
             .initial-38-1 img.initial-38-2,
             img.initial-38-2 {
                 margin: 0 auto !important;
                 display: block !important;
-                height: 70px !important;
+                height: 50px !important;
                 width: auto !important;
                 max-width: 100% !important;
                 object-fit: contain !important;
                 object-position: center !important;
             }
             .initial-38-2 {
-                height: 70px !important;
+                height: 50px !important;
                 width: auto !important;
                 max-width: 100% !important;
                 object-fit: contain !important;
@@ -786,10 +764,10 @@ class OrderController extends Controller
                 margin: 0 auto !important;
             }
             .initial-38-3 {
-                line-height: 1;
+                line-height: 1.2;
             }
             .initial-38-4 {
-                font-size: 16px;
+                font-size: 12px;
                 font-weight: lighter;
             }
             .initial-38-9 {
@@ -802,54 +780,71 @@ class OrderController extends Controller
             #printableArea > .col-md-12 { padding: 0 !important; }
             .content { max-width: 100%; }
 
-            /* Table styles for proper alignment */
             table { width: 100%; border-collapse: collapse; margin: 0; }
-            .table { width: 100%; margin-bottom: 1rem; }
+            .table { width: 100%; margin-bottom: 0.3rem; }
             .table-borderless { border: none; }
             .table-borderless th, .table-borderless td { border: none; }
             .table-bordered { border: 1px solid #dee2e6; }
-            .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; padding: 0.75rem; }
+            .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; padding: 0.3rem; font-size: 9px; }
             .table-bordered th:first-child, .table-bordered td:first-child { padding-inline-start: 0 !important; }
-            .table-bordered th:last-child, .table-bordered td:last-child { text-align: end; padding-inline-end: 10px; }
+            .table-bordered th:last-child, .table-bordered td:last-child { text-align: end; padding-inline-end: 5px; }
             .table-align-middle th, .table-align-middle td { vertical-align: middle; }
-            th, td { padding: 0.75rem; }
+            th, td { padding: 0.3rem; font-size: 9px; }
             .w-28p { width: 28%; }
 
-            /* Description list (dl) styles for totals section */
-            dl.row { display: flex; flex-wrap: wrap; margin: 0; }
-            dl.row dt { width: 50%; padding: 0.5rem; }
-            dl.row dd { width: 50%; padding: 0.5rem; margin: 0; }
-            .col-6 { width: 50%; padding: 0 15px; }
+            dl.row {
+                display: flex;
+                flex-wrap: wrap;
+                margin: 0 auto !important;
+                max-width: 300px !important;
+                padding: 0 !important;
+            }
+            dl.row dt {
+                width: 50%;
+                padding: 0.2rem 0.3rem !important;
+                font-size: 9px !important;
+                text-align: left !important;
+            }
+            dl.row dd {
+                width: 50%;
+                padding: 0.2rem 0.3rem !important;
+                margin: 0 !important;
+                font-size: 9px !important;
+                text-align: right !important;
+            }
+            .col-6 { width: 50%; padding: 0 5px; }
 
-            /* Common utility classes */
-            .pt-3 { padding-top: 1rem !important; }
-            .pt-1 { padding-top: 0.25rem !important; }
-            .mb-3 { margin-bottom: 1rem !important; }
+            .pt-3 { padding-top: 0.3rem !important; }
+            .pt-1 { padding-top: 0.15rem !important; }
+            .mb-3 { margin-bottom: 0.3rem !important; }
+            .mb-2 { margin-bottom: 0.2rem !important; }
             .mb-0 { margin-bottom: 0 !important; }
             .text-break { word-wrap: break-word !important; }
             .d-flex { display: flex !important; }
-            .gap-2 { gap: 0.5rem; }
+            .gap-2 { gap: 0.3rem; }
             .fw-bold { font-weight: bold !important; }
             .font-weight-bold { font-weight: bold !important; }
             .text-muted { color: #6c757d !important; }
             .border { border: 1px solid #dee2e6 !important; }
             .border-dashed { border-style: dashed !important; }
+            .border-bottom-dashed { border-bottom: 1px dashed #dee2e6 !important; }
             .border-secondary { border-color: #6c757d !important; }
             .rounded { border-radius: 0.25rem !important; }
-            .p-3 { padding: 1rem !important; }
-            .px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .p-3 { padding: 0.3rem !important; }
+            .px-3 { padding-left: 0.3rem !important; padding-right: 0.3rem !important; }
             .align-items-center { align-items: center !important; }
-            .mt-1 { margin-top: 0.25rem !important; }
-            .mb-1 { margin-bottom: 0.25rem !important; }
-            .ml-3 { margin-left: 1rem !important; }
+            .mt-1 { margin-top: 0.15rem !important; }
+            .mb-1 { margin-bottom: 0.15rem !important; }
+            .ml-3 { margin-left: 0.3rem !important; }
             .d-block { display: block !important; }
             .text-capitalize { text-transform: capitalize !important; }
             .fw-500 { font-weight: 500 !important; }
-            .fz-12px { font-size: 12px !important; }
-            h5 { margin: 0.5rem 0; font-size: 1.25rem; }
+            .fz-12px { font-size: 10px !important; }
+            .fz-20px { font-size: 12px !important; }
+            h5 { margin: 0.2rem 0 !important; font-size: 14px !important; }
+            h5.text-center.pt-1 { font-size: 20px !important; padding-top: 0.2rem !important; }
             img { max-width: 100%; height: auto; display: block; }
 
-            /* Ensure proper alignment for all content */
             .initial-38-1 {
                 text-align: left;
                 display: block;
@@ -857,7 +852,6 @@ class OrderController extends Controller
             }
             .initial-38-1 .text-center { text-align: center !important; }
 
-            /* Fix for content alignment issues */
             .initial-38-1 > div {
                 width: 100%;
             }
@@ -868,7 +862,7 @@ class OrderController extends Controller
                 text-align: center !important;
             }
 
-            @page { margin: 10mm; }
+            @page { margin: 5mm; size: A4; }
         </style>';
 
         $view = '<!DOCTYPE html>
@@ -878,7 +872,7 @@ class OrderController extends Controller
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     ' . $css . '
 </head>
-<body>
+<body style="padding: 0; margin: 0;">
     <div class="content container-fluid initial-38 new-invoice">
         <div class="row justify-content-center" id="printableArea">
             ' . $printableContent . '
@@ -887,34 +881,25 @@ class OrderController extends Controller
 </body>
 </html>';
 
-        // Use mPDF instead of Dompdf - better Arabic and CSS support
-        // mPDF has built-in Arabic/RTL support and better CSS handling
         $tempDir = storage_path('tmp');
 
         try {
-            // Create temp directory if it doesn't exist
             if (!file_exists($tempDir)) {
                 if (!mkdir($tempDir, 0777, true)) {
                     throw new \Exception("Failed to create temp directory: {$tempDir}");
                 }
             }
-
-            // mPDF automatically creates a 'mpdf' subdirectory inside tempDir
-            // Ensure the parent directory is writable so mPDF can create the subdirectory
             if (!is_writable($tempDir)) {
                 if (!chmod($tempDir, 0777)) {
                     throw new \Exception("Temp directory is not writable: {$tempDir}");
                 }
             }
-
-            // Also create the mpdf subdirectory preemptively and make it writable
             $mpdfSubDir = $tempDir . '/mpdf';
             if (!file_exists($mpdfSubDir)) {
                 if (!mkdir($mpdfSubDir, 0777, true)) {
                     throw new \Exception("Failed to create mPDF subdirectory: {$mpdfSubDir}");
                 }
             } else {
-                // Ensure existing directory is writable
                 if (!is_writable($mpdfSubDir)) {
                     if (!chmod($mpdfSubDir, 0777)) {
                         throw new \Exception("mPDF subdirectory is not writable: {$mpdfSubDir}");
@@ -931,14 +916,14 @@ class OrderController extends Controller
             'mode' => 'utf-8',
             'format' => 'A4',
             'orientation' => 'P',
-            'margin_left' => 10,
-            'margin_right' => 10,
-            'margin_top' => 10,
-            'margin_bottom' => 10,
-            'tempDir' => $tempDir, // mPDF will use 'mpdf' subdirectory inside this
-            'default_font' => 'FreeSerif', // Better Arabic support
-            'autoScriptToLang' => true,    // Automatically detect and handle Arabic/RTL
-            'autoLangToFont' => true,      // Automatically use appropriate fonts
+            'margin_left' => 5,
+            'margin_right' => 5,
+            'margin_top' => 5,
+            'margin_bottom' => 5,
+            'tempDir' => $tempDir,
+            'default_font' => 'FreeSerif',
+            'autoScriptToLang' => true,
+            'autoLangToFont' => true,
         ]);
 
         $mpdf->WriteHTML($view);
@@ -951,7 +936,6 @@ class OrderController extends Controller
                 \Illuminate\Support\Facades\Storage::disk('public')->makeDirectory($directory);
             }
 
-            // Save PDF to file using Storage
             $filePath = storage_path('app/public/' . $directory . '/' . $filename);
             $mpdf->Output($filePath, 'F');
 

@@ -714,18 +714,45 @@ class OrderController extends Controller
 
         $css = '<style>
             * { box-sizing: border-box; }
-            body { margin: 0; padding: 20px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; }
+            body { margin: 0; padding: 20px; font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif; font-size: 14px; line-height: 1.5; }
 
             /* Bootstrap utilities for centering */
             .row { display: flex; flex-wrap: wrap; margin-left: -15px; margin-right: -15px; }
             .row::before, .row::after { content: ""; display: table; }
             .row::after { clear: both; }
             .col-md-12 { position: relative; width: 100%; padding-left: 15px; padding-right: 15px; }
+            .col-12 { width: 100%; padding: 0 15px; }
+            .col-6 { width: 50%; padding: 0 15px; }
             .justify-content-center { justify-content: center !important; }
+            .justify-content-between { justify-content: space-between !important; }
+            .justify-content-end { justify-content: flex-end !important; }
             .text-center { text-align: center !important; }
             .text-right { text-align: right !important; }
             .text-left { text-align: left !important; }
+            .text-end { text-align: right !important; }
             .container-fluid { width: 100%; padding-left: 15px; padding-right: 15px; margin-left: auto; margin-right: auto; }
+
+            /* Flexbox utilities - mPDF compatible using table display */
+            .d-flex { display: table !important; width: 100%; }
+            .d-flex > * { display: table-cell !important; vertical-align: middle; }
+            .d-block { display: block !important; }
+            .d-inline-block { display: inline-block !important; }
+            .flex-row { display: table !important; width: 100%; }
+            .flex-row > * { display: table-cell !important; vertical-align: middle; }
+            .flex-column { display: block !important; }
+            .flex-wrap { display: block !important; }
+            .align-items-center > * { vertical-align: middle !important; }
+            .align-items-start > * { vertical-align: top !important; }
+            .align-items-end > * { vertical-align: bottom !important; }
+            .justify-content-between { width: 100%; }
+            .justify-content-between > *:first-child { text-align: left !important; }
+            .justify-content-between > *:last-child { text-align: right !important; }
+            .gap-1 > * { padding-right: 0.25rem !important; }
+            .gap-1 > *:last-child { padding-right: 0 !important; }
+            .gap-2 > * { padding-right: 0.5rem !important; }
+            .gap-2 > *:last-child { padding-right: 0 !important; }
+            .gap-3 > * { padding-right: 1rem !important; }
+            .gap-3 > *:last-child { padding-right: 0 !important; }
 
             /* Invoice specific styles for centering */
             .initial-38-1 {
@@ -734,7 +761,7 @@ class OrderController extends Controller
                 padding-inline-end: 4px;
             }
             .initial-38-1 * {
-                font-family: "Roboto Mono", monospace !important;
+                font-family: "DejaVu Sans", "Helvetica", Arial, sans-serif !important;
                 font-weight: 500;
                 color: #000000;
             }
@@ -785,47 +812,75 @@ class OrderController extends Controller
             table { width: 100%; border-collapse: collapse; margin: 0; }
             .table { width: 100%; margin-bottom: 1rem; }
             .table-borderless { border: none; }
-            .table-borderless th, .table-borderless td { border: none; }
+            .table-borderless th, .table-borderless td { border: none; padding: 0.5rem; }
             .table-bordered { border: 1px solid #dee2e6; }
             .table-bordered th, .table-bordered td { border: 1px solid #dee2e6; padding: 0.75rem; }
             .table-bordered th:first-child, .table-bordered td:first-child { padding-inline-start: 0 !important; }
             .table-bordered th:last-child, .table-bordered td:last-child { text-align: end; padding-inline-end: 10px; }
             .table-align-middle th, .table-align-middle td { vertical-align: middle; }
-            th, td { padding: 0.75rem; }
+            th, td { padding: 0.5rem; vertical-align: top; }
+            thead th { font-weight: bold; }
             .w-28p { width: 28%; }
 
-            /* Description list (dl) styles for totals section */
-            dl.row { display: flex; flex-wrap: wrap; margin: 0; }
-            dl.row dt { width: 50%; padding: 0.5rem; }
-            dl.row dd { width: 50%; padding: 0.5rem; margin: 0; }
-            .col-6 { width: 50%; padding: 0 15px; }
+            /* Description list (dl) styles for totals section - mPDF compatible */
+            dl.row { display: table; width: 100%; margin: 0; }
+            dl.row dt, dl.row dd { display: inline-block; width: 49%; vertical-align: top; }
+            dl.row dt { padding: 0.3rem 0.5rem; font-weight: normal; text-align: left; }
+            dl.row dd { padding: 0.3rem 0.5rem; margin: 0; text-align: right; }
+            dl.row dt.col-6, dl.row dd.col-6 { width: 49%; }
+            dl.row dd.col-12 { width: 100%; display: block; }
 
-            /* Common utility classes */
+            /* Spacing utilities */
             .pt-3 { padding-top: 1rem !important; }
             .pt-1 { padding-top: 0.25rem !important; }
-            .mb-3 { margin-bottom: 1rem !important; }
+            .pb-1 { padding-bottom: 0.25rem !important; }
+            .pb-2 { padding-bottom: 0.5rem !important; }
+            .pb-3 { padding-bottom: 1rem !important; }
+            .p-3 { padding: 1rem !important; }
+            .px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
+            .py-2 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+            .mt-1 { margin-top: 0.25rem !important; }
+            .mt-2 { margin-top: 0.5rem !important; }
             .mb-0 { margin-bottom: 0 !important; }
-            .text-break { word-wrap: break-word !important; }
-            .d-flex { display: flex !important; }
-            .gap-2 { gap: 0.5rem; }
+            .mb-1 { margin-bottom: 0.25rem !important; }
+            .mb-2 { margin-bottom: 0.5rem !important; }
+            .mb-3 { margin-bottom: 1rem !important; }
+            .my-2 { margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+            .ml-3 { margin-left: 1rem !important; }
+            .mr-2 { margin-right: 0.5rem !important; }
+
+            /* Text utilities */
+            .text-break { word-wrap: break-word !important; word-break: break-word !important; }
+            .text-nowrap { white-space: nowrap !important; }
+            .text-capitalize { text-transform: capitalize !important; }
+            .text-uppercase { text-transform: uppercase !important; }
+            .text-muted { color: #6c757d !important; }
+            .text-body { color: #212529 !important; }
             .fw-bold { font-weight: bold !important; }
             .font-weight-bold { font-weight: bold !important; }
-            .text-muted { color: #6c757d !important; }
+            .fw-500 { font-weight: 500 !important; }
+            .font-light { font-weight: 300 !important; }
+            .fz-12px { font-size: 12px !important; }
+            .fz-20px { font-size: 20px !important; }
+            .font-size-sm { font-size: 0.875rem !important; }
+
+            /* Border utilities */
             .border { border: 1px solid #dee2e6 !important; }
             .border-dashed { border-style: dashed !important; }
             .border-secondary { border-color: #6c757d !important; }
+            .border-bottom-dashed { border-bottom: 1px dashed #979797 !important; }
             .rounded { border-radius: 0.25rem !important; }
-            .p-3 { padding: 1rem !important; }
-            .px-3 { padding-left: 1rem !important; padding-right: 1rem !important; }
-            .align-items-center { align-items: center !important; }
-            .mt-1 { margin-top: 0.25rem !important; }
-            .mb-1 { margin-bottom: 0.25rem !important; }
-            .ml-3 { margin-left: 1rem !important; }
-            .d-block { display: block !important; }
-            .text-capitalize { text-transform: capitalize !important; }
-            .fw-500 { font-weight: 500 !important; }
-            .fz-12px { font-size: 12px !important; }
-            h5 { margin: 0.5rem 0; font-size: 1.25rem; }
+
+            /* Headings */
+            h5 { margin: 0.5rem 0; font-size: 1rem; font-weight: 500; line-height: 1.4; }
+            h5.d-flex { display: table !important; width: 100%; }
+            h5.d-flex > span { display: table-cell !important; }
+            h5.d-flex.justify-content-between > span:first-child { text-align: left !important; width: 50%; }
+            h5.d-flex.justify-content-between > span:last-child { text-align: right !important; width: 50%; }
+            h5.d-flex.gap-2 > span { padding-right: 0.5rem; }
+            h5.d-flex.gap-2 > span:last-child { padding-right: 0; }
+
+            /* Images */
             img { max-width: 100%; height: auto; display: block; }
 
             /* Ensure proper alignment for all content */
@@ -845,6 +900,59 @@ class OrderController extends Controller
             }
             .initial-38-1 h5.text-center {
                 text-align: center !important;
+            }
+
+            /* Order info box styling */
+            .initial-38-1 .border.border-dashed {
+                border: 1px dashed #6c757d !important;
+                padding: 1rem;
+                border-radius: 0.25rem;
+                margin-bottom: 1rem;
+            }
+
+            /* Variation and addon display */
+            .initial-38-1 .ml-3 {
+                margin-left: 1rem !important;
+            }
+            .initial-38-1 .mt-1 {
+                margin-top: 0.25rem !important;
+            }
+
+            /* Payment and total section */
+            .initial-38-9 dl.row dt,
+            .initial-38-9 dl.row dd {
+                padding: 0.3rem 0.5rem;
+            }
+
+            /* Footer section */
+            .initial-38-1 .text-center span.d-block {
+                display: block !important;
+            }
+
+            /* Payment row styling - mPDF compatible */
+            .initial-38-1 > div.d-flex.flex-row {
+                display: table !important;
+                width: 100%;
+                margin-bottom: 0.25rem;
+            }
+            .initial-38-1 > div.d-flex.flex-row > span {
+                display: table-cell !important;
+            }
+            .initial-38-1 > div.d-flex.flex-row.justify-content-between > span:first-child {
+                text-align: left !important;
+            }
+            .initial-38-1 > div.d-flex.flex-row.justify-content-between > span:last-child {
+                text-align: right !important;
+            }
+
+            /* Ensure span elements within d-flex are properly displayed */
+            .d-flex span.text-capitalize {
+                display: table-cell !important;
+            }
+
+            /* Make sure nested flex items display correctly */
+            .d-flex > span > span {
+                display: inline !important;
             }
 
             @page { margin: 10mm; }

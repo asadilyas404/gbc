@@ -629,7 +629,7 @@ class OrderController extends Controller
         } elseif ($order->pos_details && $order->pos_details->phone) {
             $phone = $order->pos_details->phone;
         }
-
+dd($phone);
         if (!$phone) {
             return response()->json(['error' => 'Customer phone number not found'], 404);
         }

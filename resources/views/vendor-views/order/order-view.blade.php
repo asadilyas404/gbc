@@ -2004,7 +2004,7 @@
                         return;
                     }
 
-                    var to = formatOmanPhoneNumber(data.phone);
+                    var to = formatPakPhoneNumber(data.phone);
 
                     $.ajax({
                         headers: {

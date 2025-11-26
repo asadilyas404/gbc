@@ -189,7 +189,7 @@ class ShiftController extends Controller
     public function destroy(Shift $shift)
     {
         $shift->delete();
-        $shift?->translations()?->delete();
+        $shift->translations()->delete();
         Toastr::success(translate('messages.shift_deleted_successfully'));
         return back();
     }

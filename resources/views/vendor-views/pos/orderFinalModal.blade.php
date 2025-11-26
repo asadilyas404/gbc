@@ -175,12 +175,15 @@
                                         <select id="bank_account" name="bank_account" class="form-control">
                                             <option value="">
                                                 {{ translate('Select Option') }}</option>  
-                                            <option value="1">
-                                                {{ translate('Bank 1') }}</option>  
-                                            <option value="2">
-                                                {{ translate('Bank 2') }}</option>  
-                                            <option value="3">
-                                                {{ translate('Bank 3') }}</option>  
+                                            @php
+                                                $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', Helpers::get_restaurant_id())->get();
+                                            @endphp
+                                            @foreach ($bankaccounts as $account)
+                                                <option value="{{ $account->bank_account_id }}"
+                                                @if(session()->has('bank_account') && session('bank_account') == $account->bank_account_id) selected @endif
+                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == $account->bank_account_id ? 'selected' : '' }}>
+                                                {{ $account->bank_name }}</option>    
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>

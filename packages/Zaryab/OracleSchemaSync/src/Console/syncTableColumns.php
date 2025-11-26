@@ -47,6 +47,7 @@ class syncTableColumns extends Command
         $tableName = $this->argument('table');
 
         echo "Establishing Connection With LIVE DB...\n";
+        DB::connection($connectionLocal)->beginTransaction();
         try {
             // Test connection to live DB
             DB::connection($connectionLive)->getPdo();

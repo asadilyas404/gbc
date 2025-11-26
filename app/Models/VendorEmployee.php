@@ -45,6 +45,10 @@ class VendorEmployee extends Authenticatable
         return $this->belongsTo(Vendor::class);
     }
 
+    public function branch(){
+        return $this->belongsTo(TblSoftBranch::class, 'branch_id', 'branch_id');
+    }
+
     public function role(){
         return $this->belongsTo(EmployeeRole::class,'employee_role_id');
     }

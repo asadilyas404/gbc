@@ -8,7 +8,7 @@
         <h4 class="modal-title product-title">
         </h4>
         <button class="close call-when-done" type="button" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
+            <span>&times;</span>
         </button>
     </div>
 
@@ -113,150 +113,151 @@
                     </div>
 
                     <div class="@if (session()->get('editing_order_id')) pe-none @endif">
-@foreach (json_decode($product->variations) as $key => $choice)
-                        @if (isset($choice->name) && isset($choice->values))
-                            <div class="h3 p-0 pt-2">{{ $choice->name }} <small class="text-muted fs-12">
-                                    ({{ $choice->required == 'on' ? translate('messages.Required') : translate('messages.optional') }}
-                                    ) </small>
-                            </div>
-                            @if ($choice->min != 0 && $choice->max != 0)
-                                <small class="d-block mb-3">
-                                    {{ translate('You_need_to_select_minimum_ ') }} {{ $choice->min }}
-                                    {{ translate('to_maximum_ ') }} {{ $choice->max }} {{ translate('options') }}
-                                </small>
-                            @endif
-                            <input type="hidden" name="variations[{{ $key }}][min]"
-                                value="{{ $choice->min }}">
-                            <input type="hidden" name="variations[{{ $key }}][max]"
-                                value="{{ $choice->max }}">
-                            <input type="hidden" name="variations[{{ $key }}][required]"
-                                value="{{ $choice->required }}">
-                            <input type="hidden" name="variations[{{ $key }}][name]"
-                                value="{{ $choice->name }}">
+                        @foreach (json_decode($product->variations) as $key => $choice)
+                            @if (isset($choice->name) && isset($choice->values))
+                                <div class="h3 p-0 pt-2">{{ $choice->name }} <small class="text-muted fs-12">
+                                        ({{ $choice->required == 'on' ? translate('messages.Required') : translate('messages.optional') }}
+                                        ) </small>
+                                </div>
+                                @if ($choice->min != 0 && $choice->max != 0)
+                                    <small class="d-block mb-3">
+                                        {{ translate('You_need_to_select_minimum_ ') }} {{ $choice->min }}
+                                        {{ translate('to_maximum_ ') }} {{ $choice->max }} {{ translate('options') }}
+                                    </small>
+                                @endif
+                                <input type="hidden" name="variations[{{ $key }}][min]"
+                                    value="{{ $choice->min }}">
+                                <input type="hidden" name="variations[{{ $key }}][max]"
+                                    value="{{ $choice->max }}">
+                                <input type="hidden" name="variations[{{ $key }}][required]"
+                                    value="{{ $choice->required }}">
+                                <input type="hidden" name="variations[{{ $key }}][name]"
+                                    value="{{ $choice->name }}">
 
-                            <div class="d-flex justify-content-left flex-wrap">
-                                @foreach ($choice->values as $k => $option)
-                                    <?php
-                                    $showOption = true;
-                                    if (isset($option->options_list_id) && $option->options_list_id) {
-                                        $optionsList = OptionsList::find($option->options_list_id);
-                                        $showOption = $optionsList && $optionsList->status == 1;
-                                    }
-                                    ?>
-                                    @if ($showOption)
-                                        <div class="flex-column pb-2">
-                                            <input
-                                                class="btn-check input-element {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out' : '' }}"
-                                                type="{{ $choice->type == 'multi' ? 'checkbox' : 'radio' }}"
-                                                id="choice-option-{{ $key }}-{{ $k }}"
-                                                data-option_id="{{ data_get($option, 'option_id') }}"
-                                                name="variations[{{ $key }}][values][label][]"
-                                                value="{{ $option->label }}"
-                                                {{ isset($values[$key]) && in_array($option->label, $values[$key]) ? 'checked' : '' }}
-                                                {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'disabled' : '' }}
-                                                autocomplete="off">
+                                <div class="d-flex justify-content-left flex-wrap">
+                                    @foreach ($choice->values as $k => $option)
+                                        <?php
+                                        $showOption = true;
+                                        if (isset($option->options_list_id) && $option->options_list_id) {
+                                            $optionsList = OptionsList::find($option->options_list_id);
+                                            $showOption = $optionsList && $optionsList->status == 1;
+                                        }
+                                        ?>
+                                        @if ($showOption)
+                                            <div class="flex-column pb-2">
+                                                <input
+                                                    class="btn-check input-element {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out' : '' }}"
+                                                    type="{{ $choice->type == 'multi' ? 'checkbox' : 'radio' }}"
+                                                    id="choice-option-{{ $key }}-{{ $k }}"
+                                                    data-option_id="{{ data_get($option, 'option_id') }}"
+                                                    name="variations[{{ $key }}][values][label][]"
+                                                    value="{{ $option->label }}"
+                                                    {{ isset($values[$key]) && in_array($option->label, $values[$key]) ? 'checked' : '' }}
+                                                    {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'disabled' : '' }}
+                                                    autocomplete="off">
 
-                                            <label
-                                                class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out text-muted' : 'text-dark' }}"
-                                                for="choice-option-{{ $key }}-{{ $k }}">
-                                                @if (isset($option->options_list_id) && $option->options_list_id)
-                                                    {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 20, '...') }}
-                                                @else
-                                                    {{ Str::limit($option->label, 20, '...') }}
-                                                @endif
-
-                                                <br>
-                                                {{ Helpers::format_currency(data_get($option, 'optionPrice')) }}
-                                                <span
-                                                    class="input-label-secondary text--title text--warning {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? '' : 'd-none' }}"
-                                                    title="{{ translate('Currently_you_need_to_manage_discount_with_the_Restaurant.') }}">
-                                                    <i class="tio-info-outlined"></i>
-                                                    <small>{{ translate('stock_out') }}</small>
-                                                </span>
-                                            </label>
-
-                                            @if ($choice->type == 'multi')
                                                 <label
-                                                    class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"
+                                                    class="d-flex align-items-center btn btn-sm check-label mx-1 addon-input text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out text-muted' : 'text-dark' }}"
                                                     for="choice-option-{{ $key }}-{{ $k }}">
-                                                    <button class="btn btn-sm h-100 text-dark px-0 decrease-button"
-                                                        data-id="choice-option-{{ $key }}-{{ $k }}"
-                                                        type="button">
-                                                        <i class="tio-remove font-weight-bold"></i>
-                                                    </button>
-                                                    <input type="number" name="choice-quantity{{ $k }}"
-                                                        id="choice_quantity_input{{ $k }}"
-                                                        class="form-control text-center border-0 h-100" placeholder="1"
-                                                        value="1" min="1" max="9999999999" readonly>
-                                                    <button class="btn btn-sm h-100 text-dark px-0 increase-button"
-                                                        id="choice_quantity_button{{ $k }}"
-                                                        data-id="choice-option-{{ $key }}-{{ $k }}"
-                                                        type="button">
-                                                        <i class="tio-add font-weight-bold"></i>
-                                                    </button>
+                                                    @if (isset($option->options_list_id) && $option->options_list_id)
+                                                        {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 20, '...') }}
+                                                    @else
+                                                        {{ Str::limit($option->label, 20, '...') }}
+                                                    @endif
+
+                                                    <br>
+                                                    {{ Helpers::format_currency(data_get($option, 'optionPrice')) }}
+                                                    <span
+                                                        class="input-label-secondary text--title text--warning {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? '' : 'd-none' }}"
+                                                        title="{{ translate('Currently_you_need_to_manage_discount_with_the_Restaurant.') }}">
+                                                        <i class="tio-info-outlined"></i>
+                                                        <small>{{ translate('stock_out') }}</small>
+                                                    </span>
                                                 </label>
-                                            @endif
+
+                                                @if ($choice->type == 'multi')
+                                                    <label
+                                                        class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1"
+                                                        for="choice-option-{{ $key }}-{{ $k }}">
+                                                        <button class="btn btn-sm h-100 text-dark px-0 decrease-button"
+                                                            data-id="choice-option-{{ $key }}-{{ $k }}"
+                                                            type="button">
+                                                            <i class="tio-remove font-weight-bold"></i>
+                                                        </button>
+                                                        <input type="number" name="choice-quantity{{ $k }}"
+                                                            id="choice_quantity_input{{ $k }}"
+                                                            class="form-control text-center border-0 h-100" placeholder="1"
+                                                            value="1" min="1" max="9999999999" readonly>
+                                                        <button class="btn btn-sm h-100 text-dark px-0 increase-button"
+                                                            id="choice_quantity_button{{ $k }}"
+                                                            data-id="choice-option-{{ $key }}-{{ $k }}"
+                                                            type="button">
+                                                            <i class="tio-add font-weight-bold"></i>
+                                                        </button>
+                                                    </label>
+                                                @endif
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            @php($add_ons = json_decode($product->add_ons))
+                            @if (count($add_ons) > 0 && $add_ons[0] && (isset($choice->link_addons) ? $choice->link_addons == 'on' : true))
+                                <div class="h3 p-0 pt-2 mt-3">
+                                    <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>
+                                    {{ translate('messages.for') }} <span class="text-primary">{{ $choice->name }}</span>
+                                </div>
+                                <div class="d-flex justify-content-left flex-wrap variation-addon-container">
+                                    @php($selected_variation_addons = isset($cart_item['variations'][$key]['addons']) ? $cart_item['variations'][$key]['addons'] : [])
+                                    @php($selected_addon_ids = collect($selected_variation_addons)->pluck('id')->toArray())
+                                    @php($selected_addon_qtys = collect($selected_variation_addons)->pluck('quantity', 'id')->toArray())
+
+                                    @foreach (AddOn::whereIn('id', $add_ons)->active()->orderBy('name', 'asc')->get() as $add_on)
+                                        <div class="flex-column pb-2">
+                                            <input type="hidden"
+                                                name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"
+                                                value="{{ $add_on->price }}">
+                                            <input class="btn-check addon-chek addon-quantity-input-toggle variation-addon-checkbox" type="checkbox"
+                                                id="variation_addon{{ $key }}_{{ $add_on->id }}"
+                                                name="variation_addon_id[{{ $key }}][]"
+                                                value="{{ $add_on->id }}"
+                                                {{ in_array($add_on->id, $selected_addon_ids) ? 'checked' : '' }}
+                                                autocomplete="off">
+                                            <label
+                                                class="d-flex flex-column justify-content-center align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
+                                                for="variation_addon{{ $key }}_{{ $add_on->id }}">
+                                                {{ Str::limit($add_on->name, 20, '...') }}
+                                                <br>
+                                                <span
+                                                    class="text-warning font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
+                                            </label>
+                                            <label
+                                                class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1 variation-addon-quantity"
+                                                @if (in_array($add_on->id, $selected_addon_ids)) style="visibility:visible;" @else style="visibility:hidden;" @endif
+                                                for="variation_addon{{ $key }}_{{ $add_on->id }}">
+                                                <button class="btn btn-sm h-100 text-dark px-0 decrease-button variation-decrease-btn"
+                                                    data-id="{{ $add_on->id }}" type="button">
+                                                    <i class="tio-remove font-weight-bold"></i>
+                                                </button>
+                                                <input type="number"
+                                                    name="variation_addon_quantity[{{ $key }}][{{ $add_on->id }}]"
+                                                    id="variation_addon_quantity_input{{ $key }}_{{ $add_on->id }}"
+                                                    class="form-control text-center border-0 h-100 variation-addon-input"
+                                                    placeholder="1" value="{{ $selected_addon_qtys[$add_on->id] ?? 1 }}"
+                                                    min="1" max="9999999999" readonly>
+                                                <button class="btn btn-sm h-100 text-dark px-0 increase-button variation-increase-btn"
+                                                    id="variation_addon_quantity_button{{ $key }}_{{ $add_on->id }}"
+                                                    data-id="{{ $add_on->id }}" type="button">
+                                                    <i class="tio-add font-weight-bold"></i>
+                                                </button>
+                                            </label>
                                         </div>
-                                    @endif
-                                @endforeach
-                            </div>
-                        @endif
-
-                        @php($add_ons = json_decode($product->add_ons))
-                        @if (count($add_ons) > 0 && $add_ons[0] && (isset($choice->link_addons) ? $choice->link_addons == 'on' : true))
-                            <div class="h3 p-0 pt-2 mt-3">
-                                <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>
-                                {{ translate('messages.for') }} <span class="text-primary">{{ $choice->name }}</span>
-                            </div>
-                            <div class="d-flex justify-content-left flex-wrap variation-addon-container">
-                                @php($selected_variation_addons = isset($cart_item['variations'][$key]['addons']) ? $cart_item['variations'][$key]['addons'] : [])
-                                @php($selected_addon_ids = collect($selected_variation_addons)->pluck('id')->toArray())
-                                @php($selected_addon_qtys = collect($selected_variation_addons)->pluck('quantity', 'id')->toArray())
-
-                                @foreach (AddOn::whereIn('id', $add_ons)->active()->orderBy('name', 'asc')->get() as $add_on)
-                                    <div class="flex-column pb-2">
-                                        <input type="hidden"
-                                            name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"
-                                            value="{{ $add_on->price }}">
-                                        <input class="btn-check addon-chek addon-quantity-input-toggle variation-addon-checkbox" type="checkbox"
-                                            id="variation_addon{{ $key }}_{{ $add_on->id }}"
-                                            name="variation_addon_id[{{ $key }}][]"
-                                            value="{{ $add_on->id }}"
-                                            {{ in_array($add_on->id, $selected_addon_ids) ? 'checked' : '' }}
-                                            autocomplete="off">
-                                        <label
-                                            class="d-flex flex-column justify-content-center align-items-center btn btn-sm check-label mx-1 addon-input text-break variation-addon-label"
-                                            for="variation_addon{{ $key }}_{{ $add_on->id }}">
-                                            {{ Str::limit($add_on->name, 20, '...') }}
-                                            <br>
-                                            <span
-                                                class="text-warning font-weight-bold">{{ Helpers::format_currency($add_on->price) }}</span>
-                                        </label>
-                                        <label
-                                            class="input-group addon-quantity-input mx-1 shadow bg-white rounded px-1 variation-addon-quantity"
-                                            @if (in_array($add_on->id, $selected_addon_ids)) style="visibility:visible;" @else style="visibility:hidden;" @endif
-                                            for="variation_addon{{ $key }}_{{ $add_on->id }}">
-                                            <button class="btn btn-sm h-100 text-dark px-0 decrease-button variation-decrease-btn"
-                                                data-id="{{ $add_on->id }}" type="button">
-                                                <i class="tio-remove font-weight-bold"></i>
-                                            </button>
-                                            <input type="number"
-                                                name="variation_addon_quantity[{{ $key }}][{{ $add_on->id }}]"
-                                                id="variation_addon_quantity_input{{ $key }}_{{ $add_on->id }}"
-                                                class="form-control text-center border-0 h-100 variation-addon-input"
-                                                placeholder="1" value="{{ $selected_addon_qtys[$add_on->id] ?? 1 }}"
-                                                min="1" max="9999999999" readonly>
-                                            <button class="btn btn-sm h-100 text-dark px-0 increase-button variation-increase-btn"
-                                                id="variation_addon_quantity_button{{ $key }}_{{ $add_on->id }}"
-                                                data-id="{{ $add_on->id }}" type="button">
-                                                <i class="tio-add font-weight-bold"></i>
-                                            </button>
-                                        </label>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @endif
-                    @endforeach
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endforeach
+                    </div>
                     <input type="hidden" hidden name="option_ids" id="option_ids">
 
                     <!-- Quantity + Add to cart -->
@@ -288,9 +289,6 @@
                             </div>
                         </div>
                     </div>
-                    </div>
-                    
-                    
                     
                     <div class="row no-gutters d-none mt-2 text-dark" id="chosen_price_div">
 

@@ -6609,4 +6609,8 @@
   'Max_Purchase_Quantity_Limit' => 'Max Purchase Quantity Limit',
   'order_taken_by' => 'Order taken by',
   'Payment amount cannot be zero for paid orders' => 'Payment amount cannot be zero for paid orders',
+  'account_not_registered_in_this_branch' => 'Account not registered in this branch',
+  'Cancel Item' => 'Cancel Item',
+  'Please_enter_additional_reason_text (optional):' => 'Please enter additional reason text (optional):',
+  'Yes, Proceed!' => 'Yes, Proceed!',
 );

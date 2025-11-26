@@ -614,7 +614,7 @@
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
     <script>
         "use strict";
-
+        let itemQty = 0;
         const channel = new BroadcastChannel("erp_tab_channel");
         let currentUrl = window.location.pathname;
 
@@ -1060,6 +1060,7 @@
         });
 
         $(document).on('click', '.quick-View-Cart-Item', function() {
+            itemQty = $(this).data('item-qty');
             $.get({
                 url: '{{ route("vendor.pos.quick-view-cart-item") }}',
                 dataType: 'json',
@@ -1210,19 +1211,7 @@
             }
         }
 
-        let isProcessing = false;
-        $(document).on('click', '.add-To-Cart', function() {
-            if (isProcessing) return;
-            isProcessing = true;
-            const button = $(this);
-            button.prop('disabled', true);
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            let form_id = 'add-to-cart-form';
+        function sendAddToCartRequest(form_id, button) {
             $.post({
                 url: '{{ route("vendor.pos.add-to-cart") }}',
                 data: $('#' + form_id).serializeArray(),
@@ -1305,31 +1294,233 @@
                     button.prop('disabled', false);
                 }
             });
+        }
+
+        let isProcessing = false;
+        $(document).on('click', '.add-To-Cart', function() {
+            if (isProcessing) return;
+            isProcessing = true;
+            const button = $(this);
+            button.prop('disabled', true);
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+                }
+            });
+            let form_id = 'add-to-cart-form';
+            // Get the new quantity value
+            let newQuantity = parseInt($('#add-to-cart-form input[name=quantity]').val());
+            if(newQuantity < itemQty){
+                // Show confirmation dialog and get the cancel reason, cooking status, and text
+                $('#quick-view').modal('hide');
+                Swal.fire({
+                    title: '{{ translate('messages.are_you_sure?') }}',
+                    icon: 'warning',
+                    html: `
+                        <div style="text-align:left">
+                            <select class="form-control js-select2-custom mx-0" name="item-reduce-reason" id="item-reduce-reason">
+                                <option value="" selected disabled>
+                                    {{ translate('select_cancellation_reason') }}
+                                </option>
+                                @foreach ($reasons as $r)
+                                    <option value="{{ $r->reason }}">
+                                        {{ $r->reason }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <div style="margin-top:10px;">
+                                <label style="font-size:14px;">Item Status:</label><br>
+                                <div class="d-flex gap-2 mt-2 justify-content-between">
+                                    <label class="payment-selection-box w-100">
+                                        <input type="radio" name="item-reduce-status" value="prepared"> Prepared
+                                    </label>
+                                    <label class="payment-selection-box w-100">
+                                        <input type="radio" name="item-reduce-status" value="unprepared"> Unprepared
+                                    </label>
+                                    <label class="payment-selection-box w-100">
+                                        <input type="radio" name="item-reduce-status" value="wasted"> Wasted
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:10px;">
+                                <label style="font-size:14px;">Enter Reason:</label><br>
+                                <input type="text" class="form-control" id="item-reduce-text" name="item-reduce-text" />
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '{{ translate('messages.Yes, Proceed!') }}',
+                    cancelButtonText: '{{ translate('messages.Back') }}',
+                    preConfirm: () => {
+                        const dropdown = document.getElementById('item-reduce-reason').value;
+                        const radio    = document.querySelector('input[name="item-reduce-status"]:checked');
+                        const text     = document.getElementById('item-reduce-text').value;
+
+                        if (!dropdown) {
+                            Swal.showValidationMessage('Please select cancel reason');
+                            return false;
+                        }
+
+                        if (!radio) {
+                            Swal.showValidationMessage('Please select item cooking status');
+                            return false;
+                        }
+
+                        return {
+                            cancelReason: dropdown,
+                            cookingStatus: radio.value,
+                            cancelText: text
+                        };
+                    }
+                }).then((result) => {
+                    if (result.value) {
+                        const { cancelReason, cookingStatus, cancelText } = result.value;
+                        const $form = $('#' + form_id);
+
+                        if (!$form.find('input[name="cart_item_cancel_reason"]').length) {
+                            $('<input>').attr({
+                                type: 'hidden',
+                                name: 'cart_item_cancel_reason',
+                                value: cancelReason
+                            }).appendTo($form);
+                        } else {
+                            $form.find('input[name="cart_item_cancel_reason"]').val(cancelReason);
+                        }
+
+                        if (!$form.find('input[name="cart_item_cooking_status"]').length) {
+                            $('<input>').attr({
+                                type: 'hidden',
+                                name: 'cart_item_cooking_status',
+                                value: cookingStatus
+                            }).appendTo($form);
+                        } else {
+                            $form.find('input[name="cart_item_cooking_status"]').val(cookingStatus);
+                        }
+
+                        if (!$form.find('input[name="cart_item_cancel_text"]').length) {
+                            $('<input>').attr({
+                                type: 'hidden',
+                                name: 'cart_item_cancel_text',
+                                value: cancelText
+                            }).appendTo($form);
+                        } else {
+                            $form.find('input[name="cart_item_cancel_text"]').val(cancelText);
+                        }
+
+                        sendAddToCartRequest(form_id, button);
+                    } else {
+                        isProcessing = false;
+                        button.prop('disabled', false);
+                    }
+                });
+            }else{
+                sendAddToCartRequest(form_id, button);
+            }
         });
 
         $(document).on('click', '.remove-From-Cart', function() {
             let key = $(this).data('product-id');
-            $.post('{{ route('vendor.pos.remove-from-cart') }}', {
-                _token: '{{ csrf_token() }}',
-                key: key
-            }, function(data) {
-                if (data.errors) {
-                    for (let i = 0; i < data.errors.length; i++) {
-                        toastr.error(data.errors[i].message, {
-                            CloseButton: true,
-                            ProgressBar: true
-                        });
+
+            Swal.fire({
+                title: '{{ translate('messages.are_you_sure?') }}',
+                type: 'warning',
+                html: `
+                    <div style="text-align:left">
+                        <select class="form-control js-select2-custom mx-0" name="item-cancel-reason" id="item-cancel-reason">
+                            <option value="" selected disabled>
+                                {{ translate('select_cancellation_reason') }}
+                            </option>
+                            @foreach ($reasons as $r)
+                                <option value="{{ $r->reason }}">
+                                    {{ $r->reason }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <div style="margin-top:10px;">
+                            <label style="font-size:14px;">Cooking Status:</label><br>
+                            <div class="d-flex gap-2 mt-2 justify-content-between">
+                                <label class="payment-selection-box w-100">
+                                    <input type="radio" name="item-cooking-status" value="prepared"> Prepared
+                                </label>
+                                <label class="payment-selection-box w-100">
+                                    <input type="radio" name="item-cooking-status" value="unprepared"> Unprepared
+                                </label>
+                                <label class="payment-selection-box w-100">
+                                    <input type="radio" name="item-cooking-status" value="wasted"> Wasted
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:10px;">
+                            <label style="font-size:14px;">Enter Reason:</label><br>
+                            <input type="text" class="form-control" id="item-cancel-text" name="item-cancel-text" />
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '{{ translate('messages.Cancel Item') }}',
+                confirmButtonColor: '#FC6A57',
+                cancelButtonText: 'Back',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const dropdown = document.getElementById('item-cancel-reason').value;
+                    const radio    = document.querySelector('input[name="item-cooking-status"]:checked');
+                    const text     = document.getElementById('item-cancel-text').value;
+
+                    if (!dropdown) {
+                        Swal.showValidationMessage('Please select cancel reason');
+                        return false;
                     }
-                } else {
-                    $('#quick-view').modal('hide');
-                    updateCart();
-                    toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
-                        CloseButton: true,
-                        ProgressBar: true
+
+                    if (!radio) {
+                        Swal.showValidationMessage('Please select item cooking status');
+                        return false;
+                    }
+
+                    return {
+                        cancelReason: dropdown,
+                        cookingStatus: radio.value,
+                        cancelText: text
+                    };
+                }
+            }).then(result => {
+                if (result.value) {
+                    const { cancelReason, cookingStatus, cancelText } = result.value;
+
+                    $.post('{{ route('vendor.pos.remove-from-cart') }}', {
+                        _token: '{{ csrf_token() }}',
+                        key: key,
+                        cancelReason: cancelReason,
+                        cookingStatus: cookingStatus,
+                        cancelText: cancelText,
+                        beforeSend: function(){
+                            $('#loading').show();
+                        },
+                    }, function(data) {
+                        if (data.errors) {
+                            for (let i = 0; i < data.errors.length; i++) {
+                                toastr.error(data.errors[i].message, {
+                                    CloseButton: true,
+                                    ProgressBar: true
+                                });
+                            }
+                        } else {
+                            $('#quick-view').modal('hide');
+                            updateCart();
+                            toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
+                                CloseButton: true,
+                                ProgressBar: true
+                            });
+                        }
+                        $('#loading').hide();
                     });
                 }
-
             });
+
         });
 
         $(document).on('click', '.empty-Cart', function() {
@@ -1357,10 +1548,12 @@
 
             $.post('<?php echo e(route('vendor.pos.cart_items')); ?>', {
                 _token: '<?php echo e(csrf_token()); ?>',
-                partner_id: '{{ $orderPartner ?? '' }}'
+                partner_id: '{{ $orderPartner ?? '' }}',
+                beforeSend: function(){
+                    $('#loading').show();
+                }
             }, function(data) {
                 $('#cart').empty().html(data);
-
                 if (currentCustomerId && currentCustomerId !== 'false') {
                     setTimeout(function() {
                         // $('#customer').val(currentCustomerId).trigger('change');
@@ -1376,6 +1569,7 @@
                         // restoreCustomerFromStorage();
                     }, 100);
                 }
+                $('#loading').hide();
             });
         }
 

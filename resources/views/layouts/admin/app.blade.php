@@ -67,7 +67,7 @@
     @include('layouts.admin.partials._sidebar')
     <!-- END ONLY DEV -->
 
-    <main id="content" role="main" class="main pointer-event">
+    <main id="content" role="main" class="main pointer-event" aria-hidden="false">
         <!-- Content -->
         @yield('content')
         <!-- End Content -->

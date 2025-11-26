@@ -736,15 +736,15 @@
                                         href="javascript:">
                                         {{ translate('Confirm Order') }}
                                     </a> --}}
-                            @if ($order['payment_status'] == 'unpaid')
+                            @if ($order['payment_status'] == 'unpaid' || $order['payment_status'] == 'paid')
                                 <a target="_blank"
                                     href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
                                     class="btn w-100 mb-1 btn-sm btn-outline-warning mt-2 btn--warning">
-                                    Load Unpaid to POS
+                                    Load {{ ucfirst($order['payment_status']) }} to POS
                                 </a>
                             @endif
                             @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')
-                                <a
+                                <a style="display: none;"
                                     class="btn w-100 mb-1 btn-sm btn-outline-danger btn--danger mt-2 cancelled-status">{{ translate('Cancel Order') }}</a>
                             @endif
                             {{-- @elseif ($order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted')

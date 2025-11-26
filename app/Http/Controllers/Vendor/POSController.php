@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\Validator;
 use App\Models\KitchenOrderStatusLog;
 use Illuminate\Support\Facades\Auth;
 use App\Events\myevent;
+use App\Models\OrderCancelReason;
 use Illuminate\Support\Facades\Session;
 
 class POSController extends Controller
@@ -138,6 +139,7 @@ class POSController extends Controller
             $updateDate = true;
         }
 
+        $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'restaurant')->get();
 
         return view('vendor-views.pos.index-new', compact(
             'categories', 
@@ -153,7 +155,8 @@ class POSController extends Controller
             'orderPartners',
             'orderPartner',
             'bankaccounts',
-            'updateDate'
+            'updateDate',
+            'reasons'
         ));
     }
 
@@ -519,7 +522,46 @@ class POSController extends Controller
         if ($request->session()->has('cart')) {
             $cart = $request->session()->get('cart', collect([]));
             if (isset($request->cart_item_key)) {
-                $cart[$request->cart_item_key] = $data;
+                // Check the Previous Value
+                $currentItemInCart = $cart[$request->cart_item_key];
+                $currentQty = $currentItemInCart['quantity'];
+                if($request->quantity < $currentQty){
+                    // Add a Hidden Deleted Row
+                    $diferenceInQty = $currentQty - $request->quantity;
+                    $cart[$request->cart_item_key] = $data;
+
+                    // Create an Invisible Cart Item
+                    $currentItemInCart['quantity'] = $diferenceInQty;
+                    $currentItemInCart['is_deleted'] = 'Y';
+                    $currentItemInCart['cancel_reason'] = 'Quantity Reduced';
+                    $currentItemInCart['cooking_status'] = '-';
+                    $currentItemInCart['cancel_text'] = 'Quantity Reduced from POS';
+                    $cart->push($currentItemInCart);
+                }else{
+                    // Find the product in the cart
+                    foreach($cart as $key => $item){
+                        if($item['id'] == $data['id'] && $item['is_deleted'] == 'Y' && $key != $request->cart_item_key){
+                            // Get item qty
+                            $itemQty = $item['quantity'];
+                            $requiredQty = $request->quantity;
+                            $sum = $currentQty + $itemQty;
+                            if($sum == $requiredQty){
+                                // Remove the item from cart
+                                $cart->forget($key);
+                            }elseif($sum > $requiredQty){
+                                // Update the item qty
+                                $newQty = $sum - $requiredQty;
+                                $item['quantity'] = $newQty;
+                                $cart[$key] = $item;
+                            }else{
+                                // consumed all the qty
+                                $cart->forget($key);
+                            }
+                        }
+                    }
+
+                    $cart[$request->cart_item_key] = $data;
+                }
                 $data = 2;
             } else {
                 $cart->push($data);
@@ -558,6 +600,9 @@ class POSController extends Controller
                 // Get the item by the key
                 $cartItem = $cart->get($request->key);
                 $cartItem['is_deleted'] = 'Y';
+                $cartItem['cancel_reason'] = $request->cancelReason ?? '';
+                $cartItem['cooking_status'] = $request->cookingStatus ?? '';
+                $cartItem['cancel_text'] = $request->cancelText ?? '';
                 $cart->put($request->key, $cartItem);
             }else{
                 $cart->forget($request->key);
@@ -737,13 +782,14 @@ class POSController extends Controller
 
             if(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment' ){
                 $payment_type = 'credit';
-            }
-            elseif ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
+            } elseif ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
                 $payment_type = 'cash';
             } elseif ($request->card_paid > 0 && ($request->cash_paid === null || $request->cash_paid <= 0)) {
                 $payment_type = 'card';
             } elseif ($request->cash_paid > 0 && $request->card_paid > 0) {
                 $payment_type = 'cash_card';
+            } else{
+                $payment_type = 'cash';
             }
         }
             
@@ -791,10 +837,10 @@ class POSController extends Controller
         $editing_order_id = session('editing_order_id');
         if ($editing_order_id) {
             $order = Order::find($editing_order_id);
-            if (!$order || $order->payment_status != 'unpaid') {
-                Toastr::error('Invalid or already paid order.');
-                return back();
-            }
+            // if (!$order || $order->payment_status != 'unpaid') {
+            //     Toastr::error('Invalid or already paid order.');
+            //     return back();
+            // }
         } else {
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
@@ -950,10 +996,17 @@ class POSController extends Controller
                         'total_add_on_price' => $total_addon_price_for_item,
                         'notes' => $c['notes'] ?? $c['details'] ?? null,
                         'is_deleted' => isset($c['is_deleted']) ? trim($c['is_deleted']) : 'N',
+                        'cancel_reason' => isset($c['cancel_reason']) ? trim($c['cancel_reason']) : '',
+                        'cooking_status' => isset($c['cooking_status']) ? trim($c['cooking_status']) : '',
+                        'cancel_text' => isset($c['cancel_text']) ? trim($c['cancel_text']) : '',
                         'is_printed' => $c['is_printed'] ?? 0,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
+
+                    if($or_d['is_deleted'] == 'Y'){
+                        $or_d['payment_status'] = $order->payment_status;
+                    }
 
                     error_log('Cart variations structure: ' . json_encode($c['variations']));
                     error_log('Cart variations keys: ' . json_encode(array_keys($c['variations'] ?? [])));
@@ -1084,7 +1137,7 @@ class POSController extends Controller
             }
             if($payment_type == 'card' || $payment_type == 'cash_card'){
                 $posOrderDtl->bank_account = $request->bank_account; 
-                session(['bank_account' => $request->bank_account]);
+                session('bank_account',$request->bank_account);
             }else{
                 $posOrderDtl->bank_account = null;
             }
@@ -1106,7 +1159,7 @@ class POSController extends Controller
 
             // Print order receipts
             try {
-                 event(new myevent('unpaid'));
+                event(new myevent('unpaid'));
                 $printController = new \App\Http\Controllers\PrintController();
 
                 if($order->payment_status == 'unpaid'){
@@ -1172,10 +1225,10 @@ class POSController extends Controller
         // dd('fsd');
         $order = Order::with('details')->find($order_id);
 
-        if (!$order || $order->payment_status != 'unpaid') {
-            Toastr::error('Only unpaid (draft) orders can be edited.');
-            return back();
-        }
+        // if (!$order || $order->payment_status != 'unpaid') {
+        //     Toastr::error('Only unpaid (draft) orders can be edited.');
+        //     return back();
+        // }
 
         $cart = [];
 

@@ -134,7 +134,7 @@ class LoginController extends Controller
     }
 
     public function login_attemp($role,$email ,$password, $remember = false){
-        $auth= ($role == 'admin_employee' ? 'admin' :$role);
+        $auth = ($role == 'admin_employee' ? 'admin' :$role);
         if (auth($auth)->attempt(['email' => $email, 'password' => $password], $remember)) {
 
             if ($remember) {
@@ -167,6 +167,12 @@ class LoginController extends Controller
             'password' => 'required|min:6',
             'role' => 'required'
         ]);
+
+        if(is_null(config('constants.branch_id'))){
+            return redirect()->back()->withInput($request->only('email', 'remember'))
+                ->withErrors(['Please Setup Branch']);
+        }
+
 //        $recaptcha = Helpers::get_business_settings('recaptcha');
 //        if (isset($recaptcha) && $recaptcha['status'] == 1 && !$request->set_default_captcha) {
 //            $request->validate([
@@ -196,7 +202,6 @@ class LoginController extends Controller
                 ->withErrors(['Credentials does not match.']);
             }
         }
-
         elseif($request->role == 'vendor'){
             $vendor = Vendor::where('email', $request->email)->first();
             if($vendor){
@@ -212,11 +217,10 @@ class LoginController extends Controller
                         'admin_commission' =>$admin_commission->value,
                     ]);
                 }
-
-                if($vendor->restaurants[0]->restaurant_model == 'subscription' && $vendor->restaurants[0]->restaurant_sub_trans && $vendor->restaurants[0]->restaurant_sub_trans->transaction_status == 0  && $vendor->status == 0){
-                    return to_route('vendor.subscription.digital_payment_methods' , ['subscription_transaction_id'=>$vendor->restaurants[0]->restaurant_sub_trans->id , 'type' => 'new_join']);
+                
+                if (config('constants.app_mode') == 'local' && !in_array(config('constants.branch_id'), collect($vendor->restaurants)->pluck('id')->toArray())) {
+                    return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.account_not_registered_in_this_branch')]);
                 }
-
 
                 if($vendor->restaurants[0]->status == 0 &&  $vendor->status == 0) {
                         return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.inactive_vendor_warning')]);
@@ -225,12 +229,16 @@ class LoginController extends Controller
         }
 
         elseif($request->role == 'vendor_employee'){
-            $employee = VendorEmployee::where('email', $request->email)->first();
+            $employee = VendorEmployee::where('email', $request->email)->with('branch')->first();
             if($employee){
-                if($employee->restaurant->status == 0)
+                if($employee->branch->branch_active_status == 0)
                 {
                     return redirect()->back()->withInput($request->only('email', 'remember'))
                 ->withErrors([translate('messages.inactive_vendor_warning')]);
+                }
+                
+                if (config('constants.app_mode') == 'local' && $employee->restaurant_id != config('constants.branch_id')) {
+                    return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.account_not_registered_in_this_branch')]);
                 }
             }
         }

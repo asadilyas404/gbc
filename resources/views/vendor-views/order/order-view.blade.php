@@ -2040,7 +2040,8 @@
                                     const result = typeof response === 'string' ? JSON.parse(response) : response;
                                     if (result.success) {
                                         toastr.success("WhatsApp message sent successfully to " + to);
-                                        button.html(originalHtml + ' <i class="tio-checkmark-circle"></i>');
+                                        button.prop('disabled', false);
+                                        button.html(originalHtml);
                                     } else {
                                         toastr.error(result.error || "Failed to send message");
                                         button.prop('disabled', false);

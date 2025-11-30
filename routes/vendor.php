@@ -266,6 +266,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('generate-invoice/{id}', 'OrderController@generate_invoice')->name('generate-invoice');
             Route::get('generate-order-receipt/{id}', 'OrderController@generate_order_receipt')->name('generate-order-receipt');
             Route::get('print-order/{id}', 'OrderController@print_order')->name('print-order');
+            Route::post('print-canceled-order-items', 'OrderController@printCanacledOrderItems')->name('canceled.items');
             Route::post('add-payment-ref-code/{id}', 'OrderController@add_payment_ref_code')->name('add-payment-ref-code');
 
             // WhatsApp routes

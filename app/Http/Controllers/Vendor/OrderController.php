@@ -19,6 +19,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Jobs\SyncOrdersJob;
 use Illuminate\Support\Str;
 use App\Events\myevent;
+use App\Http\Controllers\PrintController;
 use Carbon\Carbon;
 use Mpdf\Mpdf;
 class OrderController extends Controller
@@ -1432,5 +1433,15 @@ class OrderController extends Controller
         SyncOrdersJob::dispatchSync();
         Toastr::success('Orders Sync completed!');
         return back();
+    }
+
+    public function printCanacledOrderItems(Request $request){
+        $request->validate([
+            'order_date' => 'required|date',
+        ]);
+
+        // If date is validate then call the print function
+        $printer = new PrintController();
+        return $printer->printCanceledOrderItems($request->order_date);
     }
 }

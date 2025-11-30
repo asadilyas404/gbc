@@ -23,6 +23,11 @@
                 <div class="row g-2 align-items-center justify-content-end">
                     @if (app()->environment('local'))
                         <div class="col-auto">
+                            <button type="button" id="print-canceled-items-btn" class="btn max-sm-12 btn--warning w-100">
+                                Print Canceled Items
+                            </button>
+                        </div>
+                        <div class="col-auto">
                             <a href="{{ route('vendor.settings.sync.users') }}" class="btn max-sm-12 btn--primary w-100">
                                 Sync Users
                             </a>
@@ -97,6 +102,54 @@
                     .catch(error => {
                         console.error('Error loading saved printers:', error);
                     });
+            }
+
+            let printCanceledItemsBtn = document.getElementById('print-canceled-items-btn');
+            if (printCanceledItemsBtn) {
+                printCanceledItemsBtn.addEventListener('click', function() {
+                    swal.fire({
+                        title: 'Enter Order Date',
+                        html: `<input type="date" id="swal-order-date" class="swal2-input" placeholder="Select date">`,
+                        showCancelButton: true,
+                        confirmButtonText: 'Print',
+                        preConfirm: () => {
+                            const orderDate = document.getElementById('swal-order-date').value;
+                            if (!orderDate) {
+                                swal.showValidationMessage('Please select a date');
+                            }
+                            return orderDate;
+                        }
+                    }).then((result) => {
+                        if (result.value) {
+                            const orderDate = result.value;
+                            $('#loading').show();
+
+                            fetch("{{ route('vendor.order.canceled.items') }}", {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                                    },
+                                    body: JSON.stringify({
+                                        order_date: orderDate
+                                    })
+                                })
+                                .then(res => res.json())
+                                .then(data => {
+                                    $('#loading').hide();
+                                    if (data.success) {
+                                        alert('Canceled items printed successfully!');
+                                    } else {
+                                        alert(data.message || 'Failed to print canceled items.');
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error(error);
+                                    alert('Error occurred while printing canceled items.');
+                                });
+                        }
+                    });
+                });
             }
 
             document.getElementById('printer-settings-form').addEventListener('submit', function(e) {

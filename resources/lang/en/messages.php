@@ -6613,4 +6613,8 @@
   'Cancel Item' => 'Cancel Item',
   'Please_enter_additional_reason_text (optional):' => 'Please enter additional reason text (optional):',
   'Yes, Proceed!' => 'Yes, Proceed!',
+  'Cannot modify a paid order.' => 'Cannot modify a paid order.',
+  'Cannot modify a paid order. Please create a new order.' => 'Cannot modify a paid order. Please create a new order.',
+  'you_can_not_add_more_item_in_cart' => 'You can not add more item in cart',
+  'you_can_not_add_more_item_in_paid_order_cart' => 'You can not add more item in paid order cart',
 );

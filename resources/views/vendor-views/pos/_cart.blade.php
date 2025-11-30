@@ -461,7 +461,11 @@ if (isset($cart['paid'])) {
                                             onfocus="this.select();"
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter cash amount') }}"
-                                            value="0">
+                                            value="{{ old('cash_paid',
+                                                ($editingOrder && $editingOrder->payment_status != 'paid' && isset($draftDetails))
+                                                    ? ($draftDetails->cash_paid ?? '')
+                                                    : 0
+                                            ) }}">
                                     </div>
                                     <div class="form-group mt-3">
                                         <label for="delivery_type" class="input-label">Order Type</label>
@@ -487,7 +491,11 @@ if (isset($cart['paid'])) {
                                             min="0" step="0.001"
                                             autocomplete="false"
                                             placeholder="{{ translate('Enter card amount') }}"
-                                            value="0">
+                                            value="{{ old('card_paid',
+                                                ($editingOrder && $editingOrder->payment_status != 'paid' && isset($draftDetails))
+                                                    ? ($draftDetails->card_paid ?? '')
+                                                    : 0
+                                            ) }}">
                                     </div>
                                     <div class="form-group mt-3">
                                         <label for="bank_account"

@@ -55,10 +55,14 @@ class POSController extends Controller
 
         // dd($request->all(),$id);
         $time = Carbon::now()->toTimeString();
-        $category = $request->query('category_id', 0);
-        $subcategory = $request->query('subcategory_id', 0);
+        $category = $request->query('category_id', session('current_category_id', 0));
+        $subcategory = $request->query('subcategory_id', session('current_sub_category_id', 0));
         $keyword = $request->query('keyword', false);
         $key = explode(' ', strtolower($keyword));
+
+        // Store the current category and subcategory in session
+        session()->put('current_category_id', $category);
+        session()->put('current_sub_category_id', $subcategory);
 
         $categories = Category::active()->where('parent_id', 0)->get();
 
@@ -379,6 +383,17 @@ class POSController extends Controller
 
     public function addToCart(Request $request)
     {
+        $orderId = session('editing_order_id');
+        if($orderId){
+            // Get the Order Payment Status
+            $existingOrder = Order::find($orderId);
+            if($existingOrder && $existingOrder->payment_status == 'paid'){
+                return response()->json([
+                    'data' => 'not_allowed', 'message' => translate('Cannot modify a paid order. Please create a new order.'),
+                ]);
+            }
+        }
+
         $product = Food::find($request->id);
 
         $data = array();
@@ -526,17 +541,21 @@ class POSController extends Controller
                 $currentItemInCart = $cart[$request->cart_item_key];
                 $currentQty = $currentItemInCart['quantity'];
                 if($request->quantity < $currentQty){
-                    // Add a Hidden Deleted Row
-                    $diferenceInQty = $currentQty - $request->quantity;
-                    $cart[$request->cart_item_key] = $data;
-
-                    // Create an Invisible Cart Item
-                    $currentItemInCart['quantity'] = $diferenceInQty;
-                    $currentItemInCart['is_deleted'] = 'Y';
-                    $currentItemInCart['cancel_reason'] = 'Quantity Reduced';
-                    $currentItemInCart['cooking_status'] = '-';
-                    $currentItemInCart['cancel_text'] = 'Quantity Reduced from POS';
-                    $cart->push($currentItemInCart);
+                    if(!session('editing_order_id')){
+                        $cart[$request->cart_item_key] = $data;
+                    }else{
+                        // Add a Hidden Deleted Row
+                        $diferenceInQty = $currentQty - $request->quantity;
+                        $data['draft_product'] = true;
+                        $cart[$request->cart_item_key] = $data;
+                        // Create an Invisible Cart Item
+                        $currentItemInCart['quantity'] = $diferenceInQty;
+                        $currentItemInCart['is_deleted'] = 'Y';
+                        $currentItemInCart['cancel_reason'] = 'Quantity Reduced';
+                        $currentItemInCart['cooking_status'] = '-';
+                        $currentItemInCart['cancel_text'] = 'Quantity Reduced from POS';
+                        $cart->push($currentItemInCart);
+                    }
                 }else{
                     // Find the product in the cart
                     foreach($cart as $key => $item){
@@ -559,7 +578,6 @@ class POSController extends Controller
                             }
                         }
                     }
-
                     $cart[$request->cart_item_key] = $data;
                 }
                 $data = 2;
@@ -1268,6 +1286,7 @@ class POSController extends Controller
                 'is_printed' => $item->is_printed,
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
+                'draft_product' => true,
             ];
         }
 

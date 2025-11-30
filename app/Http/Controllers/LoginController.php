@@ -218,9 +218,9 @@ class LoginController extends Controller
                     ]);
                 }
                 
-                if (config('constants.app_mode') == 'local' && !in_array(config('constants.branch_id'), collect($vendor->restaurants)->pluck('id')->toArray())) {
-                    return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.account_not_registered_in_this_branch')]);
-                }
+                // if (config('constants.app_mode') == 'local' && !in_array(config('constants.branch_id'), collect($vendor->restaurants)->pluck('id')->toArray())) {
+                //     return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.account_not_registered_in_this_branch')]);
+                // }
 
                 if($vendor->restaurants[0]->status == 0 &&  $vendor->status == 0) {
                         return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.inactive_vendor_warning')]);

@@ -1038,6 +1038,7 @@
 
 
         $(document).on('click', '.quick-View', function() {
+            itemQty = 0;
             $.get({
                 url: '{{ route("vendor.pos.quick-view") }}',
                 dataType: 'json',
@@ -1162,7 +1163,6 @@
                     ]), // Include discount values explicitly
                     success: function(data) {
                         console.log('Server response from variant_price:', data);
-
                         if (data.error === 'quantity_error') {
                             toastr.error(data.message);
                         } else if (data.error === 'stock_out') {
@@ -1200,8 +1200,8 @@
                             $('#add-to-cart-form #chosen_price_div #chosen_price').html(currentPrice);
                             $('.add-To-Cart').removeAttr("disabled");
                             $('.increase-button').removeAttr("disabled");
-                            $('#quantity_increase_button').removeAttr("disabled");
 
+                            $('#quantity_increase_button').prop('disabled', $('#quantity_increase_button').data('editing') == 1);
                         }
                     },
                     error: function() {
@@ -1219,6 +1219,7 @@
                     $('#loading').show();
                 },
                 success: function(data) {
+                    console.log(data.data);
                     if (data.data === 1) {
                         Swal.fire({
                             icon: 'info',
@@ -1239,14 +1240,20 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                    $('.call-when-done').click();
-
+                        $('.call-when-done').click();
                         return false;
                     } else if (data.data === 'stock_out') {
                         Swal.fire({
                             icon: 'error',
                             title: 'Cart',
                             text: data.message
+                        });
+                        return false;
+                    }else if(data.data === 'not_allowed'){
+                        Swal.fire({
+                            type: 'error',
+                            title: 'Order Is Paid',
+                            text: '{{ translate('messages.you_can_not_add_more_item_in_paid_order') }}'
                         });
                         return false;
                     } else if (data.data === 'cart_readded') {
@@ -1311,7 +1318,9 @@
             let form_id = 'add-to-cart-form';
             // Get the new quantity value
             let newQuantity = parseInt($('#add-to-cart-form input[name=quantity]').val());
-            if(newQuantity < itemQty){
+            let editingOrder = '{{ $editingOrder }}';
+            let order = {{ $editingOrder ? 'true' : 'false' }};
+            if(newQuantity < itemQty && order){
                 // Show confirmation dialog and get the cancel reason, cooking status, and text
                 $('#quick-view').modal('hide');
                 Swal.fire({

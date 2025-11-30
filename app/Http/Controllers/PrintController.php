@@ -182,29 +182,23 @@ class PrintController extends Controller
             $printer->text($linedash);
 
             // Define column widths (adjust for your printer, usually 42 for 80mm)
-            $colWidths = [5, 30, 12];           // Qty, Name, Amount
-            $colAligns = ['left', 'left', 'right'];  // Amount right-aligned
+            $colWidths = [5, 25, 8, 10];           // Qty, Name, Amount
+            $colAligns = ['left', 'left', 'right', 'right'];  // Amount right-aligned
 
             $colArabicImagePath = public_path('assets/pos_printer_arabic_header_text.png');
             $headerFilePath = EscposImage::load($colArabicImagePath, false);
 
             // Items
-
-            $printer->text($this->formatPrintRow(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
+            $printer->text($this->formatPrintRow(["Qty", "Name", "Price", "Total"], $colWidths, $colAligns) . "\n");
             $printer->bitImageColumnFormat($headerFilePath);
-            $qtyImage = ReceiptImageHelper::createArabicImageForPrinter("كمية", storage_path('app/public/prints/food_qty_arabic.png'), 20);
-            $qtyImage = EscposImage::load($qtyImage, false);
-            $nameImage = ReceiptImageHelper::createArabicImageForPrinter("اسم", storage_path('app/public/prints/food_name_arabic.png'), 20);
-            $nameImage = EscposImage::load($nameImage, false);
-            $priceImage = ReceiptImageHelper::createArabicImageForPrinter("الكمية", storage_path('app/public/prints/food_price_arabic.png'), 20);
-            $priceImage = EscposImage::load($priceImage, false);
-
+    
             $printer->text($linedash);
 
             $subTotal = 0;
             $addOnsCost = 0;
             $count = 0;
             foreach ($order->details as $detail) {
+                $itemAddOnsCost = 0;
                 if ($detail->food_id || $detail->campaign == null) {
 
                     if(trim($detail->is_deleted) == 'Y'){
@@ -219,7 +213,7 @@ class PrintController extends Controller
                     $foodArabicNameImage = EscposImage::load($foodArabicName, false);
 
                     $printer->setEmphasis(true);
-                    $printer->text($this->formatPrintRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
+                    $printer->text($this->formatPrintRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', ''), number_format($detail->price * $detail->quantity, 3, '.', '')], $colWidths, $colAligns) . "\n");
 
                     // Arabic price line
                     // $printer->setJustification(Printer::JUSTIFY_RIGHT);
@@ -230,7 +224,6 @@ class PrintController extends Controller
                     $variations = json_decode($detail->variation, true);
                     if (count($variations) > 0) {
                         //$printer->text("  Variations:\n");
-
                         foreach ($variations as $variation) {
                             if (isset($variation['name']) && isset($variation['values'])) {
                                 // $printer->text("  " . $variation['name'] . ":" . "\n");
@@ -283,12 +276,11 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    if($addon['price'] > 0){
-                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3)); 
+                                    if ($addon['price'] > 0) {
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3));
                                         $printer->bitImageColumnFormat($currencyTextimage);
-                                        // $printer->text("\n");
-                                    }else{
-                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
+                                    } else {
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3) . "\n");
                                     }
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -301,7 +293,10 @@ class PrintController extends Controller
                                         $printer->setPrintLeftMargin(0);
                                     }
 
-                                    $addOnsCost += $addon['price'] * $addon['quantity'];
+                                    // ✅ add to both totals
+                                    $lineCost        = $addon['price'] * ($addon['quantity'] ?? 1);
+                                    $itemAddOnsCost += $lineCost;
+                                    $addOnsCost     += $lineCost;
                                 }
                             }
                         }
@@ -311,25 +306,51 @@ class PrintController extends Controller
                     $printer->setEmphasis(false);
                     // Add-ons
                     $addOns = json_decode($detail->add_ons, true);
-                    if (count($addOns) > 0) {
-                        $printer->text("  Add-ons:" . "\n");
-                        foreach ($addOns as $addon) {
-                            // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
-                            $printer->text("  -" . $addon['name'] . "\n");
 
-                            // Get Addon Translation
-                            $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
-                            if ($addOnArabicName) {
-                                $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
-                                $addOnArabicName = EscposImage::load($addOnArabicName, false);
-                                $printer->setPrintLeftMargin(40);
-                                $printer->bitImageColumnFormat($addOnArabicName);
-                                $printer->setPrintLeftMargin(0);
+                    if (count($addOns) > 0) {
+                        $printer->text("  Add-ons:\n");
+
+                        // 1) Collect Add-on IDs from the cart line
+                        $addOnIds = collect($addOns)->pluck('id')->unique()->toArray();
+
+                        // 2) Fetch all add-ons in ONE query, key by id
+                        $addOnModels = AddOn::whereIn('id', $addOnIds)->get()->keyBy('id');
+
+                        foreach ($addOns as $addon) {
+                            $printer->text("  - " . $addon['name'] . "\n");
+
+                            // 3) Get the model for this add-on (if exists)
+                            $addOnModel = $addOnModels[$addon['id']] ?? null;
+
+                            if ($addOnModel) {
+                                // Safely get Arabic name
+                                $addOnArabicName = $addOnModel->getTranslationValue('name', 'ar') ?? '';
+
+                                if (!empty($addOnArabicName)) {
+                                    // (Optional) You can consider caching these images later if repeated a lot
+                                    $imagePath = storage_path('app/public/prints/food_' . $count++ . '_arabic.png');
+
+                                    $arabicImagePath = ReceiptImageHelper::createArabicImageForPrinter(
+                                        $addOnArabicName,
+                                        $imagePath,
+                                        20
+                                    );
+
+                                    $addOnArabicImage = EscposImage::load($arabicImagePath, false);
+
+                                    $printer->setPrintLeftMargin(40);
+                                    $printer->bitImageColumnFormat($addOnArabicImage);
+                                    $printer->setPrintLeftMargin(0);
+                                }
                             }
 
-                            $addOnsCost += $addon['price'] * $addon['quantity'];
+                            // 4) Cost calc (unchanged)
+                            $lineCost = $addon['price'] * $addon['quantity'];
+                            $itemAddOnsCost += $lineCost;
+                            $addOnsCost     += $lineCost;
                         }
                     }
+
 
                     // Notes
                     if ($detail->notes) {
@@ -342,16 +363,18 @@ class PrintController extends Controller
                     }
 
                     $itemTotal = $detail->price * $detail->quantity;
-                    $subTotal += $itemTotal - $detail->discount_on_food;
+                    $subTotal += $itemTotal - ($detail->discount_on_food * $detail->quantity);
 
                     //$printer->text("  Total: " . Helpers::format_currency($itemTotal) . "\n");
                     $printer->setJustification(Printer::JUSTIFY_RIGHT);
                     $printer->setEmphasis(true);
                     if($detail->discount_on_food > 0){
-                        $printer->text("  Discount: -" . number_format($detail->discount_on_food, 3, '.', ''));
+                        $printer->text("  Discount: -" . number_format($detail->discount_on_food * $detail->quantity, 3, '.', ''));
                         $printer->bitImageColumnFormat($currencyTextimage);
                     }
-                    $printer->text("  Total: " . number_format(($itemTotal + $addOnsCost) - $detail->discount_on_food, 3, '.', ''));
+                    $printer->text("  Addons: " . number_format($itemAddOnsCost, 3, '.', ''));
+                    $printer->bitImageColumnFormat($currencyTextimage);
+                    $printer->text("  Total: " . number_format(($itemTotal + ($itemAddOnsCost)) - ($detail->discount_on_food * $detail->quantity), 3, '.', ''));
                     $printer->bitImageColumnFormat($currencyTextimage);
                     $printer->setJustification(Printer::JUSTIFY_LEFT);
 
@@ -758,6 +781,7 @@ class PrintController extends Controller
                                         $printer->setPrintLeftMargin(0);
                                     }
 
+                                    
                                     $addOnsCost += $addon['price'] * $addon['quantity'];
                                 }
                             }

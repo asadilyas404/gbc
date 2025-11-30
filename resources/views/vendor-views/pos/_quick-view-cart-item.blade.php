@@ -277,13 +277,18 @@
                                 </label>
                                 <input id="add_new_product_quantity" type="text" name="quantity"
                                     class="form-control input-number text-center cart-qty-field" placeholder="1"
-                                    value="{{ $cart_item['quantity'] }}" min="1"
+                                    value="{{ $cart_item['quantity'] }}" min="1" readonly
                                     data-maximum_cart_quantity='{{ min($product->maximum_cart_quantity ?? '9999999999', $product->stock_type == 'unlimited' ? '999999999' : $product->item_stock) }}'
                                     max="{{ $product->maximum_cart_quantity ?? '9999999999' }}">
                                 <span class="input-group-btn">
-                                    <button class="btn btn-number text-dark" type="button" data-type="plus"
-                                        id="quantity_increase_button" data-field="quantity">
-                                        <i class="tio-add  font-weight-bold"></i>
+                                    <button class="btn btn-number text-dark"
+                                            type="button"
+                                            id="quantity_increase_button"
+                                            data-type="plus"
+                                            data-field="quantity"
+                                            data-editing="{{ $cart_item['draft_product'] ?? 0 }}"
+                                    >
+                                        <i class="tio-add font-weight-bold"></i>
                                     </button>
                                 </span>
                             </div>

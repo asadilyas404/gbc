@@ -218,6 +218,10 @@ class LoginController extends Controller
                     ]);
                 }
                 
+                if($vendor->restaurants[0]->restaurant_model == 'subscription' && $vendor->restaurants[0]->restaurant_sub_trans && $vendor->restaurants[0]->restaurant_sub_trans->transaction_status == 0  && $vendor->status == 0){
+                    return to_route('vendor.subscription.digital_payment_methods' , ['subscription_transaction_id'=>$vendor->restaurants[0]->restaurant_sub_trans->id , 'type' => 'new_join']);
+                }
+
                 // if (config('constants.app_mode') == 'local' && !in_array(config('constants.branch_id'), collect($vendor->restaurants)->pluck('id')->toArray())) {
                 //     return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.account_not_registered_in_this_branch')]);
                 // }
@@ -231,10 +235,10 @@ class LoginController extends Controller
         elseif($request->role == 'vendor_employee'){
             $employee = VendorEmployee::where('email', $request->email)->with('branch')->first();
             if($employee){
-                if($employee->branch->branch_active_status == 0)
+                if($employee->restaurant->status == 0)
                 {
                     return redirect()->back()->withInput($request->only('email', 'remember'))
-                ->withErrors([translate('messages.inactive_vendor_warning')]);
+                    ->withErrors([translate('messages.inactive_vendor_warning')]);
                 }
                 
                 if (config('constants.app_mode') == 'local' && $employee->restaurant_id != config('constants.branch_id')) {

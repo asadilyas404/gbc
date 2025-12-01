@@ -1416,7 +1416,7 @@
                             {{ translate('select_cancellation_reason') }}
                         </option>
                     @foreach ($reasons as $r)
-                        <option value="{{ $r->reason }}">
+                        <option value="{{ $r->id }}">
                             {{ $r->reason }}
                         </option>
                     @endforeach

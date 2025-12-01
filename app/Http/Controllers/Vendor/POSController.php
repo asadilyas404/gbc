@@ -1014,17 +1014,14 @@ class POSController extends Controller
                         'total_add_on_price' => $total_addon_price_for_item,
                         'notes' => $c['notes'] ?? $c['details'] ?? null,
                         'is_deleted' => isset($c['is_deleted']) ? trim($c['is_deleted']) : 'N',
-                        'cancel_reason' => isset($c['cancel_reason']) ? trim($c['cancel_reason']) : '',
-                        'cooking_status' => isset($c['cooking_status']) ? trim($c['cooking_status']) : '',
-                        'cancel_text' => isset($c['cancel_text']) ? trim($c['cancel_text']) : '',
+                        'cancel_reason'      => isset($c['cancel_reason']) ? trim($c['cancel_reason']) : '',
+                        'cooking_status'     => isset($c['cooking_status']) ? trim($c['cooking_status']) : '',
+                        'cancel_text'        => isset($c['cancel_text']) ? trim($c['cancel_text']) : '',
                         'is_printed' => $c['is_printed'] ?? 0,
+                        'payment_status' => $order->payment_status ?? 'unpaid',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
-
-                    if($or_d['is_deleted'] == 'Y'){
-                        $or_d['payment_status'] = $order->payment_status;
-                    }
 
                     error_log('Cart variations structure: ' . json_encode($c['variations']));
                     error_log('Cart variations keys: ' . json_encode(array_keys($c['variations'] ?? [])));

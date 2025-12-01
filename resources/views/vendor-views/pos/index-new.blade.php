@@ -1333,7 +1333,7 @@
                                     {{ translate('select_cancellation_reason') }}
                                 </option>
                                 @foreach ($reasons as $r)
-                                    <option value="{{ $r->reason }}">
+                                    <option value="{{ $r->id }}">
                                         {{ $r->reason }}
                                     </option>
                                 @endforeach
@@ -1432,8 +1432,8 @@
 
         $(document).on('click', '.remove-From-Cart', function() {
             let key = $(this).data('product-id');
-
-            Swal.fire({
+            @if(!empty($editingOrder))
+                Swal.fire({
                 title: '{{ translate('messages.are_you_sure?') }}',
                 type: 'warning',
                 html: `
@@ -1443,7 +1443,7 @@
                                 {{ translate('select_cancellation_reason') }}
                             </option>
                             @foreach ($reasons as $r)
-                                <option value="{{ $r->reason }}">
+                                <option value="{{ $r->id }}">
                                     {{ $r->reason }}
                                 </option>
                             @endforeach
@@ -1529,6 +1529,33 @@
                     });
                 }
             });
+            @else
+                    $.post('{{ route('vendor.pos.remove-from-cart') }}', {
+                        _token: '{{ csrf_token() }}',
+                        key: key,
+                        beforeSend: function(){
+                            $('#loading').show();
+                        },
+                    }, function(data) {
+                        if (data.errors) {
+                            for (let i = 0; i < data.errors.length; i++) {
+                                toastr.error(data.errors[i].message, {
+                                    CloseButton: true,
+                                    ProgressBar: true
+                                });
+                            }
+                        } else {
+                            $('#quick-view').modal('hide');
+                            updateCart();
+                            toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
+                                CloseButton: true,
+                                ProgressBar: true
+                            });
+                        }
+                        $('#loading').hide();
+                    });
+            @endif
+            
 
         });
 

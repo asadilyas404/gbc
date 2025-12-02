@@ -137,7 +137,7 @@ class POSController extends Controller
         $currentDate = Carbon::now();
         $updateDate = false;
 
-        if ($previousDate && $previousDate->toDateString() != $currentDate->toDateString() 
+        if ($previousDate && $previousDate->toDateString() != $currentDate->toDateString()
             && $currentDate->hour >= 8) {
             // Show warning
             $updateDate = true;
@@ -146,15 +146,15 @@ class POSController extends Controller
         $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'restaurant')->get();
 
         return view('vendor-views.pos.index-new', compact(
-            'categories', 
-            'subcategories', 
-            'products', 
-            'category', 
-            'subcategory', 
-            'keyword', 
-            'draftDetails', 
-            'editingOrder', 
-            'orderDate', 
+            'categories',
+            'subcategories',
+            'products',
+            'category',
+            'subcategory',
+            'keyword',
+            'draftDetails',
+            'editingOrder',
+            'orderDate',
             'draftCustomer',
             'orderPartners',
             'orderPartner',
@@ -188,7 +188,7 @@ class POSController extends Controller
                         ->where('variation_option_id', $v['option_id'])
                         ->where('partner_id', $request->id)
                         ->value('price');
-                        
+
 
                             $v['optionPrice'] =  $price;
                         }
@@ -252,19 +252,19 @@ class POSController extends Controller
 
 
     public function variant_price(Request $request)
-    { 
+    {
 
-    
+
         $product = Food::find($request->id);
-        
+
         if(isset($request->partner_id) && !empty($request->partner_id)){
             $partner_price = collect(json_decode($product->partner_price));
             $price = optional( $partner_price->where('partner_id',$request->partner_id)->first())->price;
         }else{
-            $price = $product->price;   
+            $price = $product->price;
         }
 
-    
+
 
         $addon_price = 0;
         $add_on_ids = [];
@@ -287,7 +287,7 @@ class POSController extends Controller
                         $addon_price += $addon_price_value * $quantity;
                     }
                 }
-            } 
+            }
         }
 
         $variation_options = null;
@@ -308,15 +308,15 @@ class POSController extends Controller
         $product_variations = json_decode($product->variations, true);
 
         if ($request->variations && is_array($request->variations) && count($request->variations) > 0 && count($product_variations) > 0) {
-            
-            
+
+
             $price_total = $price + Helpers::variation_price($product_variations, $request->variations, $request->partner_id);
         } else {
             $price_total = $price;
         }
 
         $original_price = $price_total;
- 
+
         if ($request->product_discount_type && $request->has('product_discount')) {
             $discountAmount = $request->product_discount;
             $discountType = $request->product_discount_type;
@@ -330,7 +330,7 @@ class POSController extends Controller
             // Apply restaurant discount (if any)
             $price_total = $price_total - Helpers::product_discount_calculate($product, $price_total, Helpers::get_restaurant_data());
         }
-  
+
         $total_price = ($price_total * $request->quantity) + $addon_price;
 
         return response()->json([
@@ -466,7 +466,7 @@ class POSController extends Controller
         }else{
             $price = $product->price;
         }
-        
+
         $price += $variation_price;
 
         $data['variation_price'] = $variation_price;
@@ -739,7 +739,7 @@ class POSController extends Controller
                 $query->orWhere(DB::raw('UPPER(customer_name)'), 'like', strtoupper("{$key}%"))
                     ->orWhere(DB::raw('UPPER(customer_mobile_no)'), 'like', strtoupper("{$key}%"))
                     ->orWhere(DB::raw('UPPER(customer_email)'), 'like', strtoupper("{$key}%"));
-                
+
             })
             ->limit(8)
             ->orderBy('customer_code', 'desc')
@@ -765,7 +765,7 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
-        
+
 
         $activeSession = \App\Models\ShiftSession::current()
         ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
@@ -796,7 +796,7 @@ class POSController extends Controller
             if (!(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment' ) && (floatval($request->cash_paid) < 0 || floatval($request->card_paid) < 0)) {
                 Toastr::error(translate('Payment amount cannot be negative'));
                 return back();
-            }   
+            }
 
             if(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment' ){
                 $payment_type = 'credit';
@@ -810,7 +810,7 @@ class POSController extends Controller
                 $payment_type = 'cash';
             }
         }
-            
+
         if ($request->session()->has('cart')) {
             if (count($request->session()->get('cart')) < 1) {
                 Toastr::error(translate('messages.cart_empty_warning'));
@@ -1031,7 +1031,7 @@ class POSController extends Controller
                     error_log('Order detail variation field: ' . $or_d['variation']);
 
                     $order_details[] = $or_d;
-                    
+
                     if($or_d['is_deleted'] == 'Y'){
                         continue;
                     }else{
@@ -1082,7 +1082,7 @@ class POSController extends Controller
 
         $total_tax_amount = Helpers::product_tax($total_price, $tax, $order->tax_status == 'included');
         $tax_a = $order->tax_status == 'included' ? 0 : $total_tax_amount;
-        try { 
+        try {
             $order->restaurant_discount_amount = $restaurant_discount_amount;
             $order->total_tax_amount = $total_tax_amount;
 
@@ -1151,7 +1151,7 @@ class POSController extends Controller
                 $posOrderDtl->card_paid = $request->card_paid ?? 0;
             }
             if($payment_type == 'card' || $payment_type == 'cash_card'){
-                $posOrderDtl->bank_account = $request->bank_account; 
+                $posOrderDtl->bank_account = $request->bank_account;
                 session('bank_account',$request->bank_account);
             }else{
                 $posOrderDtl->bank_account = null;
@@ -1196,10 +1196,13 @@ class POSController extends Controller
 
                 $order->printed = 1;
                 $order->save();
-               
+
             } catch (\Exception $printException) {
                 info('Print error: ' . $printException->getMessage());
             }
+
+            // Dispatch sync job
+            \App\Jobs\SyncOrdersJob::dispatch();
 
             //PlaceOrderMail
             // try {
@@ -1224,7 +1227,7 @@ class POSController extends Controller
             }else{
                 return redirect()->back();
             }
-            
+
             // return back();
         } catch (\Exception $exception) {
             DB::rollBack();

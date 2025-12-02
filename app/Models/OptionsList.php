@@ -16,9 +16,10 @@ class OptionsList extends Model
         'id' => 'integer',
         'name' => 'string',
         'status' => 'integer',
+        'price' => 'decimal:2',
     ];
 
-    protected $fillable = ['name', 'status'];
+    protected $fillable = ['name', 'status', 'price'];
 
     protected $primaryKey   = 'id';
 

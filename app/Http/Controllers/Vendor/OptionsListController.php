@@ -34,6 +34,7 @@ class OptionsListController extends Controller
         $request->validate([
             'name' => 'required|array',
             'name.*' => 'max:191',
+            'price' => 'nullable|numeric|min:0|max:999999999999.99',
         ], [
             'name.required' => translate('messages.Name is required!'),
         ]);
@@ -43,6 +44,7 @@ class OptionsListController extends Controller
         $option = new OptionsList();
         $option->id = $newId;
         $option->name = $request->name[array_search('default', $request->lang)];
+        $option->price = $request->price ?? 0;
         $option->save();
         Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
 
@@ -61,12 +63,14 @@ class OptionsListController extends Controller
         $request->validate([
             'name' => 'required|array',
             'name.*' => 'max:191',
+            'price' => 'nullable|numeric|min:0|max:999999999999.99',
         ], [
             'name.required' => translate('messages.Name is required!'),
         ]);
 
         $option = OptionsList::find($id);
         $option->name = $request->name[array_search('default', $request->lang)];
+        $option->price = $request->price ?? 0;
         $option->save();
         Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
         Toastr::success(translate('messages.option_updated_successfully'));

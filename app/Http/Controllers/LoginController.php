@@ -168,7 +168,7 @@ class LoginController extends Controller
             'role' => 'required'
         ]);
 
-        if(is_null(config('constants.branch_id'))){
+        if($request->role == 'vendor_employee' && is_null(config('constants.branch_id'))){
             return redirect()->back()->withInput($request->only('email', 'remember'))
                 ->withErrors(['Please Setup Branch']);
         }

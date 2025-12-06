@@ -101,6 +101,15 @@ class PrintController extends Controller
                 ], 404);
             }
 
+            // Check if ALL details have is_deleted = 'Y'
+            $allDeleted = $order->details->every(function ($detail) {
+                return $detail->is_deleted === 'Y';
+            });
+
+            if ($allDeleted) {
+                return redirect()->back()->with('warning', 'Cannot print order: All items have been deleted.');
+            }
+
             // Get printer name from database
             $user = Auth::user();
 
@@ -198,6 +207,7 @@ class PrintController extends Controller
             $addOnsCost = 0;
             $count = 0;
             foreach ($order->details as $detail) {
+                dd($detail);
                 $itemAddOnsCost = 0;
                 if ($detail->food_id || $detail->campaign == null) {
 
@@ -534,7 +544,6 @@ class PrintController extends Controller
                     'message' => 'Order not found'
                 ], 404);
             }
-
             
 
             $branchId = $order->restaurant_id;
@@ -626,7 +635,7 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
+                $printer->text("Order By: " . $order->takenBy->name . "\n");
             }
 
             $printer->text($linedash);
@@ -978,10 +987,26 @@ class PrintController extends Controller
             foreach ($orders as $order) {
                 $printer->text("Order # " . $order->order_serial . "\n");
                 $printer->text('Canceled Items: ' . $order->total_items . "\n");
+                if($order->takenBy) {
+                    $printer->text("Order By: " . $order->takenBy->name . " at: " . date('Y-m-d H:i', strtotime($order->order_date)) . "\n");
+                }
+
+                // If the Order is for any delivery partner, show that info
+                if($order->partner_id) {
+                    $partner = DB::table('tbl_sale_order_partners')->where('partner_id', $order->partner_id)->first();
+                    if($partner) {
+                        $printer->text("Delivery Partner: " . $partner->partner_name . "\n");
+                    }
+                }
                 
                 $details = $order->details;
                 foreach ($details as $detail) {
                     if ($detail->food_id || $detail->campaign == null) {
+
+                        if(trim($detail->is_deleted) != 'Y'){
+                            continue; // skip non-deleted items
+                        }
+
                         $foodDetails = json_decode($detail->food_details, true);
 
                         $foodName = $foodDetails['name'] ?? 'Unknown Item';
@@ -1103,7 +1128,18 @@ class PrintController extends Controller
                         $itemTotal = $detail->price * $detail->quantity;
                         $subTotal += $itemTotal;
 
-                        // $printer->text($linedash);
+                        // Detail Cancel Reason, Cooking Status and Cancel Text
+                        if ($detail->cancel_reason) {
+                            // Get the cancel reason text
+                            $reason = DB::table('order_cancel_reasons')->where('id', $detail->cancel_reason)->value('reason');
+                            $printer->text("  Cancel Reason: " . $reason . "\n");
+                        }
+                        if ($detail->cooking_status) {
+                            $printer->text("  Cooking Status: " . ucfirst($detail->cooking_status) . "\n");
+                        }
+                        if ($detail->cancel_text) {
+                            $printer->text("  Cancel Note: " . $detail->cancel_text . "\n");
+                        }
                     }
                 }
                 $printer->text($linedash);

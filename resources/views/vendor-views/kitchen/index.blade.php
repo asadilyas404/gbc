@@ -53,6 +53,128 @@
             <!-- Tabs Content -->
             <div class="mt-3">
                 <!-- Pending Tab -->
+                <div id="orders">
+                    <div class="row">
+                        @foreach ($data['orders'] as $order)
+                            <div class="col-md-4 mb-2">
+                                <div class="card" id="{{ $order->kitchen_status }}">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->name : 'Walk-in-Customer' }}</strong>
+                                                </p>
+                                                <p><strong>Order Type:</strong>
+                                                    {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
+                                                </p>
+                                                <p><strong>Restaurant Date:</strong>
+                                                    @if(!empty($order->order_date))
+                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
+                                                <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
+                                                @if ($order->kitchen_time)
+                                                    <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
+                                                        {{ $order->kitchen_time }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            @if ($order->kitchen_status == 'ready')
+                                                <div class="text-right">
+                                                    <button class="btn btn-danger btn-sm btn-style deliverOrder btn-block"
+                                                        data-id="{{ $order->id }}">
+                                                        <i class="tio-shopping-cart"></i>
+                                                        Handed Over
+                                                    </button>
+                                                </div>
+                                            @else
+                                                <div class="text-right">
+                                                    <button class="btn btn-success btn-sm btn-style startCooking"
+                                                        data-id="{{ $order->id }}">Start Cooking</button>
+                                                </div>
+                                            @endif
+                                            <div>
+                                                <a href="/restaurant-panel/order/details/{{ $order->id }}"
+                                                    class="btn btn-primary btn-sm btn-style">
+                                                    <i class="tio-info"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
+                                                    data-order-id="{{ $order->id }}">
+                                                    <i class="tio-print"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer">
+                                        @foreach ($order->details as $detail)
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <strong>{{ $detail->food['name'] }}</strong>
+                                                    x 
+                                                    <strong>{{ $detail->quantity }}</strong>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-success py-1">
+                                                    Start Cooking
+                                                </button>
+                                            </div>
+                                            <div>
+                                               @if (!empty($detail->variation) && count(json_decode($detail->variation, true)) > 0)
+                                                    @php $foodDetails = json_decode($detail->food_details, true); @endphp
+                                                    @foreach (json_decode($detail->variation, true) as $variation)
+                                                        @if (isset($variation['name']) && isset($variation['values']))
+                                                            @foreach ($variation['values'] as $value)
+                                                                @php
+                                                                    // Prepare some defaults
+                                                                    $optionName = '';
+                                                                @endphp
+
+                                                                @if (!empty($variation['printing_option']) && $variation['printing_option'] == 'option_name')
+                                                                    @php
+                                                                        // CASE 1: printing_option = option_name  → read from variation_options
+                                                                        $optionName = DB::table('variation_options')
+                                                                            ->where('id', $value['option_id'] ?? null)
+                                                                            ->value('option_name') ?? '';
+                                                                    @endphp
+                                                                    <p>{{ $optionName }}</p>
+                                                                @else
+                                                                    @php
+                                                                        // CASE 2: use options_list and its translation
+                                                                        $option = \App\Models\OptionsList::find($value['options_list_id'] ?? null);
+
+                                                                        if ($option) {
+                                                                            $optionName = $option->name ?? '';
+                                                                        }
+                                                                    @endphp
+                                                                    <p>{{ $optionName }}</p>
+                                                                @endif
+
+                                                            @endforeach
+                                                        @endif
+                                                    @endforeach
+                                                @endif
+
+                                            </div>
+                                            <hr/>
+                                        @endforeach
+                                        <div>
+                                            <strong>Total Items: </strong> {{ count($order->details) }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <hr/>
+                <hr/>
+                <hr/>
+
                 <div id="pending">
                     <div class="row">
                         @foreach ($data['pending'] as $order)
@@ -86,17 +208,50 @@
                                         <div class="d-flex justify-content-between">
                                             <div>
                                                 <a href="/restaurant-panel/order/details/{{ $order->id }}"
-                                                    class="btn btn-primary btn-sm btn-style">Order
-                                                    Detail</a>
+                                                    class="btn btn-info btn-sm btn-style">
+                                                    <i class="ti-info"></i> Order Detail
+                                                </a>
                                                 <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
                                                     data-order-id="{{ $order->id }}">
                                                     <i class="tio-print"></i> Direct Print
                                                 </button>
                                             </div>
                                             <div class="text-right">
-                                                <button class="btn btn-primary btn-sm btn-style startCooking"
+                                                <button class="btn btn-success btn-sm btn-style startCooking"
                                                     data-id="{{ $order->id }}">Start Cooking</button>
                                             </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer">
+                                        @foreach ($order->details as $detail)
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <div>
+                                                    <strong>{{ $detail->food['name'] }}</strong>
+                                                    x 
+                                                    <strong>{{ $detail->quantity }}</strong>
+                                                </div>
+                                                <button class="btn btn-sm btn-outline-success py-1">
+                                                    Start Cooking
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <div>
+                                                    
+                                                </div>
+                                                @if(!empty($detail->variations) && count(json_decode($detail->variations, true)) > 0)
+                                                    <p>Have Variations</p>
+                                                    <strong>
+                                                        @foreach (json_decode($detail->variations, true) as $key1 => $variation)
+                                                            @if ($key1 > 0), @endif
+                                                            {{ $variation['name'] }} : {{ $variation['values'][0]['label'] }}
+                                                        @endforeach
+                                                    </strong>
+                                                @endif
+                                            </div>
+                                            <hr/>
+                                        @endforeach
+                                        <div>
+                                            <strong>Total Items: </strong> {{ count($order->details) }}
                                         </div>
                                     </div>
                                 </div>
@@ -157,6 +312,8 @@
                         @endforeach
                     </div>
                 </div>
+
+                <hr/>
 
                 <!-- Ready Tab -->
                 <div id="ready">

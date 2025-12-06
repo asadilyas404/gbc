@@ -252,9 +252,7 @@ class POSController extends Controller
 
 
     public function variant_price(Request $request)
-    {
-
-
+    { 
         $product = Food::find($request->id);
 
         if(isset($request->partner_id) && !empty($request->partner_id)){
@@ -615,16 +613,35 @@ class POSController extends Controller
             $cart = $request->session()->get('cart', collect([]));
             $editing_order_id = session('editing_order_id');
             if ($editing_order_id) {
-                // Get the item by the key
+                // 1. Get the existing order payment status
+                $existingPaymentStatus = Order::find($editing_order_id)->payment_status ?? null;
+
+                // 2. Get item from cart FIRST
                 $cartItem = $cart->get($request->key);
-                $cartItem['is_deleted'] = 'Y';
-                $cartItem['cancel_reason'] = $request->cancelReason ?? '';
+
+                if (!$cartItem) {
+                    Toastr::error('Cart item not found');
+                    return back();
+                }
+
+                // 3. If order was already paid — lock item payment_status
+                if ($existingPaymentStatus === 'paid') {
+                    $cartItem['payment_status'] = 'paid';
+                }
+
+                // 4. Mark item as deleted + store details
+                $cartItem['is_deleted']     = 'Y';
+                $cartItem['cancel_reason']  = $request->cancelReason ?? '';
                 $cartItem['cooking_status'] = $request->cookingStatus ?? '';
-                $cartItem['cancel_text'] = $request->cancelText ?? '';
+                $cartItem['cancel_text']    = $request->cancelText ?? '';
+
+                // 5. Put updated item back into cart
                 $cart->put($request->key, $cartItem);
-            }else{
+            } else {
+                // For non-editing orders: remove the item fully
                 $cart->forget($request->key);
             }
+
             $request->session()->put('cart', $cart);
         }
 
@@ -793,21 +810,41 @@ class POSController extends Controller
         $payment_type = '';
         if ($request->order_draft == 'final') {
 
-            if (!(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment' ) && (floatval($request->cash_paid) < 0 || floatval($request->card_paid) < 0)) {
+            // Normalize values once
+            $cash = floatval($request->cash_paid ?? 0);
+            $card = floatval($request->card_paid ?? 0);
+            $isCredit = isset($request->select_payment_type) 
+                && $request->select_payment_type == 'credit_payment';
+
+            // 1) Block negative payments (only for non-credit payments)
+            if (!$isCredit && ($cash < 0 || $card < 0)) {
                 Toastr::error(translate('Payment amount cannot be negative'));
                 return back();
             }
 
-            if(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment' ){
+            // 2) Payment type decision
+            if ($isCredit) {
+
+                // (Optional but recommended)
+                // If you don't want any paid amounts when credit is chosen:
+                if ($cash > 0 || $card > 0) {
+                    Toastr::error(translate('For credit payment, cash or card must be zero'));
+                    return back();
+                }
+
                 $payment_type = 'credit';
-            } elseif ($request->cash_paid > 0 && ($request->card_paid === null || $request->card_paid <= 0)) {
-                $payment_type = 'cash';
-            } elseif ($request->card_paid > 0 && ($request->cash_paid === null || $request->cash_paid <= 0)) {
-                $payment_type = 'card';
-            } elseif ($request->cash_paid > 0 && $request->card_paid > 0) {
-                $payment_type = 'cash_card';
-            } else{
-                $payment_type = 'cash';
+
+            } else {
+
+                if ($cash > 0 && $card <= 0) {
+                    $payment_type = 'cash';
+                } elseif ($card > 0 && $cash <= 0) {
+                    $payment_type = 'card';
+                } elseif ($cash > 0 && $card > 0) {
+                    $payment_type = 'cash_card';
+                } else {
+                    $payment_type = 'cash'; // fallback when everything is zero
+                }
             }
         }
 
@@ -1018,7 +1055,7 @@ class POSController extends Controller
                         'cooking_status'     => isset($c['cooking_status']) ? trim($c['cooking_status']) : '',
                         'cancel_text'        => isset($c['cancel_text']) ? trim($c['cancel_text']) : '',
                         'is_printed' => $c['is_printed'] ?? 0,
-                        'payment_status' => $order->payment_status ?? 'unpaid',
+                        'payment_status' => $c['payment_status'] ?? 'unpaid',
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -1097,6 +1134,19 @@ class POSController extends Controller
                 Toastr::error(translate('messages.You can not Order more then ') . $max_cod_order_amount_value . Helpers::currency_symbol() . ' ' . translate('messages.on COD order.'));
                 return back();
             }
+
+            // if ($request->order_draft == 'final') {
+
+            //     $cash = floatval($request->cash_paid ?? 0);
+            //     $card = floatval($request->card_paid ?? 0);
+            //     $paidTotal = $cash + $card;
+
+            //     if ($paidTotal < floatval($order->order_amount)) {
+            //         Toastr::error(translate('messages.amount_cannot_exceed_total_order_amount'));
+            //         return back()->withInput();
+            //     }
+            // }
+
 
             $order->save();
 
@@ -1247,7 +1297,6 @@ class POSController extends Controller
         //     Toastr::error('Only unpaid (draft) orders can be edited.');
         //     return back();
         // }
-
         $cart = [];
 
         foreach ($order->details as $item) {
@@ -1284,6 +1333,10 @@ class POSController extends Controller
                 'image' => $food['image'] ?? null,
                 'is_deleted' => trim($item->is_deleted),
                 'is_printed' => $item->is_printed,
+                'cancel_reason'      => trim($item->cancel_reason),
+                'cooking_status'     => trim($item->cooking_status),
+                'cancel_text'        => trim($item->cancel_text),
+                'payment_status'   => $item->payment_status ?? 'unpaid',
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
                 'draft_product' => true,

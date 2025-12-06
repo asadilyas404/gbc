@@ -385,24 +385,34 @@
                                 {{ translate('Billing Section') }}
                             </span>
                         </h5>
-                        <a class="btn btn--primary" href="{{ route('vendor.order.list', ['draft']) }}"
+                        <a class="btn btn--primary btn-sm" href="{{ route('vendor.order.list', ['draft']) }}"
                             title="{{ translate('messages.Unpaid Orders') }}">
                             {{ translate('messages.Unpaid Orders') }}
                         </a>
                     </div>
                     <div class="w-100">
                         @if($editingOrder)
-                        <div class="justify-content-between p-2" id="editingOrderHeading">
-                            <h1 class="bg-dark text-white">Order # {{ $editingOrder->order_serial }}</h1>
-                            @if($editingOrder->kitchen_status == 'cooking')
-                                <span class="badge bg-danger text-white small">{{ $editingOrder->kitchen_status }}</span>
-                            @elseif ($editingOrder->kitchen_status == 'completed' || $editingOrder->kitchen_status == 'ready')
-                                <span class="badge bg-success text-white small">{{ $editingOrder->kitchen_status }}</span>
-                            @else
-                                <span class="badge bg-info text-white small">{{ $editingOrder->kitchen_status }}</span>
-                            @endif
-                        </div>
+                            <div class="justify-content-between p-2" id="editingOrderHeading">
+                                <h1 class="bg-dark px-1 rounded-sm text-white">Order # {{ $editingOrder->order_serial }}</h1>
+                                @if($editingOrder->kitchen_status == 'cooking')
+                                    <span class="badge bg-danger text-white small">Cooking: {{ $editingOrder->kitchen_status }}</span>
+                                @elseif ($editingOrder->kitchen_status == 'completed' || $editingOrder->kitchen_status == 'ready')
+                                    <span class="badge bg-success text-white small">Cooking: {{ $editingOrder->kitchen_status }}</span>
+                                @else
+                                    <span class="badge bg-info text-white small">Cooking: {{ $editingOrder->kitchen_status }}</span>
+                                @endif
+                                @if($editingOrder->payment_status === 'paid')
+                                    <span
+                                        class="badge bg-success text-white text-capitalize">
+                                        Payment: {{ translate('paid') }}
+                                    </span>
+                                @endif
+                            </div>
                         @endif
+                        <div class="justify-content-between p-2">
+                            <h1 class="bg-dark px-1 rounded-sm text-white d-none" id="newOrderHeading">New Order</h1>
+                        </div>
+
                         <div class="d-flex flex-wrap flex-row p-2 add--customer-btn">
                             <label for='customer'></label>
                             <select id='customer' name="customer_id"
@@ -442,7 +452,7 @@
             </div>
         </div>
         <div class="modal fade" id="quick-view" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content" id="quick-view-modal">
 
                 </div>
@@ -999,7 +1009,7 @@
             
 
 
-            @if($updateDate && !$editingOrder)
+            if(window.updateDate && !window.editingOrder){
                 // Show orderFianlModal
                 Swal.fire({
                     title: "Are you sure?",
@@ -1021,10 +1031,10 @@
                         }, 100);
                     }
                 });
-            @else
+            }else{
                 setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
                 $('#orderFinalModal').modal('show');
-            @endif            
+            }            
         });
 
 
@@ -1123,6 +1133,7 @@
         //     }
         // }
 
+        var getVariantPriceRequest = null;
         function getVariantPrice() {
             getCheckedInputs();
 
@@ -1143,13 +1154,18 @@
             console.log('Variation addon data:', variationAddonData);
 
             if ($('#add-to-cart-form input[name=quantity]').val() > 0) {
+
+                if (getVariantPriceRequest !== null) {
+                    getVariantPriceRequest.abort();
+                }
+
                 $.ajaxSetup({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                     }
                 });
 
-                $.ajax({
+                getVariantPriceRequest = $.ajax({
                     type: "POST",
                     url: '{{ route('vendor.pos.variant_price') }}',
                     data: $('#add-to-cart-form').serializeArray().concat([{
@@ -1204,7 +1220,8 @@
                             $('#quantity_increase_button').prop('disabled', $('#quantity_increase_button').data('editing') == 1);
                         }
                     },
-                    error: function() {
+                    error: function(xhr, status) {
+                        if (status === "abort") return; // ignore aborted requests
                         toastr.error('Something went wrong. Please try again.');
                     }
                 });
@@ -1318,9 +1335,7 @@
             let form_id = 'add-to-cart-form';
             // Get the new quantity value
             let newQuantity = parseInt($('#add-to-cart-form input[name=quantity]').val());
-            let editingOrder = '{{ $editingOrder }}';
-            let order = {{ $editingOrder ? 'true' : 'false' }};
-            if(newQuantity < itemQty && order){
+            if(newQuantity < itemQty && window.editingOrder){
                 // Show confirmation dialog and get the cancel reason, cooking status, and text
                 $('#quick-view').modal('hide');
                 Swal.fire({
@@ -1432,7 +1447,7 @@
 
         $(document).on('click', '.remove-From-Cart', function() {
             let key = $(this).data('product-id');
-            @if(!empty($editingOrder))
+            if(window.editingOrder){
                 Swal.fire({
                 title: '{{ translate('messages.are_you_sure?') }}',
                 type: 'warning',
@@ -1496,67 +1511,66 @@
                         cancelText: text
                     };
                 }
-            }).then(result => {
-                if (result.value) {
-                    const { cancelReason, cookingStatus, cancelText } = result.value;
+                }).then(result => {
+                    if (result.value) {
+                        const { cancelReason, cookingStatus, cancelText } = result.value;
 
-                    $.post('{{ route('vendor.pos.remove-from-cart') }}', {
-                        _token: '{{ csrf_token() }}',
-                        key: key,
-                        cancelReason: cancelReason,
-                        cookingStatus: cookingStatus,
-                        cancelText: cancelText,
-                        beforeSend: function(){
-                            $('#loading').show();
-                        },
-                    }, function(data) {
-                        if (data.errors) {
-                            for (let i = 0; i < data.errors.length; i++) {
-                                toastr.error(data.errors[i].message, {
+                        $.post('{{ route('vendor.pos.remove-from-cart') }}', {
+                            _token: '{{ csrf_token() }}',
+                            key: key,
+                            cancelReason: cancelReason,
+                            cookingStatus: cookingStatus,
+                            cancelText: cancelText,
+                            beforeSend: function(){
+                                $('#loading').show();
+                            },
+                        }, function(data) {
+                            if (data.errors) {
+                                for (let i = 0; i < data.errors.length; i++) {
+                                    toastr.error(data.errors[i].message, {
+                                        CloseButton: true,
+                                        ProgressBar: true
+                                    });
+                                }
+                            } else {
+                                $('#quick-view').modal('hide');
+                                updateCart();
+                                toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
                                     CloseButton: true,
                                     ProgressBar: true
                                 });
                             }
-                        } else {
-                            $('#quick-view').modal('hide');
-                            updateCart();
-                            toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
+                            $('#loading').hide();
+                        });
+                    }
+                });
+            }
+            else{
+                $.post('{{ route('vendor.pos.remove-from-cart') }}', {
+                    _token: '{{ csrf_token() }}',
+                    key: key,
+                    beforeSend: function(){
+                        $('#loading').show();
+                    },
+                }, function(data) {
+                    if (data.errors) {
+                        for (let i = 0; i < data.errors.length; i++) {
+                            toastr.error(data.errors[i].message, {
                                 CloseButton: true,
                                 ProgressBar: true
                             });
                         }
-                        $('#loading').hide();
-                    });
-                }
-            });
-            @else
-                    $.post('{{ route('vendor.pos.remove-from-cart') }}', {
-                        _token: '{{ csrf_token() }}',
-                        key: key,
-                        beforeSend: function(){
-                            $('#loading').show();
-                        },
-                    }, function(data) {
-                        if (data.errors) {
-                            for (let i = 0; i < data.errors.length; i++) {
-                                toastr.error(data.errors[i].message, {
-                                    CloseButton: true,
-                                    ProgressBar: true
-                                });
-                            }
-                        } else {
-                            $('#quick-view').modal('hide');
-                            updateCart();
-                            toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
-                                CloseButton: true,
-                                ProgressBar: true
-                            });
-                        }
-                        $('#loading').hide();
-                    });
-            @endif
-            
-
+                    } else {
+                        $('#quick-view').modal('hide');
+                        updateCart();
+                        toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
+                            CloseButton: true,
+                            ProgressBar: true
+                        });
+                    }
+                    $('#loading').hide();
+                });
+            }
         });
 
         $(document).on('click', '.empty-Cart', function() {
@@ -1566,11 +1580,16 @@
                 $('#del-add').empty();
                 localStorage.removeItem('posSelectedCustomer');
                 window.selectedCustomer = null;
+                window.updateDate = null;
+                window.editingOrder = false;
                 updateCart();
                 $('#customer').val('').trigger('change');
                 if($('#editingOrderHeading').length){
                     $('#editingOrderHeading').html('');
                 }
+
+                $('#newOrderHeading').removeClass('d-none');
+
                 toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
                     CloseButton: true,
                     ProgressBar: true
@@ -1806,6 +1825,12 @@
         @endif
 
         window.selectedCustomer = null;
+        window.updateDate = {{ $updateDate ?? null }}; 
+        window.editingOrder = {{ $editingOrder ? 'true' : 'false' }};
+
+        if(!window.editingOrder){
+            $('#newOrderHeading').removeClass('d-none');
+        }
 
         function parseCustomerData(customerId, customerText) {
             if (!customerId || customerId === 'false' || !customerText) {

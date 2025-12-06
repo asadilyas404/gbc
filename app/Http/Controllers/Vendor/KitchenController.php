@@ -28,7 +28,7 @@ class KitchenController extends Controller
 
     public function getOrderList()
     {
-        $orders = Order::with('customer', 'kitchen_log')
+        $orders = Order::with('customer', 'kitchen_log','details', 'details.food')
             ->whereIn('kitchen_status', [
                 Helpers::kitchenStatus('pending')['key'],
                 Helpers::kitchenStatus('cooking')['key'],
@@ -37,6 +37,7 @@ class KitchenController extends Controller
             ->select('id', 'order_amount', 'order_type', 'kitchen_status', 'order_serial', 'order_date')
             ->orderBy('created_at', 'desc')->get();
 
+            // dd($orders[0]);
         $pending = [];
         $cooking = [];
         $ready = [];
@@ -62,6 +63,7 @@ class KitchenController extends Controller
             }
         }
         return [
+            'orders'  => $orders,
             'pending' => $pending,
             'cooking' => $cooking,
             'ready' => $ready,

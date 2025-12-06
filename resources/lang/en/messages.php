@@ -6618,4 +6618,7 @@
   'you_can_not_add_more_item_in_cart' => 'You can not add more item in cart',
   'you_can_not_add_more_item_in_paid_order_cart' => 'You can not add more item in paid order cart',
   'you_can_not_add_more_item_in_paid_order' => 'You can not add more item in paid order',
+  'printer settings' => 'Printer settings',
+  'options list' => 'Options list',
+  'amount_cannot_exceed_total_order_amount' => 'Amount cannot exceed total order amount',
 );

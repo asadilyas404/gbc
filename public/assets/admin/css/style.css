@@ -1513,10 +1513,12 @@ span.initial-38-7,
 }
 
 .initial-49 .addon-quantity-input {
+    position: absolute;
+    right: 12px;
     height: 2rem;
     width: 7rem;
     z-index: 9;
-    bottom: 1rem;
+    bottom: 0rem;
     visibility: hidden;
 }
 

@@ -1253,8 +1253,8 @@
                         $('#customer_name').val(data.customer_name ?? '');
                         $('#car_number').val(data.car_number ?? '');
                         $('#phone').val(data.phone ?? '');
-                        $('#cash_paid').val(data.cash_paid ?? '');
-                        $('#card_paid').val(data.card_paid ?? '');
+                        // $('#cash_paid').val(data.cash_paid ?? '');
+                        // $('#card_paid').val(data.card_paid ?? '');
                         $('#delivery_type').val(data.delivery_type ?? '');
                         $('#bank_account').val(data.bank_account ?? '');
                         $('#partner_id').val(data.partner_id ?? '');

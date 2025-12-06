@@ -29,11 +29,11 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->job(new SyncOrdersJob)->onConnection('database')->everyTenMinutes();
-        $schedule->job(new SyncBranchesRestaurantsJob)->onConnection('database')->dailyAt('23:30');
-        $schedule->job(new SyncEmployeesJob)->onConnection('database')->dailyAt('23:35');
-        $schedule->job(new SyncFoodJob)->onConnection('database')->dailyAt('23:40');
-        $schedule->job(new SyncCustomersJob)->onConnection('database')->dailyAt('23:45');
+        $schedule->job(new SyncOrdersJob)->everyTenMinutes();
+        $schedule->job(new SyncBranchesRestaurantsJob)->dailyAt('23:30');
+        $schedule->job(new SyncEmployeesJob)->dailyAt('23:35');
+        $schedule->job(new SyncFoodJob)->dailyAt('23:40');
+        $schedule->job(new SyncCustomersJob)->dailyAt('23:45');
     }
 
     /**

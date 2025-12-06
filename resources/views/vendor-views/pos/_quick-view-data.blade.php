@@ -105,11 +105,11 @@
                         </div>
                     </div>
 
-                    @php ($add_ons = json_decode($product->add_ons)) @endphp
+                    @php ($add_ons = json_decode($product->add_ons)); $index = 0; @endphp
 
                     @foreach (json_decode($product->variations) as $key => $choice)
                         @if (isset($choice->price) == false)
-                            @php $title = translate('variation') . ' # ' . ++$key . ' ('. $choice->name .')';  @endphp
+                            @php $title = translate('variation') . ' # ' . ++$index . ' ('. $choice->name .')';  @endphp
                             <div class="h3 p-0 pt-2">{{ $title }} <small class="text-muted fs-12">
                                     ({{ $choice->required == 'on' ? translate('messages.Required') : translate('messages.optional') }}
                                     ) </small>
@@ -129,7 +129,7 @@
                                 <input type="hidden" name="variations[{{ $key }}][required]"
                                     value="{{ $choice->required }}">
                                 <input type="hidden" name="variations[{{ $key }}][name]"
-                                    value="{{ $title }}">
+                                    value="{{ $choice->name }}">
 
                                 <div class="d-flex justify-content-left flex-wrap">
                                     

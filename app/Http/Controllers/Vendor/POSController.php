@@ -1012,7 +1012,6 @@ class POSController extends Controller
 
                     $variation_data = Helpers::get_varient($product->variations, $c['variations'], $request->partner_id);
                     $processed_variations = $variation_data['variations'];
-
                     $total_addon_price_for_item = $addon_data['total_add_on_price'];
 
                     if (isset($c['variations']) && is_array($c['variations'])) {
@@ -1056,6 +1055,7 @@ class POSController extends Controller
                         'cancel_text'        => isset($c['cancel_text']) ? trim($c['cancel_text']) : '',
                         'is_printed' => $c['is_printed'] ?? 0,
                         'payment_status' => $c['payment_status'] ?? 'unpaid',
+                        'food_create_time'  => $c['food_create_time'] ?? Carbon::now(),
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -1341,6 +1341,7 @@ class POSController extends Controller
                 'cooking_status'     => trim($item->cooking_status),
                 'cancel_text'        => trim($item->cancel_text),
                 'payment_status'   => $item->payment_status ?? 'unpaid',
+                'food_create_time' => $item->food_create_time ?? null,
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
                 'draft_product' => true,

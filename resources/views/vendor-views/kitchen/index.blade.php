@@ -112,7 +112,7 @@
                                     </div>
                                     <div class="card-footer">
                                         @foreach ($order->details as $detail)
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div class="d-flex justify-content-between align-items-center mb-0">
                                                 <div>
                                                     <strong>{{ $detail->food['name'] }}</strong>
                                                     x 
@@ -123,7 +123,7 @@
                                                 </button>
                                             </div>
                                             <div>
-                                               @if (!empty($detail->variation) && count(json_decode($detail->variation, true)) > 0)
+                                                @if (!empty($detail->variation) && count(json_decode($detail->variation, true)) > 0)
                                                     @php $foodDetails = json_decode($detail->food_details, true); @endphp
                                                     @foreach (json_decode($detail->variation, true) as $variation)
                                                         @if (isset($variation['name']) && isset($variation['values']))
@@ -132,7 +132,6 @@
                                                                     // Prepare some defaults
                                                                     $optionName = '';
                                                                 @endphp
-
                                                                 @if (!empty($variation['printing_option']) && $variation['printing_option'] == 'option_name')
                                                                     @php
                                                                         // CASE 1: printing_option = option_name  → read from variation_options
@@ -140,7 +139,6 @@
                                                                             ->where('id', $value['option_id'] ?? null)
                                                                             ->value('option_name') ?? '';
                                                                     @endphp
-                                                                    <p>{{ $optionName }}</p>
                                                                 @else
                                                                     @php
                                                                         // CASE 2: use options_list and its translation
@@ -150,17 +148,35 @@
                                                                             $optionName = $option->name ?? '';
                                                                         }
                                                                     @endphp
-                                                                    <p>{{ $optionName }}</p>
                                                                 @endif
-
+                                                                <p class="mb-1">- {{ $optionName }}</p>
                                                             @endforeach
                                                         @endif
                                                     @endforeach
                                                 @endif
-
+                                                @if (isset($variation['addons']) && is_array($variation['addons']) && count($variation['addons']) > 0)
+                                                    <small class="text-muted"><strong><u>Addons:</u></strong></small>
+                                                    <div
+                                                        class="variation-addons-inline py-1">
+                                                        @foreach ($variation['addons'] as $addon)
+                                                            <span
+                                                                class="d-block text-capitalize">
+                                                                <small class="text-muted">
+                                                                    {{ Str::limit($addon['name'], 30, '...') }} x {{ $addon['quantity'] }}
+                                                                </small>
+                                                            </span>
+                                                            @php($total_variation_addon_price += $addon['price'] * $addon['quantity']) @endphp
+                                                        @endforeach
+                                                    </div>
+                                                @endif
                                             </div>
                                             <hr/>
                                         @endforeach
+                                        @if($order->note)
+                                            <div>
+                                                <strong>Note: </strong> {{ $order->note }}
+                                            </div>
+                                        @endif
                                         <div>
                                             <strong>Total Items: </strong> {{ count($order->details) }}
                                         </div>
@@ -600,6 +616,19 @@
         setInterval(function() {
             window.location.reload();
         }, 600000);
+
+        // Save scroll position before the page unloads
+        window.addEventListener("beforeunload", function () {
+            localStorage.setItem("scrollPosition", window.scrollY);
+        });
+
+        // Restore scroll position on page load
+        window.addEventListener("load", function () {
+            const scrollY = localStorage.getItem("scrollPosition");
+            if (scrollY !== null) {
+                window.scrollTo(0, parseInt(scrollY));
+            }
+        });
 
         // $(document).on('click', '.direct-print-btn', function() {
         //     const orderId = $(this).data('order-id');

@@ -207,7 +207,6 @@ class OrderController extends Controller
         if($order->delivery_man){
             $selected_delivery_man = Helpers::deliverymen_list_formatting($selected_delivery_man, $order->restaurant->latitude,  $order->restaurant->longitude , true);
         }
-
             return view('vendor-views.order.order-view', compact('order', 'selected_delivery_man' , 'deliveryMen'));
         } else {
             Toastr::info('No more orders!');

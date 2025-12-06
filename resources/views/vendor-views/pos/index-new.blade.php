@@ -969,6 +969,8 @@
                 _token: '{{ csrf_token() }}'
             }).done(function() {
                 window.location.href = '/restaurant-panel/pos/new/' + selectedId;
+                // Clear the customer from local storage
+                localStorage.removeItem('posSelectedCustomer');
             }).always(function() {
                 // $('#loading').hide();
             });

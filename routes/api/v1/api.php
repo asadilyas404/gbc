@@ -10,6 +10,11 @@ use App\Http\Controllers\Api\V1\Vendor\POSController;
 use App\Http\Controllers\DataPushController;
 use App\Http\Controllers\PrintController;
 
+// Health check endpoint for connectivity verification
+Route::get('/health-check', function () {
+    return response()->json(['status' => 'ok', 'timestamp' => now()], 200);
+});
+
 Route::post('/push-sale-invoices', [DataPushController::class, 'pushInvoices']);
 
 // Print API routes

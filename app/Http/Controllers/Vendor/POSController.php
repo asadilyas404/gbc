@@ -1251,8 +1251,12 @@ class POSController extends Controller
                 info('Print error: ' . $printException->getMessage());
             }
 
-            // Dispatch sync job
-            \App\Jobs\SyncOrdersJob::dispatch();
+            // Dispatch sync job only if live server is reachable
+            if ($this->isLiveServerReachable()) {
+                \App\Jobs\SyncOrdersJob::dispatch();
+            } else {
+                info('Skipping sync - live server not reachable. Order will sync later.');
+            }
 
             //PlaceOrderMail
             // try {
@@ -1413,5 +1417,19 @@ class POSController extends Controller
             $extra_charges = (float) (isset($data) ? $data['extra_charge'] : 0);
         }
         return response()->json($extra_charges, 200);
+    }
+    private function isLiveServerReachable()
+    {
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(2) // Only 2 seconds
+                ->withToken(config('services.live_server.token'))
+                ->withoutVerifying()
+                ->get(config('services.live_server.url') . '/api/health-check');
+
+            return $response->successful();
+        } catch (\Exception $e) {
+            info('Live server unreachable: ' . $e->getMessage());
+            return false;
+        }
     }
 }

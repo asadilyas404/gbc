@@ -6621,4 +6621,5 @@
   'printer settings' => 'Printer settings',
   'options list' => 'Options list',
   'amount_cannot_exceed_total_order_amount' => 'Amount cannot exceed total order amount',
+  'customer_with_this_phone_number_already_exists' => 'Customer with this phone number already exists',
 );

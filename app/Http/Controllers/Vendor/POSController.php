@@ -782,8 +782,6 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
-
-
         $activeSession = \App\Models\ShiftSession::current()
         ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
         ->first();
@@ -946,7 +944,6 @@ class POSController extends Controller
 
         $order->vehicle_id = $vehicle_id ?? null;
         $order->restaurant_id = $restaurant->id;
-        $order->user_id = $request->user_id;
         $order->order_taken_by = $order->order_taken_by ?? $authUserId;
         $order->zone_id = $restaurant->zone_id;
         $order->session_id = $order->session_id ?? $activeSession->session_id;
@@ -966,6 +963,31 @@ class POSController extends Controller
         if($order->payment_status == 'paid'){
             $order->payment_user_id = $authUserId;
             $order->payment_user_session_id = $activeSession->session_id;
+        }
+
+        if(isset($request->phone) && !empty($request->phone)){
+            $customer = SaleCustomer::where('customer_mobile_no', $request->phone);
+            if($customer->exists()){
+                $order->user_id = $customer->first()->customer_id;
+            }else{
+                // Create a new customer
+                $customer = SaleCustomer::create([
+                    'customer_code' => SaleCustomer::generateCustomerCode(),
+                    'customer_type' => '19148225011030',
+                    'customer_name' => $request->customer_name ?? 'Customer',
+                    'customer_mobile_no' => $request->phone,
+                    'customer_email' => $request->customer_email ?? null,
+                    'customer_user_id' => $authUserId,
+                    'business_id' => 1,
+                    'company_id' => 1,
+                    'branch_id' => $branchId,
+                    'customer_id' => SaleCustomer::generateCustomerId($branchId)
+                ]);
+
+                $order->user_id = $customer->customer_id;
+            }
+        }else{
+            $order->user_id = $request->user_id;
         }
 
         DB::beginTransaction();
@@ -1156,7 +1178,7 @@ class POSController extends Controller
                     "order_id" => $order->id,
                     "id" => $order->id . '1',
                 ]);
-            }
+            } 
 
             $dirttyOrderDetails = [];
             if ($editing_order_id) {
@@ -1191,6 +1213,7 @@ class POSController extends Controller
             $posOrderDtl->restaurant_id = $order->restaurant_id;
             $posOrderDtl->customer_name = $request->customer_name;
             $posOrderDtl->car_number = $request->car_number;
+            
             $posOrderDtl->phone = $request->phone;
             $posOrderDtl->invoice_amount = $order->order_amount ?? 0;
             // dd($order->order_amount,$request->invoice_amount);
@@ -1392,9 +1415,23 @@ class POSController extends Controller
         $authUserId = Auth::guard('vendor')->id() ?? Auth::guard('vendor_employee')->id();
         $branchId = Helpers::get_restaurant_id();
         $customerName = $request['f_name'] ?? 'Customer';
+
+        $customer = SaleCustomer::where('customer_mobile_no', $request['phone'])
+            ->where('branch_id', $branchId)
+            ->first();
+        
+        if($customer){
+            if($request->ajax()){
+                return response()->json(['message' => translate('messages.customer_with_this_phone_number_already_exists')], 409);
+            }else{
+                Toastr::error(translate('messages.customer_with_this_phone_number_already_exists'));
+                return back();
+            }
+        }
+
         SaleCustomer::create([
             'customer_code' => SaleCustomer::generateCustomerCode(),
-            'customer_type' => '19615125061409',
+            'customer_type' => '19148225011030',
             'customer_name' => $customerName,
             'customer_mobile_no' => $request['phone'],
             'customer_email' => $request['email'],
@@ -1404,8 +1441,13 @@ class POSController extends Controller
             'branch_id' => $branchId,
             'customer_id' => SaleCustomer::generateCustomerId($branchId)
         ]);
-        Toastr::success(translate('customer_added_successfully'));
-        return back();
+
+        if(!$request->ajax()){
+            Toastr::success(translate('customer_added_successfully'));
+            return back();
+        }else{
+            return response()->json(translate('customer_added_successfully'), 200);
+        }
     }
     public function extra_charge(Request $request)
     {

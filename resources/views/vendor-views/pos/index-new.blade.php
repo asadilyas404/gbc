@@ -604,7 +604,7 @@
 
                             <div class="btn--container justify-content-end">
                                 <button type="reset" class="btn btn--reset">{{ translate('reset') }}</button>
-                                <button type="submit" id="submit_new_customer"
+                                <button type="button" id="submit_new_customer"
                                     class="btn btn--primary">{{ translate('save') }}</button>
                             </div>
                         </form>
@@ -2131,6 +2131,8 @@
                         for (let field in errors) {
                             toastr.error(errors[field][0]);
                         }
+                    }else if(xhr.status == 409){
+                        toastr.warning(xhr.responseJSON.message);
                     } else {
                         toastr.error('An error occurred while adding the customer');
                     }

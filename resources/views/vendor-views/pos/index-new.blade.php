@@ -1826,7 +1826,7 @@
         @endif
 
         window.selectedCustomer = null;
-        window.updateDate = {{ $updateDate ?? null }}; 
+        window.updateDate = {{ $updateDate ? 'true' : 'false'  }}; 
         window.editingOrder = {{ $editingOrder ? 'true' : 'false' }};
 
         if(!window.editingOrder){

@@ -207,7 +207,6 @@ class PrintController extends Controller
             $addOnsCost = 0;
             $count = 0;
             foreach ($order->details as $detail) {
-                dd($detail);
                 $itemAddOnsCost = 0;
                 if ($detail->food_id || $detail->campaign == null) {
 

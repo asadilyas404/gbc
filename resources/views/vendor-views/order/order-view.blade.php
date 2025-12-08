@@ -1015,7 +1015,7 @@
                         </div>
                         <div class="media-body">
                             <span class="fz--14px text--title font-semibold text-hover-primary d-block">
-                                {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}
+                                {{ $order->customer['customer_name'] }}
                             </span>
                             <span class="d-block">
                                 <strong class="text--title font-semibold">
@@ -1024,16 +1024,16 @@
                                 {{ translate('Orders') }}
                             </span>
                             <span class="d-block">
-                                <a class="text--title font-semibold" href="tel:{{ $order->customer['phone'] }}">
+                                <a class="text--title font-semibold" href="tel:{{ $order->customer['customer_mobile_no'] }}">
                                     <strong>
-                                        {{ $order->customer['phone'] }}
+                                        {{ $order->customer['customer_mobile_no'] }}
                                     </strong>
                                 </a>
                             </span>
                             <span class="d-block">
                                 <strong class="text--title font-semibold">
                                 </strong>
-                                {{ $order->customer['email'] }}
+                                {{ $order->customer['customer_email'] }}
                             </span>
                         </div>
                     </div>

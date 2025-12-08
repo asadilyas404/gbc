@@ -61,7 +61,7 @@
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
                                             <div>
-                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->name : 'Walk-in-Customer' }}</strong>
+                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->customer_name : 'Walk-in-Customer' }}</strong>
                                                 </p>
                                                 <p><strong>Order Type:</strong>
                                                     {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
@@ -75,8 +75,8 @@
                                                 </p>
                                             </div>
                                             <div class="text-right">
-                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
-                                                <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
+                                                <h1><strong>#{{ $order->order_serial }}</strong></h1>
+                                                <p><strong>Amount:</strong> {{ number_format($order->order_amount, 3) }} </p>
                                                 @if ($order->kitchen_time)
                                                     <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
                                                         {{ $order->kitchen_time }}</p>
@@ -186,204 +186,6 @@
                         @endforeach
                     </div>
                 </div>
-
-                <hr/>
-                <hr/>
-                <hr/>
-
-                <div id="pending">
-                    <div class="row">
-                        @foreach ($data['pending'] as $order)
-                            <div class="col-md-4 mb-2">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->name : 'Walk-in-Customer' }}</strong>
-                                                </p>
-                                                <p><strong>Order Type:</strong>
-                                                    {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
-                                                </p>
-                                                <p><strong>Restaurant Date:</strong>
-                                                    @if(!empty($order->order_date))
-                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </p>
-                                            </div>
-                                            <div class="text-right">
-                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
-                                                <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
-                                                @if ($order->kitchen_time)
-                                                    <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
-                                                        {{ $order->kitchen_time }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <a href="/restaurant-panel/order/details/{{ $order->id }}"
-                                                    class="btn btn-info btn-sm btn-style">
-                                                    <i class="ti-info"></i> Order Detail
-                                                </a>
-                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
-                                                    data-order-id="{{ $order->id }}">
-                                                    <i class="tio-print"></i> Direct Print
-                                                </button>
-                                            </div>
-                                            <div class="text-right">
-                                                <button class="btn btn-success btn-sm btn-style startCooking"
-                                                    data-id="{{ $order->id }}">Start Cooking</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-footer">
-                                        @foreach ($order->details as $detail)
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <div>
-                                                    <strong>{{ $detail->food['name'] }}</strong>
-                                                    x 
-                                                    <strong>{{ $detail->quantity }}</strong>
-                                                </div>
-                                                <button class="btn btn-sm btn-outline-success py-1">
-                                                    Start Cooking
-                                                </button>
-                                            </div>
-                                            <div>
-                                                <div>
-                                                    
-                                                </div>
-                                                @if(!empty($detail->variations) && count(json_decode($detail->variations, true)) > 0)
-                                                    <p>Have Variations</p>
-                                                    <strong>
-                                                        @foreach (json_decode($detail->variations, true) as $key1 => $variation)
-                                                            @if ($key1 > 0), @endif
-                                                            {{ $variation['name'] }} : {{ $variation['values'][0]['label'] }}
-                                                        @endforeach
-                                                    </strong>
-                                                @endif
-                                            </div>
-                                            <hr/>
-                                        @endforeach
-                                        <div>
-                                            <strong>Total Items: </strong> {{ count($order->details) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <!-- Cooking Tab -->
-                <div id="cooking">
-                    <div class="row">
-                        @foreach ($data['cooking'] as $order)
-                            <div class="col-md-4 mb-2">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->name : 'Walk-in-Customer' }}</strong>
-                                                </p>
-                                                <p><strong>Order Type:</strong>
-                                                    {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
-                                                </p>
-                                                <p><strong>Restaurant Date:</strong>
-                                                    @if(!empty($order->order_date))
-                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </p>
-                                            </div>
-                                            <div class="text-right">
-                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
-                                                <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
-                                                @if ($order->kitchen_time)
-                                                    <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
-                                                        {{ $order->kitchen_time }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <a href="/restaurant-panel/order/details/{{ $order->id }}"
-                                                    class="btn btn-primary btn-sm btn-style">Order
-                                                    Detail</a>
-                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
-                                                    data-order-id="{{ $order->id }}">
-                                                    <i class="tio-print"></i> Direct Print
-                                                </button>
-                                            </div>
-                                            <div class="text-right">
-                                                <button class="btn btn-primary btn-sm btn-style orderReady"
-                                                    data-id="{{ $order->id }}">Ready</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-
-                <hr/>
-
-                <!-- Ready Tab -->
-                <div id="ready">
-                    <div class="row">
-                        @foreach ($data['ready'] as $order)
-                            <div class="col-md-4 mb-2">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->name : 'Walk-in-Customer' }}</strong>
-                                                </p>
-                                                <p><strong>Order Type:</strong>
-                                                    {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
-                                                </p>
-                                                <p><strong>Restaurant Date:</strong>
-                                                    @if(!empty($order->order_date))
-                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </p>
-                                            </div>
-                                            <div class="text-right">
-                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
-                                                <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
-                                                @if ($order->kitchen_time)
-                                                    <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
-                                                        {{ $order->kitchen_time }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
-
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <a href="/restaurant-panel/order/details/{{ $order->id }}"
-                                                    class="btn btn-primary btn-sm btn-style">Order
-                                                    Detail</a>
-                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
-                                                    data-order-id="{{ $order->id }}">
-                                                    <i class="tio-print"></i> Direct Print
-                                                </button>
-                                            </div>
-                                            <div class="text-right">
-                                                <button class="btn btn-primary btn-sm btn-style orderCompleted"
-                                                    data-id="{{ $order->id }}">Completed</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -417,7 +219,7 @@
             if (currentRequest !== null) {
                 currentRequest.abort();
             }
-            let url = "/restaurant-panel/kitchen/get-all-orders";
+            let url = "/restaurant-panel/kitchen/get-all-orders";   
             if (type && id) {
                 url = url + "?type=" + type + "&id=" + id;
             }
@@ -428,41 +230,22 @@
                 success: function(res) {
                     if (res.success) {
                         let data = res.data;
+                        let orders = data.orders;
                         let pendingList = data.pending;
                         let cookingList = data.cooking;
                         let readyList = data.ready;
-                        if (pendingList) {
+                        if (orders) {
                             let pendingCard = ``;
                             Object.entries(pendingList).forEach(([id, item]) => {
-                                let customer = (item.customer && item.customer?.name) ? item.customer
-                                    ?.name : "Walk-in-Customer"
+                                let customer = (item.customer && item.customer?.customer_name) ? item.customer
+                                    ?.customer_name : "Walk-in-Customer"
                                 pendingCard += funViewCard(customer, item, 'Start Cooking',
                                     'startCooking');
                             });
 
-                            $('#pending').html(`<div class="row">${pendingCard}<div>`);
+                            $('#orders').html(`<div class="row">${pendingCard}<div>`);
                         }
-                        if (cookingList) {
-                            let cookingCard = ``;
-                            Object.entries(cookingList).forEach(([id, item]) => {
-                                let customer = (item.customer && item.customer?.name) ? item.customer
-                                    ?.name : "Walk-in-Customer"
-                                cookingCard += funViewCard(customer, item, 'Ready', 'orderReady');
-                            });
-
-                            $('#cooking').html(`<div class="row">${cookingCard}<div>`);
-                        }
-                        if (readyList) {
-                            let readyCard = ``;
-                            Object.entries(readyList).forEach(([id, item]) => {
-                                let customer = (item.customer && item.customer?.name) ? item.customer
-                                    ?.name : "Walk-in-Customer"
-                                readyCard += funViewCard(customer, item, 'Completed', 'orderCompleted');
-                            });
-
-                            $('#ready').html(`<div class="row">${readyCard}<div>`);
-                        }
-
+                        
                         updateTimers();
 
                         $('.toast').toast('show');

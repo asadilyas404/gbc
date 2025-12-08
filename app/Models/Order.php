@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use App\Scopes\ZoneScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\ReportFilter;
+use Razorpay\Api\Customer;
 
 class Order extends Model
 {
@@ -142,7 +143,7 @@ class Order extends Model
 
     public function customer()
     {
-        return $this->belongsTo(User::class, 'user_id');
+        return $this->belongsTo(SaleCustomer::class, 'user_id');
     }
 
     public function shiftSession()

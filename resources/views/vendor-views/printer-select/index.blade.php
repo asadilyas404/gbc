@@ -81,6 +81,18 @@
 
 @push('script_2')
     <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let today = new Date();
+            let tomorrow = new Date();
+            tomorrow.setDate(today.getDate() + 1); // only 1 day ahead
+
+            // Format to YYYY-MM-DD
+            let format = (date) => date.toISOString().split('T')[0];
+
+            document.getElementById("ordersDate").setAttribute("min", format(today));
+            document.getElementById("ordersDate").setAttribute("max", format(tomorrow));
+        });
+        
         document.addEventListener('DOMContentLoaded', function() {
             loadSavedPrinters();
 

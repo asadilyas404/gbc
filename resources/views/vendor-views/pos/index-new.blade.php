@@ -114,11 +114,11 @@
                 {{-- @if ($subcategories->isNotEmpty()) --}}
                 <style>
                     /* Subcategory Scroll Styles */
-                    .main-content {
+                    .main-content, .footer {
                         margin-left: 80px;
                     }
 
-                    [dir="rtl"] .main-content {
+                    [dir="rtl"] .main-content, [dir="rtl"] .footer {
                         margin-left: 0;
                         margin-right: 80px;
                     }
@@ -129,7 +129,6 @@
                         left: 0;
                         height: 100vh;
                         width: 80px;
-                        border-radius: 5px;
                         background-color: #334257;
                         overflow-y: auto;
                         padding: 5px;
@@ -1832,6 +1831,7 @@
 
         if(!window.editingOrder){
             $('#newOrderHeading').removeClass('d-none');
+            localStorage.removeItem("posSelectedCustomer");
         }
 
         function parseCustomerData(customerId, customerText) {
@@ -2559,5 +2559,7 @@
         //         alert("Kitchen print failed: " + err);
         //     });
         // }
+
+        
     </script>
 @endpush

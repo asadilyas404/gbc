@@ -1645,6 +1645,16 @@ class PrintController extends Controller
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
 
         if ($branch) {
+            // Check if there are any unpaid orders
+            $ordersExist = Order::where('payment_status', 'unpaid')->where('order_date', $branch->orders_date);
+            if ($ordersExist->exists()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot change printer settings while there are unpaid orders. Please complete or cancel all pending orders first.'
+                ]);
+            }
+
+            // Update the settings
             DB::table('tbl_soft_branch')
                 ->where('branch_id', $branchId)
                 ->update([

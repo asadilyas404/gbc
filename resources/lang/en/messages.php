@@ -6622,4 +6622,6 @@
   'options list' => 'Options list',
   'amount_cannot_exceed_total_order_amount' => 'Amount cannot exceed total order amount',
   'customer_with_this_phone_number_already_exists' => 'Customer with this phone number already exists',
+  'Please_refresh_the_page_and_try_again.' => 'Please refresh the page and try again.',
+  'Session_Expired' => 'Session Expired',
 );

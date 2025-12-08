@@ -57,4 +57,9 @@ class SaleCustomer extends Model
     {
         return \App\CentralLogics\Helpers::generateGlobalId($restaurantId);
     }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'user_id', 'customer_id');
+    }
 }

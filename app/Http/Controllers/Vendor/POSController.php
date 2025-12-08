@@ -52,7 +52,6 @@ class POSController extends Controller
 
     public function indexNew(Request $request, $id=null)
     {
-
         // dd($request->all(),$id);
         $time = Carbon::now()->toTimeString();
         $category = $request->query('category_id', session('current_category_id', 0));
@@ -168,7 +167,6 @@ class POSController extends Controller
 
     public function quick_view(Request $request)
     {
-        // dd('ssd',$request->all());
         $product = Food::findOrFail($request->product_id);
 
         $partner_id=!isset($request->id)?null:$request->id;
@@ -1223,9 +1221,13 @@ class POSController extends Controller
                 $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
                 $posOrderDtl->card_paid = $request->card_paid ?? 0;
             }
+
+            if($request->select_payment_type && ($request->select_payment_type=='card_payment' || $request->select_payment_type=='both_payment')){
+                session(['bank_account' => $request->bank_account]);
+            }
+
             if($payment_type == 'card' || $payment_type == 'cash_card'){
                 $posOrderDtl->bank_account = $request->bank_account;
-                session('bank_account',$request->bank_account);
             }else{
                 $posOrderDtl->bank_account = null;
             }

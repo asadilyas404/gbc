@@ -371,5 +371,15 @@ public function variationOptions()
     return $this->hasMany(VariationOption::class, 'food_id');
 }
 
+public function kitchenLogs()
+{
+    return $this->hasMany(KitchenOrderStatusLog::class, 'food_id');
+}
+
+public function latestKitchenLog()
+{
+    return $this->hasOne(KitchenOrderStatusLog::class, 'food_id')->latestOfMany();
+}
+
 
 }

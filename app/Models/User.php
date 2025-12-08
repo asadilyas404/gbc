@@ -99,11 +99,11 @@ class User extends Authenticatable
 
     public function category_visit_log()
     {
-        return $this->morphedByMany(Category::class ,'visitor_log' );
+        return $this->morphedByMany(Category::class ,'visitor_log');
     }
     public function restaurant_visit_log()
     {
-        return $this->morphedByMany(Restaurant::class ,'visitor_log' );
+        return $this->morphedByMany(Restaurant::class ,'visitor_log');
     }
 
     public function storage()

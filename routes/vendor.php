@@ -21,6 +21,10 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
     Route::group(['middleware' => ['vendor', 'maintenance']], function () {
         Route::get('lang/{locale}', 'LanguageController@lang')->name('lang');
 
+        Route::post('/session/keep-alive', function () {
+            return response()->json(['status' => 'ok']);
+        })->name('session.keep-alive');
+
         Route::get('/', 'DashboardController@dashboard')->name('dashboard');
         Route::get('/get-restaurant-data', 'DashboardController@restaurant_data')->name('get-restaurant-data');
         Route::post('/store-token', 'DashboardController@updateDeviceToken')->name('store.token');

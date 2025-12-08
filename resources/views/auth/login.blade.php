@@ -104,17 +104,6 @@
                     <!-- End Form Group -->
                         <div class="mb-2"></div>
                         <div class="d-flex justify-content-between mt-5">
-                    <!-- Checkbox -->
-                        <div class="form-group">
-                            <div class="custom-control custom-checkbox">
-                                <input type="checkbox" class="custom-control-input" id="termsCheckbox" {{ $password ? 'checked' : '' }}
-                                    name="remember">
-                                <label class="custom-control-label text-muted" for="termsCheckbox">
-                                    {{__('messages.remember_me')}}
-                                </label>
-                            </div>
-                        </div>
-                    <!-- End Checkbox -->
                     <!-- forget password -->
                         <div class="form-group {{ $role == 'admin' ? '' : 'd-none' }}"  id="forget-password">
                             <div class="custom-control">

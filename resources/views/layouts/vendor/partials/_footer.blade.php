@@ -75,6 +75,9 @@ document.addEventListener('DOMContentLoaded', function () {
         warningShown = false;
     };
 
+    // Refresh the Session On Page Load
+    touchActivity();
+
     // Attach activity listeners in ALL tabs
     // const activityEvents = ['click', 'mousemove', 'keydown', 'scroll', 'touchstart'];
     // activityEvents.forEach((evt) => {
@@ -111,7 +114,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 type: 'warning',
                 showCancelButton: true,
                 confirmButtonText: 'Stay logged in',
-                cancelButtonText: 'Dismiss'
+                cancelButtonText: 'Dismiss',
+                allowOutsideClick: false,   
+                allowEscapeKey: false
             }).then((result) => {
                 if (result.value) {
                     $.ajax({
@@ -134,7 +139,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 title: 'Session expired',
                 text: 'Please log in again to continue.',
                 type: 'info',
-                confirmButtonText: 'Login'
+                confirmButtonText: 'Login',
+                allowOutsideClick: false,
+                allowEscapeKey: false
             }).then(() => {
                 window.location.href = loginUrl;
             });
@@ -151,6 +158,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     title: '{{ translate('Session_Expired') }}',
                     text: '{{ translate('Please_refresh_the_page_and_try_again.') }}',
                     type: 'warning',
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
                     confirmButtonText: '{{ translate('messages.Ok') }}'
                 }).then(() => {
                     $('#loading').show();

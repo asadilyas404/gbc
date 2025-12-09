@@ -912,11 +912,9 @@ class PrintController extends Controller
             }
 
             // Get printer name from database
-            $user = Helpers::get_loggedin_user();
-            $branchId = $user->branch_id;
+            $branchId = Helpers::get_restaurant_id() ?? config('constants.branch_id');
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
             $printerName = $branch->bill_printer ?? 'BillPrinter';
-
             // Connect to printer
             $connector = new WindowsPrintConnector($printerName);
             $printer = new Printer($connector);

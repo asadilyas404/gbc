@@ -65,7 +65,8 @@ class Food extends Model
     }
     public function newVariations()
     {
-        return $this->hasMany(Variation::class,'food_id');
+        return $this->hasMany(Variation::class,'food_id')
+        ->orderBy('sr_no');
     }
     public function wishlists()
     {
@@ -73,7 +74,8 @@ class Food extends Model
     }
     public function newVariationOptions()
     {
-        return $this->hasMany(VariationOption::class,'food_id');
+        return $this->hasMany(VariationOption::class,'food_id')
+        ->orderBy('sr_no');
     }
 
     public function scopeRecommended($query)
@@ -370,7 +372,8 @@ public function add_ons()
 
 public function variationOptions()
 {
-    return $this->hasMany(VariationOption::class, 'food_id');
+    return $this->hasMany(VariationOption::class, 'food_id')
+    ->orderBy('sr_no');
 }
 
 public function kitchenLogs()

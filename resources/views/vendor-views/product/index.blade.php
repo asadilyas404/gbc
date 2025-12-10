@@ -515,6 +515,33 @@
             }
         }
 
+        function updateMoveButtons() {
+            const items = $('#add_new_option .option-item');
+
+            // Enable all first
+            items.find('.move-up, .move-down').prop('disabled', false);
+
+            // Disable "up" on first
+            items.first().find('.move-up').prop('disabled', true);
+
+            // Disable "down" on last
+            items.last().find('.move-down').prop('disabled', true);
+        }
+
+        function updateMoveOptionButtons() {
+            const items = $('.option_price_item');
+
+            // Enable all first
+            items.find('.move-option-up, .move-option-down').prop('disabled', false);
+
+            // Disable "up" on first
+            items.first().find('.move-option-up').prop('disabled', true);
+
+            // Disable "down" on last
+            items.last().find('.move-option-down').prop('disabled', true);
+        }
+
+
         $('#food_form').on('submit', function() {
             var formData = new FormData(this);
             $.ajaxSetup({
@@ -565,6 +592,75 @@
             $('#stock_type').val('unlimited').trigger('change');
             updatestockCount();
         })
+
+        $(document).ready(function(){
+            // Move up with slide animation
+            $(document).on('click', '.move-up', function (e) {
+                e.preventDefault();
+
+                const item = $(this).closest('.option-item');
+                const prev = item.prev('.option-item');
+
+                if (prev.length) {
+                    item.slideUp(150, function () {
+                        item.insertBefore(prev).slideDown(150, function () {
+                            updateMoveButtons();
+                        });
+                    });
+                }
+            });
+
+            $(document).on('click', '.move-option-up', function (e) {
+                e.preventDefault();
+
+                const item = $(this).closest('.option_price_item');
+                const prev = item.prev('.option_price_item');
+
+                if (prev.length) {
+                    item.slideUp(150, function () {
+                        item.insertBefore(prev).slideDown(150, function () {
+                            updateMoveOptionButtons();
+                        });
+                    });
+                }
+            });
+
+            // Move down with slide animation
+            $(document).on('click', '.move-down', function (e) {
+                e.preventDefault();
+
+                const item = $(this).closest('.option-item');
+                const next = item.next('.option-item');
+
+                if (next.length) {
+                    item.slideUp(150, function () {
+                        item.insertAfter(next).slideDown(150, function () {
+                            updateMoveButtons();
+                        });
+                    });
+                }
+            });
+
+            $(document).on('click', '.move-option-down', function (e) {
+                e.preventDefault();
+
+                const item = $(this).closest('.option_price_item');
+                const next = item.next('.option_price_item');
+
+                if (next.length) {
+                    item.slideUp(150, function () {
+                        item.insertAfter(next).slideDown(150, function () {
+                            updateMoveOptionButtons();
+                        });
+                    });
+                }
+            });
+
+            // Initialize button states on load
+            updateMoveButtons();
+            updateMoveOptionButtons();
+        });
+
     </script>
 
     @if (isset($_GET['type']) && $_GET['type'] == 'offer')
@@ -579,7 +675,7 @@
             Object.entries(foodList).forEach(([id, item]) => {
                 foodListOptions += `<option value="${item.id}">${item.name}</option>`;
             });
-            $(document).ready(function() {
+            $(document).ready(function() {                
                 $("#add_new_option_button").click(function(e) {
                     $('#empty-variation').hide();
                     count++;

@@ -6624,4 +6624,6 @@
   'customer_with_this_phone_number_already_exists' => 'Customer with this phone number already exists',
   'Please_refresh_the_page_and_try_again.' => 'Please refresh the page and try again.',
   'Session_Expired' => 'Session Expired',
+  'TM DONE Extra' => 'TM DONE Extra',
+  'Talabat Extra' => 'Talabat Extra',
 );

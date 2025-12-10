@@ -1499,7 +1499,6 @@ class Helpers
 
     public static function get_restaurant_discount($restaurant)
     {
-        //dd($restaurant);
         if ($restaurant->discount) {
             if (date('Y-m-d', strtotime($restaurant->discount->start_date)) <= now()->format('Y-m-d') && date('Y-m-d', strtotime($restaurant->discount->end_date)) >= now()->format('Y-m-d') && date('H:i', strtotime($restaurant->discount->start_time)) <= now()->format('H:i') && date('H:i', strtotime($restaurant->discount->end_time)) >= now()->format('H:i')) {
                 return [
@@ -2011,9 +2010,25 @@ class Helpers
     public static function get_restaurant_id()
     {
         if (auth('vendor_employee')->check()) {
+
+            $user = auth('vendor_employee')->user();
+
+            Cache::rememberForever("rest_id_employee_{$user->id}", function() use ($user) {
+                return $user->restaurant->id;
+            });
+
             return auth('vendor_employee')->user()->restaurant->id;
         }
-        return auth('vendor')->user()->restaurants[0]->id;
+        if (auth('vendor')->check()) {
+
+            $user = auth('vendor')->user();
+
+            return Cache::rememberForever("rest_id_vendor_{$user->id}", function () use ($user) {
+                return $user->restaurants->first()->id;
+            });
+        }
+
+        return null;
     }
 
     public static function get_vendor_id()
@@ -2049,25 +2064,29 @@ class Helpers
     // In your Helpers.php (or wherever you have the function)
     public static function get_restaurant_data()
     {
+        // Vendor employee
         if (auth('vendor_employee')->check()) {
             $user = auth('vendor_employee')->user();
-            if ($user && $user->restaurant) {
-                return $user->restaurant;
-            }
-            return null;
+
+            return Cache::rememberForever("restaurant_data_employee_{$user->id}", function () use ($user) {
+                return $user->restaurant; // Eloquent relation, 1 query only once
+            });
         }
 
-        $user = auth('vendor')->user();
+        // Vendor
+        if (auth('vendor')->check()) {
+            $user = auth('vendor')->user();
 
-        // Check if user is null or does not have restaurants
-        if (!$user || !isset($user->restaurants) || count($user->restaurants) === 0) {
-            return null;  // no user or no restaurants found
+            return Cache::rememberForever("restaurant_data_vendor_{$user->id}", function () use ($user) {
+                if (!$user || $user->restaurants->isEmpty()) {
+                    return null;
+                }
+                return $user->restaurants->first(); // 1 query only once
+            });
         }
 
-        return $user->restaurants[0];
+        return null;
     }
-
-
 
     public static function getDisk()
     {

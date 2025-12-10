@@ -44,17 +44,19 @@ class Food extends Model
     ];
 
     protected $appends = ['image_full_url'];
+
     public function getImageFullUrlAttribute(){
-        $value = $this->image;
-        if (count($this->storage) > 0) {
-            foreach ($this->storage as $storage) {
-                if ($storage['key'] == 'image') {
-                    return Helpers::get_full_url('product',$value,$storage['value']);
-                }
-            }
+        if (isset($this->image_full_url_cache)) {
+            return $this->image_full_url_cache;
         }
 
-        return Helpers::get_full_url('product',$value,'public');
+        $value = $this->image;
+
+        $storage = $this->storage->firstWhere('key', 'image');
+
+        $disk = $storage->value ?? 'public';
+
+        return $this->image_full_url_cache = Helpers::get_full_url('product', $value, $disk);
     }
 
     public function logs()
@@ -117,15 +119,15 @@ class Food extends Model
     {
         return $query->where('status', 1)
         ->whereHas('restaurant', function($query) {
-            $query->where('status', 1)
-                    ->where(function($query) {
-                        $query->where('restaurant_model', 'commission')
-                                ->orWhereHas('restaurant_sub', function($query) {
-                                    $query->where(function($query) {
-                                        $query->where('max_order', 'unlimited')->orWhere('max_order', '>', 0);
-                                    });
-                                });
-                    });
+            $query->where('status', 1);
+                    // ->where(function($query) {
+                    //     $query->where('restaurant_model', 'commission')
+                    //             ->orWhereHas('restaurant_sub', function($query) {
+                    //                 $query->where(function($query) {
+                    //                     $query->where('max_order', 'unlimited')->orWhere('max_order', '>', 0);
+                    //                 });
+                    //             });
+                    // });
             });
     }
 

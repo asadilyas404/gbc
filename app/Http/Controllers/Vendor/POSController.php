@@ -52,7 +52,6 @@ class POSController extends Controller
 
     public function indexNew(Request $request, $id=null)
     {
-        // dd($request->all(),$id);
         $time = Carbon::now()->toTimeString();
         $category = $request->query('category_id', session('current_category_id', 0));
         $subcategory = $request->query('subcategory_id', session('current_sub_category_id', 0));
@@ -83,27 +82,22 @@ class POSController extends Controller
                 $query->whereHas('category', function ($q) use ($category) {
                     $q->whereId($category)->orWhere('parent_id', $category);
                 });
-            })
-            ->when($subcategory, function ($query) use ($subcategory) {
+            })->when($subcategory, function ($query) use ($subcategory) {
                 $query->whereHas('category', function ($q) use ($subcategory) {
                     $q->whereId($subcategory);
                 });
-            })
-            ->when($keyword, function ($query) use ($key) {
+            })->when($keyword, function ($query) use ($key) {
                 return $query->where(function ($q) use ($key) {
                     foreach ($key as $value) {
                         $q->orWhereRaw('LOWER(name) LIKE ?', ["%{$value}%"]);
                     }
                 });
-            })
-            //    ->available($time)
-            ->latest()->get()->each(function($item)use($id){
+            })->latest()->get()->each(function($item)use($id){
                 if(!empty($id)){
                     $partner_price=collect(json_decode($item->partner_price));
-                    $item->price=optional( $partner_price->where('partner_id',$id)->first())->price;
+                    $item->price=optional($partner_price->where('partner_id',$id)->first())->price;
                 }
             });
-        // ->paginate(10);
 
         if ($request->ajax()) {
             return response()->json([
@@ -130,7 +124,7 @@ class POSController extends Controller
         $orderDate = $branch ? $branch->orders_date : null;
         $orderPartners = DB::table('tbl_sale_order_partners')->get();
         $orderPartner = $id;
-        $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', Helpers::get_restaurant_id())->get();
+        $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', $branchId)->get();
 
         $previousDate = $orderDate ? Carbon::parse($orderDate) : null;
         $currentDate = Carbon::now();
@@ -143,6 +137,7 @@ class POSController extends Controller
         }
 
         $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'restaurant')->get();
+        $cancelStatuses = ['Unprepared', 'Prepared', 'Wasted'];
 
         return view('vendor-views.pos.index-new', compact(
             'categories',
@@ -159,7 +154,8 @@ class POSController extends Controller
             'orderPartner',
             'bankaccounts',
             'updateDate',
-            'reasons'
+            'reasons',
+            'cancelStatuses'
         ));
     }
 
@@ -251,16 +247,15 @@ class POSController extends Controller
 
     public function variant_price(Request $request)
     { 
-        $product = Food::find($request->id);
+        $product = Food::select(['id', 'price', 'partner_price', 'variations', 'discount', 'discount_type'])
+        ->findOrFail($request->id);
 
-        if(isset($request->partner_id) && !empty($request->partner_id)){
+        if($request->filled('partner_id')){
             $partner_price = collect(json_decode($product->partner_price));
             $price = optional( $partner_price->where('partner_id',$request->partner_id)->first())->price;
         }else{
             $price = $product->price;
         }
-
-
 
         $addon_price = 0;
         $add_on_ids = [];

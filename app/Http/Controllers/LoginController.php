@@ -490,6 +490,9 @@ class LoginController extends Controller
                 auth('admin')->logout();
             }
 
+            // Clear Cache
+            Cache::flush();
+
             // Clear sessions
             session()->forget([
                 'stock_out_reminder_close_btn',

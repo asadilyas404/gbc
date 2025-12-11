@@ -1359,10 +1359,10 @@
                                 <label style="font-size:14px;">Item Status:</label><br>
                                 <div class="d-flex gap-2 mt-2 justify-content-between">
                                     <label class="payment-selection-box w-100">
-                                        <input type="radio" name="item-reduce-status" value="prepared"> Prepared
+                                        <input type="radio" name="item-reduce-status" value="unprepared"> Unprepared
                                     </label>
                                     <label class="payment-selection-box w-100">
-                                        <input type="radio" name="item-reduce-status" value="unprepared"> Unprepared
+                                        <input type="radio" name="item-reduce-status" value="prepared"> Prepared
                                     </label>
                                     <label class="payment-selection-box w-100">
                                         <input type="radio" name="item-reduce-status" value="wasted"> Wasted

@@ -5,25 +5,27 @@ namespace App\Http\Controllers\Vendor;
 use Carbon\Carbon;
 use App\Models\Food;
 use App\Models\User;
+use App\Models\AddOn;
 use App\Models\Order;
+use App\Events\myevent;
 use App\Mail\PlaceOrder;
 use App\Models\Category;
 use App\Models\OrderDetail;
-use App\Models\PosOrderAdditionalDtl;
 use App\Models\SaleCustomer;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use App\Models\BusinessSetting;
+use App\Models\OrderCancelReason;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use Brian2694\Toastr\Facades\Toastr;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
-use App\Models\KitchenOrderStatusLog;
 use Illuminate\Support\Facades\Auth;
-use App\Events\myevent;
-use App\Models\OrderCancelReason;
+use Illuminate\Support\Facades\Mail;
+use App\Models\KitchenOrderStatusLog;
+use App\Models\PosOrderAdditionalDtl;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class POSController extends Controller
 {
@@ -402,46 +404,57 @@ class POSController extends Controller
     public function addToCart(Request $request)
     {
         $orderId = session('editing_order_id');
-        if($orderId){
-            // Get the Order Payment Status
+
+        // 1) Early check: cannot modify paid order
+        if ($orderId) {
             $existingOrder = Order::find($orderId);
-            if($existingOrder && $existingOrder->payment_status == 'paid'){
+            if ($existingOrder && $existingOrder->payment_status == 'paid') {
                 return response()->json([
-                    'data' => 'not_allowed', 'message' => translate('Cannot modify a paid order. Please create a new order.'),
+                    'data' => 'not_allowed',
+                    'message' => translate('Cannot modify a paid order. Please create a new order.'),
                 ]);
             }
         }
 
-        $product = Food::find($request->id);
+        // 2) Load product once
+        $product = Food::findOrFail($request->id);
 
-        $data = array();
+        $data = [];
         $data['id'] = $product->id;
         $data['partner_id'] = $request->partner_id ?? '';
-        $str = '';
-        $variations = [];
-        $price = 0;
-        $addon_price = 0;
-        $variation_price = 0;
-        $add_on_ids = [];
-        $add_on_qtys = [];
         $data['details'] = $request->notes;
+        $data['variant'] = '';
+        $data['is_deleted'] = 'N';
+        $data['is_printed'] = 0;
+        $data['image'] = $product->image;
+        $data['image_full_url'] = $product->image_full_url;
+        $data['maximum_cart_quantity'] = $product->maximum_cart_quantity;
+        $data['variation_option_ids'] = $request->option_ids ?? null;
 
-        $product_variations = json_decode($product->variations, true);
+        $variations = [];
+        $variation_price = 0;
+        $addon_price = 0;
+
+        $product_variations = json_decode($product->variations, true) ?? [];
+
+        // 3) Validate and calculate variation price
         if ($request->variations && count($product_variations)) {
             foreach ($request->variations as $key => $value) {
 
-                if ($value['required'] == 'on' && isset($value['values']) == false) {
+                if ($value['required'] == 'on' && !isset($value['values'])) {
                     return response()->json([
                         'data' => 'variation_error',
                         'message' => translate('Please select items from') . ' ' . $value['name'],
                     ]);
                 }
+
                 if (isset($value['values']) && $value['min'] != 0 && $value['min'] > count($value['values']['label'])) {
                     return response()->json([
                         'data' => 'variation_error',
                         'message' => translate('Please select minimum ') . $value['min'] . translate(' For ') . $value['name'] . '.',
                     ]);
                 }
+
                 if (isset($value['values']) && $value['max'] != 0 && $value['max'] < count($value['values']['label'])) {
                     return response()->json([
                         'data' => 'variation_error',
@@ -449,155 +462,196 @@ class POSController extends Controller
                     ]);
                 }
             }
+
             $variation_data = Helpers::get_varient($product_variations, $request->variations, $data['partner_id']);
             $variation_price = $variation_data['price'];
             $variations = $request->variations;
+        }
 
-            if ($request->has('variation_addon_id')) {
-                foreach ($variations as $key => $variation) {
-                    if (isset($request->variation_addon_id[$key]) && is_array($request->variation_addon_id[$key])) {
-                        $variations[$key]['addons'] = [];
-                        foreach ($request->variation_addon_id[$key] as $addon_id) {
-                            $quantity = $request->input("variation_addon_quantity.{$key}.{$addon_id}", 1);
-                            $price = $request->input("variation_addon_price.{$key}.{$addon_id}", 0);
+        // 4) Collect ALL addon IDs first (normal + variation addons) to avoid N+1
 
-                            $variations[$key]['addons'][] = [
-                                'id' => $addon_id,
-                                'name' => \App\Models\AddOn::find($addon_id)->name ?? '',
-                                'price' => $price,
-                                'quantity' => $quantity
-                            ];
+        $add_on_ids = [];
+        $add_on_qtys = [];
 
-                            $addon_price += $price * $quantity;
-                        }
+        // Normal addons (non-variation)
+        if ($request->has('addon_id')) {
+            foreach ($request->addon_id as $id) {
+                $add_on_ids[] = (int) $id;
+                $qty = (int) $request->input('addon-quantity' . $id, 1);
+                $price = (float) $request->input('addon-price' . $id, 0);
+                $add_on_qtys[] = $qty;
+                $addon_price += $price * $qty;
+            }
+        }
+
+        // Variation addons
+        if ($request->has('variation_addon_id')) {
+            foreach ($request->variation_addon_id as $variation_key => $addon_ids_for_variation) {
+                if (!is_array($addon_ids_for_variation)) {
+                    continue;
+                }
+
+                foreach ($addon_ids_for_variation as $addon_id) {
+                    $addon_id = (int) $addon_id;
+                    $quantity = (int) $request->input("variation_addon_quantity.{$variation_key}.{$addon_id}", 1);
+                    $unitPrice = (float) $request->input("variation_addon_price.{$variation_key}.{$addon_id}", 0);
+
+                    $add_on_ids[] = $addon_id;
+                    $add_on_qtys[] = $quantity;
+                    $addon_price += $unitPrice * $quantity;
+                }
+            }
+        }
+
+        // 5) Preload all AddOn names in ONE query (for both normal + variation addons)
+        $addonNames = [];
+        if (!empty($add_on_ids)) {
+            $addonNames = AddOn::whereIn('id', array_unique($add_on_ids))
+                ->pluck('name', 'id')
+                ->toArray();
+        }
+
+        // 6) Now rebuild variation addons with names (using in-memory $addonNames, no more AddOn::find inside loops)
+        if ($request->has('variations') && $request->has('variation_addon_id')) {
+            foreach ($variations as $key => &$variation) {
+                if (isset($request->variation_addon_id[$key]) && is_array($request->variation_addon_id[$key])) {
+                    $variation['addons'] = [];
+                    foreach ($request->variation_addon_id[$key] as $addon_id) {
+                        $addon_id = (int) $addon_id;
+                        $quantity = (int) $request->input("variation_addon_quantity.{$key}.{$addon_id}", 1);
+                        $unitPrice = (float) $request->input("variation_addon_price.{$key}.{$addon_id}", 0);
+
+                        $variation['addons'][] = [
+                            'id'       => $addon_id,
+                            'name'     => $addonNames[$addon_id] ?? '',
+                            'price'    => $unitPrice,
+                            'quantity' => $quantity,
+                        ];
                     }
                 }
             }
+            unset($variation); // break reference
         }
 
         $data['variations'] = $variations;
-        $data['variant'] = $str;
 
-        if(isset($data['partner_id']) && !empty($data['partner_id'])){
-            $partner_price=collect(json_decode($product->partner_price));
-            $price = optional( $partner_price->where('partner_id',$data['partner_id'])->first())->price;
-        }else{
-            $price = $product->price;
+        // 7) Base/partner price calculation
+        if (!empty($data['partner_id'])) {
+            $partnerPrices = collect(json_decode($product->partner_price, true) ?? []);
+            $partnerRow = $partnerPrices->firstWhere('partner_id', $data['partner_id']);
+            $base_price = isset($partnerRow['price']) ? (float) $partnerRow['price'] : (float) $product->price;
+        } else {
+            $base_price = (float) $product->price;
         }
 
-        $price += $variation_price;
+        $unit_base_plus_variation = $base_price + $variation_price;
 
         $data['variation_price'] = $variation_price;
-
-        $data['quantity'] = $request['quantity'];
-        $data['price'] = $price;
+        $data['addon_price'] = $addon_price;
+        $data['quantity'] = (int) $request->quantity;
         $data['name'] = $product->name;
-        $data['is_deleted'] = 'N';
-        $data['is_printed'] = 0;
+
+        // 8) Discount calculation (you can decide whether to include addons in discount)
+        $unit_total_for_discount = $unit_base_plus_variation; // or + $addon_price if you want
+
         if ($request->product_discount_type && $request->product_discount) {
-            $discountAmount = $request->product_discount;
+            $discountAmount = (float) $request->product_discount;
             $discountType = $request->product_discount_type;
 
             if ($discountType === 'percent') {
-                $data['discount'] = ($price * $discountAmount) / 100;
+                $data['discount'] = ($unit_total_for_discount * $discountAmount) / 100;
             } elseif ($discountType === 'amount') {
                 $data['discount'] = $discountAmount;
             }
+
             $data['discountAmount'] = $discountAmount;
             $data['discountType'] = $discountType;
         } else {
-            $data['discount'] = Helpers::product_discount_calculate($product, $price, Helpers::get_restaurant_data());
-        }
-        $data['image'] = $product->image;
-        $data['image_full_url'] = $product->image_full_url;
-        $data['add_ons'] = [];
-        $data['add_on_qtys'] = [];
-        $data['maximum_cart_quantity'] = $product->maximum_cart_quantity;
-        $data['variation_option_ids'] = $request->option_ids ?? null;
-        if ($request['addon_id']) {
-            foreach ($request['addon_id'] as $id) {
-                $add_on_ids[] = $id;
-                $add_on_qtys[] = $request['addon-quantity' . $id];
-                $addon_price += $request['addon-price' . $id] * $request['addon-quantity' . $id];
-                $data['add_on_qtys'][] = $request['addon-quantity' . $id];
-            }
-            $data['add_ons'] = $request['addon_id'];
+            $restaurantData = Helpers::get_restaurant_data(); // called once
+            $data['discount'] = Helpers::product_discount_calculate(
+                $product,
+                $unit_total_for_discount,
+                $restaurantData
+            );
         }
 
-        $all_addon_ids = $add_on_ids;
-        $all_addon_qtys = $add_on_qtys;
+        // Decide what you want to store as unit "price"
+        $data['price'] = $unit_base_plus_variation; // keeping your original meaning
 
-        if ($request->has('variation_addon_id')) {
-            foreach ($request->variation_addon_id as $variation_key => $addon_ids) {
-                if (is_array($addon_ids)) {
-                    foreach ($addon_ids as $addon_id) {
-                        $quantity = $request->input("variation_addon_quantity.{$variation_key}.{$addon_id}", 1);
-                        $all_addon_ids[] = $addon_id;
-                        $all_addon_qtys[] = $quantity;
-                    }
-                }
-            }
-        }
+        // 9) Store normal addons explicitly in $data if needed
+        $data['add_ons'] = $request->addon_id ?? [];
+        $data['add_on_qtys'] = $add_on_qtys;
 
-        $addonAndVariationStock = Helpers::addonAndVariationStockCheck($product, $request->quantity, $all_addon_qtys, explode(',', $request->option_ids), $all_addon_ids);
-        if (data_get($addonAndVariationStock, 'out_of_stock') != null) {
+        // 10) Stock check using already collected IDs and qtys
+        $optionIds = $request->option_ids ? explode(',', $request->option_ids) : [];
+
+        $addonAndVariationStock = Helpers::addonAndVariationStockCheck(
+            $product,
+            $data['quantity'],
+            $add_on_qtys,
+            $optionIds,
+            $add_on_ids
+        );
+
+        if (data_get($addonAndVariationStock, 'out_of_stock') !== null) {
             return response()->json([
-                'data' => 'stock_out',
-                'message' => data_get($addonAndVariationStock, 'out_of_stock'),
+                'data'          => 'stock_out',
+                'message'       => data_get($addonAndVariationStock, 'out_of_stock'),
                 'current_stock' => data_get($addonAndVariationStock, 'current_stock'),
-                'id' => data_get($addonAndVariationStock, 'id'),
-                'type' => data_get($addonAndVariationStock, 'type'),
+                'id'            => data_get($addonAndVariationStock, 'id'),
+                'type'          => data_get($addonAndVariationStock, 'type'),
             ], 203);
         }
 
+        // 11) Set addon total price on data
         $data['addon_price'] = $addon_price;
 
+        // 12) Cart handling logic (unchanged, just reused)
         if ($request->session()->has('cart')) {
             $cart = $request->session()->get('cart', collect([]));
+
             if (isset($request->cart_item_key)) {
-                // Check the Previous Value
                 $currentItemInCart = $cart[$request->cart_item_key];
                 $currentQty = $currentItemInCart['quantity'];
-                if($request->quantity < $currentQty){
-                    if(!session('editing_order_id')){
+                $newQty = $data['quantity'];
+
+                if ($newQty < $currentQty) {
+                    if (!session('editing_order_id')) {
                         $cart[$request->cart_item_key] = $data;
-                    }else{
-                        // Add a Hidden Deleted Row
-                        $diferenceInQty = $currentQty - $request->quantity;
+                    } else {
+                        $differenceInQty = $currentQty - $newQty;
                         $data['draft_product'] = true;
                         $cart[$request->cart_item_key] = $data;
-                        // Create an Invisible Cart Item
-                        $currentItemInCart['quantity'] = $diferenceInQty;
+
+                        $currentItemInCart['quantity'] = $differenceInQty;
                         $currentItemInCart['is_deleted'] = 'Y';
                         $currentItemInCart['cancel_reason'] = 'Quantity Reduced';
                         $currentItemInCart['cooking_status'] = '-';
                         $currentItemInCart['cancel_text'] = 'Quantity Reduced from POS';
+
                         $cart->push($currentItemInCart);
                     }
-                }else{
-                    // Find the product in the cart
-                    foreach($cart as $key => $item){
-                        if($item['id'] == $data['id'] && $item['is_deleted'] == 'Y' && $key != $request->cart_item_key){
-                            // Get item qty
+                } else {
+                    foreach ($cart as $key => $item) {
+                        if ($item['id'] == $data['id'] && $item['is_deleted'] == 'Y' && $key != $request->cart_item_key) {
                             $itemQty = $item['quantity'];
-                            $requiredQty = $request->quantity;
+                            $requiredQty = $newQty;
                             $sum = $currentQty + $itemQty;
-                            if($sum == $requiredQty){
-                                // Remove the item from cart
+
+                            if ($sum == $requiredQty) {
                                 $cart->forget($key);
-                            }elseif($sum > $requiredQty){
-                                // Update the item qty
-                                $newQty = $sum - $requiredQty;
-                                $item['quantity'] = $newQty;
+                            } elseif ($sum > $requiredQty) {
+                                $item['quantity'] = $sum - $requiredQty;
                                 $cart[$key] = $item;
-                            }else{
-                                // consumed all the qty
+                            } else {
                                 $cart->forget($key);
                             }
                         }
                     }
+
                     $cart[$request->cart_item_key] = $data;
                 }
+
                 $data = 2;
             } else {
                 $cart->push($data);
@@ -608,23 +662,44 @@ class POSController extends Controller
         }
 
         return response()->json([
-            'data' => $data
+            'data' => $data,
         ]);
     }
+
 
     public function cart_items(Request $request)
     {
         $editingOrderId = session('editing_order_id');
-        $draftDetails = null;
-        $editingOrder = null;
+        $editingOrder   = null;
+        $draftDetails   = null;
 
         $orderPartner = $request->partner_id ?? '';
-        $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', Helpers::get_restaurant_id())->get();
+
+        // 1) Cache bank accounts per branch
+        $branchId = Helpers::get_restaurant_id();
+
+        $bankaccounts = Cache::remember(
+            'bankaccounts_branch_' . $branchId,
+            3600, // seconds
+            function () use ($branchId) {
+                return DB::table('tbl_defi_bank')
+                    ->where('branch_id', $branchId)
+                    ->get();
+            }
+        );
+
+        // 2) Load editing order + draft detail in one go if needed
         if ($editingOrderId) {
-            $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
-            $editingOrder = Order::find($editingOrderId);
+            $editingOrder = Order::with('posAdditionalDetail')->find($editingOrderId);
+            $draftDetails = $editingOrder ? $editingOrder->posAdditionalDetail : null;
         }
-        return view('vendor-views.pos._cart', compact('draftDetails', 'editingOrder', 'orderPartner', 'bankaccounts'));
+
+        return view('vendor-views.pos._cart', compact(
+            'draftDetails',
+            'editingOrder',
+            'orderPartner',
+            'bankaccounts'
+        ));
     }
 
     public function removeFromCart(Request $request)

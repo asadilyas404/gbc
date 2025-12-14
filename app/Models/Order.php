@@ -425,4 +425,8 @@ class Order extends Model
         return $this->belongsTo(User::class, 'order_taken_by', 'id');
     }
 
+    public function posAdditionalDetail()
+    {
+        return $this->hasOne(PosOrderAdditionalDtl::class, 'order_id', 'id');
+    }
 }

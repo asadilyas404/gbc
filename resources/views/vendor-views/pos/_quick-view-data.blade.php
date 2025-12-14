@@ -80,7 +80,7 @@
                     @csrf
                     <input type="hidden" name="id" value="{{ $product->id }}">
                     <input type="hidden" name="partner_id" value="{{ $partner_id }}">
-
+                    <input type="hidden" name="base_price" id="base_price" value="{{ $product->price }}">
                     <div class="row justify-content-between mt-4">
                         <div class="product-description-label mt-2 text-dark h4 col-12">
                             {{ translate('messages.Discount') }}:
@@ -88,11 +88,12 @@
                         <div class="form-group col-md-6">
                             <input type="number" class="form-control" name="product_discount" min="0.0001"
                                 id="product_discount" value="{{ $product->discount }}"
+                                onkeyup="calculateTotal()"
                                 max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                         </div>
                         <div class="form-group col-md-6">
                             <select name="product_discount_type" class="form-control discount-type"
-                                id="product_discount_type" onchange="getVariantPrice()">
+                                id="product_discount_type" onchange="calculateTotal()">
                                 <option value="amount" {{ $product['discount_type'] == 'amount' ? 'selected' : '' }}>
                                     {{ translate('messages.amount') }}
                                     ({{ Helpers::currency_symbol() }})
@@ -148,6 +149,7 @@
                                                     type="{{ $choice->type == 'multi' ? 'checkbox' : 'radio' }}"
                                                     id="choice-option-{{ $key }}-{{ $k }}"
                                                     data-option_id="{{ data_get($option, 'option_id') }}"
+                                                    data-price="{{ data_get($option, 'optionPrice') }}"
                                                     name="variations[{{ $key }}][values][label][]"
                                                     value="{{ $option->label }}"
                                                     {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'disabled' : '' }}
@@ -248,10 +250,10 @@
                                                         </label>
 
                                                         <label
-                                                            class="absolute input-group addon-quantity-input mx-1 shadow bg-white rounded px-1 variation-addon-quantity"
+                                                            class="absolute input-group addon-quantity-input mx-1 shadow bg-white border-0 variation-addon-quantity"
                                                             for="variation_addon{{ $key }}_{{ $add_on->id }}">
                                                             <button
-                                                                class="btn btn-sm h-100 text-dark px-0 decrease-button variation-decrease-btn"
+                                                                class="btn btn-sm h-100 text-dark px-0 decrease-button variation-decrease-btn px-2"
                                                                 data-id="{{ $add_on->id }}" type="button">
                                                                 <i class="tio-remove font-weight-bold"></i>
                                                             </button>
@@ -259,12 +261,12 @@
                                                             <input type="number"
                                                                 name="variation_addon_quantity[{{ $key }}][{{ $add_on->id }}]"
                                                                 id="variation_addon_quantity_input{{ $key }}_{{ $add_on->id }}"
-                                                                class="form-control text-center border-0 h-100 variation-addon-input"
+                                                                class="form-control text-center border-0 h-100 variation-addon-input border-0"
                                                                 placeholder="1" value="1" min="1"
                                                                 max="9999999999" readonly>
 
                                                             <button
-                                                                class="btn btn-sm h-100 text-dark px-0 increase-button variation-increase-btn"
+                                                                class="btn btn-sm h-100 text-dark px-0 increase-button variation-increase-btn px-2"
                                                                 id="variation_addon_quantity_button{{ $key }}_{{ $add_on->id }}"
                                                                 data-id="{{ $add_on->id }}" type="button">
                                                                 <i class="tio-add font-weight-bold"></i>
@@ -309,7 +311,7 @@
                         </div>
                     </div>
                     
-                    <div class="row no-gutters d-none mt-2 text-dark" id="chosen_price_div">
+                    <div class="row no-gutters mt-2 text-dark" id="chosen_price_div">
                         <div class="col-2">
                             <div class="product-description-label">{{ translate('messages.Total_Price') }}:</div>
                         </div>
@@ -352,7 +354,6 @@
 <script type="text/javascript">
     "use strict";
     cartQuantityInitialize();
-
     // Initialize variation-specific addon quantity controls
     function initializeVariationAddonControls() {
         // Remove any existing event handlers first
@@ -367,7 +368,8 @@
             var currentValue = parseInt(input.val()) || 1;
             if (currentValue > 1) {
                 input.val(currentValue - 1);
-                getVariantPrice();
+                // getVariantPrice();
+                calculateTotal();
             }
         });
 
@@ -378,17 +380,20 @@
             var input = $(this).siblings('input[type="number"]');
             var currentValue = parseInt(input.val()) || 1;
             input.val(currentValue + 1);
-            getVariantPrice();
+            // getVariantPrice();
+            calculateTotal();
         });
 
         // Handle variation addon checkbox changes
         $(document).on('change.variationAddon', 'input[name^="variation_addon_id"]', function() {
-            getVariantPrice();
+            // getVariantPrice();
+            calculateTotal();
         });
 
         // Handle variation addon quantity input changes
         $(document).on('change.variationAddon', 'input[name^="variation_addon_quantity"]', function() {
-            getVariantPrice();
+            // getVariantPrice();
+            calculateTotal();
         });
     }
 
@@ -403,59 +408,86 @@
         // Small delay to ensure DOM is ready
         setTimeout(function() {
             initializeVariationAddonControls();
-            getVariantPrice(); // Calculate price when modal is shown
+            // getVariantPrice(); // Calculate price when modal is shown
+            calculateTotal();
         }, 100);
     });
 
+    function calculateTotal() {
+        // 1) Get totals from options + addons
+        const value = getCheckedPrice(); // { selectedOptionsTotal, addonsTotal, total }
+        const addonsAndOptionsTotal = value ? (value.total || 0) : 0;
+
+        // 2) Base product price (without addons/options)
+        const basePrice = parseFloat($('#base_price').val()) || 0;
+
+        // Subtotal before discount
+        let subTotal = basePrice * $('#add_new_product_quantity').val();
+
+        // 3) Get the discount and discount type from inputs
+        const discountValue = parseFloat($('#product_discount').val()) || 0;
+        const discountType  = $('#product_discount_type').val(); // "amount" or "percent"
+
+        let discountAmount = 0;
+
+        if (discountType === 'percent') {
+            // % of subtotal
+            discountAmount = subTotal * (discountValue / 100);
+            $('#set-discount-amount').text(discountValue + '%' );
+        } else {
+            // fixed amount
+            discountAmount = discountValue;
+            $('#set-discount-amount').text(discountAmount.toFixed(3) + 'ر.ع.‏' );
+        }
+
+        // 4) Safety: discount should not exceed subtotal
+        if (discountAmount > subTotal) {
+            discountAmount = subTotal;
+        }
+
+        // 5) Final total after discount
+        const finalTotal = subTotal - discountAmount + addonsAndOptionsTotal;
+
+        // 6) Update UI (adjust selectors to your HTML)
+        $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text
+        $('#chosen_price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
+    }
+
+
     // Add event handlers for all input changes to update price
     $(document).on('change', '#add-to-cart-form input[type="radio"], #add-to-cart-form input[type="checkbox"]', function() {
-        getVariantPrice();
+        // getVariantPrice();
+        calculateTotal();
     });
 
     // Handle quantity changes
     $(document).on('change', '#add-to-cart-form input[name="quantity"]', function() {
-        getVariantPrice();
+        // getVariantPrice();
+        calculateTotal();
     });
 
     // Handle discount changes
     $(document).on('input change keydown', '#add-to-cart-form select[name="product_discount"] ,#add-to-cart-form select[name="product_discount_type"]', function() {
-        getVariantPrice();
+        // getVariantPrice();
+        calculateTotal();
     });
 
     // Handle addon changes
     $(document).on('change', '#add-to-cart-form input[name="addon_id[]"]', function() {
-        getVariantPrice();
+        // getVariantPrice();
+        calculateTotal();
     });
 
     // Handle addon quantity changes
     $(document).on('change', '#add-to-cart-form input[name^="addon-quantity"]', function() {
-        getVariantPrice();
+        // getVariantPrice();
+        calculateTotal();
     });
 
     // Handle choice quantity changes for multi-select variations
     $(document).on('change', '#add-to-cart-form input[name^="choice-quantity"]', function() {
-        getVariantPrice();
-    });
-
-    // Note: getVariantPrice is already called by specific event handlers above
-    // This prevents duplicate calls when variation addons change
-
-    // Debug: Log form data before submission
-    $(document).on('click', '.add-To-Cart', function(e) {
-        var formData = $('#add-to-cart-form').serializeArray();
-        console.log('Form data being sent:', formData);
-
-        // Check if variation addon data is present
-        var variationAddonData = {};
-        formData.forEach(function(item) {
-            if (item.name.startsWith('variation_addon_')) {
-                if (!variationAddonData[item.name]) {
-                    variationAddonData[item.name] = [];
-                }
-                variationAddonData[item.name].push(item.value);
-            }
-        });
-        console.log('Variation addon data:', variationAddonData);
+        // getVariantPrice();
+        calculateTotal();
     });
 
     // Enhanced getVariantPrice function to handle variation-specific addons
@@ -510,13 +542,66 @@
         }
     }
 
+    function getCheckedPrice() 
+    {
+        // Reset arrays/totals every time function runs
+        let selectedOptions = [];
+        let addonsGrandTotal = 0;
+
+        // ------------------------------
+        // 1️⃣ Collect prices from variation options
+        // ------------------------------
+        var checkedOptions = document.querySelectorAll('.input-element:checked');
+
+        checkedOptions.forEach(function(element) {
+            const price = parseFloat(element.getAttribute('data-price')) || 0;
+            selectedOptions.push(price);
+        });
+
+        // ------------------------------
+        // 2️⃣ Collect prices × qty for addons
+        // ------------------------------
+        $('input.variation-addon-checkbox:checked').each(function () {
+            const $checkbox = $(this);
+            const container = $checkbox.closest('.add-on-container');
+
+            // Hidden price input
+            const price = parseFloat(
+                container.find('input[name^="variation_addon_price"]').val()
+            ) || 0;
+
+            // Quantity input
+            const qty = parseFloat(
+                container.find('input[name^="variation_addon_quantity"]').val()
+            ) || 1; // default 1
+
+            const lineTotal = price * qty;
+            addonsGrandTotal += lineTotal;
+        });
+
+
+        // ------------------------------
+        // 3️⃣ SUM: option prices + addon totals
+        // ------------------------------
+        const optionsTotal = selectedOptions.reduce((a, b) => a + b, 0);
+        const grandTotal = optionsTotal + addonsGrandTotal;
+
+        // Return everything if you need detailed breakdown
+        return {
+            selectedOptionsTotal: optionsTotal,
+            addonsTotal: addonsGrandTotal,
+            total: grandTotal
+        };
+    }
+
+
     function getCheckedInputs() {
         var checkedInputs = [];
         var checkedElements = document.querySelectorAll('.input-element:checked');
         checkedElements.forEach(function(element) {
             checkedInputs.push(element.getAttribute('data-option_id'));
         });
-
+        
         $('#option_ids').val(checkedInputs.join(','));
     }
 
@@ -550,28 +635,27 @@
     }
 
     .variation-addon-quantity {
-        border: 2px solid #4caf50 !important;
-        background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%) !important;
-        box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+        transition: visibility 0.3s ease;
     }
 
     .variation-decrease-btn,
     .variation-increase-btn {
-        background: linear-gradient(135deg, #4caf50 0%, #45a049 100%) !important;
+        background: #ef7822 !important;
         color: white !important;
         border: none !important;
         transition: all 0.3s ease;
+        border-radius: 0%;
     }
 
     .variation-decrease-btn:hover,
     .variation-increase-btn:hover {
-        background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%) !important;
+        background: #ef7822 !important;
         transform: scale(1.1);
+        border-radius: 0%;
     }
 
     .variation-addon-input {
         background: #f8f9fa !important;
-        border: 1px solid #4caf50 !important;
         color: #2e7d32 !important;
         font-weight: bold;
     }

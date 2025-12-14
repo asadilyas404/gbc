@@ -1593,35 +1593,50 @@
         });
 
         function updateCart() {
-            let currentCustomerId = $('#customer').val();
-            let currentCustomerText = $('#customer').find('option:selected').text();
+            const currentCustomerId   = $('#customer').val();
+            const currentCustomerText = $('#customer').find('option:selected').text();
 
-            $.post('<?php echo e(route('vendor.pos.cart_items')); ?>', {
-                _token: '<?php echo e(csrf_token()); ?>',
-                partner_id: '{{ $orderPartner ?? '' }}',
-                beforeSend: function(){
+            $.ajax({
+                url: '{{ route('vendor.pos.cart_items') }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    partner_id: '{{ $orderPartner ?? '' }}'
+                },
+                beforeSend: function () {
                     $('#loading').show();
-                }
-            }, function(data) {
-                $('#cart').empty().html(data);
-                if (currentCustomerId && currentCustomerId !== 'false') {
-                    setTimeout(function() {
-                        // $('#customer').val(currentCustomerId).trigger('change');
+                },
+                success: function (data) {
+                    $('#cart').html(data);
 
+                    // Restore customer only if something is selected
+                    if (currentCustomerId && currentCustomerId !== 'false') {
+                        // If #customer is inside #cart, this runs after HTML replace
+                        $('#customer').val(currentCustomerId).trigger('change');
+
+                        // If you use a helper to store customer
                         // storeCustomerDetails(currentCustomerId, currentCustomerText);
 
-                        if ($('#orderFinalModal').hasClass('show') || $('#orderFinalModal').is(':visible')) {
-                            setTimeout(() => tryFillModalWithRetries(5, 100), 200);
+                        if ($('#orderFinalModal').is(':visible')) {
+                            // No need for double setTimeout unless your modal content is loaded async
+                            tryFillModalWithRetries(5, 100);
                         }
-                    }, 100);
-                } else {
-                    setTimeout(function() {
+                    } else {
+                        // If you had "restore from storage" logic
                         // restoreCustomerFromStorage();
-                    }, 100);
+                    }
+                },
+                complete: function () {
+                    $('#loading').hide();
+                },
+                error: function () {
+                    $('#loading').hide();
+                    // Optional: show toast
+                    // toastr.error('Failed to update cart');
                 }
-                $('#loading').hide();
             });
         }
+
 
         $(document).on('click', '.delivery-Address-Store', function() {
             const button = $(this);
@@ -1718,7 +1733,8 @@
         });
 
         $(document).on('change', '[name="quantity"]', function(event) {
-            getVariantPrice();
+            // getVariantPrice();
+            calculateTotal();
             if ($('#option_ids').val() == '') {
                 $(this).attr('max', $(this).data('maximum_cart_quantity'));
             }

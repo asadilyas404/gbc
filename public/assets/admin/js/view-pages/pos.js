@@ -127,7 +127,8 @@ $(document).on('click', '.decrease-button', function () {
     let currentValue = parseInt(addon_quantity_input.val(), 10);
     if (currentValue > 1) {
         addon_quantity_input.val(currentValue - 1);
-        getVariantPrice();
+        // getVariantPrice();
+        calculateTotal();
     }
 });
 
@@ -136,7 +137,8 @@ $(document).on('click', '.increase-button', function () {
     let addon_quantity_input = $('input[name="addon-quantity' + addonId + '"]');
     let currentValue = parseInt(addon_quantity_input.val(), 10);
         addon_quantity_input.val(currentValue + 1);
-        getVariantPrice();
+        // getVariantPrice();
+        calculateTotal();
 });
 $('.js-select2-custom').each(function () {
     let select2 = $.HSCore.components.HSSelect2.init($(this));

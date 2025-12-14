@@ -163,9 +163,9 @@
                                                     class="d-flex align-items-center text-left btn btn-sm check-label text-break {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'stock_out text-muted' : 'text-dark' }}"
                                                     for="choice-option-{{ $key }}-{{ $k }}">
                                                     @if (isset($option->options_list_id) && $option->options_list_id)
-                                                        {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 20, '...') }}
+                                                        {{ Str::limit(OptionsList::find($option->options_list_id)->name ?? $option->label, 30, '...') }}
                                                     @else
-                                                        {{ Str::limit($option->label, 20, '...') }}
+                                                        {{ Str::limit($option->label, 30, '...') }}
                                                     @endif
 
                                                     <br>
@@ -209,10 +209,23 @@
                             @if (count($add_ons) > 0 && $add_ons[0] && (isset($choice->link_addons) ? $choice->link_addons == 'on' : true))
                                 <div class="accordion" id="accordion{{ $key }}">
                                     <div id="header{{ $key }}" class="check-label mx-2 cursor-pointer rounded-sm">
-                                        <div class="h3 p-0 pt-2 mt-3">
-                                            <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>
-                                            {{ translate('messages.for') }} <span class="text-primary">{{ translate('variation') . ' # ' . ++$index . ' ('. $choice->name .')' }}</span>
+                                        <div class="h3 p-2 d-flex justify-content-between align-items-center"
+                                            data-toggle="collapse"
+                                            data-target="#collapse{{ $key }}"
+                                            aria-expanded="false"
+                                            aria-controls="collapse{{ $key }}">
+                                            <div>
+                                                <span class="badge badge-info mr-2">{{ translate('messages.addon') }}</span>
+                                                {{ translate('messages.for') }}
+                                                <span class="text-primary">{{ translate('variation') . ' # ' . ++$index . ' ('. $choice->name .')' }}</span>
+                                            </div>
+                                            <div>
+                                                <i class="tio-chevron-down"></i>
+                                            </div>
                                         </div>
+                                    </div>
+                                    <div id="collapse{{ $key }}" class="collapse variation-addon-collapse mx-2"
+                                        aria-labelledby="header{{ $key }}">
                                         <div class="d-flex justify-content-left flex-wrap variation-addon-container">
                                             @php($selected_variation_addons = isset($cart_item['variations'][$key]['addons']) ? $cart_item['variations'][$key]['addons'] : [])
                                             @php($selected_addon_ids = collect($selected_variation_addons)->pluck('id')->toArray())
@@ -539,9 +552,8 @@
     /* Variation-specific addon styling for cart item view */
     .variation-addon-container {
         background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-        border-radius: 8px;
-        padding: 10px;
-        margin: 8px 0;
+        border-radius: 0px;
+        padding: 15px;
         border-left: 4px solid #17a2b8;
     }
 
@@ -551,13 +563,12 @@
         color: #1565c0 !important;
         transition: all 0.3s ease;
         box-shadow: 0 2px 4px rgba(33, 150, 243, 0.2);
-        cursor: pointer;
     }
 
     .variation-addon-label:hover {
         background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%) !important;
-        transform: translateY(-1px);
-        box-shadow: 0 3px 6px rgba(33, 150, 243, 0.3);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
     }
 
     .variation-addon-label:active {

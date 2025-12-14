@@ -36,6 +36,7 @@ class FoodController extends Controller
             Toastr::warning(translate('messages.permission_denied'));
             return back();
         }
+
         $categories = Category::where(['position' => 0])->get();
         $optionList = DB::table('options_list')->get();
 
@@ -561,7 +562,6 @@ class FoodController extends Controller
 
     public function update(Request $request, $id)
     {
-        // dd($request->toArray());
         if (!Helpers::get_restaurant_data()->food_section) {
             return response()->json([
                 'errors' => [
@@ -907,13 +907,23 @@ class FoodController extends Controller
     {
         $category_id = $request->query('category_id', 'all');
         $type = $request->query('type', 'all');
-        $foods = Food::when(is_numeric($category_id), function ($query) use ($category_id) {
-                return $query->whereHas('category', function ($q) use ($category_id) {
-                    return $q->whereId($category_id)->orWhere('parent_id', $category_id);
-                });
-            })
-            ->type($type)->latest()->paginate(config('default_pagination'));
+        $foodsQuery = Food::query();
 
+        if (is_numeric($category_id)) {
+            // 1) Get all category IDs (category itself + its direct children)
+            $categoryIds = Category::where('id', $category_id)
+                ->orWhere('parent_id', $category_id)
+                ->pluck('id');
+
+            // 2) Filter foods directly on category_id
+            $foodsQuery->whereIn('category_id', $categoryIds);
+        }
+
+        // 3) Apply other conditions
+        $foods = $foodsQuery
+            ->type($type)            // your local scope
+            ->latest('id')           // use indexed column
+            ->paginate(config('default_pagination'));
 
         $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
         return view('vendor-views.product.list', compact('foods', 'category', 'type'));

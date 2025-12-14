@@ -476,6 +476,7 @@
                             </div>
                         </div>
                         <input type="hidden" name="removedVariationIDs" id="removedVariationIDs">
+                        <input type="hidden" name="removedVariationOptionIDs" id="removedVariationOptionIDs">
                     </div>
                 </div>
                 <div class="col-lg-12">
@@ -925,78 +926,20 @@
             $('#removedVariationIDs').val(removedVariationIDs.join(','));
         });
         $(document).on('click', '.remove_variation_option', function() {
-            removedVariationOptionIDs.push($(this).data('id'));
-            $('#removedVariationOptionIDs').val(removedVariationOptionIDs.join(','));
-        });
-    </script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.remove_variation_option').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const optionId = this.getAttribute('data-id');
-
-                if (!optionId) return alert('Option ID missing!');
-
-                Swal.fire({
-                    title: 'Are you sure?',
-                    text: "This option will be deleted permanently!",
-                    type: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Yes, delete it',
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-
-                    if (result.value) {
-
-                        fetch('{{ route('food.option.delete') }}', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                            },
-                            body: JSON.stringify({
-                                option_id: optionId
-                            })
-                        })
-                        .then(async response => {
-                            const data = await response.json();
-
-                            if (response.ok && data.success) {
-
-                                Swal.fire({
-                                    type: 'success',
-                                    title: 'Deleted!',
-                                    text: 'Option deleted successfully.',
-                                    timer: 1200,
-                                    showConfirmButton: false
-                                });
-
-                                // Remove the row or container
-                                btn.closest('.row-or-container-class').remove();
-                            } else {
-                                Swal.fire({
-                                    type: 'error',
-                                    title: 'Delete failed',
-                                    text: data.message || 'Unknown error'
-                                });
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Fetch error:', error);
-
-                            Swal.fire({
-                                type: 'error',
-                                title: 'Error occurred',
-                                text: 'Network request failed.'
-                            });
-                        });
-
-                    }
-
-                });
-
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "This option will be deleted permanently!",
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, delete it',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.value) {
+                    removedVariationOptionIDs.push($(this).data('id'));
+                    $('#removedVariationOptionIDs').val(removedVariationOptionIDs.join(','));
+                    deleteRow($(this));
+                }
             });
         });
-    });
-</script>
+    </script>
 @endpush

@@ -6626,4 +6626,5 @@
   'Session_Expired' => 'Session Expired',
   'TM DONE Extra' => 'TM DONE Extra',
   'Talabat Extra' => 'Talabat Extra',
+  'The selected option id is invalid.' => 'The selected option id is invalid.',
 );

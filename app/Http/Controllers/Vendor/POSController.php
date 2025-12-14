@@ -165,37 +165,64 @@ class POSController extends Controller
     {
         $product = Food::findOrFail($request->product_id);
 
-        $partner_id=!isset($request->id)?null:$request->id;
+        $partner_id = $request->id ?: null;
 
-        if(!empty($request->id)){
-            $partner_price=collect(json_decode($product->partner_price));
-            $product->price=optional( $partner_price->where('partner_id',$request->id)->first())->price;
+        if (!empty($partner_id)) {
 
-            $variations = json_decode($product->variations, true);
+            // 1) Partner base price from JSON
+            $partner_prices = collect(json_decode($product->partner_price, true) ?? []);
+            $partner_price_row = $partner_prices->firstWhere('partner_id', $partner_id);
 
-                foreach ($variations as &$variation) {
-                    if (isset($variation['values'])) {
-                        foreach ($variation['values'] as &$v) {
+            if (!empty($partner_price_row) && isset($partner_price_row['price'])) {
+                $product->price = $partner_price_row['price'];
+            }
 
-                        $price = DB::table('PARTNER_VARIATION_OPTION')
-                        ->where('is_deleted', 0)
-                        ->where('variation_option_id', $v['option_id'])
-                        ->where('partner_id', $request->id)
-                        ->value('price');
+            // 2) Decode variations once
+            $variations = json_decode($product->variations, true) ?? [];
 
+            // 3) Collect all option IDs in one pass
+            $optionIds = [];
 
-                            $v['optionPrice'] =  $price;
+            foreach ($variations as $variation) {
+                if (!empty($variation['values']) && is_array($variation['values'])) {
+                    foreach ($variation['values'] as $v) {
+                        if (!empty($v['option_id'])) {
+                            $optionIds[] = $v['option_id'];
                         }
                     }
                 }
-            $product->variations = json_encode($variations);
+            }
+
+            // Avoid query if there are no options
+            if (!empty($optionIds)) {
+                // 4) Fetch all prices in a single query
+                $prices = DB::table('PARTNER_VARIATION_OPTION')
+                    ->where('is_deleted', 0)
+                    ->where('partner_id', $partner_id)
+                    ->whereIn('variation_option_id', $optionIds)
+                    ->pluck('price', 'variation_option_id'); // [variation_option_id => price]
+
+                // 5) Fill optionPrice from the map
+                foreach ($variations as &$variation) {
+                    if (!empty($variation['values']) && is_array($variation['values'])) {
+                        foreach ($variation['values'] as &$v) {
+                            $v['optionPrice'] = $prices[$v['option_id']] ?? null;
+                        }
+                    }
+                }
+                unset($variation, $v); // break references
+
+                // 6) Save back to product
+                $product->variations = json_encode($variations);
+            }
         }
 
         return response()->json([
             'success' => 1,
-            'view' => view('vendor-views.pos._quick-view-data', compact('product','partner_id'))->render(),
+            'view' => view('vendor-views.pos._quick-view-data', compact('product', 'partner_id'))->render(),
         ]);
     }
+
 
     public function quick_view_card_item(Request $request)
     {
@@ -950,6 +977,7 @@ class POSController extends Controller
         $order->updated_at = now();
         $order->otp = rand(1000, 9999);
         $order->partner_id = $request->partner_id ?? '';
+        $order->is_pushed = 'N';
 
         // dd($request->all(), $request->partner_id);
         // Set the User ID
@@ -1269,13 +1297,6 @@ class POSController extends Controller
 
             } catch (\Exception $printException) {
                 info('Print error: ' . $printException->getMessage());
-            }
-
-            // Dispatch sync job only if live server is reachable
-            if ($this->isLiveServerReachable()) {
-                \App\Jobs\SyncOrdersJob::dispatch();
-            } else {
-                info('Skipping sync - live server not reachable. Order will sync later.');
             }
 
             //PlaceOrderMail

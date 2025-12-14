@@ -1142,7 +1142,7 @@
             var discountType = $('#product_discount_type').val();
 
             var formData = $('#add-to-cart-form').serializeArray();
-
+            
             var variationAddonData = {};
             formData.forEach(function(item) {
                 if (item.name.startsWith('variation_addon_')) {
@@ -1247,12 +1247,6 @@
                         return false;
                     } else if (data.data === 2) {
                         updateCart();
-                        // Swal.fire({
-                        //     icon: 'info',
-                        //     title: 'Cart',
-                        //     text: "{{ translate('messages.product_has_been_updated_in_cart') }}"
-                        // });
-
                         toastr.success(
                         '{{ translate('messages.product_has_been_updated_in_cart') }}', {
                             CloseButton: true,

@@ -224,7 +224,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div id="collapse{{ $key }}" class="collapse variation-addon-collapse mx-2"
+
+                                    <div id="collapse{{ $key }}" class="collapse variation-addon-collapse mx-2 show"
                                         aria-labelledby="header{{ $key }}">
                                         <div class="d-flex justify-content-left flex-wrap variation-addon-container">
                                             @php($selected_variation_addons = isset($cart_item['variations'][$key]['addons']) ? $cart_item['variations'][$key]['addons'] : [])

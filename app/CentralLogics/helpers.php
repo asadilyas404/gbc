@@ -2295,14 +2295,21 @@ class Helpers
             }
             return true;
         } else if (auth('vendor_employee')->check()) {
-            $permission = auth('vendor_employee')->user()->role->modules;
+            $employee = auth('vendor_employee')->user();
+            $role = \App\Models\EmployeeRole::where('id', $employee->employee_role_id)->first();
+
+            if (!$role) {
+                return false;
+            }
+
+            $permission = $role->modules;
             if (isset($permission) && in_array($mod_name, (array) json_decode($permission)) == true) {
                 if ($mod_name == 'reviews') {
-                    return auth('vendor_employee')->user()->restaurant->reviews_section;
+                    return $employee->restaurant->reviews_section;
                 } else if ($mod_name == 'deliveryman') {
-                    return auth('vendor_employee')->user()->restaurant->self_delivery_system;
+                    return $employee->restaurant->self_delivery_system;
                 } else if ($mod_name == 'pos') {
-                    return auth('vendor_employee')->user()->restaurant->pos_system;
+                    return $employee->restaurant->pos_system;
                 }
                 return true;
             }

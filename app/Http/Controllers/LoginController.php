@@ -168,10 +168,10 @@ class LoginController extends Controller
             'role' => 'required'
         ]);
 
-        if($request->role == 'vendor_employee' && is_null(config('constants.branch_id'))){
-            return redirect()->back()->withInput($request->only('email', 'remember'))
-                ->withErrors(['Please Setup Branch']);
-        }
+        // if($request->role == 'vendor_employee' && is_null(config('constants.branch_id'))){
+        //     return redirect()->back()->withInput($request->only('email', 'remember'))
+        //         ->withErrors(['Please Setup Branch']);
+        // }
 
 //        $recaptcha = Helpers::get_business_settings('recaptcha');
 //        if (isset($recaptcha) && $recaptcha['status'] == 1 && !$request->set_default_captcha) {
@@ -205,6 +205,10 @@ class LoginController extends Controller
         elseif($request->role == 'vendor'){
             $vendor = Vendor::where('email', $request->email)->first();
             if($vendor){
+                if($vendor->restaurants->isEmpty()){
+                    return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.vendor_has_no_restaurants')]);
+                }
+
                 if($vendor->restaurants[0]->restaurant_model == 'none'){
                     $admin_commission= BusinessSetting::where('key','admin_commission')->first();
                     $business_name= BusinessSetting::where('key','business_name')->first();
@@ -217,7 +221,7 @@ class LoginController extends Controller
                         'admin_commission' =>$admin_commission->value,
                     ]);
                 }
-                
+
                 if($vendor->restaurants[0]->restaurant_model == 'subscription' && $vendor->restaurants[0]->restaurant_sub_trans && $vendor->restaurants[0]->restaurant_sub_trans->transaction_status == 0  && $vendor->status == 0){
                     return to_route('vendor.subscription.digital_payment_methods' , ['subscription_transaction_id'=>$vendor->restaurants[0]->restaurant_sub_trans->id , 'type' => 'new_join']);
                 }
@@ -240,7 +244,7 @@ class LoginController extends Controller
                     return redirect()->back()->withInput($request->only('email', 'remember'))
                     ->withErrors([translate('messages.inactive_vendor_warning')]);
                 }
-                
+
                 if (config('constants.app_mode') == 'local' && $employee->restaurant_id != config('constants.branch_id')) {
                     return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.account_not_registered_in_this_branch')]);
                 }

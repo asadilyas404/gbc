@@ -3291,4 +3291,5 @@
   'Support' => 'Support',
   'Multiple Selection' => 'Multiple Selection',
   'Single Selection' => 'Single Selection',
+  'vendor_has_no_restaurants' => 'البائع ليس لديه مطاعم',
 );

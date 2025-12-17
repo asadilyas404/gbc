@@ -168,10 +168,10 @@ class LoginController extends Controller
             'role' => 'required'
         ]);
 
-        // if($request->role == 'vendor_employee' && is_null(config('constants.branch_id'))){
-        //     return redirect()->back()->withInput($request->only('email', 'remember'))
-        //         ->withErrors(['Please Setup Branch']);
-        // }
+        if($request->role == 'vendor_employee' && is_null(config('constants.branch_id'))){
+            return redirect()->back()->withInput($request->only('email', 'remember'))
+                ->withErrors(['Please Setup Branch']);
+        }
 
 //        $recaptcha = Helpers::get_business_settings('recaptcha');
 //        if (isset($recaptcha) && $recaptcha['status'] == 1 && !$request->set_default_captcha) {

@@ -2883,6 +2883,7 @@
   'please_follow_the_steps_properly.' => 'Please follow the steps properly.',
   'inactive_vendor_warning' => 'Inactive vendor warning',
   'Inactive vendor warning' => 'Inactive vendor warning',
+  'vendor_has_no_restaurants' => 'Vendor has no restaurants',
   'unlimited_orders' => 'Unlimited orders',
   'deny' => 'Deny',
   'To get required search result First select zone & then restaurant to search category wise food or search manually to find food under that restaurant' => 'To get required search result First select zone & then restaurant to search category wise food or search manually to find food under that restaurant',

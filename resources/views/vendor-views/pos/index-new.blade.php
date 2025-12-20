@@ -1290,6 +1290,13 @@
                             text: data.message
                         });
                         return false;
+                    } else if (data.data === 'price_updation_error') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Price Is Reduced',
+                            text: data.message
+                        });
+                        return false;
                     }
                     $('.call-when-done').click();
 
@@ -1353,13 +1360,13 @@
                                 <label style="font-size:14px;">Item Status:</label><br>
                                 <div class="d-flex gap-2 mt-2 justify-content-between">
                                     <label class="payment-selection-box w-100">
-                                        <input type="radio" name="item-reduce-status" value="unprepared"> Unprepared
+                                        <input type="radio" name="item-reduce-status" value="1"> Unprepared
                                     </label>
                                     <label class="payment-selection-box w-100">
-                                        <input type="radio" name="item-reduce-status" value="prepared"> Prepared
+                                        <input type="radio" name="item-reduce-status" value="2"> Prepared
                                     </label>
                                     <label class="payment-selection-box w-100">
-                                        <input type="radio" name="item-reduce-status" value="wasted"> Wasted
+                                        <input type="radio" name="item-reduce-status" value="3"> Wasted
                                     </label>
                                 </div>
                             </div>
@@ -1463,13 +1470,13 @@
                             <label style="font-size:14px;">Cooking Status:</label><br>
                             <div class="d-flex gap-2 mt-2 justify-content-between">
                                 <label class="payment-selection-box w-100">
-                                    <input type="radio" name="item-cooking-status" value="prepared"> Prepared
+                                    <input type="radio" name="item-cooking-status" value="1"> Unprepared
                                 </label>
                                 <label class="payment-selection-box w-100">
-                                    <input type="radio" name="item-cooking-status" value="unprepared"> Unprepared
+                                    <input type="radio" name="item-cooking-status" value="2"> Prepared
                                 </label>
                                 <label class="payment-selection-box w-100">
-                                    <input type="radio" name="item-cooking-status" value="wasted"> Wasted
+                                    <input type="radio" name="item-cooking-status" value="3"> Wasted
                                 </label>
                             </div>
                         </div>

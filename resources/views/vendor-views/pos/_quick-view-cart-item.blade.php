@@ -73,6 +73,7 @@
                     @csrf
                     <input type="hidden" name="id" value="{{ $product->id }}">
                     <input type="hidden" name="cart_item_key" value="{{ $item_key }}">
+                    <input type="hidden" id="cart_item_total_price" value="{{ (($cart_item['price'] * $cart_item['quantity']) - ($cart_item['discount_on_food'] ?? 0)) + ($cart_item['total_add_on_price'] ?? 0) }}">
                     <input type="hidden" name="base_price" id="base_price" value="{{ $product->price }}">
 
                     @php($values = [])
@@ -86,7 +87,7 @@
                             @endforeach
                         @endif
                     @endforeach
-
+                    
                     <div class="row justify-content-between mt-4">
                         <div class="product-description-label mt-2 text-dark h3 col-12">
                             {{ translate('messages.Discount') }}:
@@ -114,7 +115,7 @@
                         </div>
                     </div>
                     
-                    <div class="@if (session()->get('editing_order_id')) pe-none @endif">
+                    <div class="@if ($orderPaymentStatus == 'paid') pe-none @endif">
                         @foreach (json_decode($product->variations) as $key => $choice)
                             @if (isset($choice->name) && isset($choice->values))
                                 <div class="h3 p-0 pt-2">{{ translate('variation') . ' # ' . ++$index . ' ('. $choice->name .')' }} <small class="text-muted fs-12">
@@ -139,11 +140,11 @@
                                 <div class="d-flex justify-content-left flex-wrap">
                                     @foreach ($choice->values as $k => $option)
                                         <?php
-                                        $showOption = true;
-                                        if (isset($option->options_list_id) && $option->options_list_id) {
-                                            $optionsList = OptionsList::find($option->options_list_id);
-                                            $showOption = $optionsList && $optionsList->status == 1;
-                                        }
+                                            $showOption = true;
+                                            if (isset($option->options_list_id) && $option->options_list_id) {
+                                                $optionsList = OptionsList::find($option->options_list_id);
+                                                $showOption = $optionsList && $optionsList->status == 1;
+                                            }
                                         ?>
                                         @if ($showOption)
                                             <div class="col-4 px-2">
@@ -155,7 +156,7 @@
                                                     data-price="{{ data_get($option, 'optionPrice') }}"
                                                     name="variations[{{ $key }}][values][label][]"
                                                     value="{{ $option->label }}"
-                                                    {{ isset($values[$key]) && in_array($option->label, $values[$key]) ? 'checked' : '' }}
+                                                    {{ isset($values) && in_array($option->label, $values[$key]) ? 'checked' : '' }}
                                                     {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'disabled' : '' }}
                                                     autocomplete="off">
 
@@ -291,7 +292,8 @@
                                 <span class="input-group-btn">
                                     <button class="btn btn-number text-dark" type="button" data-type="minus"
                                         data-field="quantity"
-                                        {{ $cart_item['quantity'] <= 1 ? 'disabled="disabled"' : '' }}>
+                                        data-editing="{{ $cart_item['draft_product'] ?? 0 }}"
+                                        {{ session()->has('editing_order_id') || $cart_item['quantity'] <= 1 ? 'disabled="disabled"' : '' }}>
                                         <i class="tio-remove  font-weight-bold"></i>
                                     </button>
                                 </span>
@@ -361,7 +363,8 @@
     "use strict";
     cartQuantityInitialize();
     // getVariantPrice();
-    calculateTotal();
+    calculateTotal(1);
+    var finalTotal = 0;
     $('#add-to-cart-form input').on('change', function() {
         // getVariantPrice();
         calculateTotal();
@@ -437,6 +440,21 @@
 
     // Debug: Log form data before updating cart item
     $(document).on('click', '.add-To-Cart', function(e) {
+
+        // Check the Calculation
+        var isEditing = "{{ session()->has('is_editing_order') }}";
+        if(isEditing){
+            // Get the Current Total
+            if(finalTotal < $('#cart_item_total_price').val()){
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Not Allowed',
+                    text: 'Sorry, you can not decrease the value'
+                });
+                return;
+            }
+        }
+
         var formData = $('#add-to-cart-form').serializeArray();
         console.log('Cart item update form data:', formData);
 
@@ -505,7 +523,7 @@
         };
     }
 
-    function calculateTotal() {
+    function calculateTotal(initial = 0) {
         // 1) Get totals from options + addons
         const value = getCheckedPrice(); // { selectedOptionsTotal, addonsTotal, total }
         const addonsAndOptionsTotal = value ? (value.total || 0) : 0;
@@ -538,7 +556,11 @@
         }
 
         // 5) Final total after discount
-        const finalTotal = subTotal - discountAmount + addonsAndOptionsTotal;
+        finalTotal = subTotal - discountAmount + addonsAndOptionsTotal;
+
+        if(initial){
+            $('#cart_item_total_price').val(finalTotal.toFixed(3));
+        }
 
         // 6) Update UI (adjust selectors to your HTML)
         $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text

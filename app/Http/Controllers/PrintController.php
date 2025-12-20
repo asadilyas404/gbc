@@ -173,7 +173,10 @@ class PrintController extends Controller
             // Customer info
             if ($order->pos_details) {
                 $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
-                $printer->text("Customer: " . $customerName . "\n");
+                $customerName = ReceiptImageHelper::createArabicImageForPrinter($customerName, storage_path('app/public/prints/customer_name.png'), 20);
+                $customerName = EscposImage::load($customerName, false);
+                $printer->text("Customer: ");
+                $printer->bitImageColumnFormat($customerName);
 
                 if ($order->pos_details->phone) {
                     $printer->text("Phone: " . $order->pos_details->phone . "\n");
@@ -622,7 +625,11 @@ class PrintController extends Controller
             // Customer info
             if ($order->pos_details) {
                 $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
-                $printer->text("Customer: " . $customerName . "\n");
+
+                $customerName = ReceiptImageHelper::createArabicImageForPrinter($customerName, storage_path('app/public/prints/customer_name.png'), 20);
+                $customerName = EscposImage::load($customerName, false);
+                $printer->text("Customer: ");
+                $printer->bitImageColumnFormat($customerName);
 
                 if ($order->pos_details->phone) {
                     $printer->text("Phone: " . $order->pos_details->phone . "\n");

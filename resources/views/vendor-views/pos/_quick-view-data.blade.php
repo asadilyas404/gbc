@@ -292,8 +292,8 @@
                             <div class="input-group input-group--style-2 pr-3 w-160px">
                                 <span class="input-group-btn">
                                     <button class="btn btn-number text-dark p--10px" type="button" data-type="minus"
-                                        data-field="quantity" disabled="disabled">
-                                        <i class="tio-remove  font-weight-bold"></i>
+                                        data-field="quantity">
+                                        <i class="tio-remove font-weight-bold"></i>
                                     </button>
                                 </span>
                                 <input type="text" name="quantity" id="add_new_product_quantity"

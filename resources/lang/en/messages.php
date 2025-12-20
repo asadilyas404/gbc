@@ -6628,4 +6628,5 @@
   'TM DONE Extra' => 'TM DONE Extra',
   'Talabat Extra' => 'Talabat Extra',
   'The selected option id is invalid.' => 'The selected option id is invalid.',
+  'For_existing_orders_item_price_can_not_be_reduced.' => 'For existing orders item price can not be reduced.',
 );

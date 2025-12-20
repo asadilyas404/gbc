@@ -52,11 +52,7 @@ class Food extends Model
 
         $value = $this->image;
 
-        $storage = $this->storage->firstWhere('key', 'image');
-
-        $disk = $storage->value ?? 'public';
-
-        return $this->image_full_url_cache = Helpers::get_full_url('product', $value, $disk);
+        return $this->image_full_url_cache = Helpers::get_full_url('product', $value, 'public');
     }
 
     public function logs()
@@ -242,14 +238,14 @@ class Food extends Model
 
         static::retrieved(function ($food) {
             try {
-                if($food->orders->count() != 0 && $food->orders()->whereDay('created_at', now())->count() == 0 && $food->stock_type == 'daily'){
-                        $food->sell_count = 0;
-                        $food->save();
-                        $food->newVariationOptions()->update([
-                            'sell_count' => 0
-                        ]);
-                    }
-                    unset($food->orders);
+                // if($food->orders->count() != 0 && $food->orders()->whereDay('created_at', now())->count() == 0 && $food->stock_type == 'daily'){
+                //         $food->sell_count = 0;
+                //         $food->save();
+                //         $food->newVariationOptions()->update([
+                //             'sell_count' => 0
+                //         ]);
+                //     }
+                //     unset($food->orders);
                 } catch (\Exception $exception) {
                     info([$exception->getFile(),$exception->getLine(),$exception->getMessage()]);
                 }

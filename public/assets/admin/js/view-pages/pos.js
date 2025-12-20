@@ -73,7 +73,9 @@ function cartQuantityInitialize() {
 
         let name = $(this).attr('name');
         if (valueCurrent >= minValue) {
-            $(".btn-number[data-type='minus'][data-field='" + name + "']").removeAttr('disabled')
+            if($(this).attr('data-editing') && $(this).attr('data-editing') == "0"){
+                $(".btn-number[data-type='minus'][data-field='" + name + "']").removeAttr('disabled')
+            }
         } else {
             Swal.fire({
                 icon: 'error',

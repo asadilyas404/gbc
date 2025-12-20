@@ -64,6 +64,7 @@ class POSController extends Controller
         session()->put('current_category_id', $category);
         session()->put('current_sub_category_id', $subcategory);
 
+        
         $categories = Category::active()->where('parent_id', 0)->get();
 
         $subcategories = Category::active()
@@ -79,28 +80,48 @@ class POSController extends Controller
             session()->put('current_partner_id', $id); // Set the new partner ID
         }
 
+        $categoryIds = null;
+
+        if (!empty($subcategory)) {
+            $categoryIds = [$subcategory];
+        } elseif (!empty($category)) {
+            $categoryIds = \App\Models\Category::where('id', $category)
+                ->orWhere('parent_id', $category)
+                ->pluck('id')
+                ->all();
+        }
+
         $products = Food::active()
-            ->when($category, function ($query) use ($category) {
-                $query->whereHas('category', function ($q) use ($category) {
-                    $q->whereId($category)->orWhere('parent_id', $category);
-                });
-            })->when($subcategory, function ($query) use ($subcategory) {
-                $query->whereHas('category', function ($q) use ($subcategory) {
-                    $q->whereId($subcategory);
-                });
-            })->when($keyword, function ($query) use ($key) {
-                return $query->where(function ($q) use ($key) {
-                    foreach ($key as $value) {
-                        $q->orWhereRaw('LOWER(name) LIKE ?', ["%{$value}%"]);
+            ->when($categoryIds, fn($q) => $q->whereIn('category_id', $categoryIds))
+            ->when(!empty($keyword), function ($q) use ($keyword) {
+                $keys = is_array($keyword) ? $keyword : preg_split('/\s+/', trim($keyword));
+
+                $q->where(function ($qq) use ($keys) {
+                    foreach ($keys as $value) {
+                        $value = trim($value);
+                        if ($value !== '') {
+                            $qq->orWhere('name', 'LIKE', "%{$value}%"); // remove LOWER()
+                        }
                     }
                 });
-            })->latest()->get()->each(function($item)use($id){
-                if(!empty($id)){
-                    $partner_price=collect(json_decode($item->partner_price));
-                    $item->price=optional($partner_price->where('partner_id',$id)->first())->price;
-                }
-            });
+            })
+            ->latest()
+            ->get();
+        
+            if(!empty($id)){
+                $products->each(function ($item) use ($id) {
+                    $partnerPrices = json_decode($item->partner_price, true) ?: [];
 
+                    foreach ($partnerPrices as $pp) {
+                        if (($pp['partner_id'] ?? null) == $id) {
+                            $item->price = $pp['price'] ?? $item->price;
+                            break;
+                        }
+                    }
+                });
+            }
+
+        // dd('All Data Loaded');
         if ($request->ajax()) {
             return response()->json([
                 'subcategoryHtml' => view('vendor-views.pos._subcategory_list', compact('subcategories'))->render(),
@@ -232,10 +253,16 @@ class POSController extends Controller
         $item_key = $request->item_key;
         $cart_item = session()->get('cart')[$item_key];
         $editing_order_id = session()->get('editing_order_id') ?? null;
+        
+        if($editing_order_id){
+            $orderPaymentStatus = Order::where('id', $editing_order_id)->first()->payment_status;
+        }else{
+            $orderPaymentStatus = 'unpaid';
+        }
 
         return response()->json([
             'success' => 1,
-            'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key', 'editing_order_id'))->render(),
+            'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key', 'editing_order_id','orderPaymentStatus'))->render(),
         ]);
     }
 
@@ -615,6 +642,19 @@ class POSController extends Controller
                 $currentQty = $currentItemInCart['quantity'];
                 $newQty = $data['quantity'];
 
+                if($orderId){
+                    $currentItemPrice = (($currentItemInCart['price'] * $currentItemInCart['quantity']) - $currentItemInCart['discount']) + $currentItemInCart['addon_price'];
+
+                    $newItemPrice = (($data['price'] * $data['quantity']) - $data['discount']) + $data['addon_price'];
+                    
+                    if($newItemPrice < $currentItemPrice){
+                        return response()->json([
+                            'data' => 'price_updation_error',
+                            'message' => translate("messages.For_existing_orders_item_price_can_not_be_reduced."),
+                        ]);
+                    }
+                }
+            
                 if ($newQty < $currentQty) {
                     if (!session('editing_order_id')) {
                         $cart[$request->cart_item_key] = $data;
@@ -625,8 +665,8 @@ class POSController extends Controller
 
                         $currentItemInCart['quantity'] = $differenceInQty;
                         $currentItemInCart['is_deleted'] = 'Y';
-                        $currentItemInCart['cancel_reason'] = 'Quantity Reduced';
-                        $currentItemInCart['cooking_status'] = '-';
+                        $currentItemInCart['cancel_reason'] = $data['cancel_reason'] ?? '1';
+                        $currentItemInCart['cooking_status'] = $data['cooking_status'] ?? '1';
                         $currentItemInCart['cancel_text'] = 'Quantity Reduced from POS';
 
                         $cart->push($currentItemInCart);
@@ -917,7 +957,6 @@ class POSController extends Controller
 
             // 2) Payment type decision
             if ($isCredit) {
-
                 // (Optional but recommended)
                 // If you don't want any paid amounts when credit is chosen:
                 if ($cash > 0 || $card > 0) {
@@ -983,12 +1022,14 @@ class POSController extends Controller
         $order_details = [];
 
         $editing_order_id = session('editing_order_id');
+        $oldVariationJson = '';
         if ($editing_order_id) {
             $order = Order::find($editing_order_id);
             // if (!$order || $order->payment_status != 'unpaid') {
             //     Toastr::error('Invalid or already paid order.');
             //     return back();
             // }
+            $oldVariationJson = $order->variation; // assuming this is the existing DB value (string)
         } else {
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
@@ -998,8 +1039,8 @@ class POSController extends Controller
             $orderDate = $branch ? $branch->orders_date : null;
             $order->order_date = $orderDate;
 
-            $today = Carbon::today();
-            $todayOrderCount = Order::whereDate('created_at', $today)->count();
+            $today = Carbon::parse($orderDate);
+            $todayOrderCount = Order::whereDate('order_date', $today)->count();
 
             $dayPart = $today->format('d');
             $sequencePart = str_pad($todayOrderCount + 1, 3, '0', STR_PAD_LEFT);
@@ -1155,6 +1196,11 @@ class POSController extends Controller
                         }
                     }
 
+                    
+                    if($oldVariationJson != json_encode($complete_variations) && $editing_order_id){
+                        $c['is_printed'] = 0;
+                    }
+
                     $or_d = [
                         'food_id' => $c['id'],
                         'food_details' => json_encode($product),
@@ -1264,8 +1310,6 @@ class POSController extends Controller
             //         return back()->withInput();
             //     }
             // }
-
-
             $order->save();
 
             if (!$editing_order_id) {

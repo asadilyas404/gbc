@@ -1112,13 +1112,9 @@ class Helpers
         // }
 
         // return $config;
-
         $config = null;
-        $settings = Cache::rememberForever('business_settings_all_data', function () {
-            return BusinessSetting::all();
-        });
 
-        $data = $settings->firstWhere('key', $name);
+        $data = BusinessSetting::firstWhere('key', $name);
         if (isset($data)) {
             $config = $json_decode ? json_decode($data['value'], true) : $data['value'];
             if (is_null($config)) {
@@ -2013,19 +2009,12 @@ class Helpers
 
             $user = auth('vendor_employee')->user();
 
-            Cache::rememberForever("rest_id_employee_{$user->id}", function() use ($user) {
-                return $user->restaurant->id;
-            });
-
-            return auth('vendor_employee')->user()->restaurant->id;
+            return $user->restaurant->id;    
         }
         if (auth('vendor')->check()) {
 
             $user = auth('vendor')->user();
-
-            return Cache::rememberForever("rest_id_vendor_{$user->id}", function () use ($user) {
-                return $user->restaurants->first()->id;
-            });
+            return $user->restaurants->first()->id;
         }
 
         return null;
@@ -2068,21 +2057,17 @@ class Helpers
         if (auth('vendor_employee')->check()) {
             $user = auth('vendor_employee')->user();
 
-            return Cache::rememberForever("restaurant_data_employee_{$user->id}", function () use ($user) {
-                return $user->restaurant; // Eloquent relation, 1 query only once
-            });
+            return $user->restaurant; // Eloquent relation, 1 query only once
         }
 
         // Vendor
         if (auth('vendor')->check()) {
             $user = auth('vendor')->user();
 
-            return Cache::rememberForever("restaurant_data_vendor_{$user->id}", function () use ($user) {
-                if (!$user || $user->restaurants->isEmpty()) {
-                    return null;
-                }
-                return $user->restaurants->first(); // 1 query only once
-            });
+            if (!$user || $user->restaurants->isEmpty()) {
+                return null;
+            }
+            return $user->restaurants->first(); // 1 query only once
         }
 
         return null;

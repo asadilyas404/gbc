@@ -23,7 +23,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Models\KitchenOrderStatusLog;
 use App\Models\PosOrderAdditionalDtl;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -181,8 +180,6 @@ class POSController extends Controller
             'cancelStatuses'
         ));
     }
-
-
 
     public function quick_view(Request $request)
     {
@@ -718,15 +715,9 @@ class POSController extends Controller
         // 1) Cache bank accounts per branch
         $branchId = Helpers::get_restaurant_id();
 
-        $bankaccounts = Cache::remember(
-            'bankaccounts_branch_' . $branchId,
-            3600, // seconds
-            function () use ($branchId) {
-                return DB::table('tbl_defi_bank')
+        $bankaccounts = DB::table('tbl_defi_bank')
                     ->where('branch_id', $branchId)
                     ->get();
-            }
-        );
 
         // 2) Load editing order + draft detail in one go if needed
         if ($editingOrderId) {
@@ -1105,7 +1096,10 @@ class POSController extends Controller
         if(isset($request->phone) && !empty($request->phone)){
             $customer = SaleCustomer::where('customer_mobile_no', $request->phone);
             if($customer->exists()){
-                $order->user_id = $customer->first()->customer_id;
+                $customer = $customer->first();
+                $order->user_id = $customer->customer_id;
+                $customer->is_pushed = 'N';
+                $customer->save();
             }else{
                 // Create a new customer
                 $customer = SaleCustomer::create([

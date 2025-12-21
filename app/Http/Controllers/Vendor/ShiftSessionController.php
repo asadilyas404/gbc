@@ -123,6 +123,7 @@ class ShiftSessionController extends Controller
                 'closing_visa' => $request->closing_visa,
                 'closing_incharge' => $request->closing_incharge,
                 'vertifid' => 0,
+                'is_pushed' => 'N'
             ];
 
             $currentSession->closeSession($closingData);
@@ -192,6 +193,7 @@ class ShiftSessionController extends Controller
         }
 
         $session->verified = 1;
+        $session->is_pushed = 'N';
         $session->save();
 
         return response()->json(['sucess' => true, 'message' => 'Session approved successfully.']);
@@ -205,6 +207,7 @@ class ShiftSessionController extends Controller
         }
 
         $session->verified = 2;
+        $session->is_pushed = 'N';
         $session->save();
 
         return response()->json(['sucess' => true, 'message' => 'Session rejected successfully.']);

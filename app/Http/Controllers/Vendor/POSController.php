@@ -146,7 +146,7 @@ class POSController extends Controller
         $orderDate = $branch ? $branch->orders_date : null;
         $orderPartners = DB::table('tbl_sale_order_partners')->get();
         $orderPartner = $id;
-        $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', $branchId)->get();
+        $bankaccounts = DB::table('tbl_defi_bank')->get();
 
         $previousDate = $orderDate ? Carbon::parse($orderDate) : null;
         $currentDate = Carbon::now();
@@ -716,7 +716,6 @@ class POSController extends Controller
         $branchId = Helpers::get_restaurant_id();
 
         $bankaccounts = DB::table('tbl_defi_bank')
-                    ->where('branch_id', $branchId)
                     ->get();
 
         // 2) Load editing order + draft detail in one go if needed

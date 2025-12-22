@@ -289,12 +289,15 @@
                         </div>
                         <div class="product-quantity d-flex align-items-center">
                             <div class="input-group input-group--style-2 pr-3 w-160px">
+                                @php($disableMinus = session()->has('editing_order_id') && ($cart_item['quantity'] ?? 1) >= 1)
                                 <span class="input-group-btn">
-                                    <button class="btn btn-number text-dark" type="button" data-type="minus"
+                                    <button class="btn btn-number text-dark" type="button"
+                                        data-type="minus"
                                         data-field="quantity"
-                                        data-editing="{{ $cart_item['draft_product'] ?? 0 }}"
-                                        {{ session()->has('editing_order_id') || $cart_item['quantity'] <= 1 ? 'disabled="disabled"' : '' }}>
-                                        <i class="tio-remove  font-weight-bold"></i>
+                                        data-editing="{{ (int)($cart_item['draft_product'] ?? 0) }}"
+                                        {{ $disableMinus ? 'disabled' : '' }}
+                                    >
+                                        <i class="tio-remove font-weight-bold"></i>
                                     </button>
                                 </span>
                                 <label for="add_new_product_quantity">
@@ -526,13 +529,15 @@
     function calculateTotal(initial = 0) {
         // 1) Get totals from options + addons
         const value = getCheckedPrice(); // { selectedOptionsTotal, addonsTotal, total }
+        const selectedOptionsTotal = value ? (value.selectedOptionsTotal || 0) : 0;
+        const addonsTotal = value ? (value.addonsTotal || 0) : 0;
         const addonsAndOptionsTotal = value ? (value.total || 0) : 0;
 
         // 2) Base product price (without addons/options)
         const basePrice = parseFloat($('#base_price').val()) || 0;
 
         // Subtotal before discount
-        let subTotal = basePrice * $('#add_new_product_quantity').val();
+        let subTotal = (basePrice + selectedOptionsTotal) * $('#add_new_product_quantity').val();
 
         // 3) Get the discount and discount type from inputs
         const discountValue = parseFloat($('#product_discount').val()) || 0;
@@ -556,14 +561,14 @@
         }
 
         // 5) Final total after discount
-        finalTotal = subTotal - discountAmount + addonsAndOptionsTotal;
+        finalTotal = subTotal - discountAmount + addonsTotal;
 
         if(initial){
             $('#cart_item_total_price').val(finalTotal.toFixed(3));
         }
 
         // 6) Update UI (adjust selectors to your HTML)
-        $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text
+        // $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text
         $('#chosen_price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
     }
 </script>

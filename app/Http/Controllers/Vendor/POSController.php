@@ -1097,6 +1097,8 @@ class POSController extends Controller
             $customer = SaleCustomer::where('customer_mobile_no', $request->phone);
             if($customer->exists()){
                 $customer = $customer->first();
+                $customer->customer_name = $request->customer_name ?? $customer->customer_name;
+                $customer->customer_email = $request->customer_email ?? $customer->customer_email;
                 $order->user_id = $customer->customer_id;
                 $customer->is_pushed = 'N';
                 $customer->save();
@@ -1105,7 +1107,7 @@ class POSController extends Controller
                 $customer = SaleCustomer::create([
                     'customer_code' => SaleCustomer::generateCustomerCode(),
                     'customer_type' => '19148225011030',
-                    'customer_name' => $request->customer_name ?? 'Customer',
+                    'customer_name' => $request->customer_name ?? 'Customer - ' . $request->phone,
                     'customer_mobile_no' => $request->phone,
                     'customer_email' => $request->customer_email ?? null,
                     'customer_user_id' => $authUserId,
@@ -1545,7 +1547,7 @@ class POSController extends Controller
         ]);
         $authUserId = Auth::guard('vendor')->id() ?? Auth::guard('vendor_employee')->id();
         $branchId = Helpers::get_restaurant_id();
-        $customerName = $request['f_name'] ?? 'Customer';
+        $customerName = $request['f_name'] ?? 'Customer - ' . $request['phone'];
 
         $customer = SaleCustomer::where('customer_mobile_no', $request['phone'])
             ->where('branch_id', $branchId)

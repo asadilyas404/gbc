@@ -416,13 +416,15 @@
     function calculateTotal() {
         // 1) Get totals from options + addons
         const value = getCheckedPrice(); // { selectedOptionsTotal, addonsTotal, total }
+        const selectedOptionsTotal = value ? (value.selectedOptionsTotal || 0) : 0;
+        const addonsTotal = value ? (value.addonsTotal || 0) : 0;
         const addonsAndOptionsTotal = value ? (value.total || 0) : 0;
 
         // 2) Base product price (without addons/options)
         const basePrice = parseFloat($('#base_price').val()) || 0;
 
         // Subtotal before discount
-        let subTotal = basePrice * $('#add_new_product_quantity').val();
+        let subTotal = (basePrice + selectedOptionsTotal) * $('#add_new_product_quantity').val();
 
         // 3) Get the discount and discount type from inputs
         const discountValue = parseFloat($('#product_discount').val()) || 0;
@@ -430,7 +432,7 @@
 
         let discountAmount = 0;
 
-        if (discountType === 'percent') {
+         if (discountType === 'percent') {
             // % of subtotal
             discountAmount = subTotal * (discountValue / 100);
             $('#set-discount-amount').text(discountValue + '%' );
@@ -446,10 +448,10 @@
         }
 
         // 5) Final total after discount
-        const finalTotal = subTotal - discountAmount + addonsAndOptionsTotal;
+        const finalTotal = subTotal - discountAmount + addonsTotal;
 
         // 6) Update UI (adjust selectors to your HTML)
-        $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text
+        // $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text
         $('#chosen_price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
     }
 

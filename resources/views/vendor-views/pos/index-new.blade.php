@@ -1980,15 +1980,13 @@
             let customerData = getCurrentCustomerData();
 
             if (customerData && customerData.id && customerData.name && customerData.phone) {
-
                 customerIdField.val(customerData.id);
                 customerNameField.val(customerData.name);
                 phoneField.val(customerData.phone);
             } else {
-
-                customerIdField.val('');
-                customerNameField.val('');
-                phoneField.val('');
+                // customerIdField.val('');
+                // customerNameField.val('');
+                // phoneField.val('');
             }
         }
 

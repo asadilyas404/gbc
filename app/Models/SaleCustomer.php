@@ -30,7 +30,7 @@ class SaleCustomer extends Model
         'customer_id' => 'integer'
     ];
 
-    public $timestamps = false;
+    public $timestamps = true;
 
     /**
      * Generate the next customer code

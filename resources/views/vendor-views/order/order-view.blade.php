@@ -345,6 +345,7 @@
                         $restaurant_discount_amount = 0;
                         $product_price = 0;
                         $total_addon_price = 0;
+                        $discount_on_food = 0;
                         $total_variation_addon_price = 0;
                         ?>
                         <div class="table-responsive">
@@ -550,6 +551,7 @@
                                                             </span>
                                                         </div>
                                                         @php($total_addon_price += $addon['price'] * $addon['quantity'])
+                                                        @php($discount_on_food += $detail['discount_on_food'] * $detail['quantity'])
                                                     @endforeach
                                                 </td>
                                                 <td>
@@ -559,7 +561,6 @@
                                                 </td>
                                             </tr>
                                             @php($product_price += $amount)
-                                            @php($restaurant_discount_amount += $detail['discount_on_food'] * $detail['quantity'])
                                         @endif
                                     @endforeach
                                 </tbody>
@@ -568,12 +569,13 @@
                         <?php
 
                         $coupon_discount_amount = $order['coupon_discount_amount'];
-
+                        $restaurant_discount_amount = $order['restaurant_discount_amount'];
+                        
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
 
                         $total_tax_amount = $order['total_tax_amount'];
 
-                        $restaurant_discount_amount = $order['restaurant_discount_amount'];
+                        
                         $tax_included = \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first() ? \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first()->value : 0;
                         ?>
                         <div class="px-4">
@@ -589,10 +591,10 @@
                                         <dd class="col-sm-6">
                                             {{ \App\CentralLogics\Helpers::format_currency($total_addon_price) }}
                                         </dd>
-                                        <dt class="col-sm-6">{{ translate('messages.variation_addon_cost') }}:
+                                        <dt class="col-sm-6">{{ translate('messages.discount_on_items') }}:
                                         </dt>
                                         <dd class="col-sm-6">
-                                            {{ \App\CentralLogics\Helpers::format_currency($total_variation_addon_price) }}
+                                            {{ \App\CentralLogics\Helpers::format_currency($discount_on_food) }}
                                             <hr>
                                         </dd>
 
@@ -605,7 +607,7 @@
                                         <dd class="col-sm-6">
                                             {{ \App\CentralLogics\Helpers::format_currency($product_price + $total_addon_price + $total_variation_addon_price) }}
                                         </dd>
-                                        <dt class="col-sm-6">{{ translate('messages.discount') }}:</dt>
+                                        <dt class="col-sm-6">{{ translate('messages.restaurnat_discount') }}:</dt>
                                         <dd class="col-sm-6">
                                             -
                                             {{ \App\CentralLogics\Helpers::format_currency($restaurant_discount_amount) }}

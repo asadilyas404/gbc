@@ -6629,4 +6629,6 @@
   'Talabat Extra' => 'Talabat Extra',
   'The selected option id is invalid.' => 'The selected option id is invalid.',
   'For_existing_orders_item_price_can_not_be_reduced.' => 'For existing orders item price can not be reduced.',
+  'restaurnat_discount' => 'Restaurnat discount',
+  'discount_on_items' => 'Discount on items',
 );

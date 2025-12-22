@@ -70,7 +70,7 @@ class AddOn extends Model
     {
         if(auth('vendor')->check() || auth('vendor_employee')->check())
         {
-            static::addGlobalScope(new RestaurantScope);
+            // static::addGlobalScope(new RestaurantScope);
         }
         static::addGlobalScope(new ZoneScope);
 
@@ -108,12 +108,9 @@ class AddOn extends Model
         });
     }
 
-// In AddOn model (app/Models/AddOn.php)
-public function food()
-{
-    return $this->belongsTo(\App\Models\Food::class);
-}
-
-
-
+    // In AddOn model (app/Models/AddOn.php)
+    public function food()
+    {
+        return $this->belongsTo(\App\Models\Food::class);
+    }
 }

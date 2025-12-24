@@ -176,7 +176,7 @@
                                             <option value="">
                                                 {{ translate('Select Option') }}</option>  
                                             @php
-                                                $bankaccounts = DB::table('tbl_defi_bank')->where('branch_id', Helpers::get_restaurant_id())->get();
+                                                $bankaccounts = DB::table('tbl_defi_bank')->get();
                                             @endphp
                                             @foreach ($bankaccounts as $account)
                                                 <option value="{{ $account->bank_account_id }}"

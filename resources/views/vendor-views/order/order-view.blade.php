@@ -467,6 +467,7 @@
                                                             </span>
                                                         </div>
                                                         @php($total_addon_price += $addon['price'] * $addon['quantity'])
+                                                        
                                                     @endforeach
                                                 </td>
                                                 <td>
@@ -479,7 +480,7 @@
                                                 </td>
                                             </tr>
                                             @php($product_price += $amount)
-                                            @php($restaurant_discount_amount += $detail['discount_on_food'] * $detail['quantity'])
+                                            @php($discount_on_food += $detail['discount_on_food'] * $detail['quantity'])
                                         @elseif(isset($detail->item_campaign_id))
                                             @php($detail->campaign = json_decode($detail->food_details, true))
                                             @php($campaign = \App\Models\ItemCampaign::where(['id' => $detail->campaign['id']])->first())
@@ -551,7 +552,6 @@
                                                             </span>
                                                         </div>
                                                         @php($total_addon_price += $addon['price'] * $addon['quantity'])
-                                                        @php($discount_on_food += $detail['discount_on_food'] * $detail['quantity'])
                                                     @endforeach
                                                 </td>
                                                 <td>
@@ -561,6 +561,7 @@
                                                 </td>
                                             </tr>
                                             @php($product_price += $amount)
+                                            @php($discount_on_food += $detail['discount_on_food'] * $detail['quantity'])
                                         @endif
                                     @endforeach
                                 </tbody>
@@ -570,7 +571,7 @@
 
                         $coupon_discount_amount = $order['coupon_discount_amount'];
                         $restaurant_discount_amount = $order['restaurant_discount_amount'];
-                        
+
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
 
                         $total_tax_amount = $order['total_tax_amount'];
@@ -605,7 +606,7 @@
                                             :
                                         </dt>
                                         <dd class="col-sm-6">
-                                            {{ \App\CentralLogics\Helpers::format_currency($product_price + $total_addon_price + $total_variation_addon_price) }}
+                                            {{ \App\CentralLogics\Helpers::format_currency($product_price - $discount_on_food + $total_addon_price + $total_variation_addon_price) }}
                                         </dd>
                                         <dt class="col-sm-6">{{ translate('messages.restaurnat_discount') }}:</dt>
                                         <dd class="col-sm-6">

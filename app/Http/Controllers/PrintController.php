@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\DB;
 use App\Helpers\ReceiptImageHelper;
 use App\Models\AddOn;
 use App\Models\Food;
+use App\Models\Shift;
+use App\Models\ShiftSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Intervention\Image\ImageManager;
@@ -1503,7 +1505,7 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
+                $printer->text("Order By: " . $order->takenBy->name . "\n");
             }
 
             $printer->text("==============================\n");
@@ -1655,6 +1657,16 @@ class PrintController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Cannot change printer settings while there are unpaid orders. Please complete or cancel all pending orders first.'
+                ]);
+            }
+
+            $openSessions = ShiftSession::where('branch_id', $branchId)
+            ->where('session_status', 'open');
+            
+            if($openSessions->count() > 0){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot change printer settings while there are open shift sessions. Please close all open shifts first.'
                 ]);
             }
 

@@ -1019,7 +1019,6 @@ class POSController extends Controller
             //     Toastr::error('Invalid or already paid order.');
             //     return back();
             // }
-            $oldVariationJson = $order->variation; // assuming this is the existing DB value (string)
         } else {
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
@@ -1123,6 +1122,7 @@ class POSController extends Controller
         }
 
         DB::beginTransaction();
+
         foreach ($cart as $c) {
             if (is_array($c)) {
 
@@ -1189,11 +1189,6 @@ class POSController extends Controller
 
                             $complete_variations[] = $completeVariation;
                         }
-                    }
-
-                    
-                    if($oldVariationJson != json_encode($complete_variations) && $editing_order_id){
-                        $c['is_printed'] = 0;
                     }
 
                     $or_d = [
@@ -1337,8 +1332,8 @@ class POSController extends Controller
             // Compare old and new
             if ($editing_order_id && $dirttyOrderDetails !== $newOrderDetails) {
                 // Save Log for edited order only if different
-                Helpers::create_all_logs($order, 'order_edited', 'Order');
-                Helpers::create_all_logs($order, 'order_detail_edited', 'OrderDetail', $dirttyOrderDetails, $newOrderDetails);
+                // Helpers::create_all_logs($order, 'order_edited', 'Order');
+                // Helpers::create_all_logs($order, 'order_detail_edited', 'OrderDetail', $dirttyOrderDetails, $newOrderDetails);
             }
 
 
@@ -1391,19 +1386,9 @@ class POSController extends Controller
 
                 if($order->payment_status == 'unpaid'){
                     $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
-                }
-
-                //  dd($order->payment_status,$order,$request->all());
-
-                if ($order->payment_status === 'paid' && !$order->printed) {
-                    // Print once for new paid order
-                    $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)$order->id]));
-                    $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string)$order->id]));
-                }
-
-                if(isset($order->printed) && $order->printed == 1 && $order->payment_status == 'paid'){
-                    // Reprint receipt for paid orders
-                    $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string) $order->id]));
+                }else{
+                    $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                    $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                 }
 
                 $order->printed = 1;

@@ -39,11 +39,26 @@
             transition: all 0.3s;
         }
 
-        .category-item.selected {
+        .order_partner {
+            min-width: 92px;
+        }
+        
+        .order_partner .partner-name{
+            color: #333;
+        }
+        .order_partner.selected .partner-name{
+            color: #fff;
+        }
+
+        .order_partner:hover .partner-name{
+            color: #fff;
+        }
+        
+        .category-item.selected, .order_partner.selected, .order_partner:hover   {
             padding: 5px;
             border-radius: 10px;
             background-color: #F8923B;
-            color: #fff;
+            color: #fff !important;
             box-shadow: 0 4px 10px rgba(64, 169, 255, 0.5);
         }
 
@@ -51,6 +66,14 @@
             color: #fff;
         }
 
+        .partner-name{
+            text-align: center;
+            
+        }
+
+        .category-icon{
+            text-align: center;
+        }
         .category-icon img {
             width: 60px;
             height: 60px;
@@ -294,46 +317,29 @@
                         style="padding-top: 8px;">
                         <div class="row g-2 mb-1">
                             <div class="col-sm-12">
-                                <div class="input-group">
-                                    <select name="order_partner" id="order_partner" 
-                                            {{ ($editingOrder) ? 'disabled' : '' }}
-                                            class="form-control js-select2-custom"
-                                            title="{{ translate('messages.select_category') }}">
-                                        <option value="">{{ config('app.name') }}</option>
-                                        @foreach ($orderPartners as $partner)
-                                            <option
-                                                value="{{ $partner->partner_id }}"
-                                                {{ $partner->partner_id == $orderPartner ? 'selected' : '' }}>
-                                                {{ $partner->partner_name }}</option>
-                                        @endforeach
-                                    </select>
-                                    @if ($editingOrder)
-                                        <input type="hidden" name="order_partner" value="{{ $orderPartner }}">
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
                                 <div class="category-scroll-container">
                                     <div class="category-scroll">
                                         <a href="javascript:void(0);"
-                                            class="category-item {{ empty($category) ? 'selected' : '' }}" data-category="">
+                                            class="order_partner {{ empty($orderPartner) ? 'selected' : '' }}"
+                                            data-value="">
                                             <div class="category-icon">
-                                                <img src="{{ dynamicAsset('/public/assets/admin/img/100x100/food.png') }}"
-                                                    alt="All Products">
+                                                <img src="{{ asset('images/malekalpizza.png') }}"
+                                                    alt="{{ config('app.name') }}">
                                             </div>
-                                            <div class="category-name">
-                                                {{ translate('messages.all_menu') }}
+                                            <div class="partner-name">
+                                                {{ config('app.name') }}
                                             </div>
                                         </a>
-                                        @foreach ($categories as $item)
+                                        @foreach ($orderPartners as $partner)
                                             <a href="javascript:void(0);"
-                                                class="category-item {{ $category == $item->id ? 'selected' : '' }}"
-                                                data-category="{{ $item->id }}">
+                                                class="order_partner {{ $partner->partner_id == $orderPartner ? 'selected' : '' }}"
+                                                data-value="{{ $partner->partner_id }}">
                                                 <div class="category-icon">
-                                                    <img src="{{ $item['image_full_url'] }}" alt="{{ $item->name }}">
+                                                    @php($image = 'images/' . \Str::slug($partner->partner_name) . '.png')
+                                                    <img src="{{ file_exists(public_path($image)) ? asset($image) : dynamicAsset('/public/assets/admin/img/100x100/food.png') }}" alt="{{$partner->partner_name }}">
                                                 </div>
-                                                <div class="category-name">
-                                                    {{ Str::limit($item->name, 20, '...') }}
+                                                <div class="partner-name">
+                                                    {{ Str::limit($partner->partner_name, 20, '...') }}
                                                 </div>
                                             </a>
                                         @endforeach
@@ -960,9 +966,10 @@
         }
 
 
-        $(document).on('change', '#order_partner', function() {
+        $(document).on('click', '.order_partner', function() {
+            debugger;
             $('#loading').show();
-            var selectedId = $(this).val(); // capture before AJAX
+            var selectedId = $(this).data('value'); // capture before AJAX
 
             $.post('{{ route('vendor.pos.emptyCart') }}', {
                 _token: '{{ csrf_token() }}'
@@ -2291,7 +2298,7 @@
                 $('.subcategory-item').removeClass('selected');
                 $(this).addClass('selected');
 
-                const categoryId = $('.category-item.selected').data('category') || '';
+                const categoryId = 17 || '';
                 fetchData(categoryId, subcategoryId, $('#search-keyword').val(), "{{ $orderPartner }}");
             });
 
@@ -2299,7 +2306,7 @@
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
                     const keyword = $(this).val();
-                    const categoryId = $('.category-item.selected').data('category') || '';
+                    const categoryId = 17 || '';
                     const subcategoryId = $('.subcategory-item.selected').data('subcategory') || '';
 
                     fetchData(categoryId, subcategoryId, keyword, "{{ $orderPartner }}");

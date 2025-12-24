@@ -54,6 +54,11 @@ class POSController extends Controller
     public function indexNew(Request $request, $id=null)
     {
         $time = Carbon::now()->toTimeString();
+        
+        if(session('current_category_id') == null){
+            session()->put('current_category_id', 17);
+        }
+
         $category = $request->query('category_id', session('current_category_id', 0));
         $subcategory = $request->query('subcategory_id', session('current_sub_category_id', 0));
         $keyword = $request->query('keyword', false);
@@ -91,34 +96,34 @@ class POSController extends Controller
         }
 
         $products = Food::active()
-            ->when($categoryIds, fn($q) => $q->whereIn('category_id', $categoryIds))
-            ->when(!empty($keyword), function ($q) use ($keyword) {
-                $keys = is_array($keyword) ? $keyword : preg_split('/\s+/', trim($keyword));
+        ->when($categoryIds, fn($q) => $q->whereIn('category_id', $categoryIds))
+        ->when(!empty($keyword), function ($q) use ($keyword) {
+            $keys = is_array($keyword) ? $keyword : preg_split('/\s+/', trim($keyword));
 
-                $q->where(function ($qq) use ($keys) {
-                    foreach ($keys as $value) {
-                        $value = trim($value);
-                        if ($value !== '') {
-                            $qq->orWhere('name', 'LIKE', "%{$value}%"); // remove LOWER()
-                        }
+            $q->where(function ($qq) use ($keys) {
+                foreach ($keys as $value) {
+                    $value = trim($value);
+                    if ($value !== '') {
+                        $qq->orWhere('name', 'LIKE', "%{$value}%"); // remove LOWER()
                     }
-                });
-            })
-            ->latest()
-            ->get();
+                }
+            });
+        })
+        ->latest()
+        ->get();
         
-            if(!empty($id)){
-                $products->each(function ($item) use ($id) {
-                    $partnerPrices = json_decode($item->partner_price, true) ?: [];
+        if(!empty($id)){
+            $products->each(function ($item) use ($id) {
+                $partnerPrices = json_decode($item->partner_price, true) ?: [];
 
-                    foreach ($partnerPrices as $pp) {
-                        if (($pp['partner_id'] ?? null) == $id) {
-                            $item->price = $pp['price'] ?? $item->price;
-                            break;
-                        }
+                foreach ($partnerPrices as $pp) {
+                    if (($pp['partner_id'] ?? null) == $id) {
+                        $item->price = $pp['price'] ?? $item->price;
+                        break;
                     }
-                });
-            }
+                }
+            });
+        }
 
         // dd('All Data Loaded');
         if ($request->ajax()) {

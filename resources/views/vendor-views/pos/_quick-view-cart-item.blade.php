@@ -75,7 +75,8 @@
                     <input type="hidden" name="cart_item_key" value="{{ $item_key }}">
                     <input type="hidden" id="cart_item_total_price" value="{{ (($cart_item['price'] * $cart_item['quantity']) - ($cart_item['discount_on_food'] ?? 0)) + ($cart_item['total_add_on_price'] ?? 0) }}">
                     <input type="hidden" name="base_price" id="base_price" value="{{ $product->price }}">
-
+                    <input type="hidden" name="options_changed" id="options_changed" value="0">
+                    <input type="hidden" name="is_printed" id="is_printed" value="{{ $cart_item['is_printed'] ?? 0 }}">
                     @php($values = [])
                     @php($selected_variations = isset($cart_item) ? $cart_item['variations'] : [])
                     @php($names = [])
@@ -571,6 +572,134 @@
         // $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text
         $('#chosen_price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
     }
+
+    (() => {
+        const FORM_SELECTOR = '#add-to-cart-form';
+        const FLAG_ID = 'options_changed';
+
+        // ignore discount fields
+        const IGNORE_IDS = new Set(['product_discount', 'product_discount_type']);
+
+        const isIgnored = (el) => el && el.id && IGNORE_IDS.has(el.id);
+
+        function ensureFlag(form) {
+            let flag = form.querySelector(`#${FLAG_ID}`);
+            if (!flag) {
+            flag = document.createElement('input');
+            flag.type = 'hidden';
+            flag.name = 'options_changed';
+            flag.id = FLAG_ID;
+            flag.value = '0';
+            form.appendChild(flag);
+            }
+            return flag;
+        }
+
+        function snapshot(form) {
+            const entries = [];
+
+            // 1) Normal fields (input/select/textarea)
+            form.querySelectorAll('input, select, textarea').forEach(el => {
+            if (!el.name) return;
+            if (isIgnored(el)) return;
+
+            const type = (el.type || '').toLowerCase();
+
+            if (type === 'checkbox' || type === 'radio') {
+                // handled below to include unchecked too
+                return;
+            }
+
+            entries.push([el.name, String(el.value ?? '')]);
+            });
+
+            // 2) Include checkbox/radio checked state (including unchecked)
+            form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(el => {
+            if (!el.name) return;
+            if (isIgnored(el)) return;
+
+            // unique key per option
+            const key = `__checked__${el.name}__${el.value}`;
+            entries.push([key, el.checked ? '1' : '0']);
+            });
+
+            // stable order
+            entries.sort((a, b) => (a[0] + a[1]).localeCompare(b[0] + b[1]));
+            return JSON.stringify(entries);
+        }
+
+        function bind(form) {
+            // prevent double binding
+            if (form.dataset.changeTrackerBound === '1') return;
+            form.dataset.changeTrackerBound = '1';
+
+            const flag = ensureFlag(form);
+
+            let initialState = '';
+
+            const setDirty = (dirty) => {
+            flag.value = dirty ? '1' : '0';
+            };
+
+            const captureBaseline = () => {
+            initialState = snapshot(form);
+            setDirty(false);
+            };
+
+            const recalcDirty = () => {
+            const now = snapshot(form);
+            setDirty(now !== initialState); // ✅ revert => back to 0
+            };
+
+            // IMPORTANT: capture baseline after render tick (for dynamic content)
+            setTimeout(captureBaseline, 0);
+
+            // Track changes (ignore discount)
+            form.addEventListener('input', (e) => {
+            if (isIgnored(e.target)) return;
+            recalcDirty();
+            }, true);
+
+            form.addEventListener('change', (e) => {
+            if (isIgnored(e.target)) return;
+            recalcDirty();
+            }, true);
+
+            // If +/- buttons change values programmatically, recalc after click
+            form.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+
+            if (
+                btn.matches('.btn-number, .variation-increase-btn, .variation-decrease-btn, .increase-button, .decrease-button')
+            ) {
+                setTimeout(recalcDirty, 0);
+            }
+            }, true);
+
+            // Ensure correct value on submit
+            form.addEventListener('submit', () => recalcDirty());
+
+            // When modal is reopened and the same form is reused, reset baseline
+            // (works for Bootstrap; harmless otherwise)
+            document.addEventListener('shown.bs.modal', () => {
+            if (document.contains(form)) setTimeout(captureBaseline, 0);
+            });
+        }
+
+        function tryBind() {
+            const form = document.querySelector(FORM_SELECTOR);
+            if (form) bind(form);
+        }
+
+        // 1) bind if already exists
+        tryBind();
+
+        // 2) bind when injected later (AJAX modal)
+        const obs = new MutationObserver(() => tryBind());
+        obs.observe(document.documentElement, { childList: true, subtree: true });
+        })();
+
 </script>
 
 <style>

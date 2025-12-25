@@ -691,10 +691,19 @@ class PrintController extends Controller
                         $printer->selectPrintMode();
                         $printer->setReverseColors(false);
                     }
+
+                    if($detail->is_printed == 1 && $detail->options_changed == 1){
+                        $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
+                        $printer->setReverseColors(true);
+                        $printer->text("ITEM MODIFIED\n");
+                        $printer->selectPrintMode();
+                        $printer->setReverseColors(false);
+                    }
                 }
 
                 // Save printed status
                 $detail->is_printed = 1;
+                $detail->options_changed = 0;
                 $detail->save();
 
                 if ($detail->food_id || $detail->campaign == null) {

@@ -454,11 +454,12 @@ class POSController extends Controller
         $data['details'] = $request->notes;
         $data['variant'] = '';
         $data['is_deleted'] = 'N';
-        $data['is_printed'] = 0;
+        $data['is_printed'] = $request->is_printed ?? 0;
         $data['image'] = $product->image;
         $data['image_full_url'] = $product->image_full_url;
         $data['maximum_cart_quantity'] = $product->maximum_cart_quantity;
         $data['variation_option_ids'] = $request->option_ids ?? null;
+        $data['options_changed'] = $request->options_changed ?? 0;
 
         $variations = [];
         $variation_price = 0;
@@ -922,7 +923,6 @@ class POSController extends Controller
 
         $cart = $request->session()->get('cart');
 
-        // dump($cart,$request->all());
         $allNotes = [];
         foreach ($cart as $item) {
             $notes = $item['details'] ?? null; // Change 'notes' to 'details'
@@ -1213,6 +1213,7 @@ class POSController extends Controller
                         'cooking_status'     => isset($c['cooking_status']) ? trim($c['cooking_status']) : '',
                         'cancel_text'        => isset($c['cancel_text']) ? trim($c['cancel_text']) : '',
                         'is_printed' => $c['is_printed'] ?? 0,
+                        'options_changed' => $c['options_changed'] ?? 0,
                         'payment_status' => $c['payment_status'] ?? 'unpaid',
                         'food_create_time'  => $c['food_create_time'] ?? Carbon::now(),
                         'created_at' => now(),
@@ -1389,10 +1390,29 @@ class POSController extends Controller
                 event(new myevent('unpaid'));
                 $printController = new \App\Http\Controllers\PrintController();
 
-                if($order->payment_status == 'unpaid'){
+                if($order->payment_status == 'unpaid' && $order->printed == 0){
                     $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
-                }else{
-                    $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                }
+                
+                if($order->payment_status == 'unpaid' && $order->printed == 1){
+                    // That means we are in editing case
+                    $requirePrint = false;
+                    foreach ($order->details as $detail) {
+                        if ($detail->options_changed == 1 || $detail->is_printed == 0 || $detail->is_deleted == 'Y') {
+                            $requirePrint = true;
+                            break;
+                        }
+                    }
+                    
+                    if($requirePrint){
+                        $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                    }
+                }
+
+                if($order->payment_status == 'paid'){
+                    if($order->printed == 0){
+                        $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                    }
                     $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                 }
 
@@ -1482,6 +1502,7 @@ class POSController extends Controller
                 'image' => $food['image'] ?? null,
                 'is_deleted' => trim($item->is_deleted),
                 'is_printed' => $item->is_printed,
+                'options_changed' => 0,
                 'cancel_reason'      => trim($item->cancel_reason),
                 'cooking_status'     => trim($item->cooking_status),
                 'cancel_text'        => trim($item->cancel_text),

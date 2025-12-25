@@ -753,7 +753,7 @@ async function posCheckForUpdates() {
     });
     const data = await res.json();
 
-    if (!data.ok || !data.has_update) return;
+    // if (!data.ok || !data.has_update) return;
 
     const result = await Swal.fire({
       title: "Update available",
@@ -772,7 +772,7 @@ async function posCheckForUpdates() {
       allowEscapeKey: false
     });
 
-    if (!result.isConfirmed) return;
+    if (!result.value) return;
 
     await posRunUpdateWithLoader();
 
@@ -859,8 +859,8 @@ function escapeHtml(str) {
 }
 
 // On page load + every 5 minutes
-posCheckForUpdates();
-setInterval(posCheckForUpdates, 1 * 60 * 1000);
+// posCheckForUpdates();
+// setInterval(posCheckForUpdates, 1 * 60 * 1000);
 </script>
 
 

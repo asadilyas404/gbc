@@ -81,6 +81,7 @@
                     <input type="hidden" name="id" value="{{ $product->id }}">
                     <input type="hidden" name="partner_id" value="{{ $partner_id }}">
                     <input type="hidden" name="base_price" id="base_price" value="{{ $product->price }}">
+
                     <div class="row justify-content-between mt-4">
                         <div class="product-description-label mt-2 text-dark h4 col-12">
                             {{ translate('messages.Discount') }}:

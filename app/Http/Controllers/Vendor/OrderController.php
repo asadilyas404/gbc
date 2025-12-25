@@ -300,9 +300,17 @@ class OrderController extends Controller
                 'discountType' => 'amount',
                 'details' => $item->notes,
                 'image' => $food['image'] ?? null,
-                'is_deleted'=> $item->is_deleted ?? 'N',
+                'is_deleted' => trim($item->is_deleted),
+                'is_printed' => $item->is_printed,
+                'options_changed' => 0,
+                'cancel_reason'      => trim($item->cancel_reason),
+                'cooking_status'     => trim($item->cooking_status),
+                'cancel_text'        => trim($item->cancel_text),
+                'payment_status'   => $item->payment_status ?? 'unpaid',
+                'food_create_time' => $item->food_create_time ?? null,
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
+                'draft_product' => true,
             ];
         }
 

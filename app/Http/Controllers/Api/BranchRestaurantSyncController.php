@@ -86,7 +86,7 @@ class BranchRestaurantSyncController extends Controller
 
             $partners = DB::connection('oracle')
                 ->table('tbl_sale_order_partners')
-                ->when($cursorMap['tbl_sale_order_partners'], function ($query, Carbon $cursor) {
+                ->when($cursorMap['partners'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -96,7 +96,7 @@ class BranchRestaurantSyncController extends Controller
                 ->get();
 
             foreach ($partners as $partner) {
-                $partnerRecord = $this->ensureUpdatedAt((array) $partner, 'tbl_sale_order_partners', 'id');
+                $partnerRecord = $this->ensureUpdatedAt((array) $partner, 'tbl_sale_order_partners', 'partner_id');
                 $partner->updated_at = $partnerRecord['updated_at'] ?? $partner->updated_at;
 
                 $data['partners'][] = [

@@ -149,7 +149,7 @@ class POSController extends Controller
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
-        $orderPartners = DB::table('tbl_sale_order_partners')->get();
+        $orderPartners = DB::table('tbl_sale_order_partners')->orderBy('created_at')->get();
         $orderPartner = $id;
         $bankaccounts = DB::table('tbl_defi_bank')->get();
 

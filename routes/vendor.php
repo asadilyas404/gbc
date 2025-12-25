@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\POSUpdateController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\SubscriptionController;
 use App\Http\Controllers\TableEmployeeController;
@@ -24,6 +25,9 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         Route::post('/session/keep-alive', function () {
             return response()->json(['status' => 'ok']);
         })->name('session.keep-alive');
+
+        Route::get('/update/check', [POSUpdateController::class, 'check'])->name('update.check');
+        Route::post('/update/run',  [POSUpdateController::class, 'run'])->name('update.run');
 
         Route::get('/', 'DashboardController@dashboard')->name('dashboard');
         Route::get('/get-restaurant-data', 'DashboardController@restaurant_data')->name('get-restaurant-data');

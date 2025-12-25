@@ -745,6 +745,123 @@
                 $(this).val(keepNumbersAndPlus($(this).val()));
                 });
 </script>
+<script>
+async function posCheckForUpdates() {
+  try {
+    const res = await fetch("{{ route('vendor.update.check') }}", {
+      headers: { "Accept": "application/json" }
+    });
+    const data = await res.json();
+
+    if (!data.ok || !data.has_update) return;
+
+    const result = await Swal.fire({
+      title: "Update available",
+      html: `
+        <div style="text-align:left">
+          <div><b>Local:</b> ${(data.local || "-").slice(0, 7)}</div>
+          <div><b>Remote:</b> ${(data.remote || "-").slice(0, 7)}</div>
+          <div style="margin-top:10px;">A new POS update is ready. Update now?</div>
+        </div>
+      `,
+      icon: "info",
+      showCancelButton: true,
+      confirmButtonText: "Update now",
+      cancelButtonText: "Later",
+      allowOutsideClick: false,
+      allowEscapeKey: false
+    });
+
+    if (!result.isConfirmed) return;
+
+    await posRunUpdateWithLoader();
+
+  } catch (e) {
+    console.error("Update check failed:", e);
+  }
+}
+
+async function posRunUpdateWithLoader() {
+  Swal.fire({
+    title: "Updating POS...",
+    html: `
+      <div style="text-align:left; font-size:12px; margin-top:10px;">
+        <div>Please wait, don’t close this tab.</div>
+        <pre id="pos-update-log" style="height:240px; overflow:auto; background:#111; color:#0f0; padding:10px; border-radius:8px; margin-top:10px;">Starting...</pre>
+      </div>
+    `,
+    didOpen: () => Swal.showLoading(),
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    showConfirmButton: false
+  });
+
+  try {
+    const runRes = await fetch("{{ route('vendor.update.run') }}", {
+      method: "POST",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "X-CSRF-TOKEN": "{{ csrf_token() }}"
+      },
+      body: JSON.stringify({})
+    });
+
+    const out = await runRes.json();
+
+    const logEl = document.getElementById("pos-update-log");
+    if (logEl) {
+      logEl.textContent = out.output || "No output returned.";
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    if (runRes.ok && out.ok) {
+      await Swal.fire({
+        title: "Update completed",
+        text: "POS updated successfully. Reload now?",
+        icon: "success",
+        confirmButtonText: "Reload",
+        allowOutsideClick: false
+      });
+      location.reload();
+    } else {
+      await Swal.fire({
+        title: "Update failed",
+        html: `
+          <div style="text-align:left">
+            <div>Copy the logs below and send to admin:</div>
+            <pre style="height:240px; overflow:auto; background:#111; color:#f55; padding:10px; border-radius:8px; margin-top:10px;">${escapeHtml(out.output || "No output")}</pre>
+          </div>
+        `,
+        icon: "error",
+        confirmButtonText: "OK",
+        allowOutsideClick: false
+      });
+    }
+
+  } catch (e) {
+    console.error(e);
+    await Swal.fire({
+      title: "Update error",
+      text: "Update request failed. Check network / permissions.",
+      icon: "error"
+    });
+  }
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+// On page load + every 5 minutes
+posCheckForUpdates();
+setInterval(posCheckForUpdates, 1 * 60 * 1000);
+</script>
 
 
 </body>

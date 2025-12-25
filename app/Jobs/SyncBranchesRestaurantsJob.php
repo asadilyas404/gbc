@@ -55,10 +55,10 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             $result = $response->json();
             $data = $result['data'] ?? [];
 
-            dd($data);
             Log::info('Received branch/restaurant data from live server', [
                 'branches' => count($data['branches'] ?? []),
                 'restaurants' => count($data['restaurants'] ?? []),
+                'partners' => count($data['partners'] ?? []),
             ]);
 
             $syncedBranchIds = [];
@@ -140,19 +140,19 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                     DB::connection('oracle')
                         ->table('tbl_sale_order_partners')
                         ->updateOrInsert(
-                            ['id' => $partner['id']],
+                            ['partner_id' => $partner['partner_id']],
                             $partner
                         );
 
-                    $syncPartnerIds[] = $partner['id'];
+                    $syncPartnerIds[] = $partner['partner_id'];
                     $latestSyncedTimestamps['partners'] = $this->pickLatestTimestamp(
                         $latestSyncedTimestamps['partners'],
                         $partner['updated_at'] ?? null
                     );
-                    Log::info("Partner ID {$partner['id']} synced successfully.");
+                    Log::info("Partner ID {$partner['partner_id']} synced successfully.");
 
                 } catch (\Exception $e) {
-                    Log::error("Failed syncing partner ID {$partner['id']}", [
+                    Log::error("Failed syncing partner ID {$partner['partner_id']}", [
                         'error' => $e->getMessage()
                     ]);
                 }
@@ -163,6 +163,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             Log::info('SyncBranchesRestaurantsJob completed successfully', [
                 'synced_branches' => count($syncedBranchIds),
                 'synced_restaurants' => count($syncedRestaurantIds),
+                'synced_partners' => count($syncPartnerIds),
             ]);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {

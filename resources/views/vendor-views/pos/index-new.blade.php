@@ -967,7 +967,6 @@
 
 
         $(document).on('click', '.order_partner', function() {
-            debugger;
             $('#loading').show();
             var selectedId = $(this).data('value'); // capture before AJAX
 

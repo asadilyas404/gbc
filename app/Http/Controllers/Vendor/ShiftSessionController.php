@@ -122,7 +122,7 @@ class ShiftSessionController extends Controller
                 'closing_cash' => $request->closing_cash,
                 'closing_visa' => $request->closing_visa,
                 'closing_incharge' => $request->closing_incharge,
-                'vertifid' => 0,
+                'verified' => 0,
                 'is_pushed' => 'N'
             ];
 

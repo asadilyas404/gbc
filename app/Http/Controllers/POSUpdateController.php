@@ -8,11 +8,18 @@ use Symfony\Component\Process\Process;
 
 class POSUpdateController extends Controller
 {
-    private function runCmdWindows(string $command, string $cwd): array
+    private function cleanPath(string $path): string
     {
-        // cmd.exe is required for .bat + Windows quoting
-        $p = Process::fromShellCommandline('cmd.exe /V:ON /C ' . $command, $cwd);
-        $p->setTimeout(600); // 10 minutes
+        // remove accidental wrapping quotes
+        $path = trim($path);
+        $path = trim($path, "\"'");
+        return $path;
+    }
+
+    private function runProcess(array $cmd, string $cwd): array
+    {
+        $p = new \Symfony\Component\Process\Process($cmd, $cwd);
+        $p->setTimeout(600);
         $p->run();
 
         return [
@@ -22,21 +29,30 @@ class POSUpdateController extends Controller
         ];
     }
 
-    public function check(Request $request)
+    public function check()
     {
         $cwd = base_path();
 
-        $git = trim(config('posupdater.git'));
-        $branch = trim(config('posupdater.branch'));
+        $git = $this->cleanPath((string) config('posupdater.git'));
+        $branch = trim((string) config('posupdater.branch', 'main'));
 
-        // cache results for 60s (avoid spamming remote)
-        $res = Cache::remember('pos_update_check', 60, function () use ($cwd, $git, $branch) {
-            $local = $this->runCmdWindows("\"{$git}\" rev-parse HEAD", $cwd);
+        // quick validation (helps debugging)
+        if (!is_file($git)) {
+            return response()->json([
+                'ok' => false,
+                'error' => 'git_not_found',
+                'details' => "Git not found at: {$git}",
+            ]);
+        }
+
+        $res = \Illuminate\Support\Facades\Cache::remember('pos_update_check', 60, function () use ($cwd, $git, $branch) {
+
+            $local = $this->runProcess([$git, 'rev-parse', 'HEAD'], $cwd);
             if (!$local['ok']) {
                 return ['ok' => false, 'error' => 'local_head_failed', 'details' => $local['output']];
             }
 
-            $remote = $this->runCmdWindows("\"{$git}\" ls-remote origin refs/heads/{$branch}", $cwd);
+            $remote = $this->runProcess([$git, 'ls-remote', 'origin', "refs/heads/{$branch}"], $cwd);
             if (!$remote['ok']) {
                 return ['ok' => false, 'error' => 'remote_head_failed', 'details' => $remote['output']];
             }
@@ -55,30 +71,32 @@ class POSUpdateController extends Controller
         return response()->json($res);
     }
 
-    public function run(Request $request)
+    public function run(\Illuminate\Http\Request $request)
     {
-        // SECURITY: allow only admins (adjust for your app)
-        abort_unless($request->user()->role === 'admin', 403);
+        // abort_unless($request->user()->role === 'admin', 403);
 
-        // Prevent parallel updates
-        if (!Cache::add('pos_update_lock', true, 600)) {
+        if (!\Illuminate\Support\Facades\Cache::add('pos_update_lock', true, 600)) {
             return response()->json(['ok' => false, 'message' => 'Update already running'], 409);
         }
 
         try {
             $repo   = base_path();
-            $git    = trim(config('posupdater.git'));
-            $php    = trim(config('posupdater.php'));
-            $branch = trim(config('posupdater.branch'));
+            $git    = $this->cleanPath((string) config('posupdater.git'));
+            $php    = $this->cleanPath((string) config('posupdater.php'));
+            $branch = trim((string) config('posupdater.branch', 'main'));
 
             $bat = base_path('scripts\\update.bat');
 
-            // run: scripts\update.bat "repo" "git" "php" "branch"
-            $cmd = "\"{$bat}\" \"{$repo}\" \"{$git}\" \"{$php}\" \"{$branch}\"";
+            if (!is_file($bat)) {
+                return response()->json(['ok' => false, 'message' => "BAT not found: {$bat}"], 500);
+            }
 
-            $result = $this->runCmdWindows($cmd, $repo);
+            $result = $this->runProcess(
+                ['cmd.exe', '/C', $bat, $repo, $git, $php, $branch],
+                $repo
+            );
 
-            Cache::forget('pos_update_check');
+            \Illuminate\Support\Facades\Cache::forget('pos_update_check');
 
             return response()->json([
                 'ok' => $result['ok'],
@@ -87,7 +105,8 @@ class POSUpdateController extends Controller
             ], $result['ok'] ? 200 : 500);
 
         } finally {
-            Cache::forget('pos_update_lock');
+            \Illuminate\Support\Facades\Cache::forget('pos_update_lock');
         }
     }
+
 }

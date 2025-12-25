@@ -819,7 +819,7 @@ async function posRunUpdateWithLoader() {
       await Swal.fire({
         title: "Update completed",
         text: "POS updated successfully. Reload now?",
-        icon: "success",
+        type: "success",
         confirmButtonText: "Reload",
         allowOutsideClick: false
       });
@@ -833,7 +833,7 @@ async function posRunUpdateWithLoader() {
             <pre style="height:240px; overflow:auto; background:#111; color:#f55; padding:10px; border-radius:8px; margin-top:10px;">${escapeHtml(out.output || "No output")}</pre>
           </div>
         `,
-        icon: "error",
+        type: "error",
         confirmButtonText: "OK",
         allowOutsideClick: false
       });

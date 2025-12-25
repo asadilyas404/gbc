@@ -100,9 +100,7 @@ class BranchRestaurantSyncController extends Controller
                 $partnerRecord = $this->ensureUpdatedAt((array) $partner, 'tbl_sale_order_partners', 'partner_id');
                 $partner->updated_at = $partnerRecord['updated_at'] ?? $partner->updated_at;
 
-                $data['partners'][] = [
-                    'partner' => $partnerRecord,
-                ];
+                $data['partners'][] = $partnerRecord;
             }
 
             Log::info('Branch, restaurant and partner data retrieved for sync', [

@@ -20,21 +20,22 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
     private const SYNC_ENTITY_TYPES = [
         'branches',
         'restaurants',
+        'partners',
     ];
 
     public function handle()
     {
         set_time_limit(300);
         Log::info('SyncBranchesRestaurantsJob started (API-based)');
-
+        
         try {
             $branchId = Helpers::get_restaurant_id();
-
+            
             if (empty($branchId)) {
                 Log::warning('SyncBranchesRestaurantsJob halted: branch/restaurant context missing');
                 return;
             }
-
+            
             $response = Http::timeout(config('services.live_server.timeout', 60))
                 ->withToken(config('services.live_server.token'))
                 ->withoutVerifying() // disables SSL certificate verification
@@ -54,6 +55,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             $result = $response->json();
             $data = $result['data'] ?? [];
 
+            dd($data);
             Log::info('Received branch/restaurant data from live server', [
                 'branches' => count($data['branches'] ?? []),
                 'restaurants' => count($data['restaurants'] ?? []),
@@ -61,6 +63,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
 
             $syncedBranchIds = [];
             $syncedRestaurantIds = [];
+            $syncPartnerIds = [];
             $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
 
             foreach ($data['branches'] ?? [] as $branch) {
@@ -127,6 +130,29 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 } catch (\Exception $e) {
                     DB::connection('oracle')->rollBack();
                     Log::error("Failed syncing restaurant ID {$restaurantData['restaurant']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
+            foreach ($data['partners'] ?? [] as $partner) {
+                try {
+                    DB::connection('oracle')
+                        ->table('tbl_sale_order_partners')
+                        ->updateOrInsert(
+                            ['id' => $partner['id']],
+                            $partner
+                        );
+
+                    $syncPartnerIds[] = $partner['id'];
+                    $latestSyncedTimestamps['partners'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['partners'],
+                        $partner['updated_at'] ?? null
+                    );
+                    Log::info("Partner ID {$partner['id']} synced successfully.");
+
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing partner ID {$partner['id']}", [
                         'error' => $e->getMessage()
                     ]);
                 }

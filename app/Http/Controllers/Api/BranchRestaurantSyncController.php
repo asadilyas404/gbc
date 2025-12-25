@@ -13,6 +13,7 @@ class BranchRestaurantSyncController extends Controller
     private const SYNC_ENTITY_TYPES = [
         'branches',
         'restaurants',
+        'partners',
     ];
 
     /**

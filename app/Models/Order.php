@@ -429,4 +429,9 @@ class Order extends Model
     {
         return $this->hasOne(PosOrderAdditionalDtl::class, 'order_id', 'id');
     }
+
+    public function partner()
+    {
+        return $this->belongsTo(TblSaleOrderPartner::class, 'partner_id');
+    }
 }

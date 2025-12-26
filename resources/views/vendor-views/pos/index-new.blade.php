@@ -1366,13 +1366,13 @@
                                 <label style="font-size:14px;">Item Status:</label><br>
                                 <div class="d-flex gap-2 mt-2 justify-content-between">
                                     <label class="payment-selection-box w-100">
-                                        <input type="radio" name="item-reduce-status" value="1"> Unprepared
+                                        <input type="radio" name="item-reduce-status" value="1" class="mr-1"> {{ translate('messages.Unprepared') }}
                                     </label>
                                     <label class="payment-selection-box w-100">
-                                        <input type="radio" name="item-reduce-status" value="2"> Prepared
+                                        <input type="radio" name="item-reduce-status" value="2" class="mr-1"> {{ translate('messages.Re-sold') }}
                                     </label>
                                     <label class="payment-selection-box w-100">
-                                        <input type="radio" name="item-reduce-status" value="3"> Wasted
+                                        <input type="radio" name="item-reduce-status" value="3" class="mr-1"> {{ translate('messages.Wasted') }}
                                     </label>
                                 </div>
                             </div>
@@ -1476,13 +1476,13 @@
                             <label style="font-size:14px;">Cooking Status:</label><br>
                             <div class="d-flex gap-2 mt-2 justify-content-between">
                                 <label class="payment-selection-box w-100">
-                                    <input type="radio" name="item-cooking-status" value="1"> Unprepared
+                                    <input type="radio" name="item-cooking-status" value="1" class="mr-1"> {{translate('messages.Unprepared')}}
                                 </label>
                                 <label class="payment-selection-box w-100">
-                                    <input type="radio" name="item-cooking-status" value="2"> Prepared
+                                    <input type="radio" name="item-cooking-status" value="2" class="mr-1"> {{translate('messages.Re-sold')}}
                                 </label>
                                 <label class="payment-selection-box w-100">
-                                    <input type="radio" name="item-cooking-status" value="3"> Wasted
+                                    <input type="radio" name="item-cooking-status" value="3" class="mr-1"> {{translate('messages.Wasted')}}
                                 </label>
                             </div>
                         </div>

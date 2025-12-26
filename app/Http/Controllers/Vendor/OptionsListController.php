@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Vendor;
 
-use App\Http\Controllers\Controller;
 use App\Models\OptionsList;
-use Brian2694\Toastr\Facades\Toastr;
+use App\Models\Translation;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
-use App\Models\Translation;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Brian2694\Toastr\Facades\Toastr;
 
 class OptionsListController extends Controller
 {
@@ -80,6 +81,12 @@ class OptionsListController extends Controller
     public function delete(Request $request)
     {
         $option = OptionsList::findOrFail($request->id);
+        
+        if(DB::table('VW_REST_OPTIONS_ORDERS')->where('option_list_id', $request->id)->exists()){
+            Toastr::error(translate('messages.option_cannot_be_deleted_because_it_is_associated_with_orders'));
+            return back();
+        }
+
         $option->delete();
         Toastr::success(translate('messages.option_deleted_successfully'));
         return back();

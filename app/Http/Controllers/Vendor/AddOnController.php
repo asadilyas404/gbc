@@ -103,6 +103,12 @@ class AddOnController extends Controller
             Toastr::warning(translate('messages.permission_denied'));
             return back();
         }
+
+        if(AddOn::find($request->id)->foods()->exists()){
+            Toastr::error(translate('messages.addon_cannot_be_deleted_because_it_is_associated_with_food_items'));
+            return back();
+        }
+
         $addon = AddOn::find($request->id);
         $addon->delete();
         Toastr::success(translate('messages.addon_deleted_successfully'));

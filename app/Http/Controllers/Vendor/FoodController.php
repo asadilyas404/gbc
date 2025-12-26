@@ -871,6 +871,11 @@ class FoodController extends Controller
             return back();
         }
 
+        if($product->orders()->exists()){
+            Toastr::error(translate('messages.food_cannot_be_deleted_because_it_is_associated_with_orders'));
+            return back();
+        }
+
         if ($product->image) {
             Helpers::safe_delete_image('product/', $product->image, Food::class, $product->id);
         }

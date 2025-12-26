@@ -290,7 +290,7 @@
                         </div>
                         <div class="product-quantity d-flex align-items-center">
                             <div class="input-group input-group--style-2 pr-3 w-160px">
-                                @php($disableMinus = session()->has('editing_order_id') && ($cart_item['quantity'] ?? 1) >= 1)
+                                @php($disableMinus = false)
                                 <span class="input-group-btn">
                                     <button class="btn btn-number text-dark" type="button"
                                         data-type="minus"

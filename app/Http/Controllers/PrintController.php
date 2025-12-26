@@ -165,6 +165,9 @@ class PrintController extends Controller
                 $printer->setTextSize(2, 2);
                 $printer->text("\nCANCELED\n\n");
             }
+            if($order->partner_id){
+                $printer->text($order->partner->partner_name . "\n");
+            }
             $printer->setTextSize(1, 1);
 
             $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
@@ -190,8 +193,10 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
+                $printer->text("Order By: " . $order->takenBy->name . "\n");
             }
+
+            
 
             $printer->text($linedash);
 
@@ -611,7 +616,9 @@ class PrintController extends Controller
                 $printer->selectPrintMode();
                 $printer->setReverseColors(false);
             }
-
+            if($order->partner_id){
+                $printer->text($order->partner->partner_name . "\n");
+            }
             if ($order->printed == '1' && $order->order_status == 'canceled') {
                 $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                 $printer->setReverseColors(true);
@@ -1670,7 +1677,8 @@ class PrintController extends Controller
             }
 
             $openSessions = ShiftSession::where('branch_id', $branchId)
-            ->where('session_status', 'open');
+            ->where('session_status', 'open')
+            ->orWhere('verified', 0);
             
             if($openSessions->count() > 0){
                 return response()->json([

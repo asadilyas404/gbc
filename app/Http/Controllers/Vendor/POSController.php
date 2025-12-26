@@ -646,9 +646,9 @@ class POSController extends Controller
                 $newQty = $data['quantity'];
 
                 if($orderId){
-                    $currentItemPrice = (($currentItemInCart['price'] * $currentItemInCart['quantity']) - $currentItemInCart['discount']) + $currentItemInCart['addon_price'];
+                    $currentItemPrice = $currentItemInCart['price'] + $currentItemInCart['addon_price'];
 
-                    $newItemPrice = (($data['price'] * $data['quantity']) - $data['discount']) + $data['addon_price'];
+                    $newItemPrice = $data['price'] + $data['addon_price'];
                     
                     if($newItemPrice < $currentItemPrice){
                         return response()->json([

@@ -6637,4 +6637,9 @@
   'Unprepared' => 'Unprepared',
   'Restaurant Admin' => 'Restaurant Admin',
   'Khidma Extra' => 'Khidma Extra',
+  'Canceled Items' => 'Canceled Items',
+  'Credit_Partner_Amount' => 'Credit Partner Amount',
+  'Credit_Customer_Amount' => 'Credit Customer Amount',
+  'cannot_place_order_with_all_items_canceled_when_tax_or_charges_exist' => 'Cannot place order with all items canceled when tax or charges exist',
+  'cannot_place_order_with_all_items_canceled_when_delivery_charges_or_other_charges_exist' => 'Cannot place order with all items canceled when delivery charges or other charges exist',
 );

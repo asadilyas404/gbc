@@ -150,24 +150,45 @@ class OrderController extends Controller
 
         // Calculate amounts
         $paidAmount = $orders->where('payment_status', 'paid')
+        ->where('payment_method', '!=', 'credit')
         ->sum('order_amount');
+
         $canceledAmount = $orders
         ->where('order_status', 'canceled')
         ->whereIn('payment_status', ['paid'])
         ->sum('order_amount');
+        
         $unpaidAmount = $orders->where('payment_status', 'unpaid')
         ->where('order_status', 'pending')
         ->sum('order_amount');
+
+        $creditCustomerAmount = $orders->where('payment_status', 'paid')
+        ->where('payment_method', 'credit')
+        ->where('user_id', '!=', null)->sum('order_amount');
+
+        $creditPartnerAmount = $orders->where('payment_status', 'paid')
+        ->where('payment_method', 'credit')
+        ->where('user_id', null)
+        ->where('partner_id', '!=', null)->sum('order_amount');
 
         foreach($orders as $o){
             $o->partner_name = DB::table('tbl_sale_order_partners')->where('partner_id',$o->partner_id)->value('partner_name');
         }
 
-        $totalAmount = $paidAmount - $canceledAmount;
+        $totalAmount = $paidAmount + $unpaidAmount + $creditCustomerAmount + $creditPartnerAmount;
+
+        // Update fields
+        // Count the deleted items and sum count
+        $deletedItems = 0;
+        $orders->each(function($order) use (&$deletedItems) {
+            $deletedCount = $order->details->where('is_deleted', 'Y')->count();
+            $deletedItems += $deletedCount;
+            $order->deleted_items_count = $deletedCount;
+        });
 
         $st=$status;
         $status = translate('messages.'.$status);
-        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders','canceledOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount'));
+        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders','canceledOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount','deletedItems','creditCustomerAmount', 'creditPartnerAmount'));
     }
 
     public function search(Request $request){

@@ -302,8 +302,20 @@
                         </div>
                         <div class="col-auto">
                             <div class="mini-card canceled">
-                                <span class="mini-label">{{ translate('Canceled') }}</span>
-                                <span class="mini-value">{{ $canceledOrders }}</span>
+                                <span class="mini-label">{{ translate('Canceled Items') }}</span>
+                                <span class="mini-value">{{ $deletedItems }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card unpaid-amount">
+                                <span class="mini-label">{{ translate('Credit_Customer_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($creditCustomerAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card unpaid-amount">
+                                <span class="mini-label">{{ translate('Credit_Partner_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($creditPartnerAmount) }}</span>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -316,12 +328,6 @@
                             <div class="mini-card paid">
                                 <span class="mini-label">{{ translate('Paid_Amount') }}</span>
                                 <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($paidAmount) }}</span>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="mini-card canceled">
-                                <span class="mini-label">{{ translate('Refunded') }}</span>
-                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($canceledAmount) }}</span>
                             </div>
                         </div>
                         <div class="col-auto">

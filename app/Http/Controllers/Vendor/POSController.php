@@ -103,8 +103,9 @@ class POSController extends Controller
             $q->where(function ($qq) use ($keys) {
                 foreach ($keys as $value) {
                     $value = trim($value);
+
                     if ($value !== '') {
-                        $qq->orWhere('name', 'LIKE', "%{$value}%"); // remove LOWER()
+                        $qq->orWhereRaw('LOWER(name) LIKE ?', ['%' . strtolower($value) . '%']);
                     }
                 }
             });
@@ -1228,10 +1229,11 @@ class POSController extends Controller
                     error_log('Order detail variation field: ' . $or_d['variation']);
 
                     $order_details[] = $or_d;
-
+                    $allCanceled = true;
                     if($or_d['is_deleted'] == 'Y'){
                         continue;
                     }else{
+                        $allCanceled = false;
                         $total_addon_price += $or_d['total_add_on_price'];
                         $product_price += $price * $or_d['quantity'];
                         $discount_on_product += $or_d['discount_on_food'] * $or_d['quantity'];
@@ -1251,6 +1253,11 @@ class POSController extends Controller
 
         $total_price = $product_price + $total_addon_price - $discount_on_product - $restaurant_discount_amount;
         $tax = isset($cart['tax']) ? $cart['tax'] : $restaurant->tax;
+
+        if($allCanceled && ($tax > 0 || $order->delivery_charge > 0 || $order->additional_charge > 0 || $restaurant_discount_amount > 0) ){
+            Toastr::error(translate('messages.cannot_place_order_with_all_items_canceled_when_delivery_charges_or_other_charges_exist'));
+            return back()->withInput();
+        }
 
         if($total_price < 0){
             Toastr::error(translate('messages.total_price_cannot_be_negative'));

@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Vendor;
 
-use App\Http\Controllers\Controller;
 use App\Models\AddOn;
-use Brian2694\Toastr\Facades\Toastr;
+use App\Models\OrderDetail;
+use App\Models\Translation;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
-use App\Models\Translation;
+use App\Http\Controllers\Controller;
+use Brian2694\Toastr\Facades\Toastr;
 
 class AddOnController extends Controller
 {
@@ -98,19 +99,37 @@ class AddOnController extends Controller
 
     public function delete(Request $request)
     {
-        if(!Helpers::get_restaurant_data()->food_section)
-        {
+        if (!Helpers::get_restaurant_data()->food_section) {
             Toastr::warning(translate('messages.permission_denied'));
             return back();
         }
 
-        if(AddOn::find($request->id)->foods()->exists()){
-            Toastr::error(translate('messages.addon_cannot_be_deleted_because_it_is_associated_with_food_items'));
+        $addon = AddOn::find($request->id);
+
+        if (!$addon) {
+            Toastr::error(translate('messages.addon_not_found'));
             return back();
         }
 
-        $addon = AddOn::find($request->id);
+        $id = (string) $addon->id;
+
+        // variation JSON contains: "addons":[{"id":"22",...}]
+        $isUsed = OrderDetail::where(function ($q) use ($id) {
+                $q->where('variation', 'LIKE', '%"addons"%')  // quick filter
+                ->where(function ($qq) use ($id) {
+                    $qq->where('variation', 'LIKE', '%"id":"'.$id.'"%') // id stored as string
+                        ->orWhere('variation', 'LIKE', '%"id":'.$id.'%'); // id stored as number
+                });
+            })
+            ->exists();
+
+        if ($isUsed) {
+            Toastr::warning(translate('messages.addon_is_used_in_orders'));
+            return back();
+        }
+
         $addon->delete();
+
         Toastr::success(translate('messages.addon_deleted_successfully'));
         return back();
     }

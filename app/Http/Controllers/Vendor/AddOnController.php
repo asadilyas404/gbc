@@ -105,23 +105,27 @@ class AddOnController extends Controller
         }
 
         $addon = AddOn::find($request->id);
-
         if (!$addon) {
             Toastr::error(translate('messages.addon_not_found'));
             return back();
         }
 
-        $id = (string) $addon->id;
+        $id = (string) $addon->id; // your JSON shows ids often stored as strings
 
-        // variation JSON contains: "addons":[{"id":"22",...}]
-        $isUsed = OrderDetail::where(function ($q) use ($id) {
-                $q->where('variation', 'LIKE', '%"addons"%')  // quick filter
-                ->where(function ($qq) use ($id) {
-                    $qq->where('variation', 'LIKE', '%"id":"'.$id.'"%') // id stored as string
-                        ->orWhere('variation', 'LIKE', '%"id":'.$id.'%'); // id stored as number
-                });
-            })
-            ->exists();
+        $isUsed = OrderDetail::whereRaw(
+            "EXISTS (
+                SELECT 1
+                FROM JSON_TABLE(
+                    variation,
+                    '$[*].addons[*]'
+                    COLUMNS (
+                        addon_id VARCHAR2(50) PATH '$.id'
+                    )
+                ) jt
+                WHERE jt.addon_id = ?
+            )",
+            [$id]
+        )->exists();
 
         if ($isUsed) {
             Toastr::warning(translate('messages.addon_is_used_in_orders'));
@@ -129,7 +133,6 @@ class AddOnController extends Controller
         }
 
         $addon->delete();
-
         Toastr::success(translate('messages.addon_deleted_successfully'));
         return back();
     }

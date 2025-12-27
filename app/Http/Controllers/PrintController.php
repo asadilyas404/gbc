@@ -296,10 +296,10 @@ class PrintController extends Controller
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
                                     if ($addon['price'] > 0) {
-                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3));
+                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3));
                                         $printer->bitImageColumnFormat($currencyTextimage);
                                     } else {
-                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3) . "\n");
+                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3) . "\n");
                                     }
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -796,11 +796,11 @@ class PrintController extends Controller
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
                                     if($addon['price'] > 0){
-                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3)); 
+                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3)); 
                                         $printer->bitImageColumnFormat($currencyTextimage);
                                         // $printer->text("\n");
                                     }else{
-                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
+                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
                                     }
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -1090,11 +1090,11 @@ class PrintController extends Controller
                                 if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                     foreach ($variation['addons'] as $addon) {
                                         if($addon['price'] > 0){
-                                            $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3)); 
+                                            $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3)); 
                                             $printer->bitImageColumnFormat($currencyTextimage);
                                             // $printer->text("\n");
                                         }else{
-                                            $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
+                                            $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
                                         }
 
                                         $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';

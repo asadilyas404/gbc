@@ -83,7 +83,7 @@ class OptionsListController extends Controller
         $option = OptionsList::findOrFail($request->id);
         
         if(DB::table('VW_REST_OPTIONS_ORDERS')->where('options_list_id', $request->id)->exists()){
-            Toastr::error(translate('messages.option_cannot_be_deleted_because_it_is_associated_with_orders'));
+            Toastr::warning(translate('messages.option_cannot_be_deleted_because_it_is_associated_with_orders'));
             return back();
         }
 

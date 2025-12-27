@@ -911,28 +911,79 @@ class FoodController extends Controller
     public function list(Request $request)
     {
         $category_id = $request->query('category_id', 'all');
-        $type = $request->query('type', 'all');
-        $foodsQuery = Food::query();
+        $type        = $request->query('type', 'all');
+
+        $foodsQuery = Food::query()
+            ->with(['category.parent']); // ✅ prevent N+1 in blade
 
         if (is_numeric($category_id)) {
-            // 1) Get all category IDs (category itself + its direct children)
             $categoryIds = Category::where('id', $category_id)
                 ->orWhere('parent_id', $category_id)
                 ->pluck('id');
 
-            // 2) Filter foods directly on category_id
             $foodsQuery->whereIn('category_id', $categoryIds);
         }
 
-        // 3) Apply other conditions
         $foods = $foodsQuery
-            ->type($type)            // your local scope
-            ->latest('id')           // use indexed column
+            ->type($type)
+            ->latest('id')
             ->paginate(config('default_pagination'));
 
-        $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
-        return view('vendor-views.product.list', compact('foods', 'category', 'type'));
+        // ✅ Build addons map ONCE for current page foods
+        $allAddonIds = $foods->getCollection()
+            ->pluck('add_ons')
+            ->filter()
+            ->flatMap(function ($json) {
+                $ids = json_decode($json, true);
+                return is_array($ids) ? $ids : [];
+            })
+            ->unique()
+            ->values()
+            ->all();
+
+        $addonsMap = \App\Models\AddOn::whereIn('id', $allAddonIds)
+            ->pluck('name', 'id'); // [id => name]
+
+        // ✅ Precompute stock-out flags ONCE (avoid heavy blade loops)
+        $stockOutMap = [];
+        foreach ($foods as $food) {
+            $stockOut = false;
+
+            if ($food->stock_type !== 'unlimited' && (int)$food->item_stock <= 0) {
+                $stockOut = true;
+            } else {
+                $variations = json_decode($food->variations, true);
+                if (is_array($variations)) {
+                    foreach ($variations as $item) {
+                        foreach (($item['values'] ?? []) as $value) {
+                            $stockType = $value['stock_type'] ?? 'unlimited';
+                            $current   = (int)($value['current_stock'] ?? 0);
+
+                            if ($stockType !== 'unlimited' && $current <= 0) {
+                                $stockOut = true;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $stockOutMap[$food->id] = $stockOut;
+        }
+
+        $category = $category_id !== 'all'
+            ? Category::findOrFail($category_id)
+            : null;
+
+        return view('vendor-views.product.list', compact(
+            'foods',
+            'category',
+            'type',
+            'addonsMap',
+            'stockOutMap'
+        ));
     }
+
 
     public function search(Request $request)
     {

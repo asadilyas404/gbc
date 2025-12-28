@@ -1442,9 +1442,18 @@ class POSController extends Controller
                 }
 
                 if($order->payment_status == 'paid'){
-                    if($order->printed == 0){
+                    $requirePrint = false;
+                    foreach ($order->details as $detail) {
+                        if ($order->printed == 0 || $detail->options_changed == 1 || $detail->is_printed == 0 || $detail->is_deleted == 'Y') {
+                            $requirePrint = true;
+                            break;
+                        }
+                    }
+
+                    if($requirePrint){
                         $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                     }
+                    
                     $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                 }
 

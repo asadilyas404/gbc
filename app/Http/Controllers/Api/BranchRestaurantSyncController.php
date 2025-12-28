@@ -14,6 +14,7 @@ class BranchRestaurantSyncController extends Controller
         'branches',
         'restaurants',
         'partners',
+        'banks',
     ];
 
     /**
@@ -34,6 +35,7 @@ class BranchRestaurantSyncController extends Controller
                 'branches' => [],
                 'restaurants' => [],
                 'partners'  => [],
+                'banks'    => [],
             ];
 
             $branches = DB::connection('oracle')
@@ -103,11 +105,31 @@ class BranchRestaurantSyncController extends Controller
                 $data['partners'][] = $partnerRecord;
             }
 
+            $banks = DB::connection('oracle')
+                ->table('tbl_defi_bank')
+                ->when($cursorMap['banks'] ?? null, function ($query, Carbon $cursor) {
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
+                })
+                ->orderBy('updated_at')
+                ->get();
+            
+            foreach ($banks as $bank) {
+                $bankRecord = $this->ensureUpdatedAt((array) $bank, 'tbl_defi_bank', 'bank_id');
+                $bank->updated_at = $bankRecord['updated_at'] ?? $bank->updated_at;
+
+                $data['banks'][] = $bankRecord;
+            }
+
             Log::info('Branch, restaurant and partner data retrieved for sync', [
                 'branch_id' => $branchId,
                 'branches_count' => count($data['branches']),
                 'restaurants_count' => count($data['restaurants']),
                 'partners_count' => count($data['partners']),
+                'banks_count' => count($data['banks']),
+            
             ]);
 
             return response()->json([
@@ -117,6 +139,7 @@ class BranchRestaurantSyncController extends Controller
                     'branches' => count($data['branches']),
                     'restaurants' => count($data['restaurants']),
                     'partners' => count($data['partners']),
+                    'banks' => count($data['banks']),
                 ],
                 'cursor' => array_map(function ($item) {
                     return $item ? $item->toIso8601String() : null;
@@ -150,13 +173,14 @@ class BranchRestaurantSyncController extends Controller
                 'branches_last_synced_at' => 'nullable|string',
                 'restaurants_last_synced_at' => 'nullable|string',
                 'partners_last_synced_at' => 'nullable|string',
+                'banks_last_synced_at' => 'nullable|string',
             ]);
 
             $branchId = (int) $validated['branch_id'];
             $timestamps = $this->parseTimestampPayload($validated);
             $this->persistBranchSyncState($branchId, $timestamps);
 
-            Log::info('Branch sync state updated for branches/restaurants/partners', [
+            Log::info('Branch sync state updated for branches/restaurants/partners/banks', [
                 'branch_id' => $branchId,
                 'payload' => array_intersect_key(
                     $validated,

@@ -21,6 +21,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         'branches',
         'restaurants',
         'partners',
+        'banks'
     ];
 
     public function handle()
@@ -59,11 +60,13 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'branches' => count($data['branches'] ?? []),
                 'restaurants' => count($data['restaurants'] ?? []),
                 'partners' => count($data['partners'] ?? []),
+                'banks' => count($data['banks'] ?? []),
             ]);
 
             $syncedBranchIds = [];
             $syncedRestaurantIds = [];
             $syncPartnerIds = [];
+            $syncBankIds = [];
             $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
 
             foreach ($data['branches'] ?? [] as $branch) {
@@ -158,16 +161,36 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 }
             }
 
+            foreach ($data['banks'] ?? [] as $bank) {
+                try {
+                    DB::connection('oracle')
+                        ->table('tbl_defi_bank')
+                        ->updateOrInsert(
+                            ['bank_id' => $bank['bank_id']],
+                            $bank
+                        );
+
+                    $syncBankIds[] = $bank['bank_id'];
+                    Log::info("Bank ID {$bank['bank_id']} synced successfully.");
+
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing bank ID {$bank['bank_id']}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
             $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
             Log::info('SyncBranchesRestaurantsJob completed successfully', [
                 'synced_branches' => count($syncedBranchIds),
                 'synced_restaurants' => count($syncedRestaurantIds),
                 'synced_partners' => count($syncPartnerIds),
+                'synced_banks' => count($syncBankIds),
             ]);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
-            Log::error('Connection error while syncing branches/restaurants', [
+            Log::error('Connection error while syncing branches/restaurants/banks', [
                 'error' => $e->getMessage()
             ]);
         } catch (\Exception $e) {

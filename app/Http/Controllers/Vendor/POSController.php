@@ -1296,7 +1296,7 @@ class POSController extends Controller
             if($payment_type != 'credit'){
                 $paidAmount = floatval($request->cash_paid ?? 0) + floatval($request->card_paid ?? 0);
                 if ($request->order_draft == 'final') {
-                    if($paidAmount < $order->order_amount){
+                    if (number_format($paidAmount, 3) < number_format($order->order_amount, 3)) {
                         Toastr::warning(translate('messages.paid_amount_cannot_be_less_than_order_amount'));
                         return back();
                     }
@@ -1453,7 +1453,7 @@ class POSController extends Controller
                     if($requirePrint){
                         $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                     }
-                    
+
                     $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                 }
 

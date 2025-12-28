@@ -193,7 +193,7 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $printer->text("Order By: " . $order->takenBy->name . "\n");
+                $printer->text("Order Taker: " . $order->takenBy->name . "\n");
             }
 
             
@@ -617,7 +617,7 @@ class PrintController extends Controller
                 $printer->setReverseColors(false);
             }
             if($order->partner_id){
-                $printer->text($order->partner->partner_name . "\n");
+                $printer->text("\n" . $order->partner->partner_name . "\n");
             }
             if ($order->printed == '1' && $order->order_status == 'canceled') {
                 $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
@@ -650,7 +650,7 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $printer->text("Order By: " . $order->takenBy->name . "\n");
+                $printer->text("Order Taker: " . $order->takenBy->name . "\n");
             }
 
             $printer->text($linedash);
@@ -752,7 +752,6 @@ class PrintController extends Controller
                     $variations = json_decode($detail->variation, true);
                     if (count($variations) > 0) {
                         //$printer->text("  Variations:\n");
-
                         foreach ($variations as $variation) {
                             if (isset($variation['name']) && isset($variation['values'])) {
                                 // $printer->text("  " . $variation['name'] . ":" . "\n");
@@ -1010,7 +1009,7 @@ class PrintController extends Controller
                 $printer->text("Order # " . $order->order_serial . "\n");
                 $printer->text('Canceled Items: ' . $order->total_items . "\n");
                 if($order->takenBy) {
-                    $printer->text("Order By: " . $order->takenBy->name . " at: " . date('Y-m-d H:i', strtotime($order->order_date)) . "\n");
+                    $printer->text("Order Taker: " . $order->takenBy->name . " at: " . date('Y-m-d H:i', strtotime($order->order_date)) . "\n");
                 }
 
                 // If the Order is for any delivery partner, show that info
@@ -1521,7 +1520,7 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $printer->text("Order By: " . $order->takenBy->name . "\n");
+                $printer->text("Order Taker: " . $order->takenBy->name . "\n");
             }
 
             $printer->text("==============================\n");

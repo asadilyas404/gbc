@@ -959,9 +959,7 @@ class POSController extends Controller
                     Toastr::error(translate('For credit payment, cash or card must be zero'));
                     return back();
                 }
-
                 $payment_type = 'credit';
-
             } else {
 
                 if ($cash > 0 && $card <= 0) {
@@ -1295,6 +1293,15 @@ class POSController extends Controller
             // $order->payment_method = $request->type;
             $order->payment_method = $payment_type;
 
+            if($payment_type != 'credit'){
+                $paidAmount = floatval($request->cash_paid ?? 0) + floatval($request->card_paid ?? 0);
+                if ($request->order_draft == 'final') {
+                    if($paidAmount < $order->order_amount){
+                        Toastr::warning(translate('messages.paid_amount_cannot_be_less_than_order_amount'));
+                        return back();
+                    }
+                }
+            }
 
             $max_cod_order_amount_value = BusinessSetting::where('key', 'max_cod_order_amount')->first()->value ?? 0;
             if ($max_cod_order_amount_value > 0 && $order->payment_method == 'cash_on_delivery' && $order->order_amount > $max_cod_order_amount_value) {
@@ -1362,9 +1369,27 @@ class POSController extends Controller
             // dd($order->order_amount,$request->invoice_amount);
             if(isset($request->select_payment_type) && $request->select_payment_type=='credit_payment'){
                 $posOrderDtl->credit_paid = $order->order_amount ?? 0;
-            }else{
-                $posOrderDtl->cash_paid = $request->cash_paid ?? 0;
-                $posOrderDtl->card_paid = $request->card_paid ?? 0;
+            }
+            
+            if($payment_type == 'cash'){
+                $posOrderDtl->cash_paid = $order->order_amount ?? 0;
+                $posOrderDtl->card_paid = 0;
+            }
+
+            if($payment_type == 'card'){
+                $posOrderDtl->card_paid = $order->order_amount ?? 0;
+                $posOrderDtl->cash_paid = 0;
+            }
+
+            if($payment_type == 'cash_card'){
+                $card_paid = floatval($request->card_paid ?? 0);
+                $diffForCash = $order->order_amount - $card_paid;
+                if($diffForCash < 0){
+                    $diffForCash = 0;
+                }
+
+                $posOrderDtl->card_paid = $card_paid;
+                $posOrderDtl->cash_paid = $diffForCash;
             }
 
             if($request->select_payment_type && ($request->select_payment_type=='card_payment' || $request->select_payment_type=='both_payment')){

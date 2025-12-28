@@ -6642,4 +6642,6 @@
   'Credit_Customer_Amount' => 'Credit Customer Amount',
   'cannot_place_order_with_all_items_canceled_when_tax_or_charges_exist' => 'Cannot place order with all items canceled when tax or charges exist',
   'cannot_place_order_with_all_items_canceled_when_delivery_charges_or_other_charges_exist' => 'Cannot place order with all items canceled when delivery charges or other charges exist',
+  'paid_amount_cannot_be_less_than_order_amount' => 'Paid amount cannot be less than order amount',
+  'For credit payment, cash or card must be zero' => 'For credit payment, cash or card must be zero',
 );

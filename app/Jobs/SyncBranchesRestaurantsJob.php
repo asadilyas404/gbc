@@ -62,6 +62,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'restaurants' => count($data['restaurants'] ?? []),
                 'partners' => count($data['partners'] ?? []),
                 'banks' => count($data['banks'] ?? []),
+                'vendors' => count($data['vendors'] ?? []),
             ]);
 
             $syncedBranchIds = [];
@@ -171,6 +172,9 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             }
 
             foreach ($data['banks'] ?? [] as $bank) {
+
+                DB::connection('oracle')->beginTransaction();
+
                 try {
                     DB::connection('oracle')
                         ->table('tbl_defi_bank')
@@ -180,9 +184,15 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                         );
 
                     $syncBankIds[] = $bank['bank_id'];
+                    DB::connection('oracle')->commit();
+                    $latestSyncedTimestamps['banks'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['banks'],
+                        $bank['updated_at'] ?? null
+                    );
                     Log::info("Bank ID {$bank['bank_id']} synced successfully.");
 
                 } catch (\Exception $e) {
+                    DB::connection('oracle')->rollBack();
                     Log::error("Failed syncing bank ID {$bank['bank_id']}", [
                         'error' => $e->getMessage()
                     ]);
@@ -190,6 +200,9 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             }
 
             foreach ($data['vendors'] ?? [] as $vendor) {
+
+                DB::connection('oracle')->beginTransaction();
+
                 try {
                     DB::connection('oracle')
                         ->table('vendors')
@@ -199,8 +212,13 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                         );
                     
                     $syncVendorIds[] = $vendor['id'];
-                    Log::info("Vendor ID {$vendor['id']} synced successfully.");
 
+                    DB::connection('oracle')->commit();
+                    $latestSyncedTimestamps['vendors'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['vendors'],
+                        $vendor['updated_at'] ?? null
+                    );
+                    Log::info("Vendor ID {$vendor['id']} ({$vendor['name']}) synced successfully.");
                 } catch (\Exception $e) {
                     DB::connection('oracle')->rollBack();
                     Log::error("Failed syncing vendor ID {$vendor['id']}", [

@@ -118,6 +118,10 @@ class Restaurant extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    public function branch()
+    {
+        return $this->belongsTo(TblSoftBranch::class, 'id', 'branch_id');
+    }
 
     public function characteristics()
     {

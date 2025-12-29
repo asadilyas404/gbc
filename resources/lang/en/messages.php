@@ -6645,4 +6645,5 @@
   'paid_amount_cannot_be_less_than_order_amount' => 'Paid amount cannot be less than order amount',
   'For credit payment, cash or card must be zero' => 'For credit payment, cash or card must be zero',
   'no-branch-found' => 'No-branch-found',
+  'branch_not_assigned' => 'Branch not assigned',
 );

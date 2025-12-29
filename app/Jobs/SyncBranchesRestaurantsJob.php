@@ -219,7 +219,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                         $latestSyncedTimestamps['vendors'],
                         $vendor['updated_at'] ?? null
                     );
-                    Log::info("Vendor ID {$vendor['id']} ({$vendor['name']}) synced successfully.");
+                    Log::info("Vendor ID {$vendor['id']}) synced successfully.");
                 } catch (\Exception $e) {
                     DB::connection('oracle')->rollBack();
                     Log::error("Failed syncing vendor ID {$vendor['id']}", [

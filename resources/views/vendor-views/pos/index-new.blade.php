@@ -369,15 +369,18 @@
             <div class="order--pos-right">
                 <div class="d-flex justify-content-between align-items-center mb-2 mt-1">
                     <div class="order-date-display">
-                        <span class="text-muted">Order Date:</span>
-                        <span class="fw-bold {{ $orderDate ? 'text-primary' : 'text-muted' }}">
-                            @if ($orderDate)
-                                {{ \Carbon\Carbon::parse($orderDate)->format('F j, Y') }}
-                            @else
-                                Not set
-                            @endif
-                        </span>
+                        <div>
+                            <span class="text-muted">Order Date:</span>
+                            <span class="fw-bold {{ $orderDate ? 'text-primary' : 'text-muted' }}">
+                                @if ($orderDate)
+                                    {{ \Carbon\Carbon::parse($orderDate)->format('F j, Y') }}
+                                @else
+                                    Not set
+                                @endif
+                            </span>
+                        </div>
                     </div>
+                    
                     <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
                         title="{{ translate('messages.dashboard') }}">
                         {{ translate('messages.dashboard') }}
@@ -385,11 +388,17 @@
                 </div>
                 <div class="card">
                     <div class="card-header bg-light border-0 m-1 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <span>
-                                {{ translate('Billing Section') }}
-                            </span>
-                        </h5>
+                        <div>
+                            <h5 class="card-title mb-0">
+                                <span>
+                                    {{ translate('Billing Section') }}
+                                </span>
+                                
+                            </h5>
+                            <p class="text-muted mb-0">
+                                {{\App\CentralLogics\Helpers::get_branch_name()}}
+                            </p>
+                        </div>
                         <a class="btn btn--primary btn-sm" href="{{ route('vendor.order.list', ['draft']) }}"
                             title="{{ translate('messages.Unpaid Orders') }}">
                             {{ translate('messages.Unpaid Orders') }}

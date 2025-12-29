@@ -1477,7 +1477,7 @@ class POSController extends Controller
 
             //PlaceOrderMail end
             if ($request->order_draft == 'draft') {
-                Toastr::success(translate('messages.order_drafted_successfully'));
+                Toastr::success(translate('messages.order_sent_to_the_kitchen'));
             } else {
                 Toastr::success(translate('messages.order_placed_successfully'));
             }

@@ -3987,6 +3987,17 @@ class Helpers
         return $data;
     }
 
+    public static function get_branch_name()
+    {
+        // Get Branch ID
+        $branch_id = config('constants.branch_id', null);
+        if ($branch_id) {
+            $branchName = DB::table('tbl_soft_branch')->where('branch_id', $branch_id)->first()->branch_name ?? translate('messages.no-branch-found');
+            return $branchName;
+        }
+        return translate('messages.no-branch-found');
+    }
+
     public static function get_category_name($id)
     {
         $id = Json_decode($id, true);

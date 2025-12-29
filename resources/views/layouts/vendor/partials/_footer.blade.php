@@ -2,7 +2,7 @@
     <div class="row justify-content-between align-items-center">
         <div class="col">
             <p class="font-size-sm mb-0">
-                &copy; {{Str::limit(\App\CentralLogics\Helpers::get_restaurant_data()->name, 50, '...')}}. <span
+                &copy; {{\App\CentralLogics\Helpers::get_branch_name()}}. <span
                     class="d-none d-sm-inline-block"></span>
             </p>
         </div>

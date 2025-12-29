@@ -253,6 +253,57 @@ class POSController extends Controller
     public function quick_view_card_item(Request $request)
     {
         $product = Food::findOrFail($request->product_id);
+        $partner_id = session()->get('current_partner_id', null);
+        if (!empty($partner_id)) {
+
+            // 1) Partner base price from JSON
+            $partner_prices = collect(json_decode($product->partner_price, true) ?? []);
+            $partner_price_row = $partner_prices->firstWhere('partner_id', $partner_id);
+
+            if (!empty($partner_price_row) && isset($partner_price_row['price'])) {
+                $product->price = $partner_price_row['price'];
+            }
+
+            // 2) Decode variations once
+            $variations = json_decode($product->variations, true) ?? [];
+
+            // 3) Collect all option IDs in one pass
+            $optionIds = [];
+
+            foreach ($variations as $variation) {
+                if (!empty($variation['values']) && is_array($variation['values'])) {
+                    foreach ($variation['values'] as $v) {
+                        if (!empty($v['option_id'])) {
+                            $optionIds[] = $v['option_id'];
+                        }
+                    }
+                }
+            }
+
+            // Avoid query if there are no options
+            if (!empty($optionIds)) {
+                // 4) Fetch all prices in a single query
+                $prices = DB::table('PARTNER_VARIATION_OPTION')
+                    ->where('is_deleted', 0)
+                    ->where('partner_id', $partner_id)
+                    ->whereIn('variation_option_id', $optionIds)
+                    ->pluck('price', 'variation_option_id'); // [variation_option_id => price]
+
+                // 5) Fill optionPrice from the map
+                foreach ($variations as &$variation) {
+                    if (!empty($variation['values']) && is_array($variation['values'])) {
+                        foreach ($variation['values'] as &$v) {
+                            $v['optionPrice'] = $prices[$v['option_id']] ?? null;
+                        }
+                    }
+                }
+                unset($variation, $v); // break references
+
+                // 6) Save back to product
+                $product->variations = json_encode($variations);
+            }
+        }
+
         $item_key = $request->item_key;
         $cart_item = session()->get('cart')[$item_key];
         $editing_order_id = session()->get('editing_order_id') ?? null;

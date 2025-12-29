@@ -21,7 +21,8 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         'branches',
         'restaurants',
         'partners',
-        'banks'
+        'banks',
+        'vendors'
     ];
 
     public function handle()
@@ -67,6 +68,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             $syncedRestaurantIds = [];
             $syncPartnerIds = [];
             $syncBankIds = [];
+            $syncVendorIds = [];
             $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
 
             foreach ($data['branches'] ?? [] as $branch) {
@@ -187,6 +189,26 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 }
             }
 
+            foreach ($data['vendors'] ?? [] as $vendor) {
+                try {
+                    DB::connection('oracle')
+                        ->table('vendors')
+                        ->updateOrInsert(
+                            ['id' => $vendor['id']],
+                            $vendor
+                        );
+                    
+                    $syncVendorIds[] = $vendor['id'];
+                    Log::info("Vendor ID {$vendor['id']} synced successfully.");
+
+                } catch (\Exception $e) {
+                    DB::connection('oracle')->rollBack();
+                    Log::error("Failed syncing vendor ID {$vendor['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
             $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
             Log::info('SyncBranchesRestaurantsJob completed successfully', [
@@ -194,6 +216,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'synced_restaurants' => count($syncedRestaurantIds),
                 'synced_partners' => count($syncPartnerIds),
                 'synced_banks' => count($syncBankIds),
+                'synced_vendors' => count($syncVendorIds),
             ]);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {

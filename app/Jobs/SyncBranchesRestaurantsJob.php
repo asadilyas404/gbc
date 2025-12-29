@@ -71,6 +71,13 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
 
             foreach ($data['branches'] ?? [] as $branch) {
                 try {
+
+                    unset(
+                        $branch['orders_date'],
+                        $branch['bill_printer'],
+                        $branch['kitchen_printer']
+                    );
+
                     DB::connection('oracle')
                         ->table('tbl_soft_branch')
                         ->updateOrInsert(

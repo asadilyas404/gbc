@@ -18,7 +18,7 @@ class Restaurant extends Model
 
     public $incrementing = false;
     protected $keyType = 'int';
-    protected $fillable = ['id','food_section','status'];
+    protected $fillable = ['id','food_section','status','pos_system'];
 
     protected $with = ['restaurant_config'];
 

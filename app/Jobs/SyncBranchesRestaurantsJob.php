@@ -44,6 +44,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 ->retry(3, 1000)
                 ->get(config('services.live_server.url') . '/branches-restaurants/get-data', [
                     'branch_id' => $branchId,
+                    'snapshot' => true,
                 ]);
 
             if (!$response->successful()) {

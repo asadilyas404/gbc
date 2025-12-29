@@ -27,9 +27,11 @@ class BranchRestaurantSyncController extends Controller
         try {
             $validated = $request->validate([
                 'branch_id' => 'required|integer',
+                'snapshot' => 'nullable|boolean',
             ]);
 
             $branchId = (int) $validated['branch_id'];
+            $snapshot = $validated['snapshot'] ?? false;
             $cursorMap = $this->resolveLastSyncedMap($branchId);
 
             $data = [
@@ -41,7 +43,7 @@ class BranchRestaurantSyncController extends Controller
 
             $branches = DB::connection('oracle')
                 ->table('tbl_soft_branch')
-                ->when($cursorMap['branches'], function ($query, Carbon $cursor) {
+                ->when(!$snapshot && $cursorMap['branches'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -59,7 +61,7 @@ class BranchRestaurantSyncController extends Controller
 
             $restaurants = DB::connection('oracle')
                 ->table('restaurants')
-                ->when($cursorMap['restaurants'], function ($query, Carbon $cursor) {
+                ->when(!$snapshot && $cursorMap['restaurants'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -90,7 +92,7 @@ class BranchRestaurantSyncController extends Controller
 
             $partners = DB::connection('oracle')
                 ->table('tbl_sale_order_partners')
-                ->when($cursorMap['partners'], function ($query, Carbon $cursor) {
+                ->when(!$snapshot && $cursorMap['partners'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -108,7 +110,7 @@ class BranchRestaurantSyncController extends Controller
 
             $banks = DB::connection('oracle')
                 ->table('tbl_defi_bank')
-                ->when($cursorMap['banks'] ?? null, function ($query, Carbon $cursor) {
+                ->when(!$snapshot && $cursorMap['banks'] ?? null, function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -126,7 +128,7 @@ class BranchRestaurantSyncController extends Controller
 
             $vendors = DB::connection('oracle')
                 ->table('vendors')
-                ->when($cursorMap['vendors'] ?? null, function ($query, Carbon $cursor) {
+                ->when(!$snapshot && $cursorMap['vendors'] ?? null, function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');

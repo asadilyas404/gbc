@@ -1028,12 +1028,15 @@
             if(window.updateDate && !window.editingOrder){
                 // Show orderFianlModal
                 Swal.fire({
-                    title: "Are you sure?",
+                    type: "warning",
+                    title: "Date does not matched!",
                     text: "Session Date is {{ \Carbon\Carbon::parse($orderDate)->format('d F, Y') }}",
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
-                    confirmButtonText: "Yes, Proceed!",
+                    confirmButtonText: "Change Date",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
                     preConfirm: () => {
                         return new Promise((resolve) => {
                             resolve(true);
@@ -1041,10 +1044,11 @@
                     }
                 }).then((result) => {
                     if (result.value) {
-                        setTimeout(() => {
-                            setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
-                            $('#orderFinalModal').modal('show');
-                        }, 100);
+                        // setTimeout(() => {
+                        //     setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
+                        //     $('#orderFinalModal').modal('show');
+                        // }, 100);
+                        window.location.href = '{{ route("vendor.printer.selection") }}';
                     }
                 });
             }else{

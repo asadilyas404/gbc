@@ -15,7 +15,9 @@
     <title>{{ __('messages.login') }} | {{$app_name??__('STACKFOOD')}}</title>
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="{{asset($icon ? 'storage/app/public/business/'.$icon : 'public/favicon.ico')}}">
+    @php($logo = \App\Models\BusinessSetting::where(['key' => 'icon'])->first()->value)
+    <link rel="shortcut icon" href="{{ dynamicStorage('storage/app/public/business/' . $logo ?? '') }}">
+    <link rel="icon" type="image/x-icon" href="{{ dynamicStorage('storage/app/public/business/' . $logo ?? '') }}">
 
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&amp;display=swap" rel="stylesheet">

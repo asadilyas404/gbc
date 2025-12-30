@@ -74,6 +74,7 @@ class POSController extends Controller
         $subcategories = Category::active()
             ->where('parent_id', $category)
             ->where('parent_id', '!=', 0)
+            ->orderBy('id', 'asc')
             ->get();
 
         // Check the Order Partner ID and Manage Cart Session

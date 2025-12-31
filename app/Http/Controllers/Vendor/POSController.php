@@ -765,6 +765,7 @@ class POSController extends Controller
             return response()->json([
                 'data' => 'error',
                 'message' => $th->getMessage(),
+                'line' => $th->getLine(),
             ]);
         }
     }

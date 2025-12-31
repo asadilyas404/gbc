@@ -694,7 +694,9 @@ class PrintController extends Controller
                     if($detail->is_printed == 0 && $detail->is_deleted != 'Y'){
                         $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                         $printer->setReverseColors(true);
+                        $printer->setTextSize(2, 2);
                         $printer->text("NEW ITEM\n");
+                        $printer->setTextSize(1, 1);
                         $printer->selectPrintMode();
                         $printer->setReverseColors(false);
                     }
@@ -702,7 +704,9 @@ class PrintController extends Controller
                     if($detail->is_printed == 1 && $detail->options_changed == 1){
                         $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                         $printer->setReverseColors(true);
+                        $printer->setTextSize(2, 2);
                         $printer->text("ITEM MODIFIED\n");
+                        $printer->setTextSize(1, 1);
                         $printer->selectPrintMode();
                         $printer->setReverseColors(false);
                     }
@@ -1672,17 +1676,6 @@ class PrintController extends Controller
                 return response()->json([
                     'success' => false,
                     'message' => 'Cannot change printer settings while there are unpaid orders. Please complete or cancel all pending orders first.'
-                ]);
-            }
-
-            $openSessions = ShiftSession::where('branch_id', $branchId)
-            ->where('session_status', 'open')
-            ->orWhere('verified', 0);
-            
-            if($openSessions->count() > 0){
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot change printer settings while there are open shift sessions. Please close all open shifts first.'
                 ]);
             }
 

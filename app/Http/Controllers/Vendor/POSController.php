@@ -729,6 +729,7 @@ class POSController extends Controller
                             $cart->push($currentItemInCart);
                         }
                     } else {
+                        // dd($cart, $data);
                         foreach ($cart as $key => $item) {
                             if ($item['id'] == $data['id'] && $item['is_deleted'] == 'Y' && $key != $request->cart_item_key) {
                                 $itemQty = $item['quantity'];

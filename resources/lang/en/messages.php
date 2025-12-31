@@ -6646,4 +6646,5 @@
   'For credit payment, cash or card must be zero' => 'For credit payment, cash or card must be zero',
   'no-branch-found' => 'No-branch-found',
   'branch_not_assigned' => 'Branch not assigned',
+  'order_sent_to_the_kitchen' => 'Order sent to the kitchen',
 );

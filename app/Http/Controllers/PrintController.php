@@ -1679,6 +1679,16 @@ class PrintController extends Controller
                 ]);
             }
 
+            $openSessions = ShiftSession::where('branch_id', $branchId)
+            ->where('session_status', 'open');
+            
+            if($openSessions->count() > 0){
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot change printer settings while there are open shift sessions. Please close all open shifts first.'
+                ]);
+            }
+
             // Update the settings
             DB::table('tbl_soft_branch')
                 ->where('branch_id', $branchId)

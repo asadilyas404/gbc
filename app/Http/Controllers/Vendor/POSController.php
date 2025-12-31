@@ -729,12 +729,18 @@ class POSController extends Controller
                             $cart->push($currentItemInCart);
                         }
                     } else {
-                        // dd($cart, $data);
                         foreach ($cart as $key => $item) {
-                            if ($item['id'] == $data['id'] && $item['is_deleted'] == 'Y' && $key != $request->cart_item_key) {
-                                $itemQty = $item['quantity'];
-                                $requiredQty = $newQty;
-                                $sum = $currentQty + $itemQty;
+                            if (!is_array($item) || !isset($item['id'], $item['quantity'])) {
+                                continue;
+                            }
+
+                            if ($item['id'] == $data['id']
+                                && ($item['is_deleted'] ?? 'N') === 'Y'
+                                && (string)$key !== (string)$request->cart_item_key
+                            ) {
+                                $itemQty     = (float) $item['quantity'];
+                                $requiredQty = (float) $newQty;
+                                $sum         = (float) $currentQty + $itemQty;
 
                                 if ($sum == $requiredQty) {
                                     $cart->forget($key);
@@ -748,6 +754,7 @@ class POSController extends Controller
                         }
 
                         $cart[$request->cart_item_key] = $data;
+
                     }
 
                     $data = 2;

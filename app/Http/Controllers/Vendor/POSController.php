@@ -1085,6 +1085,7 @@ class POSController extends Controller
 
         $editing_order_id = session('editing_order_id');
         $oldVariationJson = '';
+        DB::beginTransaction();
         if ($editing_order_id) {
             $order = Order::find($editing_order_id);
             // if (!$order || $order->payment_status != 'unpaid') {
@@ -1193,7 +1194,7 @@ class POSController extends Controller
             $order->user_id = $request->user_id;
         }
 
-        DB::beginTransaction();
+        
 
         foreach ($cart as $c) {
             if (is_array($c)) {
@@ -1424,8 +1425,6 @@ class POSController extends Controller
                 // Helpers::create_all_logs($order, 'order_detail_edited', 'OrderDetail', $dirttyOrderDetails, $newOrderDetails);
             }
 
-
-
             $posOrderDtl = PosOrderAdditionalDtl::firstOrNew(['order_id' => $order->id]);
             $posOrderDtl->id = $order->id . '1';
             $posOrderDtl->restaurant_id = $order->restaurant_id;
@@ -1487,7 +1486,7 @@ class POSController extends Controller
 
             // Print order receipts
             try {
-                event(new myevent('unpaid'));
+                // event(new myevent('unpaid'));
                 $printController = new \App\Http\Controllers\PrintController();
 
                 if($order->payment_status == 'unpaid' && $order->printed == 0){

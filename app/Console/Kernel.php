@@ -29,10 +29,10 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        $schedule->job(new SyncOrdersJob)->everyThreeMinutes();
+        $schedule->job(new SyncOrdersJob)->everyMinute();
         $schedule->job(new SyncBranchesRestaurantsJob)->dailyAt('23:30');
         $schedule->job(new SyncEmployeesJob)->dailyAt('23:35');
-        $schedule->job(new SyncFoodJob)->dailyAt('23:40');
+        $schedule->job(new SyncFoodJob)->hourly();
         $schedule->job(new SyncCustomersJob)->dailyAt('23:45');
     }
 

@@ -91,20 +91,20 @@ class AddOn extends Model
         });
 
         static::retrieved(function ($addon) {
-            $current_date = date('Y-m-d');
-            $check_daily_stock_on= BusinessSetting::where('key', 'check_daily_stock_on')->first();
-            if(!$check_daily_stock_on){
-                Helpers::insert_business_settings_key('check_daily_stock_on', $current_date);
-                $check_daily_stock_on= BusinessSetting::where('key', 'check_daily_stock_on')->first();
-            }
+            // $current_date = date('Y-m-d');
+            // $check_daily_stock_on= BusinessSetting::where('key', 'check_daily_stock_on')->first();
+            // if(!$check_daily_stock_on){
+            //     Helpers::insert_business_settings_key('check_daily_stock_on', $current_date);
+            //     $check_daily_stock_on= BusinessSetting::where('key', 'check_daily_stock_on')->first();
+            // }
 
-            if($check_daily_stock_on && $check_daily_stock_on->value != $current_date){
-                AddOn::where('stock_type','daily')->update([
-                    'sell_count' => 0,
-                ]);
-                $check_daily_stock_on->value = $current_date;
-                $check_daily_stock_on->save();
-            }
+            // if($check_daily_stock_on && $check_daily_stock_on->value != $current_date){
+            //     AddOn::where('stock_type','daily')->update([
+            //         'sell_count' => 0,
+            //     ]);
+            //     $check_daily_stock_on->value = $current_date;
+            //     $check_daily_stock_on->save();
+            // }
         });
     }
 

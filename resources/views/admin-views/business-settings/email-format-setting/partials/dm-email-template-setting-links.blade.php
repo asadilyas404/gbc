@@ -4,43 +4,43 @@
         <ul class="nav nav-tabs border-0 nav--tabs nav--pills">
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('admin/business-settings/email-setup/dm/registration') ? 'active' : '' }}"
-                href="{{ route('admin.business-settings.email-setup', ['dm','registration']) }}">
+                href="{{ route('admin.business-settings.email-setup.show', ['dm','registration']) }}">
                 {{translate('New_Deliveryman_Registration')}}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('admin/business-settings/email-setup/dm/approve') ? 'active' : '' }}"
-                href="{{ route('admin.business-settings.email-setup', ['dm','approve']) }}">
+                href="{{ route('admin.business-settings.email-setup.show', ['dm','approve']) }}">
                 {{translate('New_Deliveryman_Approval')}}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('admin/business-settings/email-setup/dm/deny') ? 'active' : '' }}"
-                href="{{ route('admin.business-settings.email-setup', ['dm','deny']) }}">
+                href="{{ route('admin.business-settings.email-setup.show', ['dm','deny']) }}">
                 {{translate('New_Deliveryman_Rejection')}}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('admin/business-settings/email-setup/dm/suspend') ? 'active' : '' }}"
-                href="{{ route('admin.business-settings.email-setup', ['dm','suspend']) }}">
+                href="{{ route('admin.business-settings.email-setup.show', ['dm','suspend']) }}">
                     {{translate('Account_Suspension')}}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('admin/business-settings/email-setup/dm/unsuspend') ? 'active' : '' }}"
-                href="{{ route('admin.business-settings.email-setup', ['dm','unsuspend']) }}">
+                href="{{ route('admin.business-settings.email-setup.show', ['dm','unsuspend']) }}">
                     {{translate('Account_Unsuspension')}}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('admin/business-settings/email-setup/dm/cash-collect') ? 'active' : '' }}"
-                href="{{ route('admin.business-settings.email-setup', ['dm','cash-collect']) }}">
+                href="{{ route('admin.business-settings.email-setup.show', ['dm','cash-collect']) }}">
                     {{translate('Cash_Collection')}}
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('admin/business-settings/email-setup/dm/forgot-password') ? 'active' : '' }}"
-                href="{{ route('admin.business-settings.email-setup', ['dm','forgot-password']) }}">
+                href="{{ route('admin.business-settings.email-setup.show', ['dm','forgot-password']) }}">
                     {{translate('Forgot_Password')}}
                 </a>
             </li>

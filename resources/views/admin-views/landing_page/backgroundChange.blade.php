@@ -25,7 +25,7 @@
         </div>
         <div class="card my-2">
             <div class="card-body">
-                <form action="{{ route('admin.business-settings.landing-page-settings', 'background-change') }}"
+                <form action="{{ route('admin.business-settings.update-landing-page-settings', 'background-change') }}"
                     method="POST">
 
                     @csrf

@@ -28,7 +28,7 @@
 
     <div class="card my-2">
         <div class="card-body">
-            <form action="{{route('admin.business-settings.landing-page-settings', 'links')}}" method="POST">
+            <form action="{{route('admin.business-settings.update-landing-page-settings', 'links')}}" method="POST">
                 @csrf
                 <div class="row">
                         <div class="col-md-6">

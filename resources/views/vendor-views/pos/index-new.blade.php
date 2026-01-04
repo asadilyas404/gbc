@@ -986,7 +986,7 @@
                 // Clear the customer from local storage
                 localStorage.removeItem('posSelectedCustomer');
             }).always(function() {
-                // $('#loading').hide();
+                $('#loading').hide();
             });
         });
 
@@ -1077,7 +1077,7 @@
                     id: '{{ $orderPartner ?? '' }}',
                 },
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                 },
                 success: function(data) {
                     console.log("success...")
@@ -1085,7 +1085,7 @@
                     $('#quick-view-modal').empty().html(data.view);
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                 },
             });
         });
@@ -1100,7 +1100,7 @@
                     item_key: $(this).data('item-key'),
                 },
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                 },
                 success: function(data) {
                     console.log("success...")
@@ -1108,7 +1108,7 @@
                     $('#quick-view-modal').empty().html(data.view);
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                 },
             });
         });
@@ -1253,7 +1253,7 @@
                 url: '{{ route("vendor.pos.add-to-cart") }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                 },
                 success: function(data) {
                     console.log(data.data);
@@ -1334,7 +1334,7 @@
                     });
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                     isProcessing = false;
                     button.prop('disabled', false);
                 }
@@ -1543,7 +1543,7 @@
                             cookingStatus: cookingStatus,
                             cancelText: cancelText,
                             beforeSend: function(){
-                                $('#loading').show();
+                                // $('#loading').show();
                             },
                         }, function(data) {
                             if (data.errors) {
@@ -1561,7 +1561,7 @@
                                     ProgressBar: true
                                 });
                             }
-                            $('#loading').hide();
+                            // $('#loading').hide();
                         });
                     }
                 });
@@ -1571,7 +1571,7 @@
                     _token: '{{ csrf_token() }}',
                     key: key,
                     beforeSend: function(){
-                        $('#loading').show();
+                        // $('#loading').show();
                     },
                 }, function(data) {
                     if (data.errors) {
@@ -1589,7 +1589,7 @@
                             ProgressBar: true
                         });
                     }
-                    $('#loading').hide();
+                    // $('#loading').hide();
                 });
             }
         });
@@ -1630,7 +1630,7 @@
                     partner_id: '{{ $orderPartner ?? '' }}'
                 },
                 beforeSend: function () {
-                    $('#loading').show();
+                    // $('#loading').show();
                 },
                 success: function (data) {
                     $('#cart').html(data);
@@ -1653,10 +1653,10 @@
                     }
                 },
                 complete: function () {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                 },
                 error: function () {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                     // Optional: show toast
                     // toastr.error('Failed to update cart');
                 }
@@ -1681,7 +1681,7 @@
                 url: '{{ route('vendor.pos.add-delivery-info') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                     button.prop('disabled', true);
                     if (!button.data('original-text')) {
                         button.data('original-text', button.html());
@@ -1703,7 +1703,7 @@
                     $('.call-when-done').click();
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                     $('#paymentModal').modal('hide');
 
                     button.prop('disabled', false);
@@ -1733,7 +1733,7 @@
                 url: '{{ route('vendor.pos.paid') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                     button.prop('disabled', true);
                     if (!button.data('original-text')) {
                         button.data('original-text', button.html());
@@ -1745,7 +1745,7 @@
                     $('.call-when-done').click();
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                     $('#insertPayableAmount').modal('hide');
 
                     button.prop('disabled', false);
@@ -2278,14 +2278,14 @@
                         keyword: keyword,
                     },
                     beforeSend: function() {
-                        $('#loading').show();
+                        // $('#loading').show();
                     },
                     success: function(response) {
                         $('.subcategory-list').html(response.subcategoryHtml);
                         $('#product-list').html(response.productHtml);
                     },
                     complete: function() {
-                        $('#loading').hide();
+                        // $('#loading').hide();
                     },
                     error: function(xhr) {
                         console.error('Error:', xhr.responseText);

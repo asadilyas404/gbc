@@ -534,31 +534,31 @@ class Restaurant extends Model
         });
 
         static::retrieved(function () {
-            $current_date = date('Y-m-d');
-            $check_daily_subscription_validity_check= BusinessSetting::where('key', 'check_daily_subscription_validity_check')->first();
-            if(!$check_daily_subscription_validity_check){
-                Helpers::insert_business_settings_key('check_daily_subscription_validity_check', $current_date);
-                $check_daily_subscription_validity_check= BusinessSetting::where('key', 'check_daily_subscription_validity_check')->first();
-            }
+            //$current_date = date('Y-m-d');
+            // $check_daily_subscription_validity_check= BusinessSetting::where('key', 'check_daily_subscription_validity_check')->first();
+            // if(!$check_daily_subscription_validity_check){
+            //     Helpers::insert_business_settings_key('check_daily_subscription_validity_check', $current_date);
+            //     $check_daily_subscription_validity_check= BusinessSetting::where('key', 'check_daily_subscription_validity_check')->first();
+            // }
 
-            if($check_daily_subscription_validity_check && $check_daily_subscription_validity_check->value != $current_date){
-                Restaurant::whereHas('restaurant_sub',function ($query)use($current_date){
-                    $query->where('status',1)->whereDate('expiry_date', '<=', $current_date);
-                })->update(['status' => 0,
-                            'pos_system'=>1,
-                            'self_delivery_system'=>1,
-                            'reviews_section'=>1,
-                            'free_delivery'=>0,
-                            'restaurant_model'=>'unsubscribed',
-                            ]);
-                RestaurantSubscription::where('status',1)->whereDate('expiry_date', '<=', $current_date)->update([
-                    'status' => 0
-                ]);
+            // if($check_daily_subscription_validity_check && $check_daily_subscription_validity_check->value != $current_date){
+            //     Restaurant::whereHas('restaurant_sub',function ($query)use($current_date){
+            //         $query->where('status',1)->whereDate('expiry_date', '<=', $current_date);
+            //     })->update(['status' => 0,
+            //                 'pos_system'=>1,
+            //                 'self_delivery_system'=>1,
+            //                 'reviews_section'=>1,
+            //                 'free_delivery'=>0,
+            //                 'restaurant_model'=>'unsubscribed',
+            //                 ]);
+            //     RestaurantSubscription::where('status',1)->whereDate('expiry_date', '<=', $current_date)->update([
+            //         'status' => 0
+            //     ]);
 
 
-                $check_daily_subscription_validity_check->value = $current_date;
-                $check_daily_subscription_validity_check->save();
-            }
+            //     $check_daily_subscription_validity_check->value = $current_date;
+            //     $check_daily_subscription_validity_check->save();
+            // }
         });
 
 

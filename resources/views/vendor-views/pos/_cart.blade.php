@@ -129,7 +129,7 @@ if (isset($cart['paid'])) {
     $change = 0;
 }
 ?>
-<form action="{{ route('vendor.pos.order') }}" id='order_place' method="post">
+<form action="{{ route('vendor.pos.order') }}" id='order_place' onsubmit="submitOrder" method="post">
     @csrf
     <input type="hidden" name="user_id" id="customer_id">
     <input type="hidden" name="partner_id" id="partner_id" value="{{ $orderPartner ?? '' }}">
@@ -160,7 +160,7 @@ if (isset($cart['paid'])) {
 
             <dt class="col-6 font-regular">{{ translate('messages.extra_discount') }} :</dt>
             <dd class="col-6 text-right">
-                <button class="btn btn-sm" type="button" data-toggle="modal" data-target="#add-discount"><i
+                <button class="btn btn-sm" type="button" disabled data-toggle="modal" data-target="#add-discount"><i
                         class="tio-edit"></i></button>
                 - {{ Helpers::format_currency(round($discount_amount, 3)) }}
             </dd>

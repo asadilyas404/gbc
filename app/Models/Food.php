@@ -167,7 +167,7 @@ class Food extends Model
 
     public function orders()
     {
-        return $this->hasMany(OrderDetail::class);
+        return $this->hasMany(OrderDetail::class)->orderBy('sr_no');
     }
 
     public function storage()

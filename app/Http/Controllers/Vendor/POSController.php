@@ -1029,7 +1029,6 @@ class POSController extends Controller
                 }
                 $payment_type = 'credit';
             } else {
-
                 if ($cash > 0 && $card <= 0) {
                     $payment_type = 'cash';
                 } elseif ($card > 0 && $cash <= 0) {
@@ -1195,7 +1194,7 @@ class POSController extends Controller
         }
 
         
-
+        $count = 1;
         foreach ($cart as $c) {
             if (is_array($c)) {
 
@@ -1276,6 +1275,7 @@ class POSController extends Controller
                         'add_ons' => json_encode($addon_data['addons']),
                         'total_add_on_price' => $total_addon_price_for_item,
                         'notes' => $c['notes'] ?? $c['details'] ?? null,
+                        'sr_no' => $count++,
                         'is_deleted' => isset($c['is_deleted']) ? trim($c['is_deleted']) : 'N',
                         'cancel_reason'      => isset($c['cancel_reason']) ? trim($c['cancel_reason']) : '',
                         'cooking_status'     => isset($c['cooking_status']) ? trim($c['cooking_status']) : '',
@@ -1317,6 +1317,7 @@ class POSController extends Controller
         if (isset($cart['discount'])) {
             $restaurant_discount_amount += $cart['discount_type'] == 'percent' && $cart['discount'] > 0 ? ((($product_price + $total_addon_price - $discount_on_product) * $cart['discount']) / 100) : $cart['discount'];
         }
+        
 
         $total_price = $product_price + $total_addon_price - $discount_on_product - $restaurant_discount_amount;
         $tax = isset($cart['tax']) ? $cart['tax'] : $restaurant->tax;

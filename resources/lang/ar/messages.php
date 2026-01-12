@@ -3292,4 +3292,6 @@
   'Multiple Selection' => 'Multiple Selection',
   'Single Selection' => 'Single Selection',
   'vendor_has_no_restaurants' => 'البائع ليس لديه مطاعم',
+  'Please_refresh_the_page_and_try_again.' => 'Please refresh the page and try again.',
+  'Session_Expired' => 'Session Expired',
 );

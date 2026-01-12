@@ -123,7 +123,7 @@ class Order extends Model
 
     public function details()
     {
-        return $this->hasMany(OrderDetail::class);
+        return $this->hasMany(OrderDetail::class)->orderBy('sr_no');
     }
 
     public function pos_details()

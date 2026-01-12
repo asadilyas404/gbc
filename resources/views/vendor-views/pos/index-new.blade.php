@@ -429,11 +429,11 @@
 
                         <div class="d-flex flex-wrap flex-row p-2 add--customer-btn">
                             <label for='customer'></label>
-                            <select id='customer' name="customer_id"
+                            <select id='customer' @if(!empty($orderPartner)) disabled @endif name="customer_id"
                                 data-placeholder="{{ translate('messages.walk_in_customer') }}"
                                 class="js-data-example-ajax form-control"></select>
                             <button class="btn btn--primary" data-toggle="modal"
-                                data-target="#add-customer">{{ translate('Add New Customer') }}</button>
+                                data-target="#add-customer" @if(!empty($orderPartner)) disabled @endif>{{ translate('Add New Customer') }}</button>
                         </div>
                         @if (
                             ($restaurant_data->restaurant_model == 'commission' && $restaurant_data->self_delivery_system == 1) ||
@@ -442,14 +442,18 @@
                                     $restaurant_data->restaurant_sub->self_delivery == 1))
                             <div class="pos--delivery-options">
                                 <div class="d-flex justify-content-between">
-                                    <h5 class="card-title">
-                                        <span class="card-title-icon">
-                                            <i class="tio-user"></i>
-                                        </span>
-                                        <span>{{ translate('Delivery_Information') }}</span>
-                                    </h5>
-                                    <span class="delivery--edit-icon text-primary" id="delivery_address" data-toggle="modal"
+                                    @if (empty($orderPartner))
+                                        <h5 class="card-title">
+                                            <span class="card-title-icon">
+                                                <i class="tio-user"></i>
+                                            </span>
+                                            <span>{{ translate('Delivery_Information') }}</span>
+                                        </h5>
+                                    
+                                        <span class="delivery--edit-icon text-primary" id="delivery_address" data-toggle="modal"
                                         data-target="#paymentModal"><i class="tio-edit"></i></span>
+                                    @endif
+                                    
                                 </div>
                                 <div class="pos--delivery-options-info d-flex flex-wrap" id="del-add">
                                     @include('vendor-views.pos._address')
@@ -953,7 +957,6 @@
                                             });
 
                                         });
-
                                     }
                                 }
                             });
@@ -985,6 +988,7 @@
                 window.location.href = '/restaurant-panel/pos/new/' + selectedId;
                 // Clear the customer from local storage
                 localStorage.removeItem('posSelectedCustomer');
+                $('#customer').val(null).trigger('change');
             }).always(function() {
                 $('#loading').hide();
             });
@@ -1256,7 +1260,6 @@
                     // $('#loading').show();
                 },
                 success: function(data) {
-                    console.log(data.data);
                     if (data.data === 1) {
                         Swal.fire({
                             icon: 'info',
@@ -1599,12 +1602,15 @@
                 _token: '{{ csrf_token() }}'
             }, function() {
                 $('#del-add').empty();
+                // Clear Select2 customer
+                $('#customer')
+                .val(null)
+                .trigger('change.select2');
                 localStorage.removeItem('posSelectedCustomer');
                 window.selectedCustomer = null;
                 window.updateDate = null;
                 window.editingOrder = false;
                 updateCart();
-                $('#customer').val('').trigger('change');
                 if($('#editingOrderHeading').length){
                     $('#editingOrderHeading').html('');
                 }
@@ -1619,8 +1625,8 @@
         });
 
         function updateCart() {
-            const currentCustomerId   = $('#customer').val();
-            const currentCustomerText = $('#customer').find('option:selected').text();
+            const currentCustomerId   = window.selectedCustomer;
+            const currentCustomerText = null;
 
             $.ajax({
                 url: '{{ route('vendor.pos.cart_items') }}',
@@ -1635,21 +1641,15 @@
                 success: function (data) {
                     $('#cart').html(data);
 
-                    // Restore customer only if something is selected
-                    if (currentCustomerId && currentCustomerId !== 'false') {
-                        // If #customer is inside #cart, this runs after HTML replace
-                        $('#customer').val(currentCustomerId).trigger('change');
-
-                        // If you use a helper to store customer
-                        // storeCustomerDetails(currentCustomerId, currentCustomerText);
+                    // ✅ Restore ONLY if a customer is explicitly set
+                    if (window.selectedCustomer) {
+                        $('#customer')
+                            .val(window.selectedCustomer)
+                            .trigger('change.select2');
 
                         if ($('#orderFinalModal').is(':visible')) {
-                            // No need for double setTimeout unless your modal content is loaded async
                             tryFillModalWithRetries(5, 100);
                         }
-                    } else {
-                        // If you had "restore from storage" logic
-                        // restoreCustomerFromStorage();
                     }
                 },
                 complete: function () {
@@ -1848,9 +1848,22 @@
                 let customerPhone = '{{ $draftCustomer->customer_mobile_no }}';
                 let customerText = customerName + ' (' + customerPhone + ')';
 
-                let newOption = new Option(customerText, customerId, true, true);
-                $('#customer').append(newOption).trigger('change');
+                const $customer = $('#customer');
+                // Prevent duplicates
+                if ($customer.find('option[value="' + customerId + '"]').length === 0) {
+                    $customer.append(new Option(customerText, customerId, true, true));
+                }
 
+                // Ensure "Walk in customer" has a real value (e.g. empty string)
+                // if ($customer.find('option[value=""]').length === 0) {
+                //     $customer.prepend(new Option('Walk in customer', '', false, false));
+                // }
+
+                // Set selected once (this triggers change once)
+                $customer.val(customerId).trigger('change');
+
+                // If storeCustomerDetails triggers change internally, DON'T call it here
+                // Otherwise keep it:
                 storeCustomerDetails(customerId, customerText);
 
                 console.log('Draft order customer auto-filled: ' + customerText);
@@ -1902,6 +1915,7 @@
             } else {
                 window.selectedCustomer = null;
                 localStorage.removeItem('posSelectedCustomer');
+                $('#customer').val(null).trigger('change');
                 $('#customer').removeData('selected-customer');
             }
         }
@@ -1921,20 +1935,34 @@
                         setTimeout(function() {
                             if ($('#customer').length && typeof $('#customer').select2 === 'function') {
 
-                                let customerText = customerInfo.name + ' (' + customerInfo.phone + ')';
-                                let newOption = new Option(customerText, customerInfo.id, true, true);
-                                $('#customer').append(newOption).trigger('change');
+                                const $customer = $('#customer');
+                                // Prevent duplicates
+                                if ($customer.find('option[value="' + customerId + '"]').length === 0) {
+                                    $customer.append(new Option(customerText, customerId, true, true));
+                                }
 
-                                storeCustomerDetails(customerInfo.id, customerText);
+                                // Ensure "Walk in customer" has a real value (e.g. empty string)
+                                // if ($customer.find('option[value=""]').length === 0) {
+                                //     $customer.prepend(new Option('Walk in customer', '', false, false));
+                                // }
+
+                                // Set selected once (this triggers change once)
+                                $customer.val(customerId).trigger('change');
+
+                                // If storeCustomerDetails triggers change internally, DON'T call it here
+                                // Otherwise keep it:
+                                storeCustomerDetails(customerId, customerText);
                             }
                         }, 1000);
                     } else {
                         localStorage.removeItem('posSelectedCustomer');
+                        $('#customer').val(null).trigger('change');
                     }
                 }
             } catch (e) {
                 console.log('Error restoring customer from localStorage:', e);
                 localStorage.removeItem('posSelectedCustomer');
+                $('#customer').val(null).trigger('change');
             }
         }
 
@@ -2226,47 +2254,67 @@
         });
 
         $(document).ready(function(e) {
-            let isFormSubmitting = false;
-
-            // Track which submit button was clicked
-            $(document).on('click', 'button[type="submit"]', function () {
-            const $form = $(this).closest('form');
-            $form.find('button[type="submit"]').removeClass('clicked');
-            $(this).addClass('clicked');
+            // Track clicked submit button per form
+            $(document).on('click', 'form button[type="submit"]', function () {
+                const $form = $(this).closest('form');
+                $form.find('button[type="submit"]').removeClass('clicked');
+                $(this).addClass('clicked');
             });
 
-            $('form').on('submit', function (e) {
-            if (isFormSubmitting) return false; // block duplicates
+            $(document).on('submit', 'form', function (e) {
+                const $form = $(this);
 
-            isFormSubmitting = true;
-            const $form = $(this);
-            const $buttons = $form.find('button[type="submit"]');
-            const $activeBtn = $form.find('button.clicked');
-
-            $buttons.prop('disabled', true);
-
-            // Add spinner only to the clicked submit button
-            if ($activeBtn.length) {
-                if (!$activeBtn.data('original-text')) {
-                $activeBtn.data('original-text', $activeBtn.html());
+                // Per-form lock (instead of global lock)
+                if ($form.data('submitting')) {
+                    e.preventDefault();
+                    return false;
                 }
-                $activeBtn.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait');
-            }
+                $form.data('submitting', true);
 
-            // Let the form submit naturally (no e.preventDefault)
-            // The reset below is just a fallback if submission is AJAX or blocked
-            setTimeout(() => {
-                isFormSubmitting = false;
-                $buttons.prop('disabled', false);
-                $buttons.each(function () {
-                const originalText = $(this).data('original-text');
-                if (originalText) $(this).html(originalText);
-                });
-            }, 10000);
+                const $buttons = $form.find('button[type="submit"]');
+                let $activeBtn = $form.find('button.clicked');
+
+                // If user pressed Enter and no button was clicked, pick first submit button
+                if (!$activeBtn.length) {
+                    $activeBtn = $buttons.first();
+                }
+
+                $buttons.prop('disabled', true);
+
+                // Spinner only on active button
+                if ($activeBtn.length) {
+                    if (!$activeBtn.data('original-html')) {
+                    $activeBtn.data('original-html', $activeBtn.html());
+                    }
+                    $activeBtn.html(
+                    '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait'
+                    );
+                }
+
+                // Fallback reset if submit is blocked or page doesn't unload (AJAX, validation, etc.)
+                const reset = () => {
+                    $form.data('submitting', false);
+                    $buttons.prop('disabled', false).removeClass('clicked');
+
+                    $buttons.each(function () {
+                    const $btn = $(this);
+                    const original = $btn.data('original-html');
+                    if (original) $btn.html(original);
+                    });
+                };
+
+                // If browser doesn't navigate within X seconds, unlock UI
+                // setTimeout(reset, 15000);
+
+                // If HTML5 validation fails, submit event may fire but navigation won't happen in some flows
+                // This catches invalid forms before submit
+                if (this.checkValidity && !this.checkValidity()) {
+                    reset();
+                    // Let browser show validation messages
+                    return true;
+                }
+                // Allow normal submission (no preventDefault)
             });
-
-
-
 
             function fetchData(categoryId = '', subcategoryId = '', keyword = '', partner = '') {
                 $.ajax({
@@ -2332,7 +2380,6 @@
 
             function updateCalculations() {
                 const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
-                console.log('amount ' + invoiceAmount);
                 const cashPaid = parseFloat($('#cash_paid').val()) || 0;
                 const cardPaid = parseFloat($('#card_paid').val()) || 0;
                 const totalPaid = cashPaid + cardPaid;
@@ -2347,6 +2394,14 @@
                     $('#card_paid').val('');
                     bankAccountSelect.prop('required', false).prop('disabled', true);
                     return;
+                }
+                
+                let paymentType = $('input[name="select_payment_type"]:checked').val();
+                if (paymentType === 'both_payment' && cardPaid < invoiceAmount) {
+                    const remainingAmount = invoiceAmount - cardPaid;
+
+                    $('#cash_paid').val(remainingAmount.toFixed(3));
+                    $('#cash_paid_display').text(formatCurrency(remainingAmount));
                 }
 
                 if (cardPaid > 0) {
@@ -2376,6 +2431,7 @@
             $(document).on('change', 'input[name="select_payment_type"]', function() {
                 var value = $(this).val();
                 handlePaymentTypeChange(value);
+                updateCalculations();
             });
 
             function handlePaymentTypeChange(value) {
@@ -2459,7 +2515,6 @@
             const isValidNumber = (value) => {
                 return !isNaN(value);
             };
-
         });
 
         // Printers working

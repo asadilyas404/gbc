@@ -265,7 +265,6 @@
                             <a href="{{ route('vendor.order.sync.orders') }}" class="btn max-sm-12 btn--primary w-100">Sync
                                 Orders</a>
                         </div>
-
                     </div>
                 </div>
             @endif
@@ -734,7 +733,7 @@
                     </table>
                 </div>
             @else
-                <div class="row">
+                <div class="row g-0">
                     @foreach ($orders as $order)
                         <div class="col-md-6 col-xl-4 p-2">
                             @php
@@ -753,14 +752,16 @@
                                         </span>
                                     </div>
 
-                                       <!-- Partner name -->
+                                    <!-- Partner name -->
+                                    @if(!empty($order->partner_name))
                                     <div class="text-muted mb-1">
                                         <strong>Order Partner: </strong>{{ $order->partner_name }}
                                     </div>
+                                    @endif
 
                                     <!-- Date -->
                                     <div class="text-muted mb-1">
-                                        <strong>{{ translate('messages.order_date') }}: </strong>
+                                        <strong>{{ translate('messages.order_time') }}: </strong>
                                         {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y - h:i A') }}
                                     </div>
 
@@ -781,19 +782,22 @@
                                             {{ $cust['contact_person_name'] ?? '-' }}<br>
                                             {{ $cust['contact_person_number'] ?? '-' }}
                                         @elseif($order->customer)
-                                            {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}<br>
-                                            {{ $order->customer['phone'] }}
+                                            {{ $order->customer['customer_name'] }}<br>
+                                            {{ $order->customer['customer_mobile_no'] }}
                                         @elseif($order->pos_details)
                                             {{ $order->pos_details->customer_name ?? '-' }}<br>
                                             Phone: {{ $order->pos_details->phone ?? '-' }} &nbsp;
                                             Car No. {{ $order->pos_details->car_number ?? '-' }}
                                         @endif
-                                        
                                     </div>
 
                                     <div class="text-muted">
                                         <strong>{{ translate('messages.order_taken_by') }}:</strong>
                                         {{ $order->order_taken_by_name ?? '-' }}
+                                    </div>
+                                    <div class="text-muted">
+                                        <strong>{{ translate('messages.order_type') }}:</strong>
+                                        {{ $order->order_type ?? '-' }}
                                     </div>
                                     <!-- Amount -->
                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -1083,6 +1087,14 @@
                     return;
                 }
 
+                let paymentType = $('input[name="select_payment_type"]:checked').val();
+                if (paymentType === 'both_payment' && cardPaid < invoiceAmount) {
+                    const remainingAmount = invoiceAmount - cardPaid;
+
+                    $('#cash_paid').val(remainingAmount.toFixed(3));
+                    $('#cash_paid_display').text(formatCurrency(remainingAmount));
+                }
+
                 // Enable/disable bank account selection
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
@@ -1254,6 +1266,7 @@
                             return;
                         }
 
+                        debugger;
                         $('#invoice_amount span').text(data.total_amount_formatted ??
                             '{{ translate('N/A') }}');
                         $('#customer_name').val(data.customer_name ?? '');
@@ -1266,10 +1279,8 @@
                         $('#partner_id').val(data.partner_id ?? '');
                         $('#invoice_amount_input').val(data.total_amount_formatted ?? '');
                         
-
-                        if (  data.partner_id){
-                            console.log('if')
-
+                        console.log('Partner ID:', data.partner_id);
+                        if (data.partner_id){
                             $('#payment_type_credit').prop('checked', true);
                             $('.payment_type').prop('disabled', true);
                             $('<input>').attr({
@@ -1279,10 +1290,9 @@
                             }).appendTo('#order_place');
                         
                         }else{
-                                console.log('else')
                             $('#payment_type_credit').prop('checked', false);
-                            $('#payment_type_credit').hide();
-                            $('.payment_type').prop('disabled', false);
+                            $('#payment_type_credit').prop('disabled', true);
+                            handlePaymentTypeChange('cash_payment');                        
                         }
 
                         updateCalculations();

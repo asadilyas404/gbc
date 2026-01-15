@@ -2,24 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\OptionsList;
 use I18N_Arabic;
+use App\Models\Food;
+use App\Models\AddOn;
 use App\Models\Order;
+use App\Models\Shift;
 use Mike42\Escpos\Printer;
+use App\Models\OptionsList;
+use App\Models\ShiftSession;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
 use Mike42\Escpos\EscposImage;
+use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\ReceiptImageHelper;
-use App\Models\AddOn;
-use App\Models\Food;
-use App\Models\Shift;
-use App\Models\ShiftSession;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
 use Intervention\Image\ImageManager;
+use Mike42\Escpos\ImagickEscposImage;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
-use PhpParser\Node\Stmt\TryCatch;
 
 class PrintController extends Controller
 {
@@ -78,12 +80,70 @@ class PrintController extends Controller
             return $line;
         }
 
+    public function printOrderFromHTML(Request $request){
+        $request->validate([
+                'order_id' => 'required|string'
+            ]);
 
+        $orderId = $request->input('order_id') ?: $request->query('order_id');
+        // Find the order
+        $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details','payments'])
+            ->where('id', $orderId)
+            ->first();
+
+        if (!$order) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Order not found'
+            ], 404);
+        }
+
+        // Check if ALL details have is_deleted = 'Y'
+        $allDeleted = $order->details->every(function ($detail) {
+            return $detail->is_deleted === 'Y';
+        });
+
+        if ($allDeleted) {
+            return redirect()->back()->with('warning', 'Cannot print order: All items have been deleted.');
+        }
+
+        // Get printer name from database
+        $user = Auth::user();
+
+        $branchId = $order->restaurant_id;
+        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+        $printerName = $branch->bill_printer ?? 'BillPrinter';
+
+        // Connect to printer
+        $connector = new WindowsPrintConnector($printerName);
+        $printer = new Printer($connector);
+
+        $htmlContent = View::make('vendor-views.order.invoice', ['order' => $order])->render();
+
+        Browsershot::html($htmlContent)->save(public_path('generated_image.png'));
+
+        dd('Check Image');
+
+    }
+public function getPrintableSummary($label, $value, $is_double_width = false, $labelRight = '') {
+        $left_cols = $is_double_width ? 6 : 12;
+        $center_cols =     $is_double_width ? 10 : 20;
+        $right_cols = $is_double_width ? 14 : 30;
+        
+
+        $formatted_value = $value;
+
+        $lrm = "\u{200E}"; // Left-to-Right Mark
+
+        $line = str_pad(
+            $label . '/' . $lrm . $labelRight . $lrm,
+            $left_cols
+        ) . str_pad($formatted_value, $center_cols, ' ', STR_PAD_LEFT);
+
+        return $line;
+    }
     public function printOrder(Request $request)
     {
-
-            
-
         try {
             $request->validate([
                 'order_id' => 'required|string'
@@ -122,6 +182,7 @@ class PrintController extends Controller
             // Connect to printer
             $connector = new WindowsPrintConnector($printerName);
             $printer = new Printer($connector);
+            
 
             // Arabic text
             $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
@@ -169,34 +230,81 @@ class PrintController extends Controller
                 $printer->text($order->partner->partner_name . "\n");
             }
             $printer->setTextSize(1, 1);
+            $lrm = "\u{200E}"; // Left-to-Right Mark
+            $printer->text("\n");
 
-            $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
-            $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
+            $date = date('Y-m-d H:i', strtotime($order->created_at));
 
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Date | تاريخ " . $lrm . ":",      // can be Arabic too
+                "",         // can be Arabic too
+                $date,     // Arabic
+                storage_path('app/public/prints/date_row.png')
+            );
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
 
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Order Type | نوع الطلب " . $lrm . ":",
+                "",
+                ucfirst($order->order_type),
+                storage_path('app/public/prints/row.png')
+            );
+
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+            // $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
 
             // Customer info
             if ($order->pos_details) {
                 $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
-                $customerName = ReceiptImageHelper::createArabicImageForPrinter($customerName, storage_path('app/public/prints/customer_name.png'), 20);
-                $customerName = EscposImage::load($customerName, false);
-                $printer->text("Customer: ");
-                $printer->bitImageColumnFormat($customerName);
+                // $customerName = ReceiptImageHelper::createArabicImageForPrinter($customerName, storage_path('app/public/prints/customer_name.png'), 20);
+                // $customerName = EscposImage::load($customerName, false);
+                // $printer->text("Customer: ");
+                // $printer->bitImageColumnFormat($customerName);
+
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Customer | اسم العميل " . $lrm . ":",
+                    "",
+                    $customerName,
+                    storage_path('app/public/prints/row.png')
+                );
+                $rowImg = EscposImage::load($rowPath, false);
+                $printer->bitImageColumnFormat($rowImg);
 
                 if ($order->pos_details->phone) {
-                    $printer->text("Phone: " . $order->pos_details->phone . "\n");
+                    $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                        "Phone | هاتف " . $lrm . ":",
+                        "",
+                        $order->pos_details->phone,
+                        storage_path('app/public/prints/row.png')
+                    );
+                    $rowImg = EscposImage::load($rowPath, false);
+                    $printer->bitImageColumnFormat($rowImg);
                 }
 
                 if ($order->pos_details->car_number) {
-                    $printer->text("Car No: " . $order->pos_details->car_number . "\n");
+                    $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                        "Car No | رقم السيارة " . $lrm . ":",
+                        "",
+                        $order->pos_details->car_number,
+                        storage_path('app/public/prints/row.png')
+                    );
+                    $rowImg = EscposImage::load($rowPath, false);
+                    $printer->bitImageColumnFormat($rowImg);
                 }
             }
 
             if ($order->takenBy) {
-                $printer->text("Order Taker: " . $order->takenBy->name . "\n");
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Order Taker | متلقي الطلب " . $lrm . ":",
+                    "",
+                    $order->takenBy->name,
+                    storage_path('app/public/prints/row.png')
+                );
+                $rowImg = EscposImage::load($rowPath, false);
+                $printer->bitImageColumnFormat($rowImg);
             }
-
-            
 
             $printer->text($linedash);
 
@@ -402,57 +510,146 @@ class PrintController extends Controller
             }
 
             // Order summary
-            $printer->text("Items Price: " . number_format($subTotal, 3, '.', ''));
-            $printer->bitImageColumnFormat($currencyTextimage);
+            // $printer->text("Items Price: " . number_format($subTotal, 3, '.', ''));
+
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Items Price | سعر العناصر " . $lrm . "(" . $currencyText . ") :",
+                "",
+                number_format($subTotal, 3, '.', ''),
+                storage_path('app/public/prints/row.png')
+            );
+
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+            // $printer->bitImageColumnFormat($currencyTextimage);
             // $printer->text("\n");
-            $printer->text("Add-ons: " . number_format($addOnsCost, 3, '.', ''));
-            $printer->bitImageColumnFormat($currencyTextimage);
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Add-ons | الإضافات " . $lrm . "(" . $currencyText . ") :",
+                "",
+                number_format($addOnsCost, 3, '.', ''),
+                storage_path('app/public/prints/row.png')
+            );
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+            
             $subTotalWithAddons = $subTotal + $addOnsCost;
-            $printer->text("Subtotal: " . number_format($subTotalWithAddons, 3, '.', ''));
-            $printer->bitImageColumnFormat($currencyTextimage);
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Subtotal | المجموع الفرعي " . $lrm . "(" . $currencyText . ") :",
+                "",
+                number_format($subTotalWithAddons, 3, '.', ''),
+                storage_path('app/public/prints/row.png')
+            );
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+
             if ($order->restaurant_discount_amount > 0) {
-                $printer->text("Discount On Bill: -" . number_format($order->restaurant_discount_amount, 3, '.', ''));
-                $printer->bitImageColumnFormat($currencyTextimage);
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Discount On Bill | خصم على الفاتورة" . $lrm . "(" . $currencyText . ") :",
+                    "",
+                    number_format($order->restaurant_discount_amount, 3, '.', ''),
+                    storage_path('app/public/prints/row.png')
+                );
+                $rowImg = EscposImage::load($rowPath, false);
+                $printer->bitImageColumnFormat($rowImg);
             }
 
             if ($order->tax_status == 'excluded' || $order->tax_status == null) {
-                $printer->text("Tax: " . number_format($order->total_tax_amount, 3, '.', ''));
-                $printer->bitImageColumnFormat($currencyTextimage);
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Tax | ضريبة" . $lrm . "(" . $currencyText . ") :",
+                    "",
+                    number_format($order->total_tax_amount, 3, '.', ''),
+                    storage_path('app/public/prints/row.png')
+                );
+                $rowImg = EscposImage::load($rowPath, false);
+                $printer->bitImageColumnFormat($rowImg);
             }
 
-            $printer->text("Delivery: " . number_format($order->delivery_charge, 3, '.', ''));
-            $printer->bitImageColumnFormat($currencyTextimage);
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Delivery | توصيل" . $lrm . "(" . $currencyText . ") :",
+                "",
+                number_format($order->delivery_charge, 3, '.', ''),
+                storage_path('app/public/prints/row.png')
+            );
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+
             if ($order->additional_charge > 0) {
-                $printer->text("Additional: " . number_format($order->additional_charge, 3, '.', ''));
-                $printer->bitImageColumnFormat($currencyTextimage);
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Additional | إضافي" . $lrm . "(" . $currencyText . ") :",
+                    "",
+                    number_format($order->additional_charge, 3, '.', ''),
+                    storage_path('app/public/prints/row.png')
+                );
+                $rowImg = EscposImage::load($rowPath, false);
+                $printer->bitImageColumnFormat($rowImg);
             }
 
             $printer->text($linedash);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
-            $printer->text("TOTAL: " . number_format($order->order_amount, 3, '.', ''));
-            $printer->bitImageColumnFormat($currencyTextimage);
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "TOTAL | المجموع" . $lrm . "(" . $currencyText . ") :",
+                "",
+                number_format($order->order_amount, 3, '.', ''),
+                storage_path('app/public/prints/row.png')
+            );
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
             $printer->text($linedash);
 
             // Payment info
             $printer->setJustification(Printer::JUSTIFY_LEFT);
-            $printer->text("Payment: " . ucfirst(str_replace('_', ' ', $order->payment_method)) . "\n");
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Payment Method | طريقة الدفع" . $lrm . ":",
+                "",
+                ucfirst(str_replace('_', ' ', $order->payment_method)),
+                storage_path('app/public/prints/row.png')
+            );
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
 
             if ($order->pos_details) {
-                $printer->text("Cash: " . number_format($order->pos_details->cash_paid, 3, '.', ''));
-                $printer->bitImageColumnFormat($currencyTextimage);
-                $printer->text("Card: " . number_format($order->pos_details->card_paid, 3, '.', ''));
-                $printer->bitImageColumnFormat($currencyTextimage);
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Cash | نقدي" . $lrm . "(" . $currencyText . ") :",
+                    "",
+                    number_format($order->pos_details->cash_paid, 3, '.', ''),
+                    storage_path('app/public/prints/row.png')
+                );
+                $rowImg = EscposImage::load($rowPath, false);
+                $printer->bitImageColumnFormat($rowImg);
+
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Card | بطاقة" . $lrm . "(" . $currencyText . ") :",
+                    "",
+                    number_format($order->pos_details->card_paid, 3, '.', ''),
+                    storage_path('app/public/prints/row.png')
+                );
+                $rowImg = EscposImage::load($rowPath, false);
+                $printer->bitImageColumnFormat($rowImg);
 
                 $change = $order->pos_details->cash_paid + $order->pos_details->card_paid - $order->pos_details->invoice_amount;
                 if ($change > 0) {
-                    $printer->text("Change: " . number_format($change, 3, '.', ''));
-                    $printer->bitImageColumnFormat($currencyTextimage);
+                    $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                        "Change | يتغير" . $lrm . "(" . $currencyText . ") :",
+                        "",
+                        number_format($change, 3, '.', ''),
+                        storage_path('app/public/prints/row.png')
+                    );
+                    $rowImg = EscposImage::load($rowPath, false);
+                    $printer->bitImageColumnFormat($rowImg);
                 }
             }
 
             $printer->feed(2);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->text("Thank you for your order!\n");
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "",
+                "شكراً لطلبك",
+                "",
+                storage_path('app/public/prints/row.png')
+            );
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
             $printer->text($linedash);
 
             // Feed & cut

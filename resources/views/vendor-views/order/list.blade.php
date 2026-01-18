@@ -519,12 +519,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                {{-- <div class="hs-unfold mr-2">
-                            <form method="POST" action="{{ route('vendor.order.sync.orders') }}">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-white">Sync Orders</button>
-                            </form>
-                        </div> --}}
                                 <!-- End Unfold -->
                             </div>
                         </div>
@@ -1087,14 +1081,6 @@
                     return;
                 }
 
-                let paymentType = $('input[name="select_payment_type"]:checked').val();
-                if (paymentType === 'both_payment' && cardPaid < invoiceAmount) {
-                    const remainingAmount = invoiceAmount - cardPaid;
-
-                    $('#cash_paid').val(remainingAmount.toFixed(3));
-                    $('#cash_paid_display').text(formatCurrency(remainingAmount));
-                }
-
                 // Enable/disable bank account selection
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
@@ -1105,9 +1091,100 @@
 
             function attachEventListeners() {
                 $('#cash_paid, #card_paid').off('input').on('input', function() {
-                    updateCalculations();
+                    const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                    let paymentType = $('input[name="select_payment_type"]:checked').val();
+                    if (paymentType === 'both_payment') {
+
+                        let cardPaid = parseFloat($('#card_paid').val()) || 0;
+                        let cashPaid = parseFloat($('#cash_paid').val()) || 0;
+
+                        // If user typed in card field
+                        if ($(this).attr('id') === 'card_paid') {
+                            let remaining = invoiceAmount - cardPaid;
+                            remaining = Math.max(remaining, 0);
+
+                            $('#cash_paid').val(remaining.toFixed(3));
+                            $('#cash_paid_display').text(formatCurrency(remaining));
+                        }
+
+                        // If user typed in cash field
+                        if ($(this).attr('id') === 'cash_paid') {
+                            let remaining = invoiceAmount - cashPaid;
+                            remaining = Math.max(remaining, 0);
+
+                            $('#card_paid').val(remaining.toFixed(3));
+                            // $('#card_paid_display').text(formatCurrency(remaining));
+                        }
+                    }
                 });
             }
+
+            $(document).on('submit', 'form#order_place', function (e) {
+                const $form = $(this);
+                // Per-form lock (instead of global lock)
+                
+                if ($('#order_draft').val() !== 'draft') {
+                    // Check if any payment type is selected
+                    console.log($('input[name="select_payment_type"]:checked'));
+                    if ($('input[name="select_payment_type"]:checked').length === 0) {
+                        Swal.fire({
+                            title: 'Select Payment Method',
+                            type: 'warning'
+                        });
+                        return false;
+                    }
+                }
+                
+                if ($form.data('submitting')) {
+                    e.preventDefault();
+                    return false;
+                }
+                $form.data('submitting', true);
+
+                const $buttons = $form.find('button[type="submit"]');
+                let $activeBtn = $form.find('button.clicked');
+
+                // If user pressed Enter and no button was clicked, pick first submit button
+                if (!$activeBtn.length) {
+                    $activeBtn = $buttons.first();
+                }
+
+                $buttons.prop('disabled', true);
+
+                // Spinner only on active button
+                if ($activeBtn.length) {
+                    if (!$activeBtn.data('original-html')) {
+                    $activeBtn.data('original-html', $activeBtn.html());
+                    }
+                    $activeBtn.html(
+                    '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait'
+                    );
+                }
+
+                // Fallback reset if submit is blocked or page doesn't unload (AJAX, validation, etc.)
+                const reset = () => {
+                    $form.data('submitting', false);
+                    $buttons.prop('disabled', false).removeClass('clicked');
+
+                    $buttons.each(function () {
+                    const $btn = $(this);
+                    const original = $btn.data('original-html');
+                    if (original) $btn.html(original);
+                    });
+                };
+
+                // If browser doesn't navigate within X seconds, unlock UI
+                // setTimeout(reset, 15000);
+
+                // If HTML5 validation fails, submit event may fire but navigation won't happen in some flows
+                // This catches invalid forms before submit
+                if (this.checkValidity && !this.checkValidity()) {
+                    reset();
+                    // Let browser show validation messages
+                    return true;
+                }
+                // Allow normal submission (no preventDefault)
+            });
 
             // Call updateCalculations when the modal is opened
             $('#orderFinalModal').on('shown.bs.modal', function() {
@@ -1266,7 +1343,6 @@
                             return;
                         }
 
-                        debugger;
                         $('#invoice_amount span').text(data.total_amount_formatted ??
                             '{{ translate('N/A') }}');
                         $('#customer_name').val(data.customer_name ?? '');
@@ -1279,7 +1355,6 @@
                         $('#partner_id').val(data.partner_id ?? '');
                         $('#invoice_amount_input').val(data.total_amount_formatted ?? '');
                         
-                        console.log('Partner ID:', data.partner_id);
                         if (data.partner_id){
                             $('#payment_type_credit').prop('checked', true);
                             $('.payment_type').prop('disabled', true);
@@ -1288,7 +1363,6 @@
                             name: 'select_payment_type',
                             value: 'credit_payment'
                             }).appendTo('#order_place');
-                        
                         }else{
                             $('#payment_type_credit').prop('checked', false);
                             $('#payment_type_credit').prop('disabled', true);

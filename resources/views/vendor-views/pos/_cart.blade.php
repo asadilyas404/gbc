@@ -129,7 +129,7 @@ if (isset($cart['paid'])) {
     $change = 0;
 }
 ?>
-<form action="{{ route('vendor.pos.order') }}" id='order_place' onsubmit="submitOrder" method="post">
+<form action="{{ route('vendor.pos.order') }}" id='order_place' method="post">
     @csrf
     <input type="hidden" name="user_id" id="customer_id">
     <input type="hidden" name="partner_id" id="partner_id" value="{{ $orderPartner ?? '' }}">
@@ -419,8 +419,7 @@ if (isset($cart['paid'])) {
                             <div class="row mb-4">
                                 <div class="col-md-6 mb-1">
                                     <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment"
-                                            >
+                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment">
                                         <span class="input-label m-0">
                                             {{ translate('Cash') }}
                                         </span>
@@ -443,7 +442,7 @@ if (isset($cart['paid'])) {
                                         </span>
                                     </label>
                                 </div> 
-                                <div class="col-md-6 mb-1">
+                                <div class="col-md-6 mb-1" id="payment_type_credit_wrapper">
                                     <label for="payment_type_credit" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_credit" class="payment_type" name="select_payment_type" value="credit_payment" >
                                         <span class="input-label m-0">

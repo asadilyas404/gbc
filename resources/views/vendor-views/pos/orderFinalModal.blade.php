@@ -103,8 +103,7 @@
                             <div class="row mb-4">
                                 <div class="col-md-6 mb-1">
                                     <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment"
-                                            >
+                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment">
                                         <span class="input-label m-0">
                                             {{ translate('Cash') }}
                                         </span>
@@ -112,8 +111,7 @@
                                 </div>        
                                 <div class="col-md-6 mb-1">
                                     <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment"
-                                            >
+                                        <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment">
                                         <span class="input-label m-0">
                                             {{ translate('Card') }}
                                         </span>

@@ -12,6 +12,7 @@ use App\Models\OptionsList;
 use App\Models\ShiftSession;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
+use Illuminate\Support\Carbon;
 use Mike42\Escpos\EscposImage;
 use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Facades\DB;
@@ -27,67 +28,68 @@ class PrintController extends Controller
 {
 
     function formatPrintRow(array $columns, array $widths, array $aligns = [])
-            {
-                $line = '';
-                $count = count($widths);
+    {
+        $line = '';
+        $count = count($widths);
 
-                for ($i = 0; $i < $count; $i++) {
-                    $text = isset($columns[$i]) ? (string) $columns[$i] : '';
-                    $width = $widths[$i];
-                    $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
+        for ($i = 0; $i < $count; $i++) {
+            $text = isset($columns[$i]) ? (string) $columns[$i] : '';
+            $width = $widths[$i];
+            $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
 
-                    // Handle multibyte strings
-                    $textLength = mb_strlen($text, 'UTF-8');
+            // Handle multibyte strings
+            $textLength = mb_strlen($text, 'UTF-8');
 
-                    // Truncate if too long
-                    if ($textLength > $width) {
-                        $text = mb_substr($text, 0, $width, 'UTF-8');
-                        $textLength = $width;
-                    }
-
-                    $padLength = $width - $textLength;
-
-                    switch ($align) {
-                        case 'right':
-                            $padded = str_repeat(' ', $padLength) . $text;
-                            break;
-                        case 'center':
-                            $leftPad = floor($padLength / 2);
-                            $rightPad = $padLength - $leftPad;
-                            $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
-                            break;
-                        case 'left':
-                        default:
-                            $padded = $text . str_repeat(' ', $padLength);
-                            break;
-                    }
-
-                    $line .= $padded;
-                }
-
-                return $line;
-            }
-        
-
-        function getRowLine(array $columns, array $widths)
-        {
-            $line = '';
-            foreach ($columns as $i => $text) {
-                // pad or cut each column
-                $line .= str_pad(mb_strimwidth($text, 0, $widths[$i]), $widths[$i]);
+            // Truncate if too long
+            if ($textLength > $width) {
+                $text = mb_substr($text, 0, $width, 'UTF-8');
+                $textLength = $width;
             }
 
-            return $line;
+            $padLength = $width - $textLength;
+
+            switch ($align) {
+                case 'right':
+                    $padded = str_repeat(' ', $padLength) . $text;
+                    break;
+                case 'center':
+                    $leftPad = floor($padLength / 2);
+                    $rightPad = $padLength - $leftPad;
+                    $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
+                    break;
+                case 'left':
+                default:
+                    $padded = $text . str_repeat(' ', $padLength);
+                    break;
+            }
+
+            $line .= $padded;
         }
 
-    public function printOrderFromHTML(Request $request){
+        return $line;
+    }
+
+
+    function getRowLine(array $columns, array $widths)
+    {
+        $line = '';
+        foreach ($columns as $i => $text) {
+            // pad or cut each column
+            $line .= str_pad(mb_strimwidth($text, 0, $widths[$i]), $widths[$i]);
+        }
+
+        return $line;
+    }
+
+    public function printOrderFromHTML(Request $request)
+    {
         $request->validate([
-                'order_id' => 'required|string'
-            ]);
+            'order_id' => 'required|string'
+        ]);
 
         $orderId = $request->input('order_id') ?: $request->query('order_id');
         // Find the order
-        $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details','payments'])
+        $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details', 'payments'])
             ->where('id', $orderId)
             ->first();
 
@@ -123,13 +125,13 @@ class PrintController extends Controller
         Browsershot::html($htmlContent)->save(public_path('generated_image.png'));
 
         dd('Check Image');
-
     }
-public function getPrintableSummary($label, $value, $is_double_width = false, $labelRight = '') {
+    public function getPrintableSummary($label, $value, $is_double_width = false, $labelRight = '')
+    {
         $left_cols = $is_double_width ? 6 : 12;
         $center_cols =     $is_double_width ? 10 : 20;
         $right_cols = $is_double_width ? 14 : 30;
-        
+
 
         $formatted_value = $value;
 
@@ -182,7 +184,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             // Connect to printer
             $connector = new WindowsPrintConnector($printerName);
             $printer = new Printer($connector);
-            
+
 
             // Arabic text
             $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
@@ -226,7 +228,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                 $printer->setTextSize(2, 2);
                 $printer->text("\nCANCELED\n\n");
             }
-            if($order->partner_id){
+            if ($order->partner_id) {
                 $printer->text($order->partner->partner_name . "\n");
             }
             $printer->setTextSize(1, 1);
@@ -318,7 +320,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             // Items
             $printer->text($this->formatPrintRow(["Qty", "Name", "Price", "Total"], $colWidths, $colAligns) . "\n");
             $printer->bitImageColumnFormat($headerFilePath);
-    
+
             $printer->text($linedash);
 
             $subTotal = 0;
@@ -328,7 +330,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                 $itemAddOnsCost = 0;
                 if ($detail->food_id || $detail->campaign == null) {
 
-                    if(trim($detail->is_deleted) == 'Y'){
+                    if (trim($detail->is_deleted) == 'Y') {
                         continue;
                     }
 
@@ -358,21 +360,21 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                                 foreach ($variation['values'] as $value) {
                                     //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
                                     //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-                                    if(isset($variation['printing_option']) && $variation['printing_option'] == 'option_name'){
+                                    if (isset($variation['printing_option']) && $variation['printing_option'] == 'option_name') {
                                         $optionName = DB::table('variation_options')
-                                        ->where('id', $value['option_id'])
-                                        ->value('option_name') ?? '';
-                                        
-                                        if(!empty($optionName) && $foodDetails['name'] != $optionName){
-                                            $printer->text("  - " . $optionName . "\n");   
+                                            ->where('id', $value['option_id'])
+                                            ->value('option_name') ?? '';
+
+                                        if (!empty($optionName) && $foodDetails['name'] != $optionName) {
+                                            $printer->text("  - " . $optionName . "\n");
                                         }
-                                    }else{
+                                    } else {
                                         $options_listname = DB::table('options_list')
-                                        ->where('id', $value['options_list_id'])
-                                        ->value('name');
-                                        
-                                        if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
-                                            $printer->text("  - " . $options_listname . "\n");   
+                                            ->where('id', $value['options_list_id'])
+                                            ->value('name');
+
+                                        if (!empty($options_listname) && $foodDetails['name'] != $options_listname) {
+                                            $printer->text("  - " . $options_listname . "\n");
 
                                             $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -495,7 +497,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                     //$printer->text("  Total: " . Helpers::format_currency($itemTotal) . "\n");
                     $printer->setJustification(Printer::JUSTIFY_RIGHT);
                     $printer->setEmphasis(true);
-                    if($detail->discount_on_food > 0){
+                    if ($detail->discount_on_food > 0) {
                         $printer->text("  Discount: -" . number_format($detail->discount_on_food * $detail->quantity, 3, '.', ''));
                         $printer->bitImageColumnFormat($currencyTextimage);
                     }
@@ -531,7 +533,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             );
             $rowImg = EscposImage::load($rowPath, false);
             $printer->bitImageColumnFormat($rowImg);
-            
+
             $subTotalWithAddons = $subTotal + $addOnsCost;
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "Subtotal | المجموع الفرعي " . $lrm . "(" . $currencyText . ") :",
@@ -544,7 +546,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
 
             if ($order->restaurant_discount_amount > 0) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Discount On Bill | خصم على الفاتورة" . $lrm . "(" . $currencyText . ") :",
+                    "Discount On Bill | خصم على الفاتورة " . $lrm . "(" . $currencyText . ") :",
                     "",
                     number_format($order->restaurant_discount_amount, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -555,7 +557,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
 
             if ($order->tax_status == 'excluded' || $order->tax_status == null) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Tax | ضريبة" . $lrm . "(" . $currencyText . ") :",
+                    "Tax | ضريبة " . $lrm . "(" . $currencyText . ") :",
                     "",
                     number_format($order->total_tax_amount, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -565,7 +567,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             }
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Delivery | توصيل" . $lrm . "(" . $currencyText . ") :",
+                "Delivery | توصيل " . $lrm . "(" . $currencyText . ") :",
                 "",
                 number_format($order->delivery_charge, 3, '.', ''),
                 storage_path('app/public/prints/row.png')
@@ -575,7 +577,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
 
             if ($order->additional_charge > 0) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Additional | إضافي" . $lrm . "(" . $currencyText . ") :",
+                    "Additional | إضافي " . $lrm . "(" . $currencyText . ") :",
                     "",
                     number_format($order->additional_charge, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -587,7 +589,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             $printer->text($linedash);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "TOTAL | المجموع" . $lrm . "(" . $currencyText . ") :",
+                "TOTAL | المجموع " . $lrm . "(" . $currencyText . ") :",
                 "",
                 number_format($order->order_amount, 3, '.', ''),
                 storage_path('app/public/prints/row.png')
@@ -599,7 +601,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             // Payment info
             $printer->setJustification(Printer::JUSTIFY_LEFT);
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Payment Method | طريقة الدفع" . $lrm . ":",
+                "Payment Method | طريقة الدفع " . $lrm . ":",
                 "",
                 ucfirst(str_replace('_', ' ', $order->payment_method)),
                 storage_path('app/public/prints/row.png')
@@ -609,7 +611,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
 
             if ($order->pos_details) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Cash | نقدي" . $lrm . "(" . $currencyText . ") :",
+                    "Cash | نقدي " . $lrm . "(" . $currencyText . ") :",
                     "",
                     number_format($order->pos_details->cash_paid, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -618,7 +620,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                 $printer->bitImageColumnFormat($rowImg);
 
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Card | بطاقة" . $lrm . "(" . $currencyText . ") :",
+                    "Card | بطاقة " . $lrm . "(" . $currencyText . ") :",
                     "",
                     number_format($order->pos_details->card_paid, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -629,7 +631,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                 $change = $order->pos_details->cash_paid + $order->pos_details->card_paid - $order->pos_details->invoice_amount;
                 if ($change > 0) {
                     $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Change | يتغير" . $lrm . "(" . $currencyText . ") :",
+                        "Change | يتغير " . $lrm . "(" . $currencyText . ") :",
                         "",
                         number_format($change, 3, '.', ''),
                         storage_path('app/public/prints/row.png')
@@ -669,67 +671,67 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
 
 
     //kitchen print copy
-/**
-         * Generate a single formatted row with aligned columns (multibyte-safe)
-         *
-         * @param array $columns  Array of column texts
-         * @param array $widths   Array of column widths (in characters)
-         * @param array $aligns   Array of 'left', 'right', 'center' for each column (optional)
-         * @return string         Formatted line ready to print
-         */
-        function formatRowKitchen(array $columns, array $widths, array $aligns = [])
-        {
-            $line = '';
-            $count = count($widths);
+    /**
+     * Generate a single formatted row with aligned columns (multibyte-safe)
+     *
+     * @param array $columns  Array of column texts
+     * @param array $widths   Array of column widths (in characters)
+     * @param array $aligns   Array of 'left', 'right', 'center' for each column (optional)
+     * @return string         Formatted line ready to print
+     */
+    function formatRowKitchen(array $columns, array $widths, array $aligns = [])
+    {
+        $line = '';
+        $count = count($widths);
 
-            for ($i = 0; $i < $count; $i++) {
-                $text = isset($columns[$i]) ? (string) $columns[$i] : '';
-                $width = $widths[$i];
-                $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
+        for ($i = 0; $i < $count; $i++) {
+            $text = isset($columns[$i]) ? (string) $columns[$i] : '';
+            $width = $widths[$i];
+            $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
 
-                // Handle multibyte strings
-                $textLength = mb_strlen($text, 'UTF-8');
+            // Handle multibyte strings
+            $textLength = mb_strlen($text, 'UTF-8');
 
-                // Truncate if too long
-                if ($textLength > $width) {
-                    $text = mb_substr($text, 0, $width, 'UTF-8');
-                    $textLength = $width;
-                }
-
-                $padLength = $width - $textLength;
-
-                switch ($align) {
-                    case 'right':
-                        $padded = str_repeat(' ', $padLength) . $text;
-                        break;
-                    case 'center':
-                        $leftPad = floor($padLength / 2);
-                        $rightPad = $padLength - $leftPad;
-                        $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
-                        break;
-                    case 'left':
-                    default:
-                        $padded = $text . str_repeat(' ', $padLength);
-                        break;
-                }
-
-                $line .= $padded;
+            // Truncate if too long
+            if ($textLength > $width) {
+                $text = mb_substr($text, 0, $width, 'UTF-8');
+                $textLength = $width;
             }
 
-            return $line;
-        }
+            $padLength = $width - $textLength;
 
-
-        function getRowLineK(array $columns, array $widths)
-        {
-            $line = '';
-            foreach ($columns as $i => $text) {
-                // pad or cut each column
-                $line .= str_pad(mb_strimwidth($text, 0, $widths[$i]), $widths[$i]);
+            switch ($align) {
+                case 'right':
+                    $padded = str_repeat(' ', $padLength) . $text;
+                    break;
+                case 'center':
+                    $leftPad = floor($padLength / 2);
+                    $rightPad = $padLength - $leftPad;
+                    $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
+                    break;
+                case 'left':
+                default:
+                    $padded = $text . str_repeat(' ', $padLength);
+                    break;
             }
 
-            return $line;
+            $line .= $padded;
         }
+
+        return $line;
+    }
+
+
+    function getRowLineK(array $columns, array $widths)
+    {
+        $line = '';
+        foreach ($columns as $i => $text) {
+            // pad or cut each column
+            $line .= str_pad(mb_strimwidth($text, 0, $widths[$i]), $widths[$i]);
+        }
+
+        return $line;
+    }
     public function printOrderKitchen(Request $request)
     {
         try {
@@ -750,7 +752,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                     'message' => 'Order not found'
                 ], 404);
             }
-            
+
 
             $branchId = $order->restaurant_id;
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
@@ -804,23 +806,23 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             //$printer->text($line . "\n");
             $printer->setTextSize(2, 2);
             $printer->text("Order # " . $order->order_serial . "\n");
-            
+
             if ($order->printed == '1' && $order->order_status != 'canceled') {
                 $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                 $printer->setReverseColors(true);
                 $printer->setTextSize(2, 2);
-                $printer->text("\nOrder Updated\n\n");  
+                $printer->text("\nOrder Updated\n\n");
                 $printer->selectPrintMode();
                 $printer->setReverseColors(false);
             }
-            if($order->partner_id){
+            if ($order->partner_id) {
                 $printer->text("\n" . $order->partner->partner_name . "\n");
             }
             if ($order->printed == '1' && $order->order_status == 'canceled') {
                 $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                 $printer->setReverseColors(true);
                 $printer->setTextSize(2, 2);
-                $printer->text("\nOrder Canceled\n\n");  
+                $printer->text("\nOrder Canceled\n\n");
             }
 
             $printer->setTextSize(1, 1);
@@ -882,13 +884,13 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             $count = 0;
 
             foreach ($order->details as $detail) {
-                if(trim($detail->is_deleted) == 'Y'){
+                if (trim($detail->is_deleted) == 'Y') {
                     $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                     $printer->setReverseColors(true);
                 }
 
-                if($order->printed == '1'){
-                    if($detail->is_printed == 0 && $detail->is_deleted != 'Y'){
+                if ($order->printed == '1') {
+                    if ($detail->is_printed == 0 && $detail->is_deleted != 'Y') {
                         $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                         $printer->setReverseColors(true);
                         $printer->setTextSize(2, 2);
@@ -898,7 +900,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                         $printer->setReverseColors(false);
                     }
 
-                    if($detail->is_printed == 1 && $detail->options_changed == 1){
+                    if ($detail->is_printed == 1 && $detail->options_changed == 1) {
                         $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                         $printer->setReverseColors(true);
                         $printer->setTextSize(2, 2);
@@ -961,20 +963,20 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                                     //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
                                     //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
 
-                                    if(isset($variation['printing_option']) && $variation['printing_option'] == 'option_name'){
+                                    if (isset($variation['printing_option']) && $variation['printing_option'] == 'option_name') {
                                         $optionName = DB::table('variation_options')
-                                        ->where('id', $value['option_id'])
-                                        ->value('option_name');
-                                        if(!empty($optionName) && $foodDetails['name'] != $optionName){
-                                            $printer->text("  - " . $optionName . "\n");   
+                                            ->where('id', $value['option_id'])
+                                            ->value('option_name');
+                                        if (!empty($optionName) && $foodDetails['name'] != $optionName) {
+                                            $printer->text("  - " . $optionName . "\n");
                                         }
-                                    }else{
+                                    } else {
                                         $options_listname = DB::table('options_list')
-                                        ->where('id', $value['options_list_id'])
-                                        ->value('name');
-                                        
-                                        if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
-                                            $printer->text("  - " . $options_listname . "\n");   
+                                            ->where('id', $value['options_list_id'])
+                                            ->value('name');
+
+                                        if (!empty($options_listname) && $foodDetails['name'] != $options_listname) {
+                                            $printer->text("  - " . $options_listname . "\n");
 
                                             $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -995,12 +997,12 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    if($addon['price'] > 0){
-                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3)); 
+                                    if ($addon['price'] > 0) {
+                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3));
                                         $printer->bitImageColumnFormat($currencyTextimage);
                                         // $printer->text("\n");
-                                    }else{
-                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
+                                    } else {
+                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3) . "\n");
                                     }
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -1013,7 +1015,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                                         $printer->setPrintLeftMargin(0);
                                     }
 
-                                    
+
                                     $addOnsCost += $addon['price'] * $addon['quantity'];
                                 }
                             }
@@ -1057,14 +1059,13 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                     $itemTotal = $detail->price * $detail->quantity;
                     $subTotal += $itemTotal;
 
-                    if(trim($detail->is_deleted) == 'Y'){
+                    if (trim($detail->is_deleted) == 'Y') {
                         $printer->setReverseColors(false);
                         $printer->selectPrintMode(Printer::MODE_FONT_A);
                     }
 
                     $printer->text($linedash);
                 }
-                
             }
 
             // Order Notes
@@ -1085,7 +1086,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             $printer->text($linedash);
 
 
-            if($order->printed == '1' && $order->order_status == 'canceled') {
+            if ($order->printed == '1' && $order->order_status == 'canceled') {
                 $printer->selectPrintMode();
                 $printer->setReverseColors(false);
             }
@@ -1111,16 +1112,16 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
 
             // Find the order
             $orders = Order::with(['details', 'restaurant'])
-            ->where('order_date', $order_date)
-            ->whereHas('details', function ($q) {
-                $q->where('is_deleted', 'Y');   // at least one deleted detail
-            })
-            ->withCount([
-                'details as total_items' => function ($q) {
-                    $q->where('is_deleted', 'Y'); // count only deleted items
-                }
-            ])
-            ->get();
+                ->where('order_date', $order_date)
+                ->whereHas('details', function ($q) {
+                    $q->where('is_deleted', 'Y');   // at least one deleted detail
+                })
+                ->withCount([
+                    'details as total_items' => function ($q) {
+                        $q->where('is_deleted', 'Y'); // count only deleted items
+                    }
+                ])
+                ->get();
 
             if (!$orders) {
                 return response()->json([
@@ -1129,7 +1130,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                 ], 404);
             }
 
-            if(count($orders) == 0){
+            if (count($orders) == 0) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No Canceled Items Found'
@@ -1209,23 +1210,23 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
             foreach ($orders as $order) {
                 $printer->text("Order # " . $order->order_serial . "\n");
                 $printer->text('Canceled Items: ' . $order->total_items . "\n");
-                if($order->takenBy) {
+                if ($order->takenBy) {
                     $printer->text("Order Taker: " . $order->takenBy->name . " at: " . date('Y-m-d H:i', strtotime($order->order_date)) . "\n");
                 }
 
                 // If the Order is for any delivery partner, show that info
-                if($order->partner_id) {
+                if ($order->partner_id) {
                     $partner = DB::table('tbl_sale_order_partners')->where('partner_id', $order->partner_id)->first();
-                    if($partner) {
+                    if ($partner) {
                         $printer->text("Delivery Partner: " . $partner->partner_name . "\n");
                     }
                 }
-                
+
                 $details = $order->details;
                 foreach ($details as $detail) {
                     if ($detail->food_id || $detail->campaign == null) {
 
-                        if(trim($detail->is_deleted) != 'Y'){
+                        if (trim($detail->is_deleted) != 'Y') {
                             continue; // skip non-deleted items
                         }
 
@@ -1255,20 +1256,20 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                                         //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
                                         //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
 
-                                        if(isset($variation['printing_option']) && $variation['printing_option'] == 'option_name'){
+                                        if (isset($variation['printing_option']) && $variation['printing_option'] == 'option_name') {
                                             $optionName = DB::table('variation_options')
-                                            ->where('id', $value['option_id'])
-                                            ->value('option_name');
-                                            if(!empty($optionName) && $foodDetails['name'] != $optionName){
-                                                $printer->text("  - " . $optionName . "\n");   
+                                                ->where('id', $value['option_id'])
+                                                ->value('option_name');
+                                            if (!empty($optionName) && $foodDetails['name'] != $optionName) {
+                                                $printer->text("  - " . $optionName . "\n");
                                             }
-                                        }else{
+                                        } else {
                                             $options_listname = DB::table('options_list')
-                                            ->where('id', $value['options_list_id'])
-                                            ->value('name');
-                                            
-                                            if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
-                                                $printer->text("  - " . $options_listname . "\n");   
+                                                ->where('id', $value['options_list_id'])
+                                                ->value('name');
+
+                                            if (!empty($options_listname) && $foodDetails['name'] != $options_listname) {
+                                                $printer->text("  - " . $options_listname . "\n");
 
                                                 $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -1289,12 +1290,12 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                                 // Print addons if available
                                 if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                     foreach ($variation['addons'] as $addon) {
-                                        if($addon['price'] > 0){
-                                            $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3)); 
+                                        if ($addon['price'] > 0) {
+                                            $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3));
                                             $printer->bitImageColumnFormat($currencyTextimage);
                                             // $printer->text("\n");
-                                        }else{
-                                            $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
+                                        } else {
+                                            $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3) . "\n");
                                         }
 
                                         $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -1307,7 +1308,7 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
                                             $printer->setPrintLeftMargin(0);
                                         }
 
-                                        
+
                                         $addOnsCost += $addon['price'] * $addon['quantity'];
                                     }
                                 }
@@ -1859,48 +1860,62 @@ public function getPrintableSummary($label, $value, $is_double_width = false, $l
 
     public function savePrinterSettings(Request $request)
     {
-        $bill = $request->input('billPrinter');
+        $bill       = $request->input('billPrinter');
         $ordersDate = $request->input('ordersDate');
-        $kitchen = $request->input('kitchenPrinter');
-        $branchId = Helpers::get_restaurant_id();
+        $kitchen    = $request->input('kitchenPrinter');
+        $branchId   = Helpers::get_restaurant_id();
 
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
 
-        if ($branch) {
-            // Check if there are any unpaid orders
-            $ordersExist = Order::where('payment_status', 'unpaid')->where('order_date', $branch->orders_date);
-            if ($ordersExist->exists()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot change printer settings while there are unpaid orders. Please complete or cancel all pending orders first.'
-                ]);
-            }
-
-            $openSessions = ShiftSession::where('branch_id', $branchId)
-            ->where('session_status', 'open');
-            
-            if($openSessions->count() > 0){
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot change printer settings while there are open shift sessions. Please close all open shifts first.'
-                ]);
-            }
-
-            // Update the settings
-            DB::table('tbl_soft_branch')
-                ->where('branch_id', $branchId)
-                ->update([
-                    'bill_printer' => $bill,
-                    'orders_date' => $ordersDate,
-                    'kitchen_printer' => $kitchen,
-                    'updated_at' => now()
-                ]);
-            return response()->json(['success' => true]);
-        } else {
+        if (!$branch) {
             return response()->json([
                 'success' => false,
                 'message' => 'Branch not found. Please contact administrator to set up your branch first.'
             ]);
         }
+
+        // Normalize dates (compare only Y-m-d)
+        $currentDate = Carbon::parse($branch->orders_date)->toDateString();
+        $newDate     = $ordersDate ? Carbon::parse($ordersDate)->toDateString() : $currentDate;
+
+        $isDateChanging = $newDate !== $currentDate;
+
+        if ($isDateChanging) {
+            // Check unpaid orders for current date
+            $ordersExist = Order::where('payment_status', 'unpaid')
+                ->whereDate('order_date', $currentDate)
+                ->exists();
+
+            if ($ordersExist) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot change date while there are unpaid orders. Please complete or cancel all pending orders first.',
+                    'date'  => date('Y-m-d', strtotime($branch->orders_date))
+                ]);
+            }
+
+            $openSessions = ShiftSession::where('branch_id', $branchId)
+                ->where('session_status', 'open')
+                ->exists();
+
+            if ($openSessions) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot change date while there are open shift sessions. Please close all open shifts first.',
+                    'date'  => date('Y-m-d', strtotime($branch->orders_date))
+                ]);
+            }
+        }
+
+        DB::table('tbl_soft_branch')
+            ->where('branch_id', $branchId)
+            ->update([
+                'bill_printer'    => $bill,
+                'orders_date'     => Carbon::parse($newDate)->startOfDay(), // saves as 00:00:00
+                'kitchen_printer' => $kitchen,
+                'updated_at'      => now()
+            ]);
+
+        return response()->json(['success' => true]);
     }
 }

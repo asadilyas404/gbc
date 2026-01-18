@@ -180,9 +180,17 @@
                     .then(data => {
                         $('#loading').hide();
                         if (data.success) {
-                            alert('Settings saved successfully!');
+                            swal.fire({
+                                title: 'Setting Updated',
+                                type: 'success',
+                            });
                         } else {
-                            alert(data.message || 'Failed to save settings.');
+                            swal.fire({
+                                title: 'Something went wrong!',
+                                type: 'error',
+                                text: data.message || 'Failed to save settings.'
+                            });
+                            $('#ordersDate').val(data.date);
                         }
                     })
                     .catch(error => {

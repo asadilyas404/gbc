@@ -1013,16 +1013,18 @@
                 $('#payment_type_credit').prop('checked', true);
                 $('.payment_type').prop('disabled', true);
                 $('<input>').attr({
-                type: 'hidden',
-                name: 'select_payment_type',
-                value: 'credit_payment'
+                    type: 'hidden',
+                    name: 'select_payment_type',
+                    value: 'credit_payment'
                 }).appendTo('#order_place');
-                
+                $('#cash_paid, #card_paid, #customer_name, #car_number, #phone')
+                .prop('readonly', true);
                 // Disable the Unpaid Order Button
-                $('#unpaidOrderBtn').prop('disabled', true);
+                $('#unpaidOrderBtn').hide();
             @else
-                $('#payment_type_credit').prop('checked', false);
-                $('#payment_type_credit').hide();
+                $('#payment_type_credit_wrapper').remove();
+                // $('#payment_type_credit').prop('checked', false);
+                // $('#payment_type_credit').hide();
                 $('.payment_type').prop('disabled', false);
                 $('#unpaidOrderBtn').prop('disabled', false);
             @endif   
@@ -2263,8 +2265,20 @@
 
             $(document).on('submit', 'form', function (e) {
                 const $form = $(this);
-
                 // Per-form lock (instead of global lock)
+                
+                if ($('#order_draft').val() !== 'draft') {
+                    // Check if any payment type is selected
+                    console.log($('input[name="select_payment_type"]:checked'));
+                    if ($('input[name="select_payment_type"]:checked').length === 0) {
+                        Swal.fire({
+                            title: 'Select Payment Method',
+                            type: 'warning'
+                        });
+                        return false;
+                    }
+                }
+                
                 if ($form.data('submitting')) {
                     e.preventDefault();
                     return false;
@@ -2396,25 +2410,41 @@
                     return;
                 }
                 
-                let paymentType = $('input[name="select_payment_type"]:checked').val();
-                if (paymentType === 'both_payment' && cardPaid < invoiceAmount) {
-                    const remainingAmount = invoiceAmount - cardPaid;
-
-                    $('#cash_paid').val(remainingAmount.toFixed(3));
-                    $('#cash_paid_display').text(formatCurrency(remainingAmount));
-                }
-
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
                 } else {
                     bankAccountSelect.prop('required', false).prop('disabled', true);
                 }
-
             }
 
             function attachEventListeners() {
                 $('#cash_paid, #card_paid').off('input').on('input', function() {
-                    updateCalculations();
+                    // updateCalculations();
+                    const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                    let paymentType = $('input[name="select_payment_type"]:checked').val();
+                    if (paymentType === 'both_payment') {
+
+                        let cardPaid = parseFloat($('#card_paid').val()) || 0;
+                        let cashPaid = parseFloat($('#cash_paid').val()) || 0;
+
+                        // If user typed in card field
+                        if ($(this).attr('id') === 'card_paid') {
+                            let remaining = invoiceAmount - cardPaid;
+                            remaining = Math.max(remaining, 0);
+
+                            $('#cash_paid').val(remaining.toFixed(3));
+                            $('#cash_paid_display').text(formatCurrency(remaining));
+                        }
+
+                        // If user typed in cash field
+                        if ($(this).attr('id') === 'cash_paid') {
+                            let remaining = invoiceAmount - cashPaid;
+                            remaining = Math.max(remaining, 0);
+
+                            $('#card_paid').val(remaining.toFixed(3));
+                            // $('#card_paid_display').text(formatCurrency(remaining));
+                        }
+                    }
                 });
             }
 

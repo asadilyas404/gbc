@@ -2267,13 +2267,12 @@
                 const $form = $(this);
                 // Per-form lock (instead of global lock)
                 
-                if ($('#order_draft').val() !== 'draft' && $form.attr('id') === 'order_place') {
-                    // Check if any payment type is selected
-                    if ($('input[name="select_payment_type"]:checked').length === 0) {
-                        Swal.fire({
-                            title: '{{ translate("Select_Payment_Method")}}',
-                            type: 'warning'
-                        });
+                if ($('#order_draft').val() !== 'draft') {
+                    $("input[name='select_payment_type']").prop('required', true);
+
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        this.reportValidity(); // shows browser message immediately
                         return false;
                     }
                 }

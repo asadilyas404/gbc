@@ -6647,4 +6647,5 @@
   'no-branch-found' => 'No-branch-found',
   'branch_not_assigned' => 'Branch not assigned',
   'order_sent_to_the_kitchen' => 'Order sent to the kitchen',
+  'Select_Payment_Method' => 'Select Payment Method',
 );

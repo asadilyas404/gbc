@@ -138,9 +138,13 @@
                                     @foreach ($choice->values as $k => $option)
                                         @php
                                             $showOption = true;
+                                            $checked = false;
                                             if (isset($option->options_list_id) && $option->options_list_id) {
                                                 $optionsList = OptionsList::find($option->options_list_id);
                                                 $showOption = $optionsList && $optionsList->status == 1;
+                                            }
+                                            if (($choice->required == 'on' && $choice->min == count($choice->values)) || count($choice->values) == 1) {
+                                                $checked = true;
                                             }
                                         @endphp
                                         @if ($showOption)
@@ -153,6 +157,7 @@
                                                     data-price="{{ data_get($option, 'optionPrice') }}"
                                                     name="variations[{{ $key }}][values][label][]"
                                                     value="{{ $option->label }}"
+                                                    {{ $checked ? 'checked' : '' }}
                                                     {{ data_get($option, 'stock_type') && data_get($option, 'stock_type') !== 'unlimited' && data_get($option, 'current_stock') <= 0 ? 'disabled' : '' }}
                                                     autocomplete="off">
                                                 <label

@@ -1043,13 +1043,11 @@
                 // Per-form lock (instead of global lock)
                 
                 if ($('#order_draft').val() !== 'draft') {
-                    // Check if any payment type is selected
-                    console.log($('input[name="select_payment_type"]:checked'));
-                    if ($('input[name="select_payment_type"]:checked').length === 0) {
-                        Swal.fire({
-                            title: 'Select Payment Method',
-                            type: 'warning'
-                        });
+                    $("input[name='select_payment_type']").prop('required', true);
+
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        this.reportValidity(); // shows browser message immediately
                         return false;
                     }
                 }

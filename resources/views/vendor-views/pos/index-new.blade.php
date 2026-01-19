@@ -2267,12 +2267,11 @@
                 const $form = $(this);
                 // Per-form lock (instead of global lock)
                 
-                if ($('#order_draft').val() !== 'draft') {
+                if ($('#order_draft').val() !== 'draft' && $form.attr('id') === 'order_place') {
                     // Check if any payment type is selected
-                    console.log($('input[name="select_payment_type"]:checked'));
                     if ($('input[name="select_payment_type"]:checked').length === 0) {
                         Swal.fire({
-                            title: 'Select Payment Method',
+                            title: '{{ translate("Select_Payment_Method")}}',
                             type: 'warning'
                         });
                         return false;

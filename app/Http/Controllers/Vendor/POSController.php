@@ -1192,7 +1192,6 @@ class POSController extends Controller
         }else{
             $order->user_id = $request->user_id;
         }
-
         
         $count = 1;
         foreach ($cart as $c) {
@@ -1487,7 +1486,12 @@ class POSController extends Controller
 
             // Print order receipts
             try {
-                // event(new myevent('unpaid'));
+                if($order->payment_status == 'unpaid'){
+                    $order->load(['customer','pos_details']);
+                    $html = view('vendor-views.order.partials._card', compact('order'))->render();
+                    event(new myevent('unpaid', $order->restaurant_id, $order->id, $html));
+                }
+                
                 $printController = new \App\Http\Controllers\PrintController();
 
                 if($order->payment_status == 'unpaid' && $order->printed == 0){

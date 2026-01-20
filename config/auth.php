@@ -149,10 +149,10 @@ return [
             'model' => App\Models\Vendor::class,
         ],
 
-        'vendor_employees' => [
-            'driver' => 'eloquent',
-            'model' => App\Models\VendorEmployee::class,
-        ],
+     'vendor_employees' => [
+        'driver' => 'eloquent',
+        'model' => App\Models\VendorEmployee::class,
+    ],
 
         'delivery_men' => [
             'driver' => 'database',

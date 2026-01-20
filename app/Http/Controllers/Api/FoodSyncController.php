@@ -30,7 +30,6 @@ class FoodSyncController extends Controller
 
             $branchId = (int) $validated['branch_id'];
             $cursorMap = $this->resolveLastSyncedMap($branchId);
-            $snapshot = $request->boolean('snapshot', true);
 
             $data = [
                 'foods' => [],
@@ -41,7 +40,7 @@ class FoodSyncController extends Controller
 
             $foods = DB::connection('oracle')
                 ->table('food')
-                ->when(!$snapshot && $cursorMap['foods'], function ($query, Carbon $cursor) {
+                ->when($cursorMap['foods'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -102,7 +101,7 @@ class FoodSyncController extends Controller
 
             $addons = DB::connection('oracle')
                 ->table('add_ons')
-                ->when(!$snapshot && $cursorMap['addons'], function ($query, Carbon $cursor) {
+                ->when($cursorMap['addons'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -133,7 +132,7 @@ class FoodSyncController extends Controller
 
             $categories = DB::connection('oracle')
                 ->table('categories')
-                ->when(!$snapshot && $cursorMap['categories'], function ($query, Carbon $cursor) {
+                ->when($cursorMap['categories'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -164,7 +163,7 @@ class FoodSyncController extends Controller
 
             $optionsList = DB::connection('oracle')
                 ->table('options_list')
-                ->when(!$snapshot && $cursorMap['options_list'], function ($query, Carbon $cursor) {
+                ->when($cursorMap['options_list'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');

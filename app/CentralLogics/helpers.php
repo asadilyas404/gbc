@@ -1112,9 +1112,13 @@ class Helpers
         // }
 
         // return $config;
-        $config = null;
 
-        $data = BusinessSetting::firstWhere('key', $name);
+        $config = null;
+        $settings = Cache::rememberForever('business_settings_all_data', function () {
+            return BusinessSetting::all();
+        });
+
+        $data = $settings->firstWhere('key', $name);
         if (isset($data)) {
             $config = $json_decode ? json_decode($data['value'], true) : $data['value'];
             if (is_null($config)) {
@@ -1495,6 +1499,7 @@ class Helpers
 
     public static function get_restaurant_discount($restaurant)
     {
+        //dd($restaurant);
         if ($restaurant->discount) {
             if (date('Y-m-d', strtotime($restaurant->discount->start_date)) <= now()->format('Y-m-d') && date('Y-m-d', strtotime($restaurant->discount->end_date)) >= now()->format('Y-m-d') && date('H:i', strtotime($restaurant->discount->start_time)) <= now()->format('H:i') && date('H:i', strtotime($restaurant->discount->end_time)) >= now()->format('H:i')) {
                 return [
@@ -2006,18 +2011,9 @@ class Helpers
     public static function get_restaurant_id()
     {
         if (auth('vendor_employee')->check()) {
-
-            $user = auth('vendor_employee')->user();
-
-            return $user->restaurant->id;    
+            return auth('vendor_employee')->user()->restaurant->id;
         }
-        if (auth('vendor')->check()) {
-
-            $user = auth('vendor')->user();
-            return $user->restaurants->first()->id;
-        }
-
-        return null;
+        return auth('vendor')->user()->restaurants[0]->id;
     }
 
     public static function get_vendor_id()
@@ -2053,25 +2049,25 @@ class Helpers
     // In your Helpers.php (or wherever you have the function)
     public static function get_restaurant_data()
     {
-        // Vendor employee
         if (auth('vendor_employee')->check()) {
             $user = auth('vendor_employee')->user();
-
-            return $user->restaurant; // Eloquent relation, 1 query only once
-        }
-
-        // Vendor
-        if (auth('vendor')->check()) {
-            $user = auth('vendor')->user();
-
-            if (!$user || $user->restaurants->isEmpty()) {
-                return null;
+            if ($user && $user->restaurant) {
+                return $user->restaurant;
             }
-            return $user->restaurants->first(); // 1 query only once
+            return null;
         }
 
-        return null;
+        $user = auth('vendor')->user();
+
+        // Check if user is null or does not have restaurants
+        if (!$user || !isset($user->restaurants) || count($user->restaurants) === 0) {
+            return null;  // no user or no restaurants found
+        }
+
+        return $user->restaurants[0];
     }
+
+
 
     public static function getDisk()
     {
@@ -2280,21 +2276,14 @@ class Helpers
             }
             return true;
         } else if (auth('vendor_employee')->check()) {
-            $employee = auth('vendor_employee')->user();
-            $role = \App\Models\EmployeeRole::where('id', $employee->employee_role_id)->first();
-
-            if (!$role) {
-                return false;
-            }
-
-            $permission = $role->modules;
+            $permission = auth('vendor_employee')->user()->role->modules;
             if (isset($permission) && in_array($mod_name, (array) json_decode($permission)) == true) {
                 if ($mod_name == 'reviews') {
-                    return $employee->restaurant->reviews_section;
+                    return auth('vendor_employee')->user()->restaurant->reviews_section;
                 } else if ($mod_name == 'deliveryman') {
-                    return $employee->restaurant->self_delivery_system;
+                    return auth('vendor_employee')->user()->restaurant->self_delivery_system;
                 } else if ($mod_name == 'pos') {
-                    return $employee->restaurant->pos_system;
+                    return auth('vendor_employee')->user()->restaurant->pos_system;
                 }
                 return true;
             }
@@ -3985,17 +3974,6 @@ class Helpers
         }
         $data = implode(', ', $data);
         return $data;
-    }
-
-    public static function get_branch_name()
-    {
-        // Get Branch ID
-        $branch_id = config('constants.branch_id', null);
-        if ($branch_id) {
-            $branchName = DB::table('tbl_soft_branch')->where('branch_id', $branch_id)->first()->branch_name ?? translate('messages.no-branch-found');
-            return $branchName;
-        }
-        return translate('messages.no-branch-found');
     }
 
     public static function get_category_name($id)

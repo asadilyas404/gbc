@@ -15,9 +15,7 @@
     <title>{{ __('messages.login') }} | {{$app_name??__('STACKFOOD')}}</title>
 
     <!-- Favicon -->
-    @php($logo = \App\Models\BusinessSetting::where(['key' => 'icon'])->first()->value)
-    <link rel="shortcut icon" href="{{ dynamicStorage('storage/app/public/business/' . $logo ?? '') }}">
-    <link rel="icon" type="image/x-icon" href="{{ dynamicStorage('storage/app/public/business/' . $logo ?? '') }}">
+    <link rel="shortcut icon" href="{{asset($icon ? 'storage/app/public/business/'.$icon : 'public/favicon.ico')}}">
 
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&amp;display=swap" rel="stylesheet">
@@ -106,6 +104,17 @@
                     <!-- End Form Group -->
                         <div class="mb-2"></div>
                         <div class="d-flex justify-content-between mt-5">
+                    <!-- Checkbox -->
+                        <div class="form-group">
+                            <div class="custom-control custom-checkbox">
+                                <input type="checkbox" class="custom-control-input" id="termsCheckbox" {{ $password ? 'checked' : '' }}
+                                    name="remember">
+                                <label class="custom-control-label text-muted" for="termsCheckbox">
+                                    {{__('messages.remember_me')}}
+                                </label>
+                            </div>
+                        </div>
+                    <!-- End Checkbox -->
                     <!-- forget password -->
                         <div class="form-group {{ $role == 'admin' ? '' : 'd-none' }}"  id="forget-password">
                             <div class="custom-control">

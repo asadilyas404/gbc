@@ -29,6 +29,5 @@ Route::middleware('validate.api.token')->group(function () {
 
     Route::get('/employees-users/get-data', [\App\Http\Controllers\Api\EmployeeUserSyncController::class, 'getData']);
     Route::post('/employees-users/update-sync-state', [\App\Http\Controllers\Api\EmployeeUserSyncController::class, 'updateSyncState']);
-    Route::post('/employees-users/update-password', [\App\Http\Controllers\Api\EmployeeUserSyncController::class, 'updatePassword']);
 });
 

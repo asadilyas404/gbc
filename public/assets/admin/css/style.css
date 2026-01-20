@@ -1513,12 +1513,10 @@ span.initial-38-7,
 }
 
 .initial-49 .addon-quantity-input {
-    position: absolute;
-    right: 12px;
     height: 2rem;
     width: 7rem;
     z-index: 9;
-    bottom: 0rem;
+    bottom: 1rem;
     visibility: hidden;
 }
 
@@ -1532,7 +1530,7 @@ span.initial-38-7,
 
 .initial-49 .btn-check:checked + .check-label {
     background-color: #ef7822;
-    color: #ffffff !important;
+    color: #ffffff;
     border: none;
 }
 

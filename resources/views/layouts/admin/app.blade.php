@@ -15,7 +15,7 @@
     <title>@yield('title')</title>
     <!-- Favicon -->
     @php($logo = \App\Models\BusinessSetting::where(['key' => 'icon'])->first()->value)
-    <link rel="shortcut icon" href="{{ dynamicStorage('storage/app/public/business/' . $logo ?? '') }}">
+    <link rel="shortcut icon" href="">
     <link rel="icon" type="image/x-icon" href="{{ dynamicStorage('storage/app/public/business/' . $logo ?? '') }}">
     <!-- Font -->
     <link href="{{dynamicAsset('public/assets/admin/css/fonts.css')}}" rel="stylesheet">
@@ -67,7 +67,7 @@
     @include('layouts.admin.partials._sidebar')
     <!-- END ONLY DEV -->
 
-    <main id="content" role="main" class="main pointer-event" aria-hidden="false">
+    <main id="content" role="main" class="main pointer-event">
         <!-- Content -->
         @yield('content')
         <!-- End Content -->

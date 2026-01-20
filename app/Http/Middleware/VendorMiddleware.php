@@ -18,7 +18,7 @@ class VendorMiddleware
      */
     public function handle(Request $request, Closure $next)
     {
-        // Helpers::check_subscription_validity();
+        Helpers::check_subscription_validity();
         if (Auth::guard('vendor')->check()) {
             if(!auth('vendor')->user()->status)
             {

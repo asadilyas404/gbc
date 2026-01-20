@@ -274,7 +274,7 @@ $subscription_deadline_warning_message = \App\Models\BusinessSetting::where('key
         }
         ?>
 @if (
-        $restaurant_data->restaurant_sub->is_trial == 0 &&
+    $restaurant_data->restaurant_sub->is_trial == 0 &&
         $restaurant_data->restaurant_sub->expiry_date_parsed &&
         $restaurant_data->restaurant_sub->expiry_date_parsed->subDays($subscription_deadline_warning_days)->isBefore(now()) &&
         Request::is('restaurant-panel'))

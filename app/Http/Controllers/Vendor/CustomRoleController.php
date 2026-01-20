@@ -15,7 +15,7 @@ class CustomRoleController extends Controller
     public function create(Request $request)
     {
         $key = explode(' ', $request['search']);
-        $rl=EmployeeRole::orderBy('name')
+        $rl=EmployeeRole::where('restaurant_id',Helpers::get_restaurant_id())->orderBy('name')
         ->when(isset($key) , function($query) use($key){
             $query->where(function ($q) use ($key) {
                 foreach ($key as $value) {
@@ -98,7 +98,7 @@ class CustomRoleController extends Controller
 
     public function edit($id)
     {
-        $role=EmployeeRole::withoutGlobalScope('translate')->with('translations')->where(['id'=>$id])->first(['id','name','modules']);
+        $role=EmployeeRole::where('restaurant_id',Helpers::get_restaurant_id())->withoutGlobalScope('translate')->with('translations')->where(['id'=>$id])->first(['id','name','modules']);
         return view('vendor-views.custom-role.edit',compact('role'));
     }
 

@@ -190,13 +190,10 @@
                     </a>
                     <ul class="dropdown-list">
                         <li>
-                            <a href="{{ route('login', ['restaurant']) }}"> {{ translate('Restaurant Admin') }}</a>
+                            <a href="{{ route('login', ['restaurant']) }}"> {{ translate('Restaurant') }}</a>
                         </li>
                         <li>
                             <a href="{{ route('login', ['restaurant-employee']) }}">{{ translate('Restaurant Employee') }}</a>
-                        </li>
-                        <li>
-                            <a href="https://deploylogics.royalerp.net">{{ translate('ERP') }}</a>
                         </li>
                     </ul>
                 </div>

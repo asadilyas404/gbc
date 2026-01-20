@@ -3265,5 +3265,4 @@ return array (
   'DOCS' => 'DOCS',
   'withdraw_method' => 'প্রত্যাহারের পদ্ধতি',
   'Are you sure?' => 'তুমি কি নিশ্চিত?',
-  'vendor_has_no_restaurants' => 'ভেন্ডরের কোনো রেস্তোরাঁ নেই',
 );

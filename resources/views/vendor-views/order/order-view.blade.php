@@ -345,7 +345,6 @@
                         $restaurant_discount_amount = 0;
                         $product_price = 0;
                         $total_addon_price = 0;
-                        $discount_on_food = 0;
                         $total_variation_addon_price = 0;
                         ?>
                         <div class="table-responsive">
@@ -467,7 +466,6 @@
                                                             </span>
                                                         </div>
                                                         @php($total_addon_price += $addon['price'] * $addon['quantity'])
-                                                        
                                                     @endforeach
                                                 </td>
                                                 <td>
@@ -480,7 +478,7 @@
                                                 </td>
                                             </tr>
                                             @php($product_price += $amount)
-                                            @php($discount_on_food += $detail['discount_on_food'] * $detail['quantity'])
+                                            @php($restaurant_discount_amount += $detail['discount_on_food'] * $detail['quantity'])
                                         @elseif(isset($detail->item_campaign_id))
                                             @php($detail->campaign = json_decode($detail->food_details, true))
                                             @php($campaign = \App\Models\ItemCampaign::where(['id' => $detail->campaign['id']])->first())
@@ -561,7 +559,7 @@
                                                 </td>
                                             </tr>
                                             @php($product_price += $amount)
-                                            @php($discount_on_food += $detail['discount_on_food'] * $detail['quantity'])
+                                            @php($restaurant_discount_amount += $detail['discount_on_food'] * $detail['quantity'])
                                         @endif
                                     @endforeach
                                 </tbody>
@@ -570,13 +568,12 @@
                         <?php
 
                         $coupon_discount_amount = $order['coupon_discount_amount'];
-                        $restaurant_discount_amount = $order['restaurant_discount_amount'];
 
                         $total_price = $product_price + $total_addon_price - $restaurant_discount_amount - $coupon_discount_amount;
 
                         $total_tax_amount = $order['total_tax_amount'];
 
-                        
+                        $restaurant_discount_amount = $order['restaurant_discount_amount'];
                         $tax_included = \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first() ? \App\Models\BusinessSetting::where(['key' => 'tax_included'])->first()->value : 0;
                         ?>
                         <div class="px-4">
@@ -592,10 +589,10 @@
                                         <dd class="col-sm-6">
                                             {{ \App\CentralLogics\Helpers::format_currency($total_addon_price) }}
                                         </dd>
-                                        <dt class="col-sm-6">{{ translate('messages.discount_on_items') }}:
+                                        <dt class="col-sm-6">{{ translate('messages.variation_addon_cost') }}:
                                         </dt>
                                         <dd class="col-sm-6">
-                                            {{ \App\CentralLogics\Helpers::format_currency($discount_on_food) }}
+                                            {{ \App\CentralLogics\Helpers::format_currency($total_variation_addon_price) }}
                                             <hr>
                                         </dd>
 
@@ -606,9 +603,9 @@
                                             :
                                         </dt>
                                         <dd class="col-sm-6">
-                                            {{ \App\CentralLogics\Helpers::format_currency($product_price - $discount_on_food + $total_addon_price + $total_variation_addon_price) }}
+                                            {{ \App\CentralLogics\Helpers::format_currency($product_price + $total_addon_price + $total_variation_addon_price) }}
                                         </dd>
-                                        <dt class="col-sm-6">{{ translate('messages.restaurnat_discount') }}:</dt>
+                                        <dt class="col-sm-6">{{ translate('messages.discount') }}:</dt>
                                         <dd class="col-sm-6">
                                             -
                                             {{ \App\CentralLogics\Helpers::format_currency($restaurant_discount_amount) }}
@@ -739,15 +736,15 @@
                                         href="javascript:">
                                         {{ translate('Confirm Order') }}
                                     </a> --}}
-                            @if ($order['payment_status'] == 'unpaid' || $order['payment_status'] == 'paid')
+                            @if ($order['payment_status'] == 'unpaid')
                                 <a target="_blank"
                                     href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
                                     class="btn w-100 mb-1 btn-sm btn-outline-warning mt-2 btn--warning">
-                                    Load {{ ucfirst($order['payment_status']) }} to POS
+                                    Load Unpaid to POS
                                 </a>
                             @endif
                             @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')
-                                <a style="display: none;"
+                                <a
                                     class="btn w-100 mb-1 btn-sm btn-outline-danger btn--danger mt-2 cancelled-status">{{ translate('Cancel Order') }}</a>
                             @endif
                             {{-- @elseif ($order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted')
@@ -1018,7 +1015,7 @@
                         </div>
                         <div class="media-body">
                             <span class="fz--14px text--title font-semibold text-hover-primary d-block">
-                                {{ $order->customer['customer_name'] }}
+                                {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}
                             </span>
                             <span class="d-block">
                                 <strong class="text--title font-semibold">
@@ -1027,16 +1024,16 @@
                                 {{ translate('Orders') }}
                             </span>
                             <span class="d-block">
-                                <a class="text--title font-semibold" href="tel:{{ $order->customer['customer_mobile_no'] }}">
+                                <a class="text--title font-semibold" href="tel:{{ $order->customer['phone'] }}">
                                     <strong>
-                                        {{ $order->customer['customer_mobile_no'] }}
+                                        {{ $order->customer['phone'] }}
                                     </strong>
                                 </a>
                             </span>
                             <span class="d-block">
                                 <strong class="text--title font-semibold">
                                 </strong>
-                                {{ $order->customer['customer_email'] }}
+                                {{ $order->customer['email'] }}
                             </span>
                         </div>
                     </div>
@@ -1419,7 +1416,7 @@
                             {{ translate('select_cancellation_reason') }}
                         </option>
                     @foreach ($reasons as $r)
-                        <option value="{{ $r->id }}">
+                        <option value="{{ $r->reason }}">
                             {{ $r->reason }}
                         </option>
                     @endforeach
@@ -2043,8 +2040,7 @@
                                     const result = typeof response === 'string' ? JSON.parse(response) : response;
                                     if (result.success) {
                                         toastr.success("WhatsApp message sent successfully to " + to);
-                                        button.prop('disabled', false);
-                                        button.html(originalHtml);
+                                        button.html(originalHtml + ' <i class="tio-checkmark-circle"></i>');
                                     } else {
                                         toastr.error(result.error || "Failed to send message");
                                         button.prop('disabled', false);

@@ -124,64 +124,6 @@ class EmployeeUserSyncController extends Controller
     }
 
     /**
-     * Update user password
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function updatePassword(Request $request)
-    {
-        try {
-            $validated = $request->validate([
-                'user_id' => 'required',
-                'password' => 'required|string|min:8',
-            ]);
-
-            $userId = $validated['user_id'];
-            $password = bcrypt($validated['password']);
-
-            $updated = DB::connection('oracle')
-                ->table('users')
-                ->where('id', $userId)
-                ->update([
-                    'password' => $password,
-                    'updated_at' => Carbon::now()->format('Y-m-d H:i:s'),
-                ]);
-
-            if ($updated) {
-                Log::info('User password updated successfully on live server', [
-                    'user_id' => $userId,
-                ]);
-
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Password updated successfully'
-                ], 200);
-            } else {
-                Log::warning('User not found for password update', [
-                    'user_id' => $userId,
-                ]);
-
-                return response()->json([
-                    'success' => false,
-                    'message' => 'User not found'
-                ], 404);
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Failed to update user password on live server', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Failed to update password',
-                'error' => $e->getMessage()
-            ], 500);
-        }
-    }
-
-    /**
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */

@@ -2,150 +2,86 @@
 
 namespace App\Http\Controllers;
 
-use I18N_Arabic;
-use App\Models\Food;
-use App\Models\AddOn;
-use App\Models\Order;
-use App\Models\Shift;
-use Mike42\Escpos\Printer;
 use App\Models\OptionsList;
-use App\Models\ShiftSession;
+use I18N_Arabic;
+use App\Models\Order;
+use Mike42\Escpos\Printer;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
-use Illuminate\Support\Carbon;
 use Mike42\Escpos\EscposImage;
-use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\ReceiptImageHelper;
+use App\Models\AddOn;
+use App\Models\Food;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\View;
 use Intervention\Image\ImageManager;
-use Mike42\Escpos\ImagickEscposImage;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use PhpParser\Node\Stmt\TryCatch;
 
 class PrintController extends Controller
 {
 
     function formatPrintRow(array $columns, array $widths, array $aligns = [])
-    {
-        $line = '';
-        $count = count($widths);
+            {
+                $line = '';
+                $count = count($widths);
 
-        for ($i = 0; $i < $count; $i++) {
-            $text = isset($columns[$i]) ? (string) $columns[$i] : '';
-            $width = $widths[$i];
-            $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
+                for ($i = 0; $i < $count; $i++) {
+                    $text = isset($columns[$i]) ? (string) $columns[$i] : '';
+                    $width = $widths[$i];
+                    $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
 
-            // Handle multibyte strings
-            $textLength = mb_strlen($text, 'UTF-8');
+                    // Handle multibyte strings
+                    $textLength = mb_strlen($text, 'UTF-8');
 
-            // Truncate if too long
-            if ($textLength > $width) {
-                $text = mb_substr($text, 0, $width, 'UTF-8');
-                $textLength = $width;
+                    // Truncate if too long
+                    if ($textLength > $width) {
+                        $text = mb_substr($text, 0, $width, 'UTF-8');
+                        $textLength = $width;
+                    }
+
+                    $padLength = $width - $textLength;
+
+                    switch ($align) {
+                        case 'right':
+                            $padded = str_repeat(' ', $padLength) . $text;
+                            break;
+                        case 'center':
+                            $leftPad = floor($padLength / 2);
+                            $rightPad = $padLength - $leftPad;
+                            $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
+                            break;
+                        case 'left':
+                        default:
+                            $padded = $text . str_repeat(' ', $padLength);
+                            break;
+                    }
+
+                    $line .= $padded;
+                }
+
+                return $line;
+            }
+        
+
+        function getRowLine(array $columns, array $widths)
+        {
+            $line = '';
+            foreach ($columns as $i => $text) {
+                // pad or cut each column
+                $line .= str_pad(mb_strimwidth($text, 0, $widths[$i]), $widths[$i]);
             }
 
-            $padLength = $width - $textLength;
-
-            switch ($align) {
-                case 'right':
-                    $padded = str_repeat(' ', $padLength) . $text;
-                    break;
-                case 'center':
-                    $leftPad = floor($padLength / 2);
-                    $rightPad = $padLength - $leftPad;
-                    $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
-                    break;
-                case 'left':
-                default:
-                    $padded = $text . str_repeat(' ', $padLength);
-                    break;
-            }
-
-            $line .= $padded;
+            return $line;
         }
 
-        return $line;
-    }
 
-
-    function getRowLine(array $columns, array $widths)
-    {
-        $line = '';
-        foreach ($columns as $i => $text) {
-            // pad or cut each column
-            $line .= str_pad(mb_strimwidth($text, 0, $widths[$i]), $widths[$i]);
-        }
-
-        return $line;
-    }
-
-    public function printOrderFromHTML(Request $request)
-    {
-        $request->validate([
-            'order_id' => 'required|string'
-        ]);
-
-        $orderId = $request->input('order_id') ?: $request->query('order_id');
-        // Find the order
-        $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details', 'payments'])
-            ->where('id', $orderId)
-            ->first();
-
-        if (!$order) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order not found'
-            ], 404);
-        }
-
-        // Check if ALL details have is_deleted = 'Y'
-        $allDeleted = $order->details->every(function ($detail) {
-            return $detail->is_deleted === 'Y';
-        });
-
-        if ($allDeleted) {
-            return redirect()->back()->with('warning', 'Cannot print order: All items have been deleted.');
-        }
-
-        // Get printer name from database
-        $user = Auth::user();
-
-        $branchId = $order->restaurant_id;
-        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
-        $printerName = $branch->bill_printer ?? 'BillPrinter';
-
-        // Connect to printer
-        $connector = new WindowsPrintConnector($printerName);
-        $printer = new Printer($connector);
-
-        $htmlContent = View::make('vendor-views.order.invoice', ['order' => $order])->render();
-
-        Browsershot::html($htmlContent)->save(public_path('generated_image.png'));
-
-        dd('Check Image');
-    }
-    public function getPrintableSummary($label, $value, $is_double_width = false, $labelRight = '')
-    {
-        $left_cols = $is_double_width ? 6 : 12;
-        $center_cols =     $is_double_width ? 10 : 20;
-        $right_cols = $is_double_width ? 14 : 30;
-
-
-        $formatted_value = $value;
-
-        $lrm = "\u{200E}"; // Left-to-Right Mark
-
-        $line = str_pad(
-            $label . '/' . $lrm . $labelRight . $lrm,
-            $left_cols
-        ) . str_pad($formatted_value, $center_cols, ' ', STR_PAD_LEFT);
-
-        return $line;
-    }
     public function printOrder(Request $request)
     {
+
+            
+
         try {
             $request->validate([
                 'order_id' => 'required|string'
@@ -165,15 +101,6 @@ class PrintController extends Controller
                 ], 404);
             }
 
-            // Check if ALL details have is_deleted = 'Y'
-            $allDeleted = $order->details->every(function ($detail) {
-                return $detail->is_deleted === 'Y';
-            });
-
-            if ($allDeleted) {
-                return redirect()->back()->with('warning', 'Cannot print order: All items have been deleted.');
-            }
-
             // Get printer name from database
             $user = Auth::user();
 
@@ -184,8 +111,6 @@ class PrintController extends Controller
             // Connect to printer
             $connector = new WindowsPrintConnector($printerName);
             $printer = new Printer($connector);
-
-
             // Arabic text
             $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
             $currencyImagePath = storage_path('app/public/prints/arabic_currency_text.png');
@@ -228,98 +153,50 @@ class PrintController extends Controller
                 $printer->setTextSize(2, 2);
                 $printer->text("\nCANCELED\n\n");
             }
-            if ($order->partner_id) {
-                $printer->text($order->partner->partner_name . "\n");
-            }
             $printer->setTextSize(1, 1);
-            $lrm = "\u{200E}"; // Left-to-Right Mark
-            $printer->text("\n");
 
-            $date = date('Y-m-d H:i', strtotime($order->created_at));
+            $printer->text("Date: " . date('Y-m-d H:i', strtotime($order->created_at)) . "\n");
+            $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
 
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Date | تاريخ " . $lrm . ":",      // can be Arabic too
-                "",         // can be Arabic too
-                $date,     // Arabic
-                storage_path('app/public/prints/date_row.png')
-            );
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
 
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Order Type | نوع الطلب " . $lrm . ":",
-                "",
-                ucfirst($order->order_type),
-                storage_path('app/public/prints/row.png')
-            );
-
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
-            // $printer->text("Order Type: " . ucfirst($order->order_type) . "\n");
 
             // Customer info
             if ($order->pos_details) {
                 $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
-                // $customerName = ReceiptImageHelper::createArabicImageForPrinter($customerName, storage_path('app/public/prints/customer_name.png'), 20);
-                // $customerName = EscposImage::load($customerName, false);
-                // $printer->text("Customer: ");
-                // $printer->bitImageColumnFormat($customerName);
-
-                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Customer | اسم العميل " . $lrm . ":",
-                    "",
-                    $customerName,
-                    storage_path('app/public/prints/row.png')
-                );
-                $rowImg = EscposImage::load($rowPath, false);
-                $printer->bitImageColumnFormat($rowImg);
+                $printer->text("Customer: " . $customerName . "\n");
 
                 if ($order->pos_details->phone) {
-                    $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Phone | هاتف " . $lrm . ":",
-                        "",
-                        $order->pos_details->phone,
-                        storage_path('app/public/prints/row.png')
-                    );
-                    $rowImg = EscposImage::load($rowPath, false);
-                    $printer->bitImageColumnFormat($rowImg);
+                    $printer->text("Phone: " . $order->pos_details->phone . "\n");
                 }
 
                 if ($order->pos_details->car_number) {
-                    $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Car No | رقم السيارة " . $lrm . ":",
-                        "",
-                        $order->pos_details->car_number,
-                        storage_path('app/public/prints/row.png')
-                    );
-                    $rowImg = EscposImage::load($rowPath, false);
-                    $printer->bitImageColumnFormat($rowImg);
+                    $printer->text("Car No: " . $order->pos_details->car_number . "\n");
                 }
             }
 
             if ($order->takenBy) {
-                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Order Taker | متلقي الطلب " . $lrm . ":",
-                    "",
-                    $order->takenBy->name,
-                    storage_path('app/public/prints/row.png')
-                );
-                $rowImg = EscposImage::load($rowPath, false);
-                $printer->bitImageColumnFormat($rowImg);
+                $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
             }
 
             $printer->text($linedash);
 
             // Define column widths (adjust for your printer, usually 42 for 80mm)
-            $colWidths = [5, 25, 8, 10];           // Qty, Name, Amount
-            $colAligns = ['left', 'left', 'right', 'right'];  // Amount right-aligned
+            $colWidths = [5, 30, 12];           // Qty, Name, Amount
+            $colAligns = ['left', 'left', 'right'];  // Amount right-aligned
 
             $colArabicImagePath = public_path('assets/pos_printer_arabic_header_text.png');
             $headerFilePath = EscposImage::load($colArabicImagePath, false);
 
             // Items
-            $printer->text($this->formatPrintRow(["Qty", "Name", "Price", "Total"], $colWidths, $colAligns) . "\n");
+
+            $printer->text($this->formatPrintRow(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
             $printer->bitImageColumnFormat($headerFilePath);
+            $qtyImage = ReceiptImageHelper::createArabicImageForPrinter("كمية", storage_path('app/public/prints/food_qty_arabic.png'), 20);
+            $qtyImage = EscposImage::load($qtyImage, false);
+            $nameImage = ReceiptImageHelper::createArabicImageForPrinter("اسم", storage_path('app/public/prints/food_name_arabic.png'), 20);
+            $nameImage = EscposImage::load($nameImage, false);
+            $priceImage = ReceiptImageHelper::createArabicImageForPrinter("الكمية", storage_path('app/public/prints/food_price_arabic.png'), 20);
+            $priceImage = EscposImage::load($priceImage, false);
 
             $printer->text($linedash);
 
@@ -327,10 +204,9 @@ class PrintController extends Controller
             $addOnsCost = 0;
             $count = 0;
             foreach ($order->details as $detail) {
-                $itemAddOnsCost = 0;
                 if ($detail->food_id || $detail->campaign == null) {
 
-                    if (trim($detail->is_deleted) == 'Y') {
+                    if(trim($detail->is_deleted) == 'Y'){
                         continue;
                     }
 
@@ -342,7 +218,7 @@ class PrintController extends Controller
                     $foodArabicNameImage = EscposImage::load($foodArabicName, false);
 
                     $printer->setEmphasis(true);
-                    $printer->text($this->formatPrintRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', ''), number_format($detail->price * $detail->quantity, 3, '.', '')], $colWidths, $colAligns) . "\n");
+                    $printer->text($this->formatPrintRow([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
 
                     // Arabic price line
                     // $printer->setJustification(Printer::JUSTIFY_RIGHT);
@@ -353,6 +229,7 @@ class PrintController extends Controller
                     $variations = json_decode($detail->variation, true);
                     if (count($variations) > 0) {
                         //$printer->text("  Variations:\n");
+
                         foreach ($variations as $variation) {
                             if (isset($variation['name']) && isset($variation['values'])) {
                                 // $printer->text("  " . $variation['name'] . ":" . "\n");
@@ -360,21 +237,21 @@ class PrintController extends Controller
                                 foreach ($variation['values'] as $value) {
                                     //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
                                     //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-                                    if (isset($variation['printing_option']) && $variation['printing_option'] == 'option_name') {
+                                    if(isset($variation['printing_option']) && $variation['printing_option'] == 'option_name'){
                                         $optionName = DB::table('variation_options')
-                                            ->where('id', $value['option_id'])
-                                            ->value('option_name') ?? '';
-
-                                        if (!empty($optionName) && $foodDetails['name'] != $optionName) {
-                                            $printer->text("  - " . $optionName . "\n");
+                                        ->where('id', $value['option_id'])
+                                        ->value('option_name') ?? '';
+                                        
+                                        if(!empty($optionName) && $foodDetails['name'] != $optionName){
+                                            $printer->text("  - " . $optionName . "\n");   
                                         }
-                                    } else {
+                                    }else{
                                         $options_listname = DB::table('options_list')
-                                            ->where('id', $value['options_list_id'])
-                                            ->value('name');
-
-                                        if (!empty($options_listname) && $foodDetails['name'] != $options_listname) {
-                                            $printer->text("  - " . $options_listname . "\n");
+                                        ->where('id', $value['options_list_id'])
+                                        ->value('name');
+                                        
+                                        if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
+                                            $printer->text("  - " . $options_listname . "\n");   
 
                                             $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -421,11 +298,12 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    if ($addon['price'] > 0) {
-                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3));
+                                    if($addon['price'] > 0){
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3)); 
                                         $printer->bitImageColumnFormat($currencyTextimage);
-                                    } else {
-                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3) . "\n");
+                                        // $printer->text("\n");
+                                    }else{
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
                                     }
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -438,10 +316,7 @@ class PrintController extends Controller
                                         $printer->setPrintLeftMargin(0);
                                     }
 
-                                    // ✅ add to both totals
-                                    $lineCost        = $addon['price'] * ($addon['quantity'] ?? 1);
-                                    $itemAddOnsCost += $lineCost;
-                                    $addOnsCost     += $lineCost;
+                                    $addOnsCost += $addon['price'] * $addon['quantity'];
                                 }
                             }
                         }
@@ -451,51 +326,25 @@ class PrintController extends Controller
                     $printer->setEmphasis(false);
                     // Add-ons
                     $addOns = json_decode($detail->add_ons, true);
-
                     if (count($addOns) > 0) {
-                        $printer->text("  Add-ons:\n");
-
-                        // 1) Collect Add-on IDs from the cart line
-                        $addOnIds = collect($addOns)->pluck('id')->unique()->toArray();
-
-                        // 2) Fetch all add-ons in ONE query, key by id
-                        $addOnModels = AddOn::whereIn('id', $addOnIds)->get()->keyBy('id');
-
+                        $printer->text("  Add-ons:" . "\n");
                         foreach ($addOns as $addon) {
-                            $printer->text("  - " . $addon['name'] . "\n");
+                            // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
+                            $printer->text("  -" . $addon['name'] . "\n");
 
-                            // 3) Get the model for this add-on (if exists)
-                            $addOnModel = $addOnModels[$addon['id']] ?? null;
-
-                            if ($addOnModel) {
-                                // Safely get Arabic name
-                                $addOnArabicName = $addOnModel->getTranslationValue('name', 'ar') ?? '';
-
-                                if (!empty($addOnArabicName)) {
-                                    // (Optional) You can consider caching these images later if repeated a lot
-                                    $imagePath = storage_path('app/public/prints/food_' . $count++ . '_arabic.png');
-
-                                    $arabicImagePath = ReceiptImageHelper::createArabicImageForPrinter(
-                                        $addOnArabicName,
-                                        $imagePath,
-                                        20
-                                    );
-
-                                    $addOnArabicImage = EscposImage::load($arabicImagePath, false);
-
-                                    $printer->setPrintLeftMargin(40);
-                                    $printer->bitImageColumnFormat($addOnArabicImage);
-                                    $printer->setPrintLeftMargin(0);
-                                }
+                            // Get Addon Translation
+                            $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
+                            if ($addOnArabicName) {
+                                $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
+                                $addOnArabicName = EscposImage::load($addOnArabicName, false);
+                                $printer->setPrintLeftMargin(40);
+                                $printer->bitImageColumnFormat($addOnArabicName);
+                                $printer->setPrintLeftMargin(0);
                             }
 
-                            // 4) Cost calc (unchanged)
-                            $lineCost = $addon['price'] * $addon['quantity'];
-                            $itemAddOnsCost += $lineCost;
-                            $addOnsCost     += $lineCost;
+                            $addOnsCost += $addon['price'] * $addon['quantity'];
                         }
                     }
-
 
                     // Notes
                     if ($detail->notes) {
@@ -508,18 +357,16 @@ class PrintController extends Controller
                     }
 
                     $itemTotal = $detail->price * $detail->quantity;
-                    $subTotal += $itemTotal - ($detail->discount_on_food * $detail->quantity);
+                    $subTotal += $itemTotal - $detail->discount_on_food;
 
                     //$printer->text("  Total: " . Helpers::format_currency($itemTotal) . "\n");
                     $printer->setJustification(Printer::JUSTIFY_RIGHT);
                     $printer->setEmphasis(true);
-                    if ($detail->discount_on_food > 0) {
-                        $printer->text("  Discount: -" . number_format($detail->discount_on_food * $detail->quantity, 3, '.', ''));
+                    if($detail->discount_on_food > 0){
+                        $printer->text("  Discount: -" . number_format($detail->discount_on_food, 3, '.', ''));
                         $printer->bitImageColumnFormat($currencyTextimage);
                     }
-                    $printer->text("  Addons: " . number_format($itemAddOnsCost, 3, '.', ''));
-                    $printer->bitImageColumnFormat($currencyTextimage);
-                    $printer->text("  Total: " . number_format(($itemTotal + ($itemAddOnsCost)) - ($detail->discount_on_food * $detail->quantity), 3, '.', ''));
+                    $printer->text("  Total: " . number_format(($itemTotal + $addOnsCost) - $detail->discount_on_food, 3, '.', ''));
                     $printer->bitImageColumnFormat($currencyTextimage);
                     $printer->setJustification(Printer::JUSTIFY_LEFT);
 
@@ -528,146 +375,57 @@ class PrintController extends Controller
             }
 
             // Order summary
-            // $printer->text("Items Price: " . number_format($subTotal, 3, '.', ''));
-
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Items Price | سعر العناصر " . $lrm . "(" . $currencyText . ") :",
-                "",
-                number_format($subTotal, 3, '.', ''),
-                storage_path('app/public/prints/row.png')
-            );
-
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
-            // $printer->bitImageColumnFormat($currencyTextimage);
+            $printer->text("Items Price: " . number_format($subTotal, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
             // $printer->text("\n");
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Add-ons | الإضافات " . $lrm . "(" . $currencyText . ") :",
-                "",
-                number_format($addOnsCost, 3, '.', ''),
-                storage_path('app/public/prints/row.png')
-            );
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
-
+            $printer->text("Add-ons: " . number_format($addOnsCost, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
             $subTotalWithAddons = $subTotal + $addOnsCost;
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Subtotal | المجموع الفرعي " . $lrm . "(" . $currencyText . ") :",
-                "",
-                number_format($subTotalWithAddons, 3, '.', ''),
-                storage_path('app/public/prints/row.png')
-            );
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
-
+            $printer->text("Subtotal: " . number_format($subTotalWithAddons, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
             if ($order->restaurant_discount_amount > 0) {
-                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Discount On Bill | خصم على الفاتورة " . $lrm . "(" . $currencyText . ") :",
-                    "",
-                    number_format($order->restaurant_discount_amount, 3, '.', ''),
-                    storage_path('app/public/prints/row.png')
-                );
-                $rowImg = EscposImage::load($rowPath, false);
-                $printer->bitImageColumnFormat($rowImg);
+                $printer->text("Discount On Bill: -" . number_format($order->restaurant_discount_amount, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
             }
 
             if ($order->tax_status == 'excluded' || $order->tax_status == null) {
-                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Tax | ضريبة " . $lrm . "(" . $currencyText . ") :",
-                    "",
-                    number_format($order->total_tax_amount, 3, '.', ''),
-                    storage_path('app/public/prints/row.png')
-                );
-                $rowImg = EscposImage::load($rowPath, false);
-                $printer->bitImageColumnFormat($rowImg);
+                $printer->text("Tax: " . number_format($order->total_tax_amount, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
             }
 
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Delivery | توصيل " . $lrm . "(" . $currencyText . ") :",
-                "",
-                number_format($order->delivery_charge, 3, '.', ''),
-                storage_path('app/public/prints/row.png')
-            );
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
-
+            $printer->text("Delivery: " . number_format($order->delivery_charge, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
             if ($order->additional_charge > 0) {
-                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Additional | إضافي " . $lrm . "(" . $currencyText . ") :",
-                    "",
-                    number_format($order->additional_charge, 3, '.', ''),
-                    storage_path('app/public/prints/row.png')
-                );
-                $rowImg = EscposImage::load($rowPath, false);
-                $printer->bitImageColumnFormat($rowImg);
+                $printer->text("Additional: " . number_format($order->additional_charge, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
             }
 
             $printer->text($linedash);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "TOTAL | المجموع " . $lrm . "(" . $currencyText . ") :",
-                "",
-                number_format($order->order_amount, 3, '.', ''),
-                storage_path('app/public/prints/row.png')
-            );
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
+            $printer->text("TOTAL: " . number_format($order->order_amount, 3, '.', ''));
+            $printer->bitImageColumnFormat($currencyTextimage);
             $printer->text($linedash);
 
             // Payment info
             $printer->setJustification(Printer::JUSTIFY_LEFT);
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Payment Method | طريقة الدفع " . $lrm . ":",
-                "",
-                ucfirst(str_replace('_', ' ', $order->payment_method)),
-                storage_path('app/public/prints/row.png')
-            );
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
+            $printer->text("Payment: " . ucfirst(str_replace('_', ' ', $order->payment_method)) . "\n");
 
             if ($order->pos_details) {
-                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Cash | نقدي " . $lrm . "(" . $currencyText . ") :",
-                    "",
-                    number_format($order->pos_details->cash_paid, 3, '.', ''),
-                    storage_path('app/public/prints/row.png')
-                );
-                $rowImg = EscposImage::load($rowPath, false);
-                $printer->bitImageColumnFormat($rowImg);
-
-                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Card | بطاقة " . $lrm . "(" . $currencyText . ") :",
-                    "",
-                    number_format($order->pos_details->card_paid, 3, '.', ''),
-                    storage_path('app/public/prints/row.png')
-                );
-                $rowImg = EscposImage::load($rowPath, false);
-                $printer->bitImageColumnFormat($rowImg);
+                $printer->text("Cash: " . number_format($order->pos_details->cash_paid, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
+                $printer->text("Card: " . number_format($order->pos_details->card_paid, 3, '.', ''));
+                $printer->bitImageColumnFormat($currencyTextimage);
 
                 $change = $order->pos_details->cash_paid + $order->pos_details->card_paid - $order->pos_details->invoice_amount;
                 if ($change > 0) {
-                    $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Change | يتغير " . $lrm . "(" . $currencyText . ") :",
-                        "",
-                        number_format($change, 3, '.', ''),
-                        storage_path('app/public/prints/row.png')
-                    );
-                    $rowImg = EscposImage::load($rowPath, false);
-                    $printer->bitImageColumnFormat($rowImg);
+                    $printer->text("Change: " . number_format($change, 3, '.', ''));
+                    $printer->bitImageColumnFormat($currencyTextimage);
                 }
             }
 
             $printer->feed(2);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->text("Thank you for your order!\n");
-            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "",
-                "شكراً لطلبك",
-                "",
-                storage_path('app/public/prints/row.png')
-            );
-            $rowImg = EscposImage::load($rowPath, false);
-            $printer->bitImageColumnFormat($rowImg);
             $printer->text($linedash);
             // Feed & cut
             $printer->feed(2);
@@ -686,67 +444,67 @@ class PrintController extends Controller
 
 
     //kitchen print copy
-    /**
-     * Generate a single formatted row with aligned columns (multibyte-safe)
-     *
-     * @param array $columns  Array of column texts
-     * @param array $widths   Array of column widths (in characters)
-     * @param array $aligns   Array of 'left', 'right', 'center' for each column (optional)
-     * @return string         Formatted line ready to print
-     */
-    function formatRowKitchen(array $columns, array $widths, array $aligns = [])
-    {
-        $line = '';
-        $count = count($widths);
+/**
+         * Generate a single formatted row with aligned columns (multibyte-safe)
+         *
+         * @param array $columns  Array of column texts
+         * @param array $widths   Array of column widths (in characters)
+         * @param array $aligns   Array of 'left', 'right', 'center' for each column (optional)
+         * @return string         Formatted line ready to print
+         */
+        function formatRowKitchen(array $columns, array $widths, array $aligns = [])
+        {
+            $line = '';
+            $count = count($widths);
 
-        for ($i = 0; $i < $count; $i++) {
-            $text = isset($columns[$i]) ? (string) $columns[$i] : '';
-            $width = $widths[$i];
-            $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
+            for ($i = 0; $i < $count; $i++) {
+                $text = isset($columns[$i]) ? (string) $columns[$i] : '';
+                $width = $widths[$i];
+                $align = isset($aligns[$i]) ? $aligns[$i] : 'left';
 
-            // Handle multibyte strings
-            $textLength = mb_strlen($text, 'UTF-8');
+                // Handle multibyte strings
+                $textLength = mb_strlen($text, 'UTF-8');
 
-            // Truncate if too long
-            if ($textLength > $width) {
-                $text = mb_substr($text, 0, $width, 'UTF-8');
-                $textLength = $width;
+                // Truncate if too long
+                if ($textLength > $width) {
+                    $text = mb_substr($text, 0, $width, 'UTF-8');
+                    $textLength = $width;
+                }
+
+                $padLength = $width - $textLength;
+
+                switch ($align) {
+                    case 'right':
+                        $padded = str_repeat(' ', $padLength) . $text;
+                        break;
+                    case 'center':
+                        $leftPad = floor($padLength / 2);
+                        $rightPad = $padLength - $leftPad;
+                        $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
+                        break;
+                    case 'left':
+                    default:
+                        $padded = $text . str_repeat(' ', $padLength);
+                        break;
+                }
+
+                $line .= $padded;
             }
 
-            $padLength = $width - $textLength;
+            return $line;
+        }
 
-            switch ($align) {
-                case 'right':
-                    $padded = str_repeat(' ', $padLength) . $text;
-                    break;
-                case 'center':
-                    $leftPad = floor($padLength / 2);
-                    $rightPad = $padLength - $leftPad;
-                    $padded = str_repeat(' ', $leftPad) . $text . str_repeat(' ', $rightPad);
-                    break;
-                case 'left':
-                default:
-                    $padded = $text . str_repeat(' ', $padLength);
-                    break;
+
+        function getRowLineK(array $columns, array $widths)
+        {
+            $line = '';
+            foreach ($columns as $i => $text) {
+                // pad or cut each column
+                $line .= str_pad(mb_strimwidth($text, 0, $widths[$i]), $widths[$i]);
             }
 
-            $line .= $padded;
+            return $line;
         }
-
-        return $line;
-    }
-
-
-    function getRowLineK(array $columns, array $widths)
-    {
-        $line = '';
-        foreach ($columns as $i => $text) {
-            // pad or cut each column
-            $line .= str_pad(mb_strimwidth($text, 0, $widths[$i]), $widths[$i]);
-        }
-
-        return $line;
-    }
     public function printOrderKitchen(Request $request)
     {
         try {
@@ -768,6 +526,8 @@ class PrintController extends Controller
                 ], 404);
             }
 
+            // Get printer name from database
+            $user = Auth::user();
 
             $branchId = $order->restaurant_id;
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
@@ -821,23 +581,21 @@ class PrintController extends Controller
             //$printer->text($line . "\n");
             $printer->setTextSize(2, 2);
             $printer->text("Order # " . $order->order_serial . "\n");
-
+            
             if ($order->printed == '1' && $order->order_status != 'canceled') {
                 $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                 $printer->setReverseColors(true);
                 $printer->setTextSize(2, 2);
-                $printer->text("\nOrder Updated\n\n");
+                $printer->text("\nOrder Updated\n\n");  
                 $printer->selectPrintMode();
                 $printer->setReverseColors(false);
             }
-            if ($order->partner_id) {
-                $printer->text("\n" . $order->partner->partner_name . "\n");
-            }
+
             if ($order->printed == '1' && $order->order_status == 'canceled') {
                 $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                 $printer->setReverseColors(true);
                 $printer->setTextSize(2, 2);
-                $printer->text("\nOrder Canceled\n\n");
+                $printer->text("\nOrder Canceled\n\n");  
             }
 
             $printer->setTextSize(1, 1);
@@ -848,11 +606,7 @@ class PrintController extends Controller
             // Customer info
             if ($order->pos_details) {
                 $customerName = $order->pos_details->customer_name ?: 'Walk-in Customer';
-
-                $customerName = ReceiptImageHelper::createArabicImageForPrinter($customerName, storage_path('app/public/prints/customer_name.png'), 20);
-                $customerName = EscposImage::load($customerName, false);
-                $printer->text("Customer: ");
-                $printer->bitImageColumnFormat($customerName);
+                $printer->text("Customer: " . $customerName . "\n");
 
                 if ($order->pos_details->phone) {
                     $printer->text("Phone: " . $order->pos_details->phone . "\n");
@@ -864,7 +618,7 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $printer->text("Order Taker: " . $order->takenBy->name . "\n");
+                $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
             }
 
             $printer->text($linedash);
@@ -874,8 +628,8 @@ class PrintController extends Controller
             //  $printer->text("Qty" . "   " . "Item" . str_repeat(" ", 32)  . "Amount\n");
 
             // Define column widths (adjust for your printer, usually 42 for 80mm)
-            $colWidths = [5, 25, 8, 10];             // Qty, Name, Amount
-            $colAligns = ['left', 'left', 'right', 'right'];  // Amount right-aligned
+            $colWidths = [5, 30, 12];           // Qty, Name, Amount
+            $colAligns = ['left', 'left', 'right'];  // Amount right-aligned
             // $bmpFile = $this->createArabicPngTight($colArabic, 'arabic-text.png');
             // $image = \Mike42\Escpos\EscposImage::load($bmpFile);
 
@@ -889,7 +643,7 @@ class PrintController extends Controller
 
             // Items
 
-            $printer->text($this->formatRowKitchen(["Qty", "Name", "Price", "Total"], $colWidths, $colAligns) . "\n");
+            $printer->text($this->formatRowKitchen(["Qty", "Name", "Price"], $colWidths, $colAligns) . "\n");
             $printer->bitImageColumnFormat($headerFilePath);
 
             $printer->text($linedash);
@@ -899,28 +653,16 @@ class PrintController extends Controller
             $count = 0;
 
             foreach ($order->details as $detail) {
-                if (trim($detail->is_deleted) == 'Y') {
+                if(trim($detail->is_deleted) == 'Y'){
                     $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                     $printer->setReverseColors(true);
                 }
 
-                if ($order->printed == '1') {
-                    if ($detail->is_printed == 0 && $detail->is_deleted != 'Y') {
+                if($order->printed == '1'){
+                    if($detail->is_printed == 0 && $detail->is_deleted != 'Y'){
                         $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                         $printer->setReverseColors(true);
-                        $printer->setTextSize(2, 2);
                         $printer->text("NEW ITEM\n");
-                        $printer->setTextSize(1, 1);
-                        $printer->selectPrintMode();
-                        $printer->setReverseColors(false);
-                    }
-
-                    if ($detail->is_printed == 1 && $detail->options_changed == 1) {
-                        $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
-                        $printer->setReverseColors(true);
-                        $printer->setTextSize(2, 2);
-                        $printer->text("ITEM MODIFIED\n");
-                        $printer->setTextSize(1, 1);
                         $printer->selectPrintMode();
                         $printer->setReverseColors(false);
                     }
@@ -928,7 +670,6 @@ class PrintController extends Controller
 
                 // Save printed status
                 $detail->is_printed = 1;
-                $detail->options_changed = 0;
                 $detail->save();
 
                 if ($detail->food_id || $detail->campaign == null) {
@@ -945,7 +686,7 @@ class PrintController extends Controller
                     //  $printer->text("  G Price: " . $detail->price . "\n" );
 
                     $printer->setEmphasis(true);
-                    $printer->text($this->formatRowKitchen([$detail->quantity, $foodName, number_format($detail->price, 3, '.', ''), number_format($detail->price * $detail->quantity, 3, '.', '')], $colWidths, $colAligns) . "\n");
+                    $printer->text($this->formatRowKitchen([$detail->quantity, $foodName, number_format($detail->price, 3, '.', '')], $colWidths, $colAligns) . "\n");
 
                     $printer->setPrintLeftMargin(55);
                     $printer->bitImageColumnFormat($foodArabicNameImage);
@@ -970,6 +711,7 @@ class PrintController extends Controller
                     $variations = json_decode($detail->variation, true);
                     if (count($variations) > 0) {
                         //$printer->text("  Variations:\n");
+
                         foreach ($variations as $variation) {
                             if (isset($variation['name']) && isset($variation['values'])) {
                                 // $printer->text("  " . $variation['name'] . ":" . "\n");
@@ -978,20 +720,20 @@ class PrintController extends Controller
                                     //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
                                     //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
 
-                                    if (isset($variation['printing_option']) && $variation['printing_option'] == 'option_name') {
+                                    if(isset($variation['printing_option']) && $variation['printing_option'] == 'option_name'){
                                         $optionName = DB::table('variation_options')
-                                            ->where('id', $value['option_id'])
-                                            ->value('option_name');
-                                        if (!empty($optionName) && $foodDetails['name'] != $optionName) {
-                                            $printer->text("  - " . $optionName . "\n");
+                                        ->where('id', $value['option_id'])
+                                        ->value('option_name');
+                                        if(!empty($optionName) && $foodDetails['name'] != $optionName){
+                                            $printer->text("  - " . $optionName . "\n");   
                                         }
-                                    } else {
+                                    }else{
                                         $options_listname = DB::table('options_list')
-                                            ->where('id', $value['options_list_id'])
-                                            ->value('name');
-
-                                        if (!empty($options_listname) && $foodDetails['name'] != $options_listname) {
-                                            $printer->text("  - " . $options_listname . "\n");
+                                        ->where('id', $value['options_list_id'])
+                                        ->value('name');
+                                        
+                                        if(!empty($options_listname) && $foodDetails['name'] != $options_listname){
+                                            $printer->text("  - " . $options_listname . "\n");   
 
                                             $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
 
@@ -1012,12 +754,12 @@ class PrintController extends Controller
                             // Print addons if available
                             if (isset($variation['addons']) && count($variation['addons']) > 0) {
                                 foreach ($variation['addons'] as $addon) {
-                                    if ($addon['price'] > 0) {
-                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3));
+                                    if($addon['price'] > 0){
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3)); 
                                         $printer->bitImageColumnFormat($currencyTextimage);
                                         // $printer->text("\n");
-                                    } else {
-                                        $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3) . "\n");
+                                    }else{
+                                        $printer->text("    Addon: " . $addon['name'] . " +" . number_format($addon['price'], 3). "\n"); 
                                     }
 
                                     $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
@@ -1029,7 +771,6 @@ class PrintController extends Controller
                                         $printer->bitImageColumnFormat($addOnArabicName);
                                         $printer->setPrintLeftMargin(0);
                                     }
-
 
                                     $addOnsCost += $addon['price'] * $addon['quantity'];
                                 }
@@ -1074,13 +815,14 @@ class PrintController extends Controller
                     $itemTotal = $detail->price * $detail->quantity;
                     $subTotal += $itemTotal;
 
-                    if (trim($detail->is_deleted) == 'Y') {
+                    if(trim($detail->is_deleted) == 'Y'){
                         $printer->setReverseColors(false);
                         $printer->selectPrintMode(Printer::MODE_FONT_A);
                     }
 
                     $printer->text($linedash);
                 }
+                
             }
 
             // Order Notes
@@ -1101,7 +843,7 @@ class PrintController extends Controller
             $printer->text($linedash);
 
 
-            if ($order->printed == '1' && $order->order_status == 'canceled') {
+            if($order->printed == '1' && $order->order_status == 'canceled') {
                 $printer->selectPrintMode();
                 $printer->setReverseColors(false);
             }
@@ -1117,292 +859,6 @@ class PrintController extends Controller
 
             // Return success to prevent blocking order placement
             return redirect()->back()->with('warning', 'Order placed successfully, but kitchen printing failed: ' . $e->getMessage());
-        }
-    }
-
-    public function printCanceledOrderItems($date)
-    {
-        try {
-            $order_date = date('Y-m-d', strtotime($date));
-
-            // Find the order
-            $orders = Order::with(['details', 'restaurant'])
-                ->where('order_date', $order_date)
-                ->whereHas('details', function ($q) {
-                    $q->where('is_deleted', 'Y');   // at least one deleted detail
-                })
-                ->withCount([
-                    'details as total_items' => function ($q) {
-                        $q->where('is_deleted', 'Y'); // count only deleted items
-                    }
-                ])
-                ->get();
-
-            if (!$orders) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No Orders Found'
-                ], 404);
-            }
-
-            if (count($orders) == 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'No Canceled Items Found'
-                ], 404);
-            }
-
-            // Get printer name from database
-            $branchId = Helpers::get_restaurant_id() ?? config('constants.branch_id');
-            $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
-            $printerName = $branch->bill_printer ?? 'BillPrinter';
-            // Connect to printer
-            $connector = new WindowsPrintConnector($printerName);
-            $printer = new Printer($connector);
-
-            // Arabic text
-            $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
-            $currencyImagePath = storage_path('app/public/prints/arabic_currency_text.png');
-            ReceiptImageHelper::createArabicImageForPrinter($currencyText, $currencyImagePath, 16);
-            $currencyTextimage = EscposImage::load($currencyImagePath);
-
-            // End of image print
-            $linedash = "------------------------------------------------\n";
-            // Print order header
-
-            $printer->setEmphasis(true);
-
-            $printer->setJustification(Printer::JUSTIFY_CENTER);
-
-            $printer->setTextSize(2, 2);
-            $printer->text($orders[0]->restaurant->name . "\n");
-
-            $printer->setTextSize(1, 1);
-            $printer->text($orders[0]->restaurant->address . "\n");
-            $printer->text("Phone: " . $orders[0]->restaurant->phone . "\n");
-            $printer->text($linedash);
-            $printer->setTextSize(2, 2);
-            $printer->text("Canceled Food Report\n");
-            $printer->setTextSize(1, 1);
-            //  $printer->feed(1);
-
-            // Order details
-            $printer->setJustification(Printer::JUSTIFY_LEFT);
-
-            $printer->text("Date: " . date('Y-m-d H:i', strtotime($date)) . "\n");
-            $printer->text("Total Canceled Items: " . $orders->sum('total_items') . "\n");
-            $printer->text($linedash);
-            // $printer->feed(1);
-
-            // Order items
-            //  $printer->text("Qty" . "   " . "Item" . str_repeat(" ", 32)  . "Amount\n");
-
-            // Define column widths (adjust for your printer, usually 42 for 80mm)
-            $colWidths = [5, 25, 8, 10];             // Qty, Name, Amount
-            $colAligns = ['left', 'left', 'right', 'right'];  // Amount right-aligned
-            // $bmpFile = $this->createArabicPngTight($colArabic, 'arabic-text.png');
-            // $image = \Mike42\Escpos\EscposImage::load($bmpFile);
-
-            //$printer->graphics($image);
-
-            // Items
-            $colArabicImagePath = public_path('assets/pos_printer_arabic_header_text.png');
-            $headerFilePath = EscposImage::load($colArabicImagePath, false);
-
-            $printer->setEmphasis(true);
-
-            // Items
-
-            $printer->text($this->formatRowKitchen(["Qty", "Name", "Price", "Total"], $colWidths, $colAligns) . "\n");
-            $printer->bitImageColumnFormat($headerFilePath);
-
-            $printer->text($linedash);
-
-            $subTotal = 0;
-            $addOnsCost = 0;
-            $count = 0;
-
-            foreach ($orders as $order) {
-                $printer->text("Order # " . $order->order_serial . "\n");
-                $printer->text('Canceled Items: ' . $order->total_items . "\n");
-                if ($order->takenBy) {
-                    $printer->text("Order Taker: " . $order->takenBy->name . " at: " . date('Y-m-d H:i', strtotime($order->order_date)) . "\n");
-                }
-
-                // If the Order is for any delivery partner, show that info
-                if ($order->partner_id) {
-                    $partner = DB::table('tbl_sale_order_partners')->where('partner_id', $order->partner_id)->first();
-                    if ($partner) {
-                        $printer->text("Delivery Partner: " . $partner->partner_name . "\n");
-                    }
-                }
-
-                $details = $order->details;
-                foreach ($details as $detail) {
-                    if ($detail->food_id || $detail->campaign == null) {
-
-                        if (trim($detail->is_deleted) != 'Y') {
-                            continue; // skip non-deleted items
-                        }
-
-                        $foodDetails = json_decode($detail->food_details, true);
-
-                        $foodName = $foodDetails['name'] ?? 'Unknown Item';
-                        $foodArabicName = Food::where('id', $detail->food_id)->first()->getTranslationValue('name', 'ar');
-                        $foodArabicName = ReceiptImageHelper::createArabicImageForPrinter($foodArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
-                        $foodArabicNameImage = EscposImage::load($foodArabicName, false);
-
-                        $printer->setEmphasis(true);
-                        $printer->text($this->formatRowKitchen([$detail->quantity, $foodName, number_format($detail->price, 3, '.', ''), number_format($detail->price * $detail->quantity, 3, '.', '')], $colWidths, $colAligns) . "\n");
-
-                        $printer->setPrintLeftMargin(55);
-                        $printer->bitImageColumnFormat($foodArabicNameImage);
-                        $printer->setPrintLeftMargin(0);
-
-                        $variations = json_decode($detail->variation, true);
-                        if (count($variations) > 0) {
-                            //$printer->text("  Variations:\n");
-
-                            foreach ($variations as $variation) {
-                                if (isset($variation['name']) && isset($variation['values'])) {
-                                    // $printer->text("  " . $variation['name'] . ":" . "\n");
-                                    // $printer->text("  " . $variation['options_list_id'] . ":");
-                                    foreach ($variation['values'] as $value) {
-                                        //$printer->text(" - " . $value['label'] . " (" . Helpers::format_currency($value['optionPrice']) . ")\n");
-                                        //$printer->text(" - " . $value['label'] . " (" . number_format($value['optionPrice'], 3, '.', '') . ")\n");
-
-                                        if (isset($variation['printing_option']) && $variation['printing_option'] == 'option_name') {
-                                            $optionName = DB::table('variation_options')
-                                                ->where('id', $value['option_id'])
-                                                ->value('option_name');
-                                            if (!empty($optionName) && $foodDetails['name'] != $optionName) {
-                                                $printer->text("  - " . $optionName . "\n");
-                                            }
-                                        } else {
-                                            $options_listname = DB::table('options_list')
-                                                ->where('id', $value['options_list_id'])
-                                                ->value('name');
-
-                                            if (!empty($options_listname) && $foodDetails['name'] != $options_listname) {
-                                                $printer->text("  - " . $options_listname . "\n");
-
-                                                $arabicOptionName = OptionsList::where('id', $value['options_list_id'])->first()->getTranslationValue('name', 'ar') ?? '';
-
-                                                if ($arabicOptionName) {
-                                                    $arabicOptionName = ReceiptImageHelper::createArabicImageForPrinter($arabicOptionName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
-                                                    $arabicOptionName = EscposImage::load($arabicOptionName, false);
-                                                    $printer->setPrintLeftMargin(40);
-                                                    $printer->bitImageColumnFormat($arabicOptionName);
-                                                    $printer->setPrintLeftMargin(0);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-
-                                //variation addon
-
-                                // Print addons if available
-                                if (isset($variation['addons']) && count($variation['addons']) > 0) {
-                                    foreach ($variation['addons'] as $addon) {
-                                        if ($addon['price'] > 0) {
-                                            $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3));
-                                            $printer->bitImageColumnFormat($currencyTextimage);
-                                            // $printer->text("\n");
-                                        } else {
-                                            $printer->text("    Addon: " . $addon['quantity'] . ' x ' . $addon['name'] . " +" . number_format($addon['price'], 3) . "\n");
-                                        }
-
-                                        $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
-
-                                        if ($addOnArabicName) {
-                                            $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
-                                            $addOnArabicName = EscposImage::load($addOnArabicName, false);
-                                            $printer->setPrintLeftMargin(40);
-                                            $printer->bitImageColumnFormat($addOnArabicName);
-                                            $printer->setPrintLeftMargin(0);
-                                        }
-
-
-                                        $addOnsCost += $addon['price'] * $addon['quantity'];
-                                    }
-                                }
-                            }
-                        }
-
-                        // $printer->setEmphasis(false);
-                        // Add-ons
-                        $addOns = json_decode($detail->add_ons, true);
-                        if (count($addOns) > 0) {
-                            $printer->text("  Add-ons:" . "\n");
-                            foreach ($addOns as $addon) {
-                                // $printer->text("    - " . $addon['name'] . " (" . $addon['quantity'] . "x" . Helpers::format_currency($addon['price']) . ")\n");
-                                $printer->text("  -" . $addon['name'] . "\n");
-
-                                // Get Addon Translation
-                                $addOnArabicName = AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
-                                if ($addOnArabicName) {
-                                    $addOnArabicName = ReceiptImageHelper::createArabicImageForPrinter($addOnArabicName, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
-                                    $addOnArabicName = EscposImage::load($addOnArabicName, false);
-                                    $printer->setPrintLeftMargin(40);
-                                    $printer->bitImageColumnFormat($addOnArabicName);
-                                    $printer->setPrintLeftMargin(0);
-                                }
-
-                                $addOnsCost += $addon['price'] * $addon['quantity'];
-                            }
-                        }
-
-                        // Notes
-                        if ($detail->notes) {
-                            $printer->text("  Note: \n");
-                            $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
-                            $notes = EscposImage::load($notes, false);
-                            $printer->setPrintLeftMargin(40);
-                            $printer->bitImageColumnFormat($notes);
-                            $printer->setPrintLeftMargin(0);
-                        }
-
-                        $itemTotal = $detail->price * $detail->quantity;
-                        $subTotal += $itemTotal;
-
-                        // Detail Cancel Reason, Cooking Status and Cancel Text
-                        if ($detail->cancel_reason) {
-                            // Get the cancel reason text
-                            $reason = DB::table('order_cancel_reasons')->where('id', $detail->cancel_reason)->value('reason');
-                            $printer->text("  Cancel Reason: " . $reason . "\n");
-                        }
-                        if ($detail->cooking_status) {
-                            $printer->text("  Cooking Status: " . ucfirst($detail->cooking_status) . "\n");
-                        }
-                        if ($detail->cancel_text) {
-                            $printer->text("  Cancel Note: " . $detail->cancel_text . "\n");
-                        }
-                    }
-                }
-                $printer->text($linedash);
-            }
-
-            $printer->text("TOTAL CANCELED AMOUNT: " . number_format($subTotal + $addOnsCost, 3, '.', ''));
-            $printer->bitImageColumnFormat($currencyTextimage);
-
-            // Feed & cut
-            $printer->cut();
-            $printer->close();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Canceled Order items printed successfully!'
-            ]);
-        } catch (\Exception $e) {
-            // Log the error but don't prevent order placement
-            Log::error('Print error in printCanceledOrder: ' . $e->getMessage());
-
-            // Return success to prevent blocking order placement
-            return response()->json([
-                'success' => false,
-                'message' => 'Printing Canceled Order items failed: at Line: ' . $e->getLine() . " Message: " . $e->getMessage()
-            ], 500);
         }
     }
 
@@ -1737,7 +1193,7 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $printer->text("Order Taker: " . $order->takenBy->name . "\n");
+                $printer->text("Order By: " . $order->takenBy->f_name . " " . $order->takenBy->l_name . "\n");
             }
 
             $printer->text("==============================\n");
@@ -1875,62 +1331,28 @@ class PrintController extends Controller
 
     public function savePrinterSettings(Request $request)
     {
-        $bill       = $request->input('billPrinter');
+        $bill = $request->input('billPrinter');
         $ordersDate = $request->input('ordersDate');
-        $kitchen    = $request->input('kitchenPrinter');
-        $branchId   = Helpers::get_restaurant_id();
+        $kitchen = $request->input('kitchenPrinter');
+        $branchId = Helpers::get_restaurant_id();
 
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
 
-        if (!$branch) {
+        if ($branch) {
+            DB::table('tbl_soft_branch')
+                ->where('branch_id', $branchId)
+                ->update([
+                    'bill_printer' => $bill,
+                    'orders_date' => $ordersDate,
+                    'kitchen_printer' => $kitchen,
+                    'updated_at' => now()
+                ]);
+            return response()->json(['success' => true]);
+        } else {
             return response()->json([
                 'success' => false,
                 'message' => 'Branch not found. Please contact administrator to set up your branch first.'
             ]);
         }
-
-        // Normalize dates (compare only Y-m-d)
-        $currentDate = Carbon::parse($branch->orders_date)->toDateString();
-        $newDate     = $ordersDate ? Carbon::parse($ordersDate)->toDateString() : $currentDate;
-
-        $isDateChanging = $newDate !== $currentDate;
-
-        if ($isDateChanging) {
-            // Check unpaid orders for current date
-            $ordersExist = Order::where('payment_status', 'unpaid')
-                ->whereDate('order_date', $currentDate)
-                ->exists();
-
-            if ($ordersExist) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot change date while there are unpaid orders. Please complete or cancel all pending orders first.',
-                    'date'  => date('Y-m-d', strtotime($branch->orders_date))
-                ]);
-            }
-
-            $openSessions = ShiftSession::where('branch_id', $branchId)
-                ->where('session_status', 'open')
-                ->exists();
-
-            if ($openSessions) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Cannot change date while there are open shift sessions. Please close all open shifts first.',
-                    'date'  => date('Y-m-d', strtotime($branch->orders_date))
-                ]);
-            }
-        }
-
-        DB::table('tbl_soft_branch')
-            ->where('branch_id', $branchId)
-            ->update([
-                'bill_printer'    => $bill,
-                'orders_date'     => Carbon::parse($newDate)->startOfDay(), // saves as 00:00:00
-                'kitchen_printer' => $kitchen,
-                'updated_at'      => now()
-            ]);
-
-        return response()->json(['success' => true]);
     }
 }

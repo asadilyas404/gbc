@@ -23,12 +23,12 @@ class EmployeeController extends Controller
 
     public function add_new()
     {
-        $rls = EmployeeRole::get();
+        $rls = EmployeeRole::where('restaurant_id',Helpers::get_restaurant_id())->get();
         return view('vendor-views.employee.add-new', compact('rls'));
     }
     public function table_new()
     {
-        $rls = EmployeeRole::get();
+        $rls = EmployeeRole::where('restaurant_id',Helpers::get_restaurant_id())->get();
         return view('vendor-views.employee.table-new', compact('rls'));
     }
 
@@ -97,7 +97,7 @@ class EmployeeController extends Controller
             Toastr::error(translate('messages.You_can_not_edit_your_own_info'));
             return redirect()->route('vendor.employee.list');
         }
-        $rls = EmployeeRole::get();
+        $rls = EmployeeRole::where('restaurant_id',Helpers::get_restaurant_id())->get();
         return view('vendor-views.employee.edit', compact('rls', 'e'));
     }
 

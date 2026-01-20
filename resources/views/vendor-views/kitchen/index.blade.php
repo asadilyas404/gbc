@@ -53,15 +53,15 @@
             <!-- Tabs Content -->
             <div class="mt-3">
                 <!-- Pending Tab -->
-                <div id="orders">
+                <div id="pending">
                     <div class="row">
-                        @foreach ($data['orders'] as $order)
+                        @foreach ($data['pending'] as $order)
                             <div class="col-md-4 mb-2">
-                                <div class="card" id="{{ $order->kitchen_status }}">
+                                <div class="card">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
                                             <div>
-                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->customer_name : 'Walk-in-Customer' }}</strong>
+                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->name : 'Walk-in-Customer' }}</strong>
                                                 </p>
                                                 <p><strong>Order Type:</strong>
                                                     {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
@@ -75,8 +75,8 @@
                                                 </p>
                                             </div>
                                             <div class="text-right">
-                                                <h1><strong>#{{ $order->order_serial }}</strong></h1>
-                                                <p><strong>Amount:</strong> {{ number_format($order->order_amount, 3) }} </p>
+                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
+                                                <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
                                                 @if ($order->kitchen_time)
                                                     <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
                                                         {{ $order->kitchen_time }}</p>
@@ -84,101 +84,126 @@
                                             </div>
                                         </div>
                                         <div class="d-flex justify-content-between">
-                                            @if ($order->kitchen_status == 'ready')
-                                                <div class="text-right">
-                                                    <button class="btn btn-danger btn-sm btn-style deliverOrder btn-block"
-                                                        data-id="{{ $order->id }}">
-                                                        <i class="tio-shopping-cart"></i>
-                                                        Handed Over
-                                                    </button>
-                                                </div>
-                                            @else
-                                                <div class="text-right">
-                                                    <button class="btn btn-success btn-sm btn-style startCooking"
-                                                        data-id="{{ $order->id }}">Start Cooking</button>
-                                                </div>
-                                            @endif
                                             <div>
                                                 <a href="/restaurant-panel/order/details/{{ $order->id }}"
-                                                    class="btn btn-primary btn-sm btn-style">
-                                                    <i class="tio-info"></i>
-                                                </a>
+                                                    class="btn btn-primary btn-sm btn-style">Order
+                                                    Detail</a>
                                                 <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
                                                     data-order-id="{{ $order->id }}">
-                                                    <i class="tio-print"></i>
+                                                    <i class="tio-print"></i> Direct Print
                                                 </button>
+                                            </div>
+                                            <div class="text-right">
+                                                <button class="btn btn-primary btn-sm btn-style startCooking"
+                                                    data-id="{{ $order->id }}">Start Cooking</button>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="card-footer">
-                                        @foreach ($order->details as $detail)
-                                            <div class="d-flex justify-content-between align-items-center mb-0">
-                                                <div>
-                                                    <strong>{{ $detail->food['name'] }}</strong>
-                                                    x 
-                                                    <strong>{{ $detail->quantity }}</strong>
-                                                </div>
-                                                <button class="btn btn-sm btn-outline-success py-1">
-                                                    Start Cooking
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Cooking Tab -->
+                <div id="cooking">
+                    <div class="row">
+                        @foreach ($data['cooking'] as $order)
+                            <div class="col-md-4 mb-2">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->name : 'Walk-in-Customer' }}</strong>
+                                                </p>
+                                                <p><strong>Order Type:</strong>
+                                                    {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
+                                                </p>
+                                                <p><strong>Restaurant Date:</strong>
+                                                    @if(!empty($order->order_date))
+                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </p>
+                                            </div>
+                                            <div class="text-right">
+                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
+                                                <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
+                                                @if ($order->kitchen_time)
+                                                    <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
+                                                        {{ $order->kitchen_time }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <a href="/restaurant-panel/order/details/{{ $order->id }}"
+                                                    class="btn btn-primary btn-sm btn-style">Order
+                                                    Detail</a>
+                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
+                                                    data-order-id="{{ $order->id }}">
+                                                    <i class="tio-print"></i> Direct Print
                                                 </button>
                                             </div>
-                                            <div>
-                                                @if (!empty($detail->variation) && count(json_decode($detail->variation, true)) > 0)
-                                                    @php $foodDetails = json_decode($detail->food_details, true); @endphp
-                                                    @foreach (json_decode($detail->variation, true) as $variation)
-                                                        @if (isset($variation['name']) && isset($variation['values']))
-                                                            @foreach ($variation['values'] as $value)
-                                                                @php
-                                                                    // Prepare some defaults
-                                                                    $optionName = '';
-                                                                @endphp
-                                                                @if (!empty($variation['printing_option']) && $variation['printing_option'] == 'option_name')
-                                                                    @php
-                                                                        // CASE 1: printing_option = option_name  → read from variation_options
-                                                                        $optionName = DB::table('variation_options')
-                                                                            ->where('id', $value['option_id'] ?? null)
-                                                                            ->value('option_name') ?? '';
-                                                                    @endphp
-                                                                @else
-                                                                    @php
-                                                                        // CASE 2: use options_list and its translation
-                                                                        $option = \App\Models\OptionsList::find($value['options_list_id'] ?? null);
+                                            <div class="text-right">
+                                                <button class="btn btn-primary btn-sm btn-style orderReady"
+                                                    data-id="{{ $order->id }}">Ready</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
 
-                                                                        if ($option) {
-                                                                            $optionName = $option->name ?? '';
-                                                                        }
-                                                                    @endphp
-                                                                @endif
-                                                                <p class="mb-1">- {{ $optionName }}</p>
-                                                            @endforeach
-                                                        @endif
-                                                    @endforeach
-                                                @endif
-                                                @if (isset($variation['addons']) && is_array($variation['addons']) && count($variation['addons']) > 0)
-                                                    <small class="text-muted"><strong><u>Addons:</u></strong></small>
-                                                    <div
-                                                        class="variation-addons-inline py-1">
-                                                        @foreach ($variation['addons'] as $addon)
-                                                            <span
-                                                                class="d-block text-capitalize">
-                                                                <small class="text-muted">
-                                                                    {{ Str::limit($addon['name'], 30, '...') }} x {{ $addon['quantity'] }}
-                                                                </small>
-                                                            </span>
-                                                            @php($total_variation_addon_price += $addon['price'] * $addon['quantity']) @endphp
-                                                        @endforeach
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <hr/>
-                                        @endforeach
-                                        @if($order->note)
+                <!-- Ready Tab -->
+                <div id="ready">
+                    <div class="row">
+                        @foreach ($data['ready'] as $order)
+                            <div class="col-md-4 mb-2">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between">
                                             <div>
-                                                <strong>Note: </strong> {{ $order->note }}
+                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->name : 'Walk-in-Customer' }}</strong>
+                                                </p>
+                                                <p><strong>Order Type:</strong>
+                                                    {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
+                                                </p>
+                                                <p><strong>Restaurant Date:</strong>
+                                                    @if(!empty($order->order_date))
+                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                                                    @else
+                                                        -
+                                                    @endif
+                                                </p>
                                             </div>
-                                        @endif
-                                        <div>
-                                            <strong>Total Items: </strong> {{ count($order->details) }}
+                                            <div class="text-right">
+                                                <p><strong>Order No:</strong> {{ $order->order_serial }}</p>
+                                                <p><strong>Amount:</strong> {{ $order->order_amount }} </p>
+                                                @if ($order->kitchen_time)
+                                                    <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
+                                                        {{ $order->kitchen_time }}</p>
+                                                @endif
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <a href="/restaurant-panel/order/details/{{ $order->id }}"
+                                                    class="btn btn-primary btn-sm btn-style">Order
+                                                    Detail</a>
+                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
+                                                    data-order-id="{{ $order->id }}">
+                                                    <i class="tio-print"></i> Direct Print
+                                                </button>
+                                            </div>
+                                            <div class="text-right">
+                                                <button class="btn btn-primary btn-sm btn-style orderCompleted"
+                                                    data-id="{{ $order->id }}">Completed</button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -219,7 +244,7 @@
             if (currentRequest !== null) {
                 currentRequest.abort();
             }
-            let url = "/restaurant-panel/kitchen/get-all-orders";   
+            let url = "/restaurant-panel/kitchen/get-all-orders";
             if (type && id) {
                 url = url + "?type=" + type + "&id=" + id;
             }
@@ -230,22 +255,41 @@
                 success: function(res) {
                     if (res.success) {
                         let data = res.data;
-                        let orders = data.orders;
                         let pendingList = data.pending;
                         let cookingList = data.cooking;
                         let readyList = data.ready;
-                        if (orders) {
+                        if (pendingList) {
                             let pendingCard = ``;
                             Object.entries(pendingList).forEach(([id, item]) => {
-                                let customer = (item.customer && item.customer?.customer_name) ? item.customer
-                                    ?.customer_name : "Walk-in-Customer"
+                                let customer = (item.customer && item.customer?.name) ? item.customer
+                                    ?.name : "Walk-in-Customer"
                                 pendingCard += funViewCard(customer, item, 'Start Cooking',
                                     'startCooking');
                             });
 
-                            $('#orders').html(`<div class="row">${pendingCard}<div>`);
+                            $('#pending').html(`<div class="row">${pendingCard}<div>`);
                         }
-                        
+                        if (cookingList) {
+                            let cookingCard = ``;
+                            Object.entries(cookingList).forEach(([id, item]) => {
+                                let customer = (item.customer && item.customer?.name) ? item.customer
+                                    ?.name : "Walk-in-Customer"
+                                cookingCard += funViewCard(customer, item, 'Ready', 'orderReady');
+                            });
+
+                            $('#cooking').html(`<div class="row">${cookingCard}<div>`);
+                        }
+                        if (readyList) {
+                            let readyCard = ``;
+                            Object.entries(readyList).forEach(([id, item]) => {
+                                let customer = (item.customer && item.customer?.name) ? item.customer
+                                    ?.name : "Walk-in-Customer"
+                                readyCard += funViewCard(customer, item, 'Completed', 'orderCompleted');
+                            });
+
+                            $('#ready').html(`<div class="row">${readyCard}<div>`);
+                        }
+
                         updateTimers();
 
                         $('.toast').toast('show');
@@ -399,19 +443,6 @@
         setInterval(function() {
             window.location.reload();
         }, 600000);
-
-        // Save scroll position before the page unloads
-        window.addEventListener("beforeunload", function () {
-            localStorage.setItem("scrollPosition", window.scrollY);
-        });
-
-        // Restore scroll position on page load
-        window.addEventListener("load", function () {
-            const scrollY = localStorage.getItem("scrollPosition");
-            if (scrollY !== null) {
-                window.scrollTo(0, parseInt(scrollY));
-            }
-        });
 
         // $(document).on('click', '.direct-print-btn', function() {
         //     const orderId = $(this).data('order-id');

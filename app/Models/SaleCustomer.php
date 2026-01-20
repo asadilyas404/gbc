@@ -30,7 +30,7 @@ class SaleCustomer extends Model
         'customer_id' => 'integer'
     ];
 
-    public $timestamps = true;
+    public $timestamps = false;
 
     /**
      * Generate the next customer code
@@ -56,10 +56,5 @@ class SaleCustomer extends Model
     public static function generateCustomerId($restaurantId)
     {
         return \App\CentralLogics\Helpers::generateGlobalId($restaurantId);
-    }
-
-    public function orders()
-    {
-        return $this->hasMany(Order::class, 'user_id', 'customer_id');
     }
 }

@@ -680,7 +680,7 @@ class VendorController extends Controller
         $restaurants = Restaurant::when(is_numeric($zone_id), function ($query) use ($zone_id) {
             return $query->where('zone_id', $zone_id);
         })
-            ->with(['zone', 'cuisine', 'vendor','branch'])
+            ->with(['zone', 'cuisine', 'vendor'])
             ->withSum('reviews', 'rating')
             ->withCount('reviews')
             ->whereHas('vendor', function ($q) {
@@ -707,7 +707,6 @@ class VendorController extends Controller
             })
             ->cuisine($cuisine_id)
             ->type($type)->RestaurantModel($typ)->latest()->paginate(config('default_pagination'));
-
         $zone = is_numeric($zone_id) ? Zone::findOrFail($zone_id) : null;
         return view('admin-views.vendor.list', compact('restaurants', 'zone', 'type', 'typ', 'cuisine_id'));
     }

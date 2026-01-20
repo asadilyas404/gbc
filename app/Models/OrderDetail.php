@@ -22,7 +22,6 @@ class OrderDetail extends Model
         'details' => 'string',
         'is_deleted' => 'string',
         'is_printed' => 'integer',
-        'options_changed' => 'integer',
     ];
 
 

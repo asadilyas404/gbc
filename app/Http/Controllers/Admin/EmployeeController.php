@@ -58,7 +58,7 @@ class EmployeeController extends Controller
         $employee->email = $request->email;
         $employee->role_id = $request->role_id;
         $employee->password = bcrypt($request->password);
-        $employee->image = Helpers::upload('admin/', 'png', $request->file('image'));
+        $employee->image = Helpers::upload(dir:'admin/', format:'png', image: $request->file('image'));
         $employee->save();
 
         Toastr::success(translate('messages.employee_added_successfully'));
@@ -135,7 +135,7 @@ class EmployeeController extends Controller
         }
 
         if ($request->has('image')) {
-            $e['image'] = Helpers::update('admin/', $e->image, 'png', $request->file('image'));
+            $e['image'] = Helpers::update(dir:'admin/', old_image: $e->image, format: 'png', image:$request->file('image'));
         }
 
         $employee = Admin::find($id);

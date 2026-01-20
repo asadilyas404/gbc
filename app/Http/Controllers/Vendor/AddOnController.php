@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Vendor;
 
+use App\Http\Controllers\Controller;
 use App\Models\AddOn;
-use App\Models\OrderDetail;
-use App\Models\Translation;
+use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
-use App\Http\Controllers\Controller;
-use Brian2694\Toastr\Facades\Toastr;
+use App\Models\Translation;
 
 class AddOnController extends Controller
 {
@@ -99,39 +98,12 @@ class AddOnController extends Controller
 
     public function delete(Request $request)
     {
-        if (!Helpers::get_restaurant_data()->food_section) {
+        if(!Helpers::get_restaurant_data()->food_section)
+        {
             Toastr::warning(translate('messages.permission_denied'));
             return back();
         }
-
         $addon = AddOn::find($request->id);
-        if (!$addon) {
-            Toastr::error(translate('messages.addon_not_found'));
-            return back();
-        }
-
-        $id = (string) $addon->id; // your JSON shows ids often stored as strings
-
-        $isUsed = OrderDetail::whereRaw(
-            "EXISTS (
-                SELECT 1
-                FROM JSON_TABLE(
-                    variation,
-                    '$[*].addons[*]'
-                    COLUMNS (
-                        addon_id VARCHAR2(50) PATH '$.id'
-                    )
-                ) jt
-                WHERE jt.addon_id = ?
-            )",
-            [$id]
-        )->exists();
-
-        if ($isUsed) {
-            Toastr::warning(translate('messages.addon_is_used_in_orders'));
-            return back();
-        }
-
         $addon->delete();
         Toastr::success(translate('messages.addon_deleted_successfully'));
         return back();

@@ -36,7 +36,6 @@
                 </div>
             </div>
         </div>
-        
         <!-- End Page Header -->
         <!-- Card -->
         <div class="card">
@@ -240,7 +239,20 @@
                                                             src="{{ dynamicAsset('public/assets/admin/img/info-circle.svg') }}"
                                                             alt="public/img"></span>
                                                 @else
-                                                    @php($stock_out = $stockOutMap[$food->id] ?? false)
+                                                    <?php
+
+                                                    if (isset($food->variations)) {
+                                                        foreach (json_decode($food->variations, true) as $item) {
+                                                            if (isset($item['values']) && is_array($item['values'])) {
+                                                                foreach ($item['values'] as $value) {
+                                                                    if (isset($value['stock_type']) && $value['stock_type'] != 'unlimited' && $value['current_stock'] <= 0) {
+                                                                        $stock_out = true;
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    ?>
                                                     @if ($stock_out)
                                                         {{-- <span class="badge badge-soft-warning badge-pill font-medium">{{ translate('Out Of Stock') }}</span> --}}
                                                         <span class="input-label-secondary" data-toggle="tooltip"
@@ -383,16 +395,11 @@
                                                     </div>
                                                     <div>
                                                         {{ translate('Addons') }}: <span class="font-medium">
-                                                            @php($addonIds = json_decode($food['add_ons'] ?? '[]', true) ?: [])
-
-                                                            @if(count($addonIds))
-                                                                {{ collect($addonIds)
-                                                                    ->map(fn($id) => $addonsMap[$id] ?? null)
-                                                                    ->filter()
-                                                                    ->implode(', ') }}.
-                                                            @else
+                                                            @forelse(\App\Models\AddOn::whereIn('id',json_decode($food['add_ons'],true))->get('name') as $addon)
+                                                                {{ $addon['name'] }}{{ !$loop->last ? ',' : '.' }}
+                                                            @empty
                                                                 {{ translate('No_addons_found.') }}
-                                                            @endif
+                                                            @endforelse
                                                         </span>
                                                     </div>
                                                 </div>

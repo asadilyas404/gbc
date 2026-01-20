@@ -19,7 +19,7 @@ class OrderSyncController extends Controller
     public function syncBulk(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'orders' => 'nullable|array',
+            'orders' => 'required|array',
             'orders.*.order' => 'required|array',
             'orders.*.order.id' => 'required',
             'shift_sessions' => 'nullable|array',

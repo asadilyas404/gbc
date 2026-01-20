@@ -179,7 +179,7 @@
         </div>
 
 
-        <form action="{{route('admin.business-settings.update-app-settings')}}" method="post"
+        <form action="{{route('admin.business-settings.app-settings')}}" method="post"
         enctype="multipart/form-data">
         @csrf
             <h5 class="card-title mb-3 pt-3">
@@ -262,7 +262,7 @@
         </form>
 
 
-        <form action="{{route('admin.business-settings.update-app-settings')}}" method="post"
+        <form action="{{route('admin.business-settings.app-settings')}}" method="post"
         enctype="multipart/form-data">
         @csrf
             <h5 class="card-title mb-3 pt-4">
@@ -344,7 +344,7 @@
         </form>
 
 
-        <form action="{{route('admin.business-settings.update-app-settings')}}" method="post"
+        <form action="{{route('admin.business-settings.app-settings')}}" method="post"
         enctype="multipart/form-data">
         @csrf
             <h5 class="card-title mb-3 pt-4">

@@ -29,34 +29,32 @@ class SyncFoodJob implements ShouldQueue
         set_time_limit(300);
         Log::info('SyncFoodJob started (API-based)');
 
-        $branchId = config('constants.branch_id');
-
-        if (empty($branchId)) {
-            Log::warning('SyncFoodJob halted: branch/restaurant context missing');
-            return;
-        }
-
         try {
+            $branchId = Helpers::get_restaurant_id();
+
+            if (empty($branchId)) {
+                Log::warning('SyncFoodJob halted: branch/restaurant context missing');
+                return;
+            }
+
             $response = Http::timeout(config('services.live_server.timeout', 60))
                 ->withToken(config('services.live_server.token'))
-                ->withoutVerifying()
+                ->withoutVerifying() // disables SSL certificate verification
                 ->retry(3, 1000)
                 ->get(config('services.live_server.url') . '/food/get-data', [
                     'branch_id' => $branchId,
-                    // If you later add snapshot mode on API:
-                    // 'snapshot' => 1,
                 ]);
 
             if (!$response->successful()) {
                 Log::error('Failed to get food data from live server', [
                     'status' => $response->status(),
-                    'response' => $response->body(),
+                    'response' => $response->body()
                 ]);
                 return;
             }
 
             $result = $response->json();
-            $data   = $result['data'] ?? [];
+            $data = $result['data'] ?? [];
 
             $partnerVariationOptionsCount = array_sum(array_map(function ($foodData) {
                 return count($foodData['partner_variation_options'] ?? []);
@@ -70,263 +68,241 @@ class SyncFoodJob implements ShouldQueue
                 'partner_variation_options' => $partnerVariationOptionsCount,
             ]);
 
-            $oracle = DB::connection('oracle');
-
-            // -----------------------------
-            // Collect data into arrays once
-            // -----------------------------
-            $foodsRows = [];
-            $foodIds   = [];
-
-            $foodTranslations = [];
-            $variationsRows = [];
-            $variationOptionsRows = [];
-            $partnerVariationOptionsRows = [];
+            $syncedFoodIds = [];
+            $syncedAddonIds = [];
+            $syncedCategoryIds = [];
+            $syncedOptionsListIds = [];
+            $syncedPartnerVariationOptionCount = 0;
+            $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
 
             foreach ($data['foods'] ?? [] as $foodData) {
-                $food = $foodData['food'] ?? null;
-                if (!$food || !isset($food['id'])) {
-                    continue;
-                }
+                DB::connection('oracle')->beginTransaction();
 
-                $foodsRows[] = $food;
-                $foodIds[]   = (int) $food['id'];
+                try {
+                    $food = $foodData['food'];
 
-                // Images
-                if (!empty($food['image'])) {
-                    $this->copyImageFromStorage($food['image'], 'product/');
-                }
+                    DB::connection('oracle')
+                        ->table('food')
+                        ->updateOrInsert(
+                            ['id' => $food['id']],
+                            $food
+                        );
 
-                foreach ($foodData['translations'] ?? [] as $t) {
-                    if (isset($t['id'])) $foodTranslations[] = $t;
-                }
+                    if (!empty($food['image'])) {
+                        $this->copyImageFromStorage($food['image'], 'product/');
+                    }
 
-                foreach ($foodData['variations'] ?? [] as $v) {
-                    if (isset($v['id'])) $variationsRows[] = $v;
-                }
+                    foreach ($foodData['translations'] ?? [] as $translation) {
+                        DB::connection('oracle')
+                            ->table('translations')
+                            ->updateOrInsert(
+                                ['id' => $translation['id']],
+                                $translation
+                            );
+                    }
 
-                foreach ($foodData['variation_options'] ?? [] as $vo) {
-                    if (isset($vo['id'])) $variationOptionsRows[] = $vo;
-                }
+                    foreach ($foodData['variations'] ?? [] as $variation) {
+                        DB::connection('oracle')
+                            ->table('variations')
+                            ->updateOrInsert(
+                                ['id' => $variation['id']],
+                                $variation
+                            );
+                    }
 
-                foreach ($foodData['partner_variation_options'] ?? [] as $pvo) {
-                    if (isset($pvo['id'])) $partnerVariationOptionsRows[] = $pvo;
+                    foreach ($foodData['variation_options'] ?? [] as $option) {
+                        DB::connection('oracle')
+                            ->table('variation_options')
+                            ->updateOrInsert(
+                                ['id' => $option['id']],
+                                $option
+                            );
+                    }
+
+                    foreach ($foodData['partner_variation_options'] ?? [] as $partnerOption) {
+                        if (!isset($partnerOption['id'])) {
+                            Log::warning('Skipped partner variation option without ID', [
+                                'food_id' => $food['id'] ?? null,
+                                'data' => $partnerOption,
+                            ]);
+                            continue;
+                        }
+
+                        DB::connection('oracle')
+                            ->table('partner_variation_option')
+                            ->updateOrInsert(
+                                ['id' => $partnerOption['id']],
+                                $partnerOption
+                            );
+
+                        $syncedPartnerVariationOptionCount++;
+                    }
+
+                    DB::connection('oracle')->commit();
+                    $syncedFoodIds[] = $food['id'];
+                    $latestSyncedTimestamps['foods'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['foods'],
+                        $food['updated_at'] ?? null
+                    );
+
+                } catch (\Exception $e) {
+                    DB::connection('oracle')->rollBack();
+                    Log::error("Failed syncing food ID {$foodData['food']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
-
-            $foodIds = array_values(array_unique($foodIds));
-
-            // Addons
-            $addonsRows = [];
-            $addonIds = [];
-            $addonTranslations = [];
 
             foreach ($data['addons'] ?? [] as $addonData) {
-                $addon = $addonData['addon'] ?? null;
-                if (!$addon || !isset($addon['id'])) continue;
+                try {
+                    $addon = $addonData['addon'];
 
-                $addonsRows[] = $addon;
-                $addonIds[]   = (int) $addon['id'];
+                    DB::connection('oracle')
+                        ->table('add_ons')
+                        ->updateOrInsert(
+                            ['id' => $addon['id']],
+                            $addon
+                        );
 
-                foreach ($addonData['translations'] ?? [] as $t) {
-                    if (isset($t['id'])) $addonTranslations[] = $t;
+                    foreach ($addonData['translations'] ?? [] as $translation) {
+                        DB::connection('oracle')
+                            ->table('translations')
+                            ->updateOrInsert(
+                                ['id' => $translation['id']],
+                                $translation
+                            );
+                    }
+
+                    $syncedAddonIds[] = $addon['id'];
+                    $latestSyncedTimestamps['addons'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['addons'],
+                        $addon['updated_at'] ?? null
+                    );
+
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing AddOn ID {$addonData['addon']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
-            $addonIds = array_values(array_unique($addonIds));
-
-            // Categories
-            $categoriesRows = [];
-            $categoryIds = [];
-            $categoryTranslations = [];
 
             foreach ($data['categories'] ?? [] as $categoryData) {
-                $cat = $categoryData['category'] ?? null;
-                if (!$cat || !isset($cat['id'])) continue;
+                try {
+                    $category = $categoryData['category'];
 
-                $categoriesRows[] = $cat;
-                $categoryIds[]    = (int) $cat['id'];
+                    DB::connection('oracle')
+                        ->table('categories')
+                        ->updateOrInsert(
+                            ['id' => $category['id']],
+                            $category
+                        );
 
-                if (!empty($cat['image'])) {
-                    $this->copyImageFromStorage($cat['image'], 'category/');
-                }
+                    if (!empty($category['image'])) {
+                        $this->copyImageFromStorage($category['image'], 'category/');
+                    }
 
-                foreach ($categoryData['translations'] ?? [] as $t) {
-                    if (isset($t['id'])) $categoryTranslations[] = $t;
+                    foreach ($categoryData['translations'] ?? [] as $translation) {
+                        DB::connection('oracle')
+                            ->table('translations')
+                            ->updateOrInsert(
+                                ['id' => $translation['id']],
+                                $translation
+                            );
+                    }
+
+                    $syncedCategoryIds[] = $category['id'];
+                    $latestSyncedTimestamps['categories'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['categories'],
+                        $category['updated_at'] ?? null
+                    );
+
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing Category ID {$categoryData['category']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
-            $categoryIds = array_values(array_unique($categoryIds));
-
-            // Options list
-            $optionsRows = [];
-            $optionIds = [];
-            $optionTranslations = [];
 
             foreach ($data['options_list'] ?? [] as $optionData) {
-                $opt = $optionData['option'] ?? null;
-                if (!$opt || !isset($opt['id'])) continue;
+                try {
+                    $option = $optionData['option'];
 
-                $optionsRows[] = $opt;
-                $optionIds[]   = (int) $opt['id'];
+                    DB::connection('oracle')
+                        ->table('options_list')
+                        ->updateOrInsert(
+                            ['id' => $option['id']],
+                            $option
+                        );
 
-                foreach ($optionData['translations'] ?? [] as $t) {
-                    if (isset($t['id'])) $optionTranslations[] = $t;
+                    foreach ($optionData['translations'] ?? [] as $translation) {
+                        DB::connection('oracle')
+                            ->table('translations')
+                            ->updateOrInsert(
+                                ['id' => $translation['id']],
+                                $translation
+                            );
+                    }
+
+                    $syncedOptionsListIds[] = $option['id'];
+                    $latestSyncedTimestamps['options_list'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['options_list'],
+                        $option['updated_at'] ?? null
+                    );
+
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing OptionsList ID {$optionData['option']['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
                 }
             }
-            $optionIds = array_values(array_unique($optionIds));
 
-            // All translations (shared table)
-            $allTranslations = array_merge(
-                $foodTranslations,
-                $addonTranslations,
-                $categoryTranslations,
-                $optionTranslations
-            );
-
-            // -----------------------------
-            // One transaction for DB writes
-            // -----------------------------
-            $oracle->beginTransaction();
-
-            try {
-                /**
-                 * IMPORTANT:
-                 * We only delete subtree for foods that came in this payload.
-                 * This is safe even for incremental API.
-                 */
-
-                // Delete children by food_id (chunked)
-                $this->deleteWhereInChunked($oracle, 'variations', 'food_id', $foodIds);
-                $this->deleteWhereInChunked($oracle, 'variation_options', 'food_id', $foodIds);
-                $this->deleteWhereInChunked($oracle, 'partner_variation_option', 'food_id', $foodIds);
-
-                // Delete translations for these foods only (type filtered)
-                $this->deleteTranslationsByTypeAndIds($oracle, 'App\\Models\\Food', $foodIds);
-
-                // Upsert main tables
-                $this->upsertChunked($oracle, 'food', $foodsRows, 'id');
-                $this->upsertChunked($oracle, 'add_ons', $addonsRows, 'id');
-                $this->upsertChunked($oracle, 'categories', $categoriesRows, 'id');
-                $this->upsertChunked($oracle, 'options_list', $optionsRows, 'id');
-
-                // Insert children (faster than updateOrInsert after delete)
-                $this->insertChunked($oracle, 'variations', $variationsRows);
-                $this->insertChunked($oracle, 'variation_options', $variationOptionsRows);
-                $this->insertChunked($oracle, 'partner_variation_option', $partnerVariationOptionsRows);
-
-                // Translations:
-                // For addon/category/options we should also delete those types for IDs received to avoid duplicates
-                $this->deleteTranslationsByTypeAndIds($oracle, 'App\\Models\\AddOn', $addonIds);
-                $this->deleteTranslationsByTypeAndIds($oracle, 'App\\Models\\Category', $categoryIds);
-                $this->deleteTranslationsByTypeAndIds($oracle, 'App\\Models\\OptionsList', $optionIds);
-
-                // Then insert fresh translations (or upsert by id)
-                // Insert is faster if IDs are unique from source
-                $this->insertChunked($oracle, 'translations', $allTranslations);
-
-                $oracle->commit();
-
-            } catch (\Throwable $e) {
-                $oracle->rollBack();
-                Log::error('SyncFoodJob failed during DB sync', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-                return;
-            }
+            $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
             Log::info('SyncFoodJob completed successfully', [
-                'foods' => count($foodIds),
-                'addons' => count($addonIds),
-                'categories' => count($categoryIds),
-                'options_list' => count($optionIds),
-                'partner_variation_options' => count($partnerVariationOptionsRows),
+                'synced_foods' => count($syncedFoodIds),
+                'synced_addons' => count($syncedAddonIds),
+                'synced_categories' => count($syncedCategoryIds),
+                'synced_options_list' => count($syncedOptionsListIds),
+                'synced_partner_variation_options' => $syncedPartnerVariationOptionCount,
             ]);
+
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             Log::error('Connection error while syncing food', [
-                'error' => $e->getMessage(),
+                'error' => $e->getMessage()
             ]);
-        } catch (\Throwable $e) {
+        } catch (\Exception $e) {
             Log::error('SyncFoodJob failed', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
+                'trace' => $e->getTraceAsString()
             ]);
-        }
-    }
-    private function deleteWhereInChunked($oracle, string $table, string $column, array $ids, int $chunkSize = 900): void
-    {
-        if (empty($ids)) return;
-
-        foreach (array_chunk($ids, $chunkSize) as $chunk) {
-            $oracle->table($table)->whereIn($column, $chunk)->delete();
-        }
-    }
-
-    private function deleteTranslationsByTypeAndIds($oracle, string $type, array $ids, int $chunkSize = 900): void
-    {
-        if (empty($ids)) return;
-
-        foreach (array_chunk($ids, $chunkSize) as $chunk) {
-            $oracle->table('translations')
-                ->where('translationable_type', $type)
-                ->whereIn('translationable_id', $chunk)
-                ->delete();
-        }
-    }
-
-    private function upsertChunked($oracle, string $table, array $rows, string $key, int $chunkSize = 200): void
-    {
-        if (empty($rows)) return;
-
-        foreach (array_chunk($rows, $chunkSize) as $chunk) {
-            foreach ($chunk as $row) {
-                if (!isset($row[$key])) continue;
-                $oracle->table($table)->updateOrInsert([$key => $row[$key]], $row);
-            }
-        }
-    }
-
-    private function insertChunked($oracle, string $table, array $rows, int $chunkSize = 500): void
-    {
-        if (empty($rows)) return;
-
-        foreach (array_chunk($rows, $chunkSize) as $chunk) {
-            $oracle->table($table)->insert($chunk);
         }
     }
 
     private function copyImageFromStorage($filename, $folder = 'product/')
     {
-        if (empty($filename)) return;
+        $imageSourceBase = config('constants.image_source_base');
+        $imageSourceBase = rtrim($imageSourceBase, '/') . '/';
+        $relativePath = $folder . $filename;
 
-        $imageSourceBase = rtrim(config('constants.image_source_base'), '/') . '/';
-        $relativePath    = $folder . ltrim($filename, '/');
-
+        $sourceUrl = $imageSourceBase . $relativePath;
         $destinationPath = public_path('storage/' . $relativePath);
 
-        // ✅ If already exists, skip download (huge speed gain)
-        if (file_exists($destinationPath) && filesize($destinationPath) > 0) {
-            return;
-        }
-
         try {
-            if (!is_dir(dirname($destinationPath))) {
+            if (!file_exists(dirname($destinationPath))) {
                 mkdir(dirname($destinationPath), 0755, true);
             }
 
-            $sourceUrl = $imageSourceBase . $relativePath;
-
-            $res = Http::timeout(20)->retry(2, 500)->get($sourceUrl);
-
-            if (!$res->successful()) {
+            $imageData = @file_get_contents($sourceUrl);
+            if ($imageData === false) {
                 return;
             }
 
-            file_put_contents($destinationPath, $res->body());
-        } catch (\Throwable $e) {
-            Log::error("Image copy failed for {$relativePath}: " . "Filename: " . $filename . " - " . $e->getMessage());
+            file_put_contents($destinationPath, $imageData);
+
+        } catch (\Exception $e) {
+            Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
         }
     }
-
 
     private function pickLatestTimestamp(?string $current, ?string $candidate): ?string
     {

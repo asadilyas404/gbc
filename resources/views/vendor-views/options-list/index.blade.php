@@ -65,13 +65,6 @@
                         <input type="hidden" name="lang[]" value="default">
                     @endif
 
-                    <div class="form-group col-md-6">
-                        <label class="form-label" for="exampleFormControlInput1">{{ translate('messages.price') }}</label>
-                        <input type="number" min="0" max="999999999999.99" name="price" step="0.01"
-                            class="form-control h--45px" placeholder="{{ translate('Ex : 100.00') }}"
-                            value="{{ old('price') }}">
-                    </div>
-
                     <div class="col-12">
                         <div class="btn--container justify-content-end">
                             <button type="reset" id="reset_btn"
@@ -117,7 +110,6 @@
                         <tr>
                             <th class="w-100px">{{ translate('messages.sl') }}</th>
                             <th class="w-70p">{{ translate('messages.name') }}</th>
-                            <th class="text-center w-100px">{{ translate('messages.price') }}</th>
                             <th class="text-center w-100px">{{ translate('messages.status') }}</th>
                             @if (!app()->environment('local'))
                                 <th class="text-center w-100px">{{ translate('messages.action') }}</th>
@@ -132,11 +124,6 @@
                                 <td>
                                     <span class="d-block font-size-sm text-body">
                                         {{ Str::limit($option['name'], 50, '...') }}
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="d-block font-size-sm text-body">
-                                        {{ \App\CentralLogics\Helpers::format_currency($option['price'] ?? 0) }}
                                     </span>
                                 </td>
                                 <td>

@@ -2,14 +2,13 @@
 
 namespace App\Http\Controllers\Vendor;
 
+use App\CentralLogics\Helpers;
 use App\Models\Food;
+use App\Models\KitchenOrderStatusLog;
 use App\Models\Order;
 use Illuminate\Http\Request;
-use App\CentralLogics\Helpers;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Auth;
-use App\Models\KitchenOrderStatusLog;
 
 class KitchenController extends Controller
 {
@@ -29,7 +28,7 @@ class KitchenController extends Controller
 
     public function getOrderList()
     {
-        $orders = Order::with('customer', 'kitchen_log','details', 'details.food', 'details.food.latestKitchenLog')
+        $orders = Order::with('customer', 'kitchen_log')
             ->whereIn('kitchen_status', [
                 Helpers::kitchenStatus('pending')['key'],
                 Helpers::kitchenStatus('cooking')['key'],
@@ -63,7 +62,6 @@ class KitchenController extends Controller
             }
         }
         return [
-            'orders'  => $orders,
             'pending' => $pending,
             'cooking' => $cooking,
             'ready' => $ready,
@@ -72,6 +70,7 @@ class KitchenController extends Controller
 
     public function getAllOrders(Request $request)
     {
+
         if ($request->type && $request->id) {
             if (!isset(Helpers::kitchenStatus()[$request->type])) {
                 return response()->json([
@@ -103,14 +102,6 @@ class KitchenController extends Controller
                 $order->order_status   = $request->type;
                 $order->is_pushed      = 'N';
                 $order->save();
-
-                // Updating the food items' kitchen status
-                foreach ($order->details as $detail) {
-                    // Update detail cooking_status
-                    $detail->kitchen_status = $request->type;
-                    $detail->preparing_by = Auth::guard('vendor')->id() ?? Auth::guard('vendor_employee')->id();
-                    $detail->save();
-                }
             }
         }
 

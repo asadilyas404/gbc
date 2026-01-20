@@ -15,8 +15,7 @@ class KitchenOrderStatusLog extends Model
     protected $fillable = [
         'id',
         'status',
-        'order_id',
-        'food_id'
+        'order_id'
     ];
 
     public function order() {

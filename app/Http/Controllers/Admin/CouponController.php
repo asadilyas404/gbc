@@ -63,8 +63,8 @@ class CouponController extends Controller
         $coupon->coupon_type = $request->coupon_type;
         $coupon->start_date = $request->start_date;
         $coupon->expire_date = $request->expire_date;
-        $coupon->min_purchase = $request->min_purchase ??  0;
-        $coupon->max_discount = $request->max_discount??  0;
+        $coupon->min_purchase = $request?->min_purchase ??  0;
+        $coupon->max_discount = $request?->max_discount??  0;
         $coupon->discount = $request->discount ?? 0;
         $coupon->discount_type = $request->discount_type??'';
         $coupon->status =  1;
@@ -144,8 +144,8 @@ class CouponController extends Controller
         $coupon->coupon_type = $request->coupon_type;
         $coupon->start_date = $request->start_date;
         $coupon->expire_date = $request->expire_date;
-        $coupon->min_purchase = $request->min_purchase ?? 0;
-        $coupon->max_discount = $request->max_discount ?? 0;
+        $coupon->min_purchase = $request?->min_purchase ?? 0;
+        $coupon->max_discount = $request?->max_discount ?? 0;
         $coupon->discount =$request->discount ?? 0;
         $coupon->discount_type = $request->discount_type??'';
         $coupon->data = json_encode($data);
@@ -199,7 +199,7 @@ class CouponController extends Controller
     public function delete(Request $request)
     {
         $coupon = Coupon::find($request->id);
-        $coupon->translations()->delete();
+        $coupon?->translations()?->delete();
         $coupon->delete();
         Toastr::success(translate('messages.coupon_deleted_successfully'));
         return back();

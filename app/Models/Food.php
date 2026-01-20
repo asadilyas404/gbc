@@ -44,15 +44,17 @@ class Food extends Model
     ];
 
     protected $appends = ['image_full_url'];
-
     public function getImageFullUrlAttribute(){
-        if (isset($this->image_full_url_cache)) {
-            return $this->image_full_url_cache;
+        $value = $this->image;
+        if (count($this->storage) > 0) {
+            foreach ($this->storage as $storage) {
+                if ($storage['key'] == 'image') {
+                    return Helpers::get_full_url('product',$value,$storage['value']);
+                }
+            }
         }
 
-        $value = $this->image;
-
-        return $this->image_full_url_cache = Helpers::get_full_url('product', $value, 'public');
+        return Helpers::get_full_url('product',$value,'public');
     }
 
     public function logs()
@@ -61,8 +63,7 @@ class Food extends Model
     }
     public function newVariations()
     {
-        return $this->hasMany(Variation::class,'food_id')
-        ->orderBy('sr_no');
+        return $this->hasMany(Variation::class,'food_id');
     }
     public function wishlists()
     {
@@ -70,8 +71,7 @@ class Food extends Model
     }
     public function newVariationOptions()
     {
-        return $this->hasMany(VariationOption::class,'food_id')
-        ->orderBy('sr_no');
+        return $this->hasMany(VariationOption::class,'food_id');
     }
 
     public function scopeRecommended($query)
@@ -117,15 +117,15 @@ class Food extends Model
     {
         return $query->where('status', 1)
         ->whereHas('restaurant', function($query) {
-            $query->where('status', 1);
-                    // ->where(function($query) {
-                    //     $query->where('restaurant_model', 'commission')
-                    //             ->orWhereHas('restaurant_sub', function($query) {
-                    //                 $query->where(function($query) {
-                    //                     $query->where('max_order', 'unlimited')->orWhere('max_order', '>', 0);
-                    //                 });
-                    //             });
-                    // });
+            $query->where('status', 1)
+                    ->where(function($query) {
+                        $query->where('restaurant_model', 'commission')
+                                ->orWhereHas('restaurant_sub', function($query) {
+                                    $query->where(function($query) {
+                                        $query->where('max_order', 'unlimited')->orWhere('max_order', '>', 0);
+                                    });
+                                });
+                    });
             });
     }
 
@@ -167,7 +167,7 @@ class Food extends Model
 
     public function orders()
     {
-        return $this->hasMany(OrderDetail::class)->orderBy('sr_no');
+        return $this->hasMany(OrderDetail::class);
     }
 
     public function storage()
@@ -179,7 +179,7 @@ class Food extends Model
     {
         // dd( app()->getLocale());
         if (auth('vendor')->check() || auth('vendor_employee')->check()) {
-            // static::addGlobalScope(new RestaurantScope);
+            static::addGlobalScope(new RestaurantScope);
         }
 
         static::addGlobalScope(new ZoneScope);
@@ -238,14 +238,14 @@ class Food extends Model
 
         static::retrieved(function ($food) {
             try {
-                // if($food->orders->count() != 0 && $food->orders()->whereDay('created_at', now())->count() == 0 && $food->stock_type == 'daily'){
-                //         $food->sell_count = 0;
-                //         $food->save();
-                //         $food->newVariationOptions()->update([
-                //             'sell_count' => 0
-                //         ]);
-                //     }
-                //     unset($food->orders);
+                if($food->orders->count() != 0 && $food->orders()->whereDay('created_at', now())->count() == 0 && $food->stock_type == 'daily'){
+                        $food->sell_count = 0;
+                        $food->save();
+                        $food->newVariationOptions()->update([
+                            'sell_count' => 0
+                        ]);
+                    }
+                    unset($food->orders);
                 } catch (\Exception $exception) {
                     info([$exception->getFile(),$exception->getLine(),$exception->getMessage()]);
                 }
@@ -368,18 +368,7 @@ public function add_ons()
 
 public function variationOptions()
 {
-    return $this->hasMany(VariationOption::class, 'food_id')
-    ->orderBy('sr_no');
-}
-
-public function kitchenLogs()
-{
-    return $this->hasMany(KitchenOrderStatusLog::class, 'food_id');
-}
-
-public function latestKitchenLog()
-{
-    return $this->hasOne(KitchenOrderStatusLog::class, 'food_id')->latestOfMany();
+    return $this->hasMany(VariationOption::class, 'food_id');
 }
 
 

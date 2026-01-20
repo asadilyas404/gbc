@@ -62,7 +62,7 @@ class AddOnController extends Controller
         $addon->restaurant_id = $request->restaurant_id;
         $addon->save();
 
-        Helpers::add_or_update_translations($request, 'name' , 'name' , 'AddOn' , $addon->id, $addon->name);
+        Helpers::add_or_update_translations(request: $request, key_data:'name' , name_field:'name' , model_name: 'AddOn' ,data_id: $addon->id,data_value: $addon->name);
 
 
         Toastr::success(translate('messages.addon_added_successfully'));
@@ -98,7 +98,7 @@ class AddOnController extends Controller
         $addon->sell_count = 0;
         $addon->save();
 
-        Helpers::add_or_update_translations($request, 'name' , 'name' , 'AddOn' ,$addon->id, $addon->name);
+        Helpers::add_or_update_translations(request: $request, key_data:'name' , name_field:'name' , model_name: 'AddOn' ,data_id: $addon->id,data_value: $addon->name);
 
         Toastr::success(translate('messages.addon_updated_successfully'));
         return redirect(route('admin.addon.add-new'));
@@ -143,7 +143,7 @@ class AddOnController extends Controller
             $data=[
                 'data' =>$addons,
                 'search' =>$request['search'] ?? null,
-                'restaurant' => $restaurant_id !='all'? Restaurant::findOrFail($restaurant_id)->name:null,
+                'restaurant' => $restaurant_id !='all'? Restaurant::findOrFail($restaurant_id)?->name:null,
             ];
             if($request->type == 'csv'){
                 return Excel::download(new AddonExport($data), 'Addons.csv');

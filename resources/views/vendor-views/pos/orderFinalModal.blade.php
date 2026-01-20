@@ -101,23 +101,25 @@
                     <div class="row pl-2">
                         <div class="col-lg-8">
                             <div class="row mb-4">
-                                <div class="col-md-6 mb-1">
+                                <div class="col-md-3">
                                     <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment">
+                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment"
+                                            >
                                         <span class="input-label m-0">
                                             {{ translate('Cash') }}
                                         </span>
                                     </label>
                                 </div>        
-                                <div class="col-md-6 mb-1">
+                                <div class="col-md-3">
                                     <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment">
+                                        <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment"
+                                            >
                                         <span class="input-label m-0">
                                             {{ translate('Card') }}
                                         </span>
                                     </label>
                                 </div>        
-                                <div class="col-md-6 mb-1">
+                                <div class="col-md-3">
                                     <label for="payment_type_both" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_both" class="payment_type" name="select_payment_type" value="both_payment"
                                             >
@@ -126,7 +128,7 @@
                                         </span>
                                     </label>
                                 </div>    
-                                 <div class="col-md-6 mb-1">
+                                 <div class="col-md-3">
                                     <label for="payment_type_credit" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_credit" class="payment_type" name="select_payment_type" value="credit_payment"
                                             >
@@ -173,15 +175,12 @@
                                         <select id="bank_account" name="bank_account" class="form-control">
                                             <option value="">
                                                 {{ translate('Select Option') }}</option>  
-                                            @php
-                                                $bankaccounts = DB::table('tbl_defi_bank')->get();
-                                            @endphp
-                                            @foreach ($bankaccounts as $account)
-                                                <option value="{{ $account->bank_account_id }}"
-                                                @if(session()->has('bank_account') && session('bank_account') == $account->bank_account_id) selected @endif
-                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == $account->bank_account_id ? 'selected' : '' }}>
-                                                {{ $account->bank_name }}</option>    
-                                            @endforeach
+                                            <option value="1">
+                                                {{ translate('Bank 1') }}</option>  
+                                            <option value="2">
+                                                {{ translate('Bank 2') }}</option>  
+                                            <option value="3">
+                                                {{ translate('Bank 3') }}</option>  
                                         </select>
                                     </div>
                                 </div>

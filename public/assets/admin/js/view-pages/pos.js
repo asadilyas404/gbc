@@ -73,9 +73,7 @@ function cartQuantityInitialize() {
 
         let name = $(this).attr('name');
         if (valueCurrent >= minValue) {
-            if($(this).attr('data-editing') && $(this).attr('data-editing') == "0"){
-                $(".btn-number[data-type='minus'][data-field='" + name + "']").removeAttr('disabled')
-            }
+            $(".btn-number[data-type='minus'][data-field='" + name + "']").removeAttr('disabled')
         } else {
             Swal.fire({
                 icon: 'error',
@@ -123,27 +121,23 @@ function getUrlParameter(sParam) {
     }
 }
 
-// $(document).on('click', '.decrease-button', function () {
-//     let addonId = $(this).data('id');
-//     let addon_quantity_input = $('input[name="addon-quantity' + addonId + '"]');
-//     let currentValue = parseInt(addon_quantity_input.val(), 10);
-//     if (currentValue > 1) {
-//         addon_quantity_input.val(currentValue - 1);
-//         // getVariantPrice();
-//         calculateTotal();
-//     }
-// });
+$(document).on('click', '.decrease-button', function () {
+    let addonId = $(this).data('id');
+    let addon_quantity_input = $('input[name="addon-quantity' + addonId + '"]');
+    let currentValue = parseInt(addon_quantity_input.val(), 10);
+    if (currentValue > 1) {
+        addon_quantity_input.val(currentValue - 1);
+        getVariantPrice();
+    }
+});
 
-// $(document).on('click', '.increase-button', function (e) {
-//     e.preventDefault();
-//     let addonId = $(this).data('id');
-//     console.log($(this));
-//     let addon_quantity_input = $('input[name="addon-quantity' + addonId + '"]');
-//     let currentValue = parseInt(addon_quantity_input.val(), 10);
-//         addon_quantity_input.val(currentValue + 1);
-//         // getVariantPrice();
-//         calculateTotal();
-// });
+$(document).on('click', '.increase-button', function () {
+    let addonId = $(this).data('id');
+    let addon_quantity_input = $('input[name="addon-quantity' + addonId + '"]');
+    let currentValue = parseInt(addon_quantity_input.val(), 10);
+        addon_quantity_input.val(currentValue + 1);
+        getVariantPrice();
+});
 $('.js-select2-custom').each(function () {
     let select2 = $.HSCore.components.HSSelect2.init($(this));
 });

@@ -676,7 +676,7 @@
                                     </a>
                             @endif
                             @if (config('canceled_by_restaurant') && $order['order_status'] != 'canceled')
-                                <a style="display: none;"
+                                <a
                                     class="btn w-100 mb-1 btn-sm btn-outline-danger btn--danger mt-2 cancelled-status">{{ translate('Cancel Order') }}</a>
                             @endif
                             {{-- @elseif ($order['order_status'] == 'confirmed' || $order['order_status'] == 'accepted')

@@ -1,9 +1,8 @@
-@php
-    $selected_subcategory = session('current_sub_category_id', null);
-@endphp
+{{-- @php use App\CentralLogics\Helpers; @endphp --}}
+{{-- @php($restaurant_data = Helpers::get_restaurant_data()) --}}
 @foreach ($subcategories as $subCategory)
     <a href="javascript:void(0);"
-       class="subcategory-item {{ $selected_subcategory == $subCategory->id ? 'selected' : '' }}"
+       class="subcategory-item {{ request()->get('subcategory_id') == $subCategory->id ? 'selected' : '' }}"
        data-subcategory="{{ $subCategory->id }}">
         <div class="category-icon">
             <img src="{{ $subCategory['image_full_url'] }}" alt="{{ $subCategory->name }}">

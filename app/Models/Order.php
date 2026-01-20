@@ -8,7 +8,6 @@ use Carbon\Carbon;
 use App\Scopes\ZoneScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\ReportFilter;
-use Razorpay\Api\Customer;
 
 class Order extends Model
 {
@@ -123,7 +122,7 @@ class Order extends Model
 
     public function details()
     {
-        return $this->hasMany(OrderDetail::class)->orderBy('sr_no');
+        return $this->hasMany(OrderDetail::class);
     }
 
     public function pos_details()
@@ -143,7 +142,7 @@ class Order extends Model
 
     public function customer()
     {
-        return $this->belongsTo(SaleCustomer::class, 'user_id');
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     public function shiftSession()
@@ -425,13 +424,4 @@ class Order extends Model
         return $this->belongsTo(User::class, 'order_taken_by', 'id');
     }
 
-    public function posAdditionalDetail()
-    {
-        return $this->hasOne(PosOrderAdditionalDtl::class, 'order_id', 'id');
-    }
-
-    public function partner()
-    {
-        return $this->belongsTo(TblSaleOrderPartner::class, 'partner_id');
-    }
 }

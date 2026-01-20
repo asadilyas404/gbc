@@ -254,7 +254,6 @@
                             <tr>
                                 <th class="text-uppercase w-90px">{{translate('messages.sl')}}</th>
                                 <th class="initial-58">{{translate('messages.restaurant_info')}}</th>
-                                <th class="w-230px text-center">{{translate('messages.branch')}} </th>
                                 <th class="w-230px text-center">{{translate('messages.owner_info')}} </th>
                                 <th class="w-130px">{{translate('messages.zone')}}</th>
                                 <th class="w-130px">{{translate('messages.cuisine')}}</th>
@@ -290,11 +289,6 @@
                                                 </span>
                                             </div>
                                         </a>
-                                    </td>
-                                    <td>
-                                        <span class="d-block owner--name text-center">
-                                            {{$dm->branch->branch_name ?? translate('messages.branch_not_assigned')}}
-                                        </span>
                                     </td>
                                     <td>
                                         <span class="d-block owner--name text-center">

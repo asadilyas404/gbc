@@ -31,7 +31,8 @@ class ShiftSession extends Model
         'session_no',
         'session_status',
         'closing_incharge',
-        'verified'
+        'verified',
+        'is_pushed',
     ];
 
     protected $casts = [
@@ -51,6 +52,7 @@ class ShiftSession extends Model
         'session_status' => 'string',
         'closing_incharge' => 'integer',
         'verified' => 'integer',
+        'is_pushed' => 'string',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];

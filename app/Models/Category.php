@@ -28,14 +28,13 @@ class Category extends Model
 
     public function getImageFullUrlAttribute(){
         $value = $this->image;
-        if (count($this->storage) > 0) {
-            foreach ($this->storage as $storage) {
-                if ($storage['key'] == 'image') {
-                    return Helpers::get_full_url('category',$value,$storage['value']);
-                }
-            }
-        }
-
+        // if (count($this->storage) > 0) {
+        //     foreach ($this->storage as $storage) {
+        //         if ($storage['key'] == 'image') {
+        //             return Helpers::get_full_url('category',$value,$storage['value']);
+        //         }
+        //     }
+        // }
         return Helpers::get_full_url('category',$value,'public');
     }
     public function storage()

@@ -2697,4 +2697,5 @@
   'Password is valid' => 'Password is valid',
   'Password format is invalid' => 'Password format is invalid',
   'Support' => 'Support',
+  'vendor_has_no_restaurants' => 'El vendedor no tiene restaurantes',
 );

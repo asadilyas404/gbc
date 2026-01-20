@@ -72,10 +72,69 @@ class ProfileController extends Controller
         ]);
 
         $seller = auth('vendor')->check()?Helpers::get_vendor_data():auth('vendor_employee')->user();
-        $seller->password = bcrypt($request['password']);
-        $seller->save();
-        Toastr::success(translate('messages.vendor_pasword_updated_successfully'));
-        return back();
+
+        if (app()->environment('production')) {
+            $seller->password = bcrypt($request['password']);
+            $seller->save();
+
+            \Illuminate\Support\Facades\Log::info('Password updated on live server', [
+                'user_id' => $seller->id,
+            ]);
+
+            Toastr::success(translate('messages.vendor_pasword_updated_successfully'));
+            return back();
+
+        } else {
+            try {
+                $response = \Illuminate\Support\Facades\Http::timeout(config('services.live_server.timeout', 30))
+                    ->withoutVerifying()
+                    ->withToken(config('services.live_server.token'))
+                    ->post(config('services.live_server.url') . '/employees-users/update-password', [
+                        'user_id' => $seller->id,
+                        'password' => $request['password'],
+                    ]);
+
+                if (!$response->successful()) {
+                    \Illuminate\Support\Facades\Log::error('Failed to update password on live server', [
+                        'status' => $response->status(),
+                        'response' => $response->body(),
+                        'user_id' => $seller->id,
+                    ]);
+
+                    Toastr::error(translate('messages.failed_to_connect_to_server_please_check_internet'));
+                    return back();
+                }
+
+                $seller->password = bcrypt($request['password']);
+                $seller->save();
+
+                \Illuminate\Support\Facades\Log::info('Password synced from local to live server', [
+                    'user_id' => $seller->id,
+                ]);
+
+                Toastr::success(translate('messages.vendor_pasword_updated_successfully'));
+                return back();
+
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                \Illuminate\Support\Facades\Log::error('Connection error while updating password', [
+                    'error' => $e->getMessage(),
+                    'user_id' => $seller->id,
+                ]);
+
+                Toastr::error(translate('messages.no_internet_connection_password_not_updated'));
+                return back();
+
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Unexpected error while updating password', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                    'user_id' => $seller->id,
+                ]);
+
+                Toastr::error(translate('messages.failed_to_update_password_please_try_again'));
+                return back();
+            }
+        }
     }
 
     // public function bank_update(Request $request)

@@ -19,6 +19,7 @@ class Variation extends Model
         'is_required' => 'boolean',
         'link_addons' => 'boolean',
         'printing_option' => 'string',
+        
     ];
 
     public function food()
@@ -29,5 +30,4 @@ class Variation extends Model
     {
         return $this->hasMany(VariationOption::class);
     }
-
 }

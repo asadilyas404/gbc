@@ -47,6 +47,7 @@ class syncTableColumns extends Command
         $tableName = $this->argument('table');
 
         echo "Establishing Connection With LIVE DB...\n";
+        DB::connection($connectionLocal)->beginTransaction();
         try {
             // Test connection to live DB
             DB::connection($connectionLive)->getPdo();
@@ -73,8 +74,8 @@ class syncTableColumns extends Command
         }
 
         try {
+            $tableNotFound = [];
             foreach ($tables as $table) {
-
                 echo "Checking and Syncing Table: " . strtoupper($table) . "\n\r";
 
                 $tableExists = Schema::connection($connectionLocal)->hasTable($table);
@@ -91,6 +92,7 @@ class syncTableColumns extends Command
 
                     $this->info("Error While Creating Table On Local Database.");
                     $this->error("Table Not Found On Local Database: " . $tableName . " Make this table manually.");
+                    $tableNotFound[] = $tableName;
                     continue;
 
                     // 1. Fetch ALL columns
@@ -124,24 +126,6 @@ class syncTableColumns extends Command
 
                     // 3. Sync the sequence and trigger
                     $this->syncSequenceAndTrigger($tableName, $connectionLive, $connectionLocal);
-
-                    // 3. Detect sequence from trigger
-                    $triggerInfo = DB::connection($connectionLive)->select("
-                        SELECT TRIGGER_NAME, TRIGGER_BODY
-                        FROM ALL_TRIGGERS
-                        WHERE TABLE_OWNER = '$owner'
-                        AND TABLE_NAME = '$tableName'
-                        AND STATUS = 'ENABLED'
-                    ");
-
-                    $sequenceName = null;
-
-                    foreach ($triggerInfo as $trigger) {
-                        if (preg_match('/([A-Za-z0-9_]+)\.NEXTVAL/i', $trigger->trigger_body, $m)) {
-                            $sequenceName = $m[1];
-                            break;
-                        }
-                    }
 
                     echo "Detected PK: " . implode(',', $pkColumns) . "\n\r";
                     echo "Detected Oracle Sequence: " . ($sequenceName ?: 'None') . "\n\r";
@@ -378,6 +362,9 @@ class syncTableColumns extends Command
             }
             DB::connection($connectionLocal)->commit();
             DB::connection($connectionLive)->commit();
+            foreach($tableNotFound as $table){
+                $this->error("Table Not Found On Local Database: " . $table . " Make this table manually.");
+            }
             dump('Column Sync is Done!');
         } catch (\Throwable $th) {
             DB::connection($connectionLocal)->rollBack();

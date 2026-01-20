@@ -13,6 +13,9 @@ class BranchRestaurantSyncController extends Controller
     private const SYNC_ENTITY_TYPES = [
         'branches',
         'restaurants',
+        'partners',
+        'banks',
+        'vendors',
     ];
 
     /**
@@ -24,19 +27,23 @@ class BranchRestaurantSyncController extends Controller
         try {
             $validated = $request->validate([
                 'branch_id' => 'required|integer',
+                'snapshot' => 'nullable|boolean',
             ]);
 
             $branchId = (int) $validated['branch_id'];
+            $snapshot = $validated['snapshot'] ?? false;
             $cursorMap = $this->resolveLastSyncedMap($branchId);
 
             $data = [
                 'branches' => [],
                 'restaurants' => [],
+                'partners'  => [],
+                'banks'    => [],
             ];
 
             $branches = DB::connection('oracle')
                 ->table('tbl_soft_branch')
-                ->when($cursorMap['branches'], function ($query, Carbon $cursor) {
+                ->when(!$snapshot && $cursorMap['branches'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -54,7 +61,7 @@ class BranchRestaurantSyncController extends Controller
 
             $restaurants = DB::connection('oracle')
                 ->table('restaurants')
-                ->when($cursorMap['restaurants'], function ($query, Carbon $cursor) {
+                ->when(!$snapshot && $cursorMap['restaurants'], function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
                         $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
                             ->orWhereNull('updated_at');
@@ -83,10 +90,68 @@ class BranchRestaurantSyncController extends Controller
                 ];
             }
 
-            Log::info('Branch and restaurant data retrieved for sync', [
+            $partners = DB::connection('oracle')
+                ->table('tbl_sale_order_partners')
+                ->when(!$snapshot && $cursorMap['partners'], function ($query, Carbon $cursor) {
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
+                })
+                ->orderBy('updated_at')
+                ->get();
+
+            foreach ($partners as $partner) {
+                $partnerRecord = $this->ensureUpdatedAt((array) $partner, 'tbl_sale_order_partners', 'partner_id');
+                $partner->updated_at = $partnerRecord['updated_at'] ?? $partner->updated_at;
+
+                $data['partners'][] = $partnerRecord;
+            }
+
+            $banks = DB::connection('oracle')
+                ->table('tbl_defi_bank')
+                ->when(!$snapshot && $cursorMap['banks'] ?? null, function ($query, Carbon $cursor) {
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
+                })
+                ->orderBy('updated_at')
+                ->get();
+            
+            foreach ($banks as $bank) {
+                $bankRecord = $this->ensureUpdatedAt((array) $bank, 'tbl_defi_bank', 'bank_id');
+                $bank->updated_at = $bankRecord['updated_at'] ?? $bank->updated_at;
+
+                $data['banks'][] = $bankRecord;
+            }
+
+            $vendors = DB::connection('oracle')
+                ->table('vendors')
+                ->when(!$snapshot && $cursorMap['vendors'] ?? null, function ($query, Carbon $cursor) {
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
+                })
+                ->orderBy('updated_at')
+                ->get();
+
+            foreach ($vendors as $vendor) {
+                $vendorRecord = $this->ensureUpdatedAt((array) $vendor, 'vendors', 'id');
+                $vendor->updated_at = $vendorRecord['updated_at'] ?? $vendor->updated_at;
+
+                $data['vendors'][] = $vendorRecord;
+            }
+
+            Log::info('Branch, restaurant and partner data retrieved for sync', [
                 'branch_id' => $branchId,
                 'branches_count' => count($data['branches']),
                 'restaurants_count' => count($data['restaurants']),
+                'partners_count' => count($data['partners']),
+                'banks_count' => count($data['banks']),
+                'vendors_count' => count($vendors),
+            
             ]);
 
             return response()->json([
@@ -95,6 +160,9 @@ class BranchRestaurantSyncController extends Controller
                 'counts' => [
                     'branches' => count($data['branches']),
                     'restaurants' => count($data['restaurants']),
+                    'partners' => count($data['partners']),
+                    'banks' => count($data['banks']),
+                    'vendors' => count($data['vendors']),
                 ],
                 'cursor' => array_map(function ($item) {
                     return $item ? $item->toIso8601String() : null;
@@ -127,13 +195,16 @@ class BranchRestaurantSyncController extends Controller
                 'branch_id' => 'required|integer',
                 'branches_last_synced_at' => 'nullable|string',
                 'restaurants_last_synced_at' => 'nullable|string',
+                'partners_last_synced_at' => 'nullable|string',
+                'banks_last_synced_at' => 'nullable|string',
+                'vendors_last_synced_at' => 'nullable|string',
             ]);
 
             $branchId = (int) $validated['branch_id'];
             $timestamps = $this->parseTimestampPayload($validated);
             $this->persistBranchSyncState($branchId, $timestamps);
 
-            Log::info('Branch sync state updated for branches/restaurants', [
+            Log::info('Branch sync state updated for branches/restaurants/partners/banks/vendors', [
                 'branch_id' => $branchId,
                 'payload' => array_intersect_key(
                     $validated,

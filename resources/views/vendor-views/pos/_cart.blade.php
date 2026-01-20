@@ -47,49 +47,51 @@
                             $addon_price += $cartItem['addon_price'];
                         }
                         ?>
-                        <tr @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') class="bg-light pe-none" @endif>
-                            <td 
-                                class="media cart--media align-items-center cursor-pointer quick-View-Cart-Item"
-                                data-product-id="{{ $cartItem['id'] }}" data-item-key="{{ $key }}">
-                                <img class="avatar avatar-sm mr-2 onerror-image" src="{{ $cartItem['image_full_url'] }}"
-                                    data-onerror-image="{{ dynamicAsset('public/assets/admin/img/160x160/img2.jpg') }}"
-                                    alt="{{ data_get($cartItem, 'image') }} image">
+                        @if(!isset($cartItem['visibility']) || (int)$cartItem['visibility'] !== 0)
+                            <tr @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') class="bg-light pe-none" @endif>
+                                <td 
+                                    class="media cart--media align-items-center cursor-pointer quick-View-Cart-Item"
+                                    data-product-id="{{ $cartItem['id'] }}" data-item-key="{{ $key }}" data-item-qty="{{ $cartItem['quantity'] }}">
+                                    <img class="avatar avatar-sm mr-2 onerror-image" src="{{ $cartItem['image_full_url'] }}"
+                                        data-onerror-image="{{ dynamicAsset('public/assets/admin/img/160x160/img2.jpg') }}"
+                                        alt="{{ data_get($cartItem, 'image') }} image">
 
 
-                                <div class="media-body">
-                                    <h5 class="text-hover-primary mb-0">{{ Str::limit($cartItem['name'], 10) }}</h5>
-                                    <small>{{ Str::limit($cartItem['variant'], 20) }}</small>
-                                </div>
-                            </td>
-                            <td class="align-items-center text-center">
-                                <label>
-                                    <input type="number" data-key="{{ $key }}"
-                                        @if(isset($editingOrder)) readonly @endif
-                                        data-value="{{ $cartItem['quantity'] }}"
-                                        data-option_ids="{{ $cartItem['variation_option_ids'] }}"
-                                        data-food_id="{{ $cartItem['id'] }}"
-                                        class="w-50px text-center rounded border  update-Quantity"
-                                        value="{{ $cartItem['quantity'] }}" min="1"
-                                        max="{{ $cartItem['maximum_cart_quantity'] ?? '9999999999' }}">
-                                </label>
-                            </td>
-                            <td class="text-center px-0 py-1">
-                                <div class="btn">
-                                    {{ Helpers::format_currency(round($product_subtotal, 3)) }}
-                                </div>
-                            </td>
-                            <td class="align-items-center">
-                                <div class="btn--container justify-content-center">
-                                    @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') 
-                                        <span class="badge bg-danger text-white small">Removed</span>
-                                    @else
-                                        <a href="javascript:" data-product-id="{{ $key }}"
-                                        class="btn btn-sm btn--danger action-btn btn-outline-danger remove-From-Cart">
-                                        <i class="tio-delete-outlined"></i></a>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
+                                    <div class="media-body">
+                                        <h5 class="text-hover-primary mb-0">{{ Str::limit($cartItem['name'], 10) }}</h5>
+                                        <small>{{ Str::limit($cartItem['variant'], 20) }}</small>
+                                    </div>
+                                </td>
+                                <td class="align-items-center text-center">
+                                    <label>
+                                        <input type="number" data-key="{{ $key }}"
+                                            @if(isset($editingOrder)) readonly @endif
+                                            data-value="{{ $cartItem['quantity'] }}"
+                                            data-option_ids="{{ $cartItem['variation_option_ids'] }}"
+                                            data-food_id="{{ $cartItem['id'] }}"
+                                            class="w-50px text-center rounded border  update-Quantity"
+                                            value="{{ $cartItem['quantity'] }}" min="1"
+                                            max="{{ $cartItem['maximum_cart_quantity'] ?? '9999999999' }}">
+                                    </label>
+                                </td>
+                                <td class="text-center px-0 py-1">
+                                    <div class="btn">
+                                        {{ Helpers::format_currency(round($product_subtotal, 3)) }}
+                                    </div>
+                                </td>
+                                <td class="align-items-center">
+                                    <div class="btn--container justify-content-center">
+                                        @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') 
+                                            <span class="badge bg-danger text-white small">Removed</span>
+                                        @else
+                                            <a href="javascript:" data-product-id="{{ $key }}"
+                                            class="btn btn-sm btn--danger action-btn btn-outline-danger remove-From-Cart">
+                                            <i class="tio-delete-outlined"></i></a>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endif
                     @endif
                 @endforeach
             @endif
@@ -158,7 +160,7 @@ if (isset($cart['paid'])) {
 
             <dt class="col-6 font-regular">{{ translate('messages.extra_discount') }} :</dt>
             <dd class="col-6 text-right">
-                <button class="btn btn-sm" type="button" data-toggle="modal" data-target="#add-discount"><i
+                <button class="btn btn-sm" type="button" disabled data-toggle="modal" data-target="#add-discount"><i
                         class="tio-edit"></i></button>
                 - {{ Helpers::format_currency(round($discount_amount, 3)) }}
             </dd>
@@ -409,22 +411,21 @@ if (isset($cart['paid'])) {
                             </div>
                         </div>
                     </div>
-                     <input type="hidden" name="invoice_amount" id="" value="{{ $paid }}">
+                    <input type="hidden" name="invoice_amount" id="" value="{{ $paid }}">
 
                     <!-- Payment Details Section -->
                     <div class="row pl-2">
                         <div class="col-lg-8">
                             <div class="row mb-4">
-                                <div class="col-md-3">
+                                <div class="col-md-6 mb-1">
                                     <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment"
-                                            >
+                                        <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment">
                                         <span class="input-label m-0">
                                             {{ translate('Cash') }}
                                         </span>
                                     </label>
                                 </div>        
-                                <div class="col-md-3">
+                                <div class="col-md-6 mb-1">
                                     <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment"
                                             >
@@ -433,7 +434,7 @@ if (isset($cart['paid'])) {
                                         </span>
                                     </label>
                                 </div>        
-                                <div class="col-md-3">
+                                <div class="col-md-6 mb-1">
                                     <label for="payment_type_both" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_both" class="payment_type" name="select_payment_type" value="both_payment" >
                                         <span class="input-label m-0">
@@ -441,7 +442,7 @@ if (isset($cart['paid'])) {
                                         </span>
                                     </label>
                                 </div> 
-                                <div class="col-md-3">
+                                <div class="col-md-6 mb-1" id="payment_type_credit_wrapper">
                                     <label for="payment_type_credit" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_credit" class="payment_type" name="select_payment_type" value="credit_payment" >
                                         <span class="input-label m-0">
@@ -459,7 +460,7 @@ if (isset($cart['paid'])) {
                                             onfocus="this.select();"
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter cash amount') }}"
-                                            value="{{ old('cash_paid', $draftDetails->cash_paid ?? '') }}">
+                                            value="{{ old('cash_paid', 0) }}">
                                     </div>
                                     <div class="form-group mt-3">
                                         <label for="delivery_type" class="input-label">Order Type</label>
@@ -485,7 +486,7 @@ if (isset($cart['paid'])) {
                                             min="0" step="0.001"
                                             autocomplete="false"
                                             placeholder="{{ translate('Enter card amount') }}"
-                                            value="{{ old('card_paid', $draftDetails->card_paid ?? '') }}">
+                                            value="{{ old('card_paid', 0) }}">
                                     </div>
                                     <div class="form-group mt-3">
                                         <label for="bank_account"
@@ -495,8 +496,8 @@ if (isset($cart['paid'])) {
                                             <option value="">{{ translate('Select an option') }}</option>
                                             @foreach ($bankaccounts as $account)
                                                 <option value="{{ $account->bank_account_id }}"
-                                                @if(session()->has('bank_account') && session('bank_account') == $account->bank_id) selected @endif
-                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == $account->bank_id ? 'selected' : '' }}>
+                                                @if(session()->has('bank_account') && session('bank_account') == $account->bank_account_id) selected @endif
+                                                {{ old('bank_account', $draftDetails->bank_account ?? '') == $account->bank_account_id ? 'selected' : '' }}>
                                                 {{ $account->bank_name }}</option>    
                                             @endforeach
                                         </select>
@@ -516,11 +517,15 @@ if (isset($cart['paid'])) {
                                         data-dismiss="modal">{{ translate('Close') }}</button>
                                     <button type="submit"
                                         class="btn btn--primary">{{ translate('Place Order') }}</button>
-                                    <button type="submit" class="btn btn--warning"
-                                        id="unpaidOrderBtn"
-                                        onclick="document.getElementById('order_draft').value='draft'">
-                                        {{ translate('Unpaid Order') }}
-                                    </button>
+                                    @if(isset($editingOrder) && $editingOrder->payment_status == 'paid')
+                                        {{-- hide button --}}
+                                    @else
+                                        <button type="submit" class="btn btn--warning"
+                                            id="unpaidOrderBtn"
+                                            onclick="document.getElementById('order_draft').value='draft'">
+                                            {{ translate('Unpaid Order') }}
+                                        </button>
+                                    @endif
                                 </div>
                             </div>
                         </div>

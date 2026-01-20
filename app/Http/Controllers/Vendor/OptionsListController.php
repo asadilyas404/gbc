@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers\Vendor;
 
-use App\Http\Controllers\Controller;
 use App\Models\OptionsList;
-use Brian2694\Toastr\Facades\Toastr;
+use App\Models\Translation;
 use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
-use App\Models\Translation;
+use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Controller;
+use Brian2694\Toastr\Facades\Toastr;
 
 class OptionsListController extends Controller
 {
@@ -34,6 +35,7 @@ class OptionsListController extends Controller
         $request->validate([
             'name' => 'required|array',
             'name.*' => 'max:191',
+            'price' => 'nullable|numeric|min:0|max:999999999999.99',
         ], [
             'name.required' => translate('messages.Name is required!'),
         ]);
@@ -43,6 +45,7 @@ class OptionsListController extends Controller
         $option = new OptionsList();
         $option->id = $newId;
         $option->name = $request->name[array_search('default', $request->lang)];
+        $option->price = $request->price ?? 0;
         $option->save();
         Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
 
@@ -61,12 +64,14 @@ class OptionsListController extends Controller
         $request->validate([
             'name' => 'required|array',
             'name.*' => 'max:191',
+            'price' => 'nullable|numeric|min:0|max:999999999999.99',
         ], [
             'name.required' => translate('messages.Name is required!'),
         ]);
 
         $option = OptionsList::find($id);
         $option->name = $request->name[array_search('default', $request->lang)];
+        $option->price = $request->price ?? 0;
         $option->save();
         Helpers::add_or_update_translations($request, 'name', 'name', 'OptionsList', $option->id, $option->name);
         Toastr::success(translate('messages.option_updated_successfully'));
@@ -76,6 +81,12 @@ class OptionsListController extends Controller
     public function delete(Request $request)
     {
         $option = OptionsList::findOrFail($request->id);
+        
+        if(DB::table('VW_REST_OPTIONS_ORDERS')->where('options_list_id', $request->id)->exists()){
+            Toastr::warning(translate('messages.option_cannot_be_deleted_because_it_is_associated_with_orders'));
+            return back();
+        }
+
         $option->delete();
         Toastr::success(translate('messages.option_deleted_successfully'));
         return back();

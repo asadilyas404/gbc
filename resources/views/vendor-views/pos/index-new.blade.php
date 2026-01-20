@@ -39,11 +39,26 @@
             transition: all 0.3s;
         }
 
-        .category-item.selected {
+        .order_partner {
+            min-width: 92px;
+        }
+        
+        .order_partner .partner-name{
+            color: #333;
+        }
+        .order_partner.selected .partner-name{
+            color: #fff;
+        }
+
+        .order_partner:hover .partner-name{
+            color: #fff;
+        }
+        
+        .category-item.selected, .order_partner.selected, .order_partner:hover   {
             padding: 5px;
             border-radius: 10px;
             background-color: #F8923B;
-            color: #fff;
+            color: #fff !important;
             box-shadow: 0 4px 10px rgba(64, 169, 255, 0.5);
         }
 
@@ -51,6 +66,14 @@
             color: #fff;
         }
 
+        .partner-name{
+            text-align: center;
+            
+        }
+
+        .category-icon{
+            text-align: center;
+        }
         .category-icon img {
             width: 60px;
             height: 60px;
@@ -114,11 +137,11 @@
                 {{-- @if ($subcategories->isNotEmpty()) --}}
                 <style>
                     /* Subcategory Scroll Styles */
-                    .main-content {
+                    .main-content, .footer {
                         margin-left: 80px;
                     }
 
-                    [dir="rtl"] .main-content {
+                    [dir="rtl"] .main-content, [dir="rtl"] .footer {
                         margin-left: 0;
                         margin-right: 80px;
                     }
@@ -129,7 +152,6 @@
                         left: 0;
                         height: 100vh;
                         width: 80px;
-                        border-radius: 5px;
                         background-color: #334257;
                         overflow-y: auto;
                         padding: 5px;
@@ -295,46 +317,29 @@
                         style="padding-top: 8px;">
                         <div class="row g-2 mb-1">
                             <div class="col-sm-12">
-                                <div class="input-group">
-                                    <select name="order_partner" id="order_partner" 
-                                            {{ ($editingOrder) ? 'disabled' : '' }}
-                                            class="form-control js-select2-custom"
-                                            title="{{ translate('messages.select_category') }}">
-                                        <option value="">{{ config('app.name') }}</option>
-                                        @foreach ($orderPartners as $partner)
-                                            <option
-                                                value="{{ $partner->partner_id }}"
-                                                {{ $partner->partner_id == $orderPartner ? 'selected' : '' }}>
-                                                {{ $partner->partner_name }}</option>
-                                        @endforeach
-                                    </select>
-                                    @if ($editingOrder)
-                                        <input type="hidden" name="order_partner" value="{{ $orderPartner }}">
-                                    @endif
-                                </div>
-                            </div>
-                            <div class="col-sm-12">
                                 <div class="category-scroll-container">
                                     <div class="category-scroll">
                                         <a href="javascript:void(0);"
-                                            class="category-item {{ empty($category) ? 'selected' : '' }}" data-category="">
+                                            class="order_partner {{ empty($orderPartner) ? 'selected' : '' }}"
+                                            data-value="">
                                             <div class="category-icon">
-                                                <img src="{{ dynamicAsset('/public/assets/admin/img/100x100/food.png') }}"
-                                                    alt="All Products">
+                                                <img src="{{ asset('images/malekalpizza.png') }}"
+                                                    alt="{{ config('app.name') }}">
                                             </div>
-                                            <div class="category-name">
-                                                {{ translate('messages.all_menu') }}
+                                            <div class="partner-name">
+                                                {{ config('app.name') }}
                                             </div>
                                         </a>
-                                        @foreach ($categories as $item)
+                                        @foreach ($orderPartners as $partner)
                                             <a href="javascript:void(0);"
-                                                class="category-item {{ $category == $item->id ? 'selected' : '' }}"
-                                                data-category="{{ $item->id }}">
+                                                class="order_partner {{ $partner->partner_id == $orderPartner ? 'selected' : '' }}"
+                                                data-value="{{ $partner->partner_id }}">
                                                 <div class="category-icon">
-                                                    <img src="{{ $item['image_full_url'] }}" alt="{{ $item->name }}">
+                                                    @php($image = 'images/' . \Str::slug($partner->partner_name) . '.png')
+                                                    <img src="{{ file_exists(public_path($image)) ? asset($image) : dynamicAsset('/public/assets/admin/img/100x100/food.png') }}" alt="{{$partner->partner_name }}">
                                                 </div>
-                                                <div class="category-name">
-                                                    {{ Str::limit($item->name, 20, '...') }}
+                                                <div class="partner-name">
+                                                    {{ Str::limit($partner->partner_name, 20, '...') }}
                                                 </div>
                                             </a>
                                         @endforeach
@@ -364,15 +369,18 @@
             <div class="order--pos-right">
                 <div class="d-flex justify-content-between align-items-center mb-2 mt-1">
                     <div class="order-date-display">
-                        <span class="text-muted">Order Date:</span>
-                        <span class="fw-bold {{ $orderDate ? 'text-primary' : 'text-muted' }}">
-                            @if ($orderDate)
-                                {{ \Carbon\Carbon::parse($orderDate)->format('F j, Y') }}
-                            @else
-                                Not set
-                            @endif
-                        </span>
+                        <div>
+                            <span class="text-muted">Order Date:</span>
+                            <span class="fw-bold {{ $orderDate ? 'text-primary' : 'text-muted' }}">
+                                @if ($orderDate)
+                                    {{ \Carbon\Carbon::parse($orderDate)->format('F j, Y') }}
+                                @else
+                                    Not set
+                                @endif
+                            </span>
+                        </div>
                     </div>
+                    
                     <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
                         title="{{ translate('messages.dashboard') }}">
                         {{ translate('messages.dashboard') }}
@@ -380,36 +388,52 @@
                 </div>
                 <div class="card">
                     <div class="card-header bg-light border-0 m-1 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <span>
-                                {{ translate('Billing Section') }}
-                            </span>
-                        </h5>
-                        <a class="btn btn--primary" href="{{ route('vendor.order.list', ['draft']) }}"
+                        <div>
+                            <h5 class="card-title mb-0">
+                                <span>
+                                    {{ translate('Billing Section') }}
+                                </span>
+                                
+                            </h5>
+                            <p class="text-muted mb-0">
+                                {{\App\CentralLogics\Helpers::get_branch_name()}}
+                            </p>
+                        </div>
+                        <a class="btn btn--primary btn-sm" href="{{ route('vendor.order.list', ['draft']) }}"
                             title="{{ translate('messages.Unpaid Orders') }}">
                             {{ translate('messages.Unpaid Orders') }}
                         </a>
                     </div>
                     <div class="w-100">
                         @if($editingOrder)
-                        <div class="justify-content-between p-2" id="editingOrderHeading">
-                            <h1 class="bg-dark text-white">Order # {{ $editingOrder->order_serial }}</h1>
-                            @if($editingOrder->kitchen_status == 'cooking')
-                                <span class="badge bg-danger text-white small">{{ $editingOrder->kitchen_status }}</span>
-                            @elseif ($editingOrder->kitchen_status == 'completed' || $editingOrder->kitchen_status == 'ready')
-                                <span class="badge bg-success text-white small">{{ $editingOrder->kitchen_status }}</span>
-                            @else
-                                <span class="badge bg-info text-white small">{{ $editingOrder->kitchen_status }}</span>
-                            @endif
-                        </div>
+                            <div class="justify-content-between p-2" id="editingOrderHeading">
+                                <h1 class="bg-dark px-1 rounded-sm text-white">Order # {{ $editingOrder->order_serial }}</h1>
+                                @if($editingOrder->kitchen_status == 'cooking')
+                                    <span class="badge bg-danger text-white small">Cooking: {{ $editingOrder->kitchen_status }}</span>
+                                @elseif ($editingOrder->kitchen_status == 'completed' || $editingOrder->kitchen_status == 'ready')
+                                    <span class="badge bg-success text-white small">Cooking: {{ $editingOrder->kitchen_status }}</span>
+                                @else
+                                    <span class="badge bg-info text-white small">Cooking: {{ $editingOrder->kitchen_status }}</span>
+                                @endif
+                                @if($editingOrder->payment_status === 'paid')
+                                    <span
+                                        class="badge bg-success text-white text-capitalize">
+                                        Payment: {{ translate('paid') }}
+                                    </span>
+                                @endif
+                            </div>
                         @endif
+                        <div class="justify-content-between p-2">
+                            <h1 class="bg-dark px-1 rounded-sm text-white d-none" id="newOrderHeading">New Order</h1>
+                        </div>
+
                         <div class="d-flex flex-wrap flex-row p-2 add--customer-btn">
                             <label for='customer'></label>
-                            <select id='customer' name="customer_id"
+                            <select id='customer' @if(!empty($orderPartner)) disabled @endif name="customer_id"
                                 data-placeholder="{{ translate('messages.walk_in_customer') }}"
                                 class="js-data-example-ajax form-control"></select>
                             <button class="btn btn--primary" data-toggle="modal"
-                                data-target="#add-customer">{{ translate('Add New Customer') }}</button>
+                                data-target="#add-customer" @if(!empty($orderPartner)) disabled @endif>{{ translate('Add New Customer') }}</button>
                         </div>
                         @if (
                             ($restaurant_data->restaurant_model == 'commission' && $restaurant_data->self_delivery_system == 1) ||
@@ -418,14 +442,18 @@
                                     $restaurant_data->restaurant_sub->self_delivery == 1))
                             <div class="pos--delivery-options">
                                 <div class="d-flex justify-content-between">
-                                    <h5 class="card-title">
-                                        <span class="card-title-icon">
-                                            <i class="tio-user"></i>
-                                        </span>
-                                        <span>{{ translate('Delivery_Information') }}</span>
-                                    </h5>
-                                    <span class="delivery--edit-icon text-primary" id="delivery_address" data-toggle="modal"
+                                    @if (empty($orderPartner))
+                                        <h5 class="card-title">
+                                            <span class="card-title-icon">
+                                                <i class="tio-user"></i>
+                                            </span>
+                                            <span>{{ translate('Delivery_Information') }}</span>
+                                        </h5>
+                                    
+                                        <span class="delivery--edit-icon text-primary" id="delivery_address" data-toggle="modal"
                                         data-target="#paymentModal"><i class="tio-edit"></i></span>
+                                    @endif
+                                    
                                 </div>
                                 <div class="pos--delivery-options-info d-flex flex-wrap" id="del-add">
                                     @include('vendor-views.pos._address')
@@ -442,7 +470,7 @@
             </div>
         </div>
         <div class="modal fade" id="quick-view" tabindex="-1">
-            <div class="modal-dialog">
+            <div class="modal-dialog modal-lg">
                 <div class="modal-content" id="quick-view-modal">
 
                 </div>
@@ -594,7 +622,7 @@
 
                             <div class="btn--container justify-content-end">
                                 <button type="reset" class="btn btn--reset">{{ translate('reset') }}</button>
-                                <button type="submit" id="submit_new_customer"
+                                <button type="button" id="submit_new_customer"
                                     class="btn btn--primary">{{ translate('save') }}</button>
                             </div>
                         </form>
@@ -614,7 +642,7 @@
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
     <script>
         "use strict";
-
+        let itemQty = 0;
         const channel = new BroadcastChannel("erp_tab_channel");
         let currentUrl = window.location.pathname;
 
@@ -929,7 +957,6 @@
                                             });
 
                                         });
-
                                     }
                                 }
                             });
@@ -951,16 +978,19 @@
         }
 
 
-        $(document).on('change', '#order_partner', function() {
+        $(document).on('click', '.order_partner', function() {
             $('#loading').show();
-            var selectedId = $(this).val(); // capture before AJAX
+            var selectedId = $(this).data('value'); // capture before AJAX
 
             $.post('{{ route('vendor.pos.emptyCart') }}', {
                 _token: '{{ csrf_token() }}'
             }).done(function() {
                 window.location.href = '/restaurant-panel/pos/new/' + selectedId;
+                // Clear the customer from local storage
+                localStorage.removeItem('posSelectedCustomer');
+                $('#customer').val(null).trigger('change');
             }).always(function() {
-                // $('#loading').hide();
+                $('#loading').hide();
             });
         });
 
@@ -983,31 +1013,36 @@
                 $('#payment_type_credit').prop('checked', true);
                 $('.payment_type').prop('disabled', true);
                 $('<input>').attr({
-                type: 'hidden',
-                name: 'select_payment_type',
-                value: 'credit_payment'
+                    type: 'hidden',
+                    name: 'select_payment_type',
+                    value: 'credit_payment'
                 }).appendTo('#order_place');
-                
+                $('#cash_paid, #card_paid, #customer_name, #car_number, #phone')
+                .prop('readonly', true);
                 // Disable the Unpaid Order Button
-                $('#unpaidOrderBtn').prop('disabled', true);
+                $('#unpaidOrderBtn').hide();
             @else
-                $('#payment_type_credit').prop('checked', false);
-                $('#payment_type_credit').hide();
+                $('#payment_type_credit_wrapper').remove();
+                // $('#payment_type_credit').prop('checked', false);
+                // $('#payment_type_credit').hide();
                 $('.payment_type').prop('disabled', false);
                 $('#unpaidOrderBtn').prop('disabled', false);
             @endif   
             
 
 
-            @if($updateDate && !$editingOrder)
+            if(window.updateDate && !window.editingOrder){
                 // Show orderFianlModal
                 Swal.fire({
-                    title: "Are you sure?",
+                    type: "warning",
+                    title: "Date does not matched!",
                     text: "Session Date is {{ \Carbon\Carbon::parse($orderDate)->format('d F, Y') }}",
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
-                    confirmButtonText: "Yes, Proceed!",
+                    confirmButtonText: "Change Date",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
                     preConfirm: () => {
                         return new Promise((resolve) => {
                             resolve(true);
@@ -1015,16 +1050,17 @@
                     }
                 }).then((result) => {
                     if (result.value) {
-                        setTimeout(() => {
-                            setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
-                            $('#orderFinalModal').modal('show');
-                        }, 100);
+                        // setTimeout(() => {
+                        //     setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
+                        //     $('#orderFinalModal').modal('show');
+                        // }, 100);
+                        window.location.href = '{{ route("vendor.printer.selection") }}';
                     }
                 });
-            @else
+            }else{
                 setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
                 $('#orderFinalModal').modal('show');
-            @endif            
+            }            
         });
 
 
@@ -1038,6 +1074,7 @@
 
 
         $(document).on('click', '.quick-View', function() {
+            itemQty = 0;
             $.get({
                 url: '{{ route("vendor.pos.quick-view") }}',
                 dataType: 'json',
@@ -1046,7 +1083,7 @@
                     id: '{{ $orderPartner ?? '' }}',
                 },
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                 },
                 success: function(data) {
                     console.log("success...")
@@ -1054,12 +1091,13 @@
                     $('#quick-view-modal').empty().html(data.view);
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                 },
             });
         });
 
         $(document).on('click', '.quick-View-Cart-Item', function() {
+            itemQty = $(this).data('item-qty');
             $.get({
                 url: '{{ route("vendor.pos.quick-view-cart-item") }}',
                 dataType: 'json',
@@ -1068,7 +1106,7 @@
                     item_key: $(this).data('item-key'),
                 },
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                 },
                 success: function(data) {
                     console.log("success...")
@@ -1076,7 +1114,7 @@
                     $('#quick-view-modal').empty().html(data.view);
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                 },
             });
         });
@@ -1121,6 +1159,7 @@
         //     }
         // }
 
+        var getVariantPriceRequest = null;
         function getVariantPrice() {
             getCheckedInputs();
 
@@ -1128,7 +1167,7 @@
             var discountType = $('#product_discount_type').val();
 
             var formData = $('#add-to-cart-form').serializeArray();
-
+            
             var variationAddonData = {};
             formData.forEach(function(item) {
                 if (item.name.startsWith('variation_addon_')) {
@@ -1141,13 +1180,18 @@
             console.log('Variation addon data:', variationAddonData);
 
             if ($('#add-to-cart-form input[name=quantity]').val() > 0) {
+
+                if (getVariantPriceRequest !== null) {
+                    getVariantPriceRequest.abort();
+                }
+
                 $.ajaxSetup({
                     headers: {
                         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                     }
                 });
 
-                $.ajax({
+                getVariantPriceRequest = $.ajax({
                     type: "POST",
                     url: '{{ route('vendor.pos.variant_price') }}',
                     data: $('#add-to-cart-form').serializeArray().concat([{
@@ -1161,7 +1205,6 @@
                     ]), // Include discount values explicitly
                     success: function(data) {
                         console.log('Server response from variant_price:', data);
-
                         if (data.error === 'quantity_error') {
                             toastr.error(data.message);
                         } else if (data.error === 'stock_out') {
@@ -1199,35 +1242,24 @@
                             $('#add-to-cart-form #chosen_price_div #chosen_price').html(currentPrice);
                             $('.add-To-Cart').removeAttr("disabled");
                             $('.increase-button').removeAttr("disabled");
-                            $('#quantity_increase_button').removeAttr("disabled");
 
+                            $('#quantity_increase_button').prop('disabled', $('#quantity_increase_button').data('editing') == 1);
                         }
                     },
-                    error: function() {
+                    error: function(xhr, status) {
+                        if (status === "abort") return; // ignore aborted requests
                         toastr.error('Something went wrong. Please try again.');
                     }
                 });
             }
         }
 
-        let isProcessing = false;
-        $(document).on('click', '.add-To-Cart', function() {
-            if (isProcessing) return;
-            isProcessing = true;
-            const button = $(this);
-            button.prop('disabled', true);
-
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
-                }
-            });
-            let form_id = 'add-to-cart-form';
+        function sendAddToCartRequest(form_id, button) {
             $.post({
                 url: '{{ route("vendor.pos.add-to-cart") }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                 },
                 success: function(data) {
                     if (data.data === 1) {
@@ -1239,25 +1271,25 @@
                         return false;
                     } else if (data.data === 2) {
                         updateCart();
-                        // Swal.fire({
-                        //     icon: 'info',
-                        //     title: 'Cart',
-                        //     text: "{{ translate('messages.product_has_been_updated_in_cart') }}"
-                        // });
-
                         toastr.success(
                         '{{ translate('messages.product_has_been_updated_in_cart') }}', {
                             CloseButton: true,
                             ProgressBar: true
                         });
-                    $('.call-when-done').click();
-
+                        $('.call-when-done').click();
                         return false;
                     } else if (data.data === 'stock_out') {
                         Swal.fire({
                             icon: 'error',
                             title: 'Cart',
                             text: data.message
+                        });
+                        return false;
+                    }else if(data.data === 'not_allowed'){
+                        Swal.fire({
+                            type: 'error',
+                            title: 'Order Is Paid',
+                            text: '{{ translate('messages.you_can_not_add_more_item_in_paid_order') }}'
                         });
                         return false;
                     } else if (data.data === 'cart_readded') {
@@ -1282,6 +1314,13 @@
                             text: data.message
                         });
                         return false;
+                    } else if (data.data === 'price_updation_error') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Price Is Reduced',
+                            text: data.message
+                        });
+                        return false;
                     }
                     $('.call-when-done').click();
 
@@ -1300,36 +1339,264 @@
                     });
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                     isProcessing = false;
                     button.prop('disabled', false);
                 }
             });
+        }
+
+        let isProcessing = false;
+        $(document).on('click', '.add-To-Cart', function() {
+            if (isProcessing) return;
+            isProcessing = true;
+            const button = $(this);
+            button.prop('disabled', true);
+
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+                }
+            });
+            let form_id = 'add-to-cart-form';
+            // Get the new quantity value
+            let newQuantity = parseInt($('#add-to-cart-form input[name=quantity]').val());
+            if(newQuantity < itemQty && window.editingOrder){
+                // Show confirmation dialog and get the cancel reason, cooking status, and text
+                $('#quick-view').modal('hide');
+                Swal.fire({
+                    title: '{{ translate('messages.are_you_sure?') }}',
+                    icon: 'warning',
+                    html: `
+                        <div style="text-align:left">
+                            <select class="form-control js-select2-custom mx-0" name="item-reduce-reason" id="item-reduce-reason">
+                                <option value="" selected disabled>
+                                    {{ translate('select_cancellation_reason') }}
+                                </option>
+                                @foreach ($reasons as $r)
+                                    <option value="{{ $r->id }}">
+                                        {{ $r->reason }}
+                                    </option>
+                                @endforeach
+                            </select>
+
+                            <div style="margin-top:10px;">
+                                <label style="font-size:14px;">Item Status:</label><br>
+                                <div class="d-flex gap-2 mt-2 justify-content-between">
+                                    <label class="payment-selection-box w-100">
+                                        <input type="radio" name="item-reduce-status" value="1" class="mr-1"> {{ translate('messages.Unprepared') }}
+                                    </label>
+                                    <label class="payment-selection-box w-100">
+                                        <input type="radio" name="item-reduce-status" value="2" class="mr-1"> {{ translate('messages.Re-sold') }}
+                                    </label>
+                                    <label class="payment-selection-box w-100">
+                                        <input type="radio" name="item-reduce-status" value="3" class="mr-1"> {{ translate('messages.Wasted') }}
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:10px;">
+                                <label style="font-size:14px;">Enter Reason:</label><br>
+                                <input type="text" class="form-control" id="item-reduce-text" name="item-reduce-text" />
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: '{{ translate('messages.Yes, Proceed!') }}',
+                    cancelButtonText: '{{ translate('messages.Back') }}',
+                    preConfirm: () => {
+                        const dropdown = document.getElementById('item-reduce-reason').value;
+                        const radio    = document.querySelector('input[name="item-reduce-status"]:checked');
+                        const text     = document.getElementById('item-reduce-text').value;
+
+                        if (!dropdown) {
+                            Swal.showValidationMessage('Please select cancel reason');
+                            return false;
+                        }
+
+                        if (!radio) {
+                            Swal.showValidationMessage('Please select item cooking status');
+                            return false;
+                        }
+
+                        return {
+                            cancelReason: dropdown,
+                            cookingStatus: radio.value,
+                            cancelText: text
+                        };
+                    }
+                }).then((result) => {
+                    if (result.value) {
+                        const { cancelReason, cookingStatus, cancelText } = result.value;
+                        const $form = $('#' + form_id);
+
+                        if (!$form.find('input[name="cart_item_cancel_reason"]').length) {
+                            $('<input>').attr({
+                                type: 'hidden',
+                                name: 'cart_item_cancel_reason',
+                                value: cancelReason
+                            }).appendTo($form);
+                        } else {
+                            $form.find('input[name="cart_item_cancel_reason"]').val(cancelReason);
+                        }
+
+                        if (!$form.find('input[name="cart_item_cooking_status"]').length) {
+                            $('<input>').attr({
+                                type: 'hidden',
+                                name: 'cart_item_cooking_status',
+                                value: cookingStatus
+                            }).appendTo($form);
+                        } else {
+                            $form.find('input[name="cart_item_cooking_status"]').val(cookingStatus);
+                        }
+
+                        if (!$form.find('input[name="cart_item_cancel_text"]').length) {
+                            $('<input>').attr({
+                                type: 'hidden',
+                                name: 'cart_item_cancel_text',
+                                value: cancelText
+                            }).appendTo($form);
+                        } else {
+                            $form.find('input[name="cart_item_cancel_text"]').val(cancelText);
+                        }
+
+                        sendAddToCartRequest(form_id, button);
+                    } else {
+                        isProcessing = false;
+                        button.prop('disabled', false);
+                    }
+                });
+            }else{
+                sendAddToCartRequest(form_id, button);
+            }
         });
 
         $(document).on('click', '.remove-From-Cart', function() {
             let key = $(this).data('product-id');
-            $.post('{{ route('vendor.pos.remove-from-cart') }}', {
-                _token: '{{ csrf_token() }}',
-                key: key
-            }, function(data) {
-                if (data.errors) {
-                    for (let i = 0; i < data.errors.length; i++) {
-                        toastr.error(data.errors[i].message, {
+            if(window.editingOrder){
+                Swal.fire({
+                title: '{{ translate('messages.are_you_sure?') }}',
+                type: 'warning',
+                html: `
+                    <div style="text-align:left">
+                        <select class="form-control js-select2-custom mx-0" name="item-cancel-reason" id="item-cancel-reason">
+                            <option value="" selected disabled>
+                                {{ translate('select_cancellation_reason') }}
+                            </option>
+                            @foreach ($reasons as $r)
+                                <option value="{{ $r->id }}">
+                                    {{ $r->reason }}
+                                </option>
+                            @endforeach
+                        </select>
+
+                        <div style="margin-top:10px;">
+                            <label style="font-size:14px;">Cooking Status:</label><br>
+                            <div class="d-flex gap-2 mt-2 justify-content-between">
+                                <label class="payment-selection-box w-100">
+                                    <input type="radio" name="item-cooking-status" value="1" class="mr-1"> {{translate('messages.Unprepared')}}
+                                </label>
+                                <label class="payment-selection-box w-100">
+                                    <input type="radio" name="item-cooking-status" value="2" class="mr-1"> {{translate('messages.Re-sold')}}
+                                </label>
+                                <label class="payment-selection-box w-100">
+                                    <input type="radio" name="item-cooking-status" value="3" class="mr-1"> {{translate('messages.Wasted')}}
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:10px;">
+                            <label style="font-size:14px;">Enter Reason:</label><br>
+                            <input type="text" class="form-control" id="item-cancel-text" name="item-cancel-text" />
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: '{{ translate('messages.Cancel Item') }}',
+                confirmButtonColor: '#FC6A57',
+                cancelButtonText: 'Back',
+                focusConfirm: false,
+                preConfirm: () => {
+                    const dropdown = document.getElementById('item-cancel-reason').value;
+                    const radio    = document.querySelector('input[name="item-cooking-status"]:checked');
+                    const text     = document.getElementById('item-cancel-text').value;
+
+                    if (!dropdown) {
+                        Swal.showValidationMessage('Please select cancel reason');
+                        return false;
+                    }
+
+                    if (!radio) {
+                        Swal.showValidationMessage('Please select item cooking status');
+                        return false;
+                    }
+
+                    return {
+                        cancelReason: dropdown,
+                        cookingStatus: radio.value,
+                        cancelText: text
+                    };
+                }
+                }).then(result => {
+                    if (result.value) {
+                        const { cancelReason, cookingStatus, cancelText } = result.value;
+
+                        $.post('{{ route('vendor.pos.remove-from-cart') }}', {
+                            _token: '{{ csrf_token() }}',
+                            key: key,
+                            cancelReason: cancelReason,
+                            cookingStatus: cookingStatus,
+                            cancelText: cancelText,
+                            beforeSend: function(){
+                                // $('#loading').show();
+                            },
+                        }, function(data) {
+                            if (data.errors) {
+                                for (let i = 0; i < data.errors.length; i++) {
+                                    toastr.error(data.errors[i].message, {
+                                        CloseButton: true,
+                                        ProgressBar: true
+                                    });
+                                }
+                            } else {
+                                $('#quick-view').modal('hide');
+                                updateCart();
+                                toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
+                                    CloseButton: true,
+                                    ProgressBar: true
+                                });
+                            }
+                            // $('#loading').hide();
+                        });
+                    }
+                });
+            }
+            else{
+                $.post('{{ route('vendor.pos.remove-from-cart') }}', {
+                    _token: '{{ csrf_token() }}',
+                    key: key,
+                    beforeSend: function(){
+                        // $('#loading').show();
+                    },
+                }, function(data) {
+                    if (data.errors) {
+                        for (let i = 0; i < data.errors.length; i++) {
+                            toastr.error(data.errors[i].message, {
+                                CloseButton: true,
+                                ProgressBar: true
+                            });
+                        }
+                    } else {
+                        $('#quick-view').modal('hide');
+                        updateCart();
+                        toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
                             CloseButton: true,
                             ProgressBar: true
                         });
                     }
-                } else {
-                    $('#quick-view').modal('hide');
-                    updateCart();
-                    toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
-                        CloseButton: true,
-                        ProgressBar: true
-                    });
-                }
-
-            });
+                    // $('#loading').hide();
+                });
+            }
         });
 
         $(document).on('click', '.empty-Cart', function() {
@@ -1337,13 +1604,21 @@
                 _token: '{{ csrf_token() }}'
             }, function() {
                 $('#del-add').empty();
+                // Clear Select2 customer
+                $('#customer')
+                .val(null)
+                .trigger('change.select2');
                 localStorage.removeItem('posSelectedCustomer');
                 window.selectedCustomer = null;
+                window.updateDate = null;
+                window.editingOrder = false;
                 updateCart();
-                $('#customer').val('').trigger('change');
                 if($('#editingOrderHeading').length){
                     $('#editingOrderHeading').html('');
                 }
+
+                $('#newOrderHeading').removeClass('d-none');
+
                 toastr.info('{{ translate('messages.item_has_been_removed_from_cart') }}', {
                     CloseButton: true,
                     ProgressBar: true
@@ -1352,32 +1627,44 @@
         });
 
         function updateCart() {
-            let currentCustomerId = $('#customer').val();
-            let currentCustomerText = $('#customer').find('option:selected').text();
+            const currentCustomerId   = window.selectedCustomer;
+            const currentCustomerText = null;
 
-            $.post('<?php echo e(route('vendor.pos.cart_items')); ?>', {
-                _token: '<?php echo e(csrf_token()); ?>',
-                partner_id: '{{ $orderPartner ?? '' }}'
-            }, function(data) {
-                $('#cart').empty().html(data);
+            $.ajax({
+                url: '{{ route('vendor.pos.cart_items') }}',
+                type: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    partner_id: '{{ $orderPartner ?? '' }}'
+                },
+                beforeSend: function () {
+                    // $('#loading').show();
+                },
+                success: function (data) {
+                    $('#cart').html(data);
 
-                if (currentCustomerId && currentCustomerId !== 'false') {
-                    setTimeout(function() {
-                        // $('#customer').val(currentCustomerId).trigger('change');
+                    // ✅ Restore ONLY if a customer is explicitly set
+                    if (window.selectedCustomer) {
+                        $('#customer')
+                            .val(window.selectedCustomer)
+                            .trigger('change.select2');
 
-                        // storeCustomerDetails(currentCustomerId, currentCustomerText);
-
-                        if ($('#orderFinalModal').hasClass('show') || $('#orderFinalModal').is(':visible')) {
-                            setTimeout(() => tryFillModalWithRetries(5, 100), 200);
+                        if ($('#orderFinalModal').is(':visible')) {
+                            tryFillModalWithRetries(5, 100);
                         }
-                    }, 100);
-                } else {
-                    setTimeout(function() {
-                        // restoreCustomerFromStorage();
-                    }, 100);
+                    }
+                },
+                complete: function () {
+                    // $('#loading').hide();
+                },
+                error: function () {
+                    // $('#loading').hide();
+                    // Optional: show toast
+                    // toastr.error('Failed to update cart');
                 }
             });
         }
+
 
         $(document).on('click', '.delivery-Address-Store', function() {
             const button = $(this);
@@ -1396,7 +1683,7 @@
                 url: '{{ route('vendor.pos.add-delivery-info') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                     button.prop('disabled', true);
                     if (!button.data('original-text')) {
                         button.data('original-text', button.html());
@@ -1418,7 +1705,7 @@
                     $('.call-when-done').click();
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                     $('#paymentModal').modal('hide');
 
                     button.prop('disabled', false);
@@ -1448,7 +1735,7 @@
                 url: '{{ route('vendor.pos.paid') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
-                    $('#loading').show();
+                    // $('#loading').show();
                     button.prop('disabled', true);
                     if (!button.data('original-text')) {
                         button.data('original-text', button.html());
@@ -1460,7 +1747,7 @@
                     $('.call-when-done').click();
                 },
                 complete: function() {
-                    $('#loading').hide();
+                    // $('#loading').hide();
                     $('#insertPayableAmount').modal('hide');
 
                     button.prop('disabled', false);
@@ -1474,7 +1761,8 @@
         });
 
         $(document).on('change', '[name="quantity"]', function(event) {
-            getVariantPrice();
+            // getVariantPrice();
+            calculateTotal();
             if ($('#option_ids').val() == '') {
                 $(this).attr('max', $(this).data('maximum_cart_quantity'));
             }
@@ -1562,9 +1850,22 @@
                 let customerPhone = '{{ $draftCustomer->customer_mobile_no }}';
                 let customerText = customerName + ' (' + customerPhone + ')';
 
-                let newOption = new Option(customerText, customerId, true, true);
-                $('#customer').append(newOption).trigger('change');
+                const $customer = $('#customer');
+                // Prevent duplicates
+                if ($customer.find('option[value="' + customerId + '"]').length === 0) {
+                    $customer.append(new Option(customerText, customerId, true, true));
+                }
 
+                // Ensure "Walk in customer" has a real value (e.g. empty string)
+                // if ($customer.find('option[value=""]').length === 0) {
+                //     $customer.prepend(new Option('Walk in customer', '', false, false));
+                // }
+
+                // Set selected once (this triggers change once)
+                $customer.val(customerId).trigger('change');
+
+                // If storeCustomerDetails triggers change internally, DON'T call it here
+                // Otherwise keep it:
                 storeCustomerDetails(customerId, customerText);
 
                 console.log('Draft order customer auto-filled: ' + customerText);
@@ -1576,6 +1877,13 @@
         @endif
 
         window.selectedCustomer = null;
+        window.updateDate = {{ $updateDate ? 'true' : 'false'  }}; 
+        window.editingOrder = {{ $editingOrder ? 'true' : 'false' }};
+
+        if(!window.editingOrder){
+            $('#newOrderHeading').removeClass('d-none');
+            localStorage.removeItem("posSelectedCustomer");
+        }
 
         function parseCustomerData(customerId, customerText) {
             if (!customerId || customerId === 'false' || !customerText) {
@@ -1609,6 +1917,7 @@
             } else {
                 window.selectedCustomer = null;
                 localStorage.removeItem('posSelectedCustomer');
+                $('#customer').val(null).trigger('change');
                 $('#customer').removeData('selected-customer');
             }
         }
@@ -1628,20 +1937,34 @@
                         setTimeout(function() {
                             if ($('#customer').length && typeof $('#customer').select2 === 'function') {
 
-                                let customerText = customerInfo.name + ' (' + customerInfo.phone + ')';
-                                let newOption = new Option(customerText, customerInfo.id, true, true);
-                                $('#customer').append(newOption).trigger('change');
+                                const $customer = $('#customer');
+                                // Prevent duplicates
+                                if ($customer.find('option[value="' + customerId + '"]').length === 0) {
+                                    $customer.append(new Option(customerText, customerId, true, true));
+                                }
 
-                                storeCustomerDetails(customerInfo.id, customerText);
+                                // Ensure "Walk in customer" has a real value (e.g. empty string)
+                                // if ($customer.find('option[value=""]').length === 0) {
+                                //     $customer.prepend(new Option('Walk in customer', '', false, false));
+                                // }
+
+                                // Set selected once (this triggers change once)
+                                $customer.val(customerId).trigger('change');
+
+                                // If storeCustomerDetails triggers change internally, DON'T call it here
+                                // Otherwise keep it:
+                                storeCustomerDetails(customerId, customerText);
                             }
                         }, 1000);
                     } else {
                         localStorage.removeItem('posSelectedCustomer');
+                        $('#customer').val(null).trigger('change');
                     }
                 }
             } catch (e) {
                 console.log('Error restoring customer from localStorage:', e);
                 localStorage.removeItem('posSelectedCustomer');
+                $('#customer').val(null).trigger('change');
             }
         }
 
@@ -1706,15 +2029,13 @@
             let customerData = getCurrentCustomerData();
 
             if (customerData && customerData.id && customerData.name && customerData.phone) {
-
                 customerIdField.val(customerData.id);
                 customerNameField.val(customerData.name);
                 phoneField.val(customerData.phone);
             } else {
-
-                customerIdField.val('');
-                customerNameField.val('');
-                phoneField.val('');
+                // customerIdField.val('');
+                // customerNameField.val('');
+                // phoneField.val('');
             }
         }
 
@@ -1874,6 +2195,8 @@
                         for (let field in errors) {
                             toastr.error(errors[field][0]);
                         }
+                    }else if(xhr.status == 409){
+                        toastr.warning(xhr.responseJSON.message);
                     } else {
                         toastr.error('An error occurred while adding the customer');
                     }
@@ -1933,47 +2256,77 @@
         });
 
         $(document).ready(function(e) {
-            let isFormSubmitting = false;
-
-            // Track which submit button was clicked
-            $(document).on('click', 'button[type="submit"]', function () {
-            const $form = $(this).closest('form');
-            $form.find('button[type="submit"]').removeClass('clicked');
-            $(this).addClass('clicked');
+            // Track clicked submit button per form
+            $(document).on('click', 'form button[type="submit"]', function () {
+                const $form = $(this).closest('form');
+                $form.find('button[type="submit"]').removeClass('clicked');
+                $(this).addClass('clicked');
             });
 
-            $('form').on('submit', function (e) {
-            if (isFormSubmitting) return false; // block duplicates
+            $(document).on('submit', 'form', function (e) {
+                const $form = $(this);
+                // Per-form lock (instead of global lock)
+                
+                if ($('#order_draft').val() !== 'draft') {
+                    $("input[name='select_payment_type']").prop('required', true);
 
-            isFormSubmitting = true;
-            const $form = $(this);
-            const $buttons = $form.find('button[type="submit"]');
-            const $activeBtn = $form.find('button.clicked');
-
-            $buttons.prop('disabled', true);
-
-            // Add spinner only to the clicked submit button
-            if ($activeBtn.length) {
-                if (!$activeBtn.data('original-text')) {
-                $activeBtn.data('original-text', $activeBtn.html());
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        this.reportValidity(); // shows browser message immediately
+                        return false;
+                    }
                 }
-                $activeBtn.html('<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait');
-            }
+                
+                if ($form.data('submitting')) {
+                    e.preventDefault();
+                    return false;
+                }
+                $form.data('submitting', true);
 
-            // Let the form submit naturally (no e.preventDefault)
-            // The reset below is just a fallback if submission is AJAX or blocked
-            setTimeout(() => {
-                isFormSubmitting = false;
-                $buttons.prop('disabled', false);
-                $buttons.each(function () {
-                const originalText = $(this).data('original-text');
-                if (originalText) $(this).html(originalText);
-                });
-            }, 10000);
+                const $buttons = $form.find('button[type="submit"]');
+                let $activeBtn = $form.find('button.clicked');
+
+                // If user pressed Enter and no button was clicked, pick first submit button
+                if (!$activeBtn.length) {
+                    $activeBtn = $buttons.first();
+                }
+
+                $buttons.prop('disabled', true);
+
+                // Spinner only on active button
+                if ($activeBtn.length) {
+                    if (!$activeBtn.data('original-html')) {
+                    $activeBtn.data('original-html', $activeBtn.html());
+                    }
+                    $activeBtn.html(
+                    '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait'
+                    );
+                }
+
+                // Fallback reset if submit is blocked or page doesn't unload (AJAX, validation, etc.)
+                const reset = () => {
+                    $form.data('submitting', false);
+                    $buttons.prop('disabled', false).removeClass('clicked');
+
+                    $buttons.each(function () {
+                    const $btn = $(this);
+                    const original = $btn.data('original-html');
+                    if (original) $btn.html(original);
+                    });
+                };
+
+                // If browser doesn't navigate within X seconds, unlock UI
+                // setTimeout(reset, 15000);
+
+                // If HTML5 validation fails, submit event may fire but navigation won't happen in some flows
+                // This catches invalid forms before submit
+                if (this.checkValidity && !this.checkValidity()) {
+                    reset();
+                    // Let browser show validation messages
+                    return true;
+                }
+                // Allow normal submission (no preventDefault)
             });
-
-
-
 
             function fetchData(categoryId = '', subcategoryId = '', keyword = '', partner = '') {
                 $.ajax({
@@ -1985,14 +2338,14 @@
                         keyword: keyword,
                     },
                     beforeSend: function() {
-                        $('#loading').show();
+                        // $('#loading').show();
                     },
                     success: function(response) {
                         $('.subcategory-list').html(response.subcategoryHtml);
                         $('#product-list').html(response.productHtml);
                     },
                     complete: function() {
-                        $('#loading').hide();
+                        // $('#loading').hide();
                     },
                     error: function(xhr) {
                         console.error('Error:', xhr.responseText);
@@ -2017,7 +2370,7 @@
                 $('.subcategory-item').removeClass('selected');
                 $(this).addClass('selected');
 
-                const categoryId = $('.category-item.selected').data('category') || '';
+                const categoryId = 17 || '';
                 fetchData(categoryId, subcategoryId, $('#search-keyword').val(), "{{ $orderPartner }}");
             });
 
@@ -2025,7 +2378,7 @@
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
                     const keyword = $(this).val();
-                    const categoryId = $('.category-item.selected').data('category') || '';
+                    const categoryId = 17 || '';
                     const subcategoryId = $('.subcategory-item.selected').data('subcategory') || '';
 
                     fetchData(categoryId, subcategoryId, keyword, "{{ $orderPartner }}");
@@ -2039,7 +2392,6 @@
 
             function updateCalculations() {
                 const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
-                console.log('amount ' + invoiceAmount);
                 const cashPaid = parseFloat($('#cash_paid').val()) || 0;
                 const cardPaid = parseFloat($('#card_paid').val()) || 0;
                 const totalPaid = cashPaid + cardPaid;
@@ -2055,18 +2407,42 @@
                     bankAccountSelect.prop('required', false).prop('disabled', true);
                     return;
                 }
-
+                
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
                 } else {
                     bankAccountSelect.prop('required', false).prop('disabled', true);
                 }
-
             }
 
             function attachEventListeners() {
                 $('#cash_paid, #card_paid').off('input').on('input', function() {
-                    updateCalculations();
+                    // updateCalculations();
+                    const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                    let paymentType = $('input[name="select_payment_type"]:checked').val();
+                    if (paymentType === 'both_payment') {
+
+                        let cardPaid = parseFloat($('#card_paid').val()) || 0;
+                        let cashPaid = parseFloat($('#cash_paid').val()) || 0;
+
+                        // If user typed in card field
+                        if ($(this).attr('id') === 'card_paid') {
+                            let remaining = invoiceAmount - cardPaid;
+                            remaining = Math.max(remaining, 0);
+
+                            $('#cash_paid').val(remaining.toFixed(3));
+                            $('#cash_paid_display').text(formatCurrency(remaining));
+                        }
+
+                        // If user typed in cash field
+                        if ($(this).attr('id') === 'cash_paid') {
+                            let remaining = invoiceAmount - cashPaid;
+                            remaining = Math.max(remaining, 0);
+
+                            $('#card_paid').val(remaining.toFixed(3));
+                            // $('#card_paid_display').text(formatCurrency(remaining));
+                        }
+                    }
                 });
             }
 
@@ -2083,6 +2459,7 @@
             $(document).on('change', 'input[name="select_payment_type"]', function() {
                 var value = $(this).val();
                 handlePaymentTypeChange(value);
+                updateCalculations();
             });
 
             function handlePaymentTypeChange(value) {
@@ -2166,7 +2543,6 @@
             const isValidNumber = (value) => {
                 return !isNaN(value);
             };
-
         });
 
         // Printers working
@@ -2300,5 +2676,7 @@
         //         alert("Kitchen print failed: " + err);
         //     });
         // }
+
+        
     </script>
 @endpush

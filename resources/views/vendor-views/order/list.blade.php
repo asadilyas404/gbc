@@ -265,7 +265,6 @@
                             <a href="{{ route('vendor.order.sync.orders') }}" class="btn max-sm-12 btn--primary w-100">Sync
                                 Orders</a>
                         </div>
-
                     </div>
                 </div>
             @endif
@@ -302,8 +301,20 @@
                         </div>
                         <div class="col-auto">
                             <div class="mini-card canceled">
-                                <span class="mini-label">{{ translate('Canceled') }}</span>
-                                <span class="mini-value">{{ $canceledOrders }}</span>
+                                <span class="mini-label">{{ translate('Canceled Items') }}</span>
+                                <span class="mini-value">{{ $deletedItems }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card unpaid-amount">
+                                <span class="mini-label">{{ translate('Credit_Customer_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($creditCustomerAmount) }}</span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="mini-card unpaid-amount">
+                                <span class="mini-label">{{ translate('Credit_Partner_Amount') }}</span>
+                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($creditPartnerAmount) }}</span>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -316,12 +327,6 @@
                             <div class="mini-card paid">
                                 <span class="mini-label">{{ translate('Paid_Amount') }}</span>
                                 <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($paidAmount) }}</span>
-                            </div>
-                        </div>
-                        <div class="col-auto">
-                            <div class="mini-card canceled">
-                                <span class="mini-label">{{ translate('Refunded') }}</span>
-                                <span class="mini-value">{{ \App\CentralLogics\Helpers::format_currency($canceledAmount) }}</span>
                             </div>
                         </div>
                         <div class="col-auto">
@@ -514,12 +519,6 @@
                                         </div>
                                     </div>
                                 </div>
-                                {{-- <div class="hs-unfold mr-2">
-                            <form method="POST" action="{{ route('vendor.order.sync.orders') }}">
-                                @csrf
-                                <button type="submit" class="btn btn-sm btn-white">Sync Orders</button>
-                            </form>
-                        </div> --}}
                                 <!-- End Unfold -->
                             </div>
                         </div>
@@ -700,13 +699,13 @@
                                             <a class="btn action-btn btn--warning btn-outline-warning"
                                                 href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
                                                     class="tio-visible-outlined"></i></a>
-                                            @if ($order['payment_status'] == 'unpaid')
+                                            
                                                 <a class="btn action-btn btn--warning btn-outline-warning"
                                                     href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
                                                     title="{{ translate('Load Unpaid to POS') }}">
                                                     <i class="tio-refresh"></i>
                                                 </a>
-                                            @endif
+                                            
                                             <a class="btn action-btn btn--primary btn-outline-primary" target="_blank"
                                                 href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
                                                     class="tio-print"></i></a>
@@ -728,120 +727,9 @@
                     </table>
                 </div>
             @else
-                <div class="row">
+                <div class="row g-0" id="orders-container">
                     @foreach ($orders as $order)
-                        <div class="col-md-6 col-xl-4 p-2">
-                            @php
-                                $authId = auth('vendor')->id() ?? auth('vendor_employee')->id();
-                            @endphp
-                            <div class="card border order-card h-100 shadow-sm @if($authId && $authId == $order->order_taken_by) bg-card-mine-order border-success @endif">
-                                <div class="card-body p-3 pb-2">
-                                    <!-- Header: Order # and Status -->
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="order-title text-dark">
-                                            Order #{{ $order['order_serial'] }}
-                                        </div>
-                                        <span
-                                            class="badge bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'primary' }} text-white text-capitalize">
-                                            {{ translate(str_replace('_', ' ', $order['order_status'])) }}
-                                        </span>
-                                    </div>
-
-                                       <!-- Partner name -->
-                                    <div class="text-muted mb-1">
-                                        <strong>Order Partner: </strong>{{ $order->partner_name }}
-                                    </div>
-
-                                    <!-- Date -->
-                                    <div class="text-muted mb-1">
-                                        <strong>{{ translate('messages.order_date') }}: </strong>
-                                        {{ \Carbon\Carbon::parse($order['created_at'])->format('d M Y - h:i A') }}
-                                    </div>
-
-                                    <div class="text-muted mb-1">
-                                        <strong>{{ translate('messages.restaurant_date') }}: </strong> &nbsp;
-                                       @if(!empty($order['order_date']))
-                                            {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-
-                                    <!-- Customer Info -->
-                                    <div class="text-muted mb-1">
-                                        <strong>{{ translate('messages.customer_information') }}:</strong><br>
-                                        @if ($order->is_guest)
-                                            @php $cust = json_decode($order['delivery_address'], true); @endphp
-                                            {{ $cust['contact_person_name'] ?? '-' }}<br>
-                                            {{ $cust['contact_person_number'] ?? '-' }}
-                                        @elseif($order->customer)
-                                            {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}<br>
-                                            {{ $order->customer['phone'] }}
-                                        @elseif($order->pos_details)
-                                            {{ $order->pos_details->customer_name ?? '-' }}<br>
-                                            Phone: {{ $order->pos_details->phone ?? '-' }} &nbsp;
-                                            Car No. {{ $order->pos_details->car_number ?? '-' }}
-                                        @endif
-                                        
-                                    </div>
-
-                                    <div class="text-muted">
-                                        <strong>{{ translate('messages.order_taken_by') }}:</strong>
-                                        {{ $order->order_taken_by_name ?? '-' }}
-                                    </div>
-                                    <!-- Amount -->
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="text-muted">
-                                            <strong>{{ translate('messages.total_amount') }}:</strong>
-                                            {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
-                                        </div>
-
-                                        <div>
-                                            @if ($order->payment_status === 'paid')
-                                                <span
-                                                    class="badge bg-success text-white small">{{ translate('messages.paid') }}</span>
-                                            @elseif($order->payment_status === 'partially_paid')
-                                                <span
-                                                    class="badge bg-warning text-white small">{{ translate('messages.partially_paid') }}</span>
-                                            @else
-                                                <span
-                                                    class="badge bg-danger text-white small">{{ translate('messages.unpaid') }}</span>
-                                            @endif
-                                        </div>
-                                    </div>
-
-
-                                    <!-- Action Buttons -->
-                                    <div class="d-flex justify-content-center flex-wrap gap-2 mt-3">
-                                        <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
-                                            class="btn btn-md btn-outline-primary" title="{{ translate('View') }}">
-                                            <i class="tio-visible-outlined"></i>
-                                        </a>
-
-                                        <a href="javascript:void(0);" class="btn btn-md btn-outline-info quick-view-btn"
-                                            data-order-id="{{ $order['id'] }}"
-                                            data-order-p-id="{{ $order['partner_id'] }}"
-                                            data-order-number="{{ $order['order_serial'] }}"
-                                            title="{{ translate('Quick View') }}">
-                                            <i class="tio-info-outined"></i>
-                                        </a>
-
-                                        @if ($order['payment_status'] === 'unpaid')
-                                            <a href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
-                                                class="btn btn-md btn-outline-warning"
-                                                title="{{ translate('Load to POS') }}">
-                                                <i class="tio-refresh"></i>
-                                            </a>
-                                        @endif
-                                        {{-- <a type="button" class="btn btn-sm btn--primary btn-outline-primary print-order-btn"
-                                            data-order-id="{{ $order['id'] }}"
-                                            title="{{ translate('Direct Print') }}">
-                                            <i class="tio-print"></i>
-                                        </a> --}}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                        @include('vendor-views.order.partials._card', ['order' => $order])
                     @endforeach
                 </div>
 
@@ -929,9 +817,6 @@
     <script>
         "use strict";
         $(document).on('ready', function() {
-            
-
-
             Pusher.logToConsole = true;
             var pusher = new Pusher('3072d0c5201dc9141481', {
             cluster: 'ap2',
@@ -942,12 +827,50 @@
 
             var channel = pusher.subscribe('my-channel');
             channel.bind('my-event', function(data) {
-                // if(data.message =='unpaid'){
-                    window.location.reload();
-                // }
-                console.log(data,data.message);
-               
+                if((data.message =='unpaid' || data.message == 'unpaid_edited') && data.branch_id == {{ auth('vendor_employee')->user()->branch_id }}){
+                    upsertOrderCard(data.order_id, data.order_html);
+                }
             });
+
+            function upsertOrderCard(orderId, html) {
+                const cardId = `#order-card-${orderId}`;
+                const $existing = $(cardId);
+
+                if ($existing.length) {
+                    // UPDATE → replace + highlight
+                    $existing.replaceWith(html);
+
+                    const $updated = $(cardId);
+                    $updated
+                        .addClass('border border-warning')
+                        .hide()
+                        .fadeIn(300);
+
+                    setTimeout(() => {
+                        $updated.removeClass('border-warning');
+                    }, 1500);
+
+                } else {
+                    // INSERT → smooth animation
+                    const $newCard = $(html)
+                        .css({
+                            opacity: 0,
+                            transform: 'translateY(-15px)'
+                        });
+
+                    $('#orders-container').prepend($newCard);
+
+                    // trigger animation
+                    setTimeout(() => {
+                        $newCard.css({
+                            transition: 'all 300ms ease',
+                            opacity: 1,
+                            transform: 'translateY(0)'
+                        });
+                    }, 10);
+                }
+            }
+
 
             ///////////////
             // INITIALIZATION OF NAV SCROLLER
@@ -1087,9 +1010,98 @@
 
             function attachEventListeners() {
                 $('#cash_paid, #card_paid').off('input').on('input', function() {
-                    updateCalculations();
+                    const invoiceAmount = parseFloat($('#invoice_amount span').text()) || 0;
+                    let paymentType = $('input[name="select_payment_type"]:checked').val();
+                    if (paymentType === 'both_payment') {
+
+                        let cardPaid = parseFloat($('#card_paid').val()) || 0;
+                        let cashPaid = parseFloat($('#cash_paid').val()) || 0;
+
+                        // If user typed in card field
+                        if ($(this).attr('id') === 'card_paid') {
+                            let remaining = invoiceAmount - cardPaid;
+                            remaining = Math.max(remaining, 0);
+
+                            $('#cash_paid').val(remaining.toFixed(3));
+                            $('#cash_paid_display').text(formatCurrency(remaining));
+                        }
+
+                        // If user typed in cash field
+                        if ($(this).attr('id') === 'cash_paid') {
+                            let remaining = invoiceAmount - cashPaid;
+                            remaining = Math.max(remaining, 0);
+
+                            $('#card_paid').val(remaining.toFixed(3));
+                            // $('#card_paid_display').text(formatCurrency(remaining));
+                        }
+                    }
                 });
             }
+
+            $(document).on('submit', 'form#order_place', function (e) {
+                const $form = $(this);
+                // Per-form lock (instead of global lock)
+                
+                if ($('#order_draft').val() !== 'draft') {
+                    $("input[name='select_payment_type']").prop('required', true);
+
+                    if (!this.checkValidity()) {
+                        e.preventDefault();
+                        this.reportValidity(); // shows browser message immediately
+                        return false;
+                    }
+                }
+                
+                if ($form.data('submitting')) {
+                    e.preventDefault();
+                    return false;
+                }
+                $form.data('submitting', true);
+
+                const $buttons = $form.find('button[type="submit"]');
+                let $activeBtn = $form.find('button.clicked');
+
+                // If user pressed Enter and no button was clicked, pick first submit button
+                if (!$activeBtn.length) {
+                    $activeBtn = $buttons.first();
+                }
+
+                $buttons.prop('disabled', true);
+
+                // Spinner only on active button
+                if ($activeBtn.length) {
+                    if (!$activeBtn.data('original-html')) {
+                    $activeBtn.data('original-html', $activeBtn.html());
+                    }
+                    $activeBtn.html(
+                    '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait'
+                    );
+                }
+
+                // Fallback reset if submit is blocked or page doesn't unload (AJAX, validation, etc.)
+                const reset = () => {
+                    $form.data('submitting', false);
+                    $buttons.prop('disabled', false).removeClass('clicked');
+
+                    $buttons.each(function () {
+                    const $btn = $(this);
+                    const original = $btn.data('original-html');
+                    if (original) $btn.html(original);
+                    });
+                };
+
+                // If browser doesn't navigate within X seconds, unlock UI
+                // setTimeout(reset, 15000);
+
+                // If HTML5 validation fails, submit event may fire but navigation won't happen in some flows
+                // This catches invalid forms before submit
+                if (this.checkValidity && !this.checkValidity()) {
+                    reset();
+                    // Let browser show validation messages
+                    return true;
+                }
+                // Allow normal submission (no preventDefault)
+            });
 
             // Call updateCalculations when the modal is opened
             $('#orderFinalModal').on('shown.bs.modal', function() {
@@ -1253,17 +1265,14 @@
                         $('#customer_name').val(data.customer_name ?? '');
                         $('#car_number').val(data.car_number ?? '');
                         $('#phone').val(data.phone ?? '');
-                        $('#cash_paid').val(data.cash_paid ?? '');
-                        $('#card_paid').val(data.card_paid ?? '');
+                        // $('#cash_paid').val(data.cash_paid ?? '');
+                        // $('#card_paid').val(data.card_paid ?? '');
                         $('#delivery_type').val(data.delivery_type ?? '');
                         $('#bank_account').val(data.bank_account ?? '');
                         $('#partner_id').val(data.partner_id ?? '');
                         $('#invoice_amount_input').val(data.total_amount_formatted ?? '');
                         
-
-                        if (  data.partner_id){
-                            console.log('if')
-
+                        if (data.partner_id){
                             $('#payment_type_credit').prop('checked', true);
                             $('.payment_type').prop('disabled', true);
                             $('<input>').attr({
@@ -1271,12 +1280,10 @@
                             name: 'select_payment_type',
                             value: 'credit_payment'
                             }).appendTo('#order_place');
-                        
                         }else{
-                                console.log('else')
                             $('#payment_type_credit').prop('checked', false);
-                            $('#payment_type_credit').hide();
-                            $('.payment_type').prop('disabled', false);
+                            $('#payment_type_credit').prop('disabled', true);
+                            handlePaymentTypeChange('cash_payment');                        
                         }
 
                         updateCalculations();

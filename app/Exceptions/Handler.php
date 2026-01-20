@@ -2,8 +2,9 @@
 
 namespace App\Exceptions;
 
-use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
+use Brian2694\Toastr\Facades\Toastr;
+use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
 {
@@ -36,6 +37,22 @@ class Handler extends ExceptionHandler
     {
         $this->reportable(function (Throwable $e) {
             //
+        });
+
+        $this->renderable(function (\Exception $e, $request) {
+            if ($e->getPrevious() instanceof \Illuminate\Session\TokenMismatchException) {
+                // If AJAX request → return JSON instead of redirect
+                if ($request->ajax() || $request->wantsJson()) {
+                    return response()->json([
+                        'redirect' => route('home'),
+                        'error' => 'token_mismatch'
+                    ], 419); // 419 = CSRF error
+                }
+
+                // Normal request → redirect as usual
+                Toastr::error('Session has expired. Please try again.'); 
+                return redirect()->route('home');
+            }
         });
     }
 }

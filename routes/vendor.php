@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\POSUpdateController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Vendor\SubscriptionController;
 use App\Http\Controllers\TableEmployeeController;
@@ -10,16 +11,23 @@ Route::post('/food-option/delete', [App\Http\Controllers\Vendor\FoodController::
 
 
 
-Route::get('table_employees', 'TableEmployeeController@index')->name('table_employees.index');
-Route::get('table_employees/create', 'TableEmployeeController@create')->name('table_employees.create');
-Route::post('table_employees', 'TableEmployeeController@store')->name('table_employees.store');
-Route::get('table_employees/{id}/edit', 'TableEmployeeController@edit')->name('table_employees.edit');
-Route::put('table_employees/{id}', 'TableEmployeeController@update')->name('table_employees.update');
-Route::delete('table_employees/{id}', 'TableEmployeeController@destroy')->name('table_employees.destroy');
+// Route::get('table_employees', 'TableEmployeeController@index')->name('table_employees.index');
+// Route::get('table_employees/create', 'TableEmployeeController@create')->name('table_employees.create');
+// Route::post('table_employees', 'TableEmployeeController@store')->name('table_employees.store');
+// Route::get('table_employees/{id}/edit', 'TableEmployeeController@edit')->name('table_employees.edit');
+// Route::put('table_employees/{id}', 'TableEmployeeController@update')->name('table_employees.update');
+// Route::delete('table_employees/{id}', 'TableEmployeeController@destroy')->name('table_employees.destroy');
 
 Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
     Route::group(['middleware' => ['vendor', 'maintenance']], function () {
         Route::get('lang/{locale}', 'LanguageController@lang')->name('lang');
+
+        Route::post('/session/keep-alive', function () {
+            return response()->json(['status' => 'ok']);
+        })->name('session.keep-alive');
+
+        Route::get('/update/check', [POSUpdateController::class, 'check'])->name('update.check');
+        Route::post('/update/run',  [POSUpdateController::class, 'run'])->name('update.run');
 
         Route::get('/', 'DashboardController@dashboard')->name('dashboard');
         Route::get('/get-restaurant-data', 'DashboardController@restaurant_data')->name('get-restaurant-data');
@@ -266,6 +274,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('generate-invoice/{id}', 'OrderController@generate_invoice')->name('generate-invoice');
             Route::get('generate-order-receipt/{id}', 'OrderController@generate_order_receipt')->name('generate-order-receipt');
             Route::get('print-order/{id}', 'OrderController@print_order')->name('print-order');
+            Route::post('print-canceled-order-items', 'OrderController@printCanacledOrderItems')->name('canceled.items');
             Route::post('add-payment-ref-code/{id}', 'OrderController@add_payment_ref_code')->name('add-payment-ref-code');
 
             // WhatsApp routes

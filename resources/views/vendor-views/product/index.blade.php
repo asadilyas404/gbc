@@ -515,6 +515,33 @@
             }
         }
 
+        function updateMoveButtons() {
+            const items = $('#add_new_option .option-item');
+
+            // Enable all first
+            items.find('.move-up, .move-down').prop('disabled', false);
+
+            // Disable "up" on first
+            items.first().find('.move-up').prop('disabled', true);
+
+            // Disable "down" on last
+            items.last().find('.move-down').prop('disabled', true);
+        }
+
+        function updateMoveOptionButtons() {
+            const items = $('.option_price_item');
+
+            // Enable all first
+            items.find('.move-option-up, .move-option-down').prop('disabled', false);
+
+            // Disable "up" on first
+            items.first().find('.move-option-up').prop('disabled', true);
+
+            // Disable "down" on last
+            items.last().find('.move-option-down').prop('disabled', true);
+        }
+
+
         $('#food_form').on('submit', function() {
             var formData = new FormData(this);
             $.ajaxSetup({
@@ -565,6 +592,75 @@
             $('#stock_type').val('unlimited').trigger('change');
             updatestockCount();
         })
+
+        $(document).ready(function(){
+            // Move up with slide animation
+            $(document).on('click', '.move-up', function (e) {
+                e.preventDefault();
+
+                const item = $(this).closest('.option-item');
+                const prev = item.prev('.option-item');
+
+                if (prev.length) {
+                    item.slideUp(150, function () {
+                        item.insertBefore(prev).slideDown(150, function () {
+                            updateMoveButtons();
+                        });
+                    });
+                }
+            });
+
+            $(document).on('click', '.move-option-up', function (e) {
+                e.preventDefault();
+
+                const item = $(this).closest('.option_price_item');
+                const prev = item.prev('.option_price_item');
+
+                if (prev.length) {
+                    item.slideUp(150, function () {
+                        item.insertBefore(prev).slideDown(150, function () {
+                            updateMoveOptionButtons();
+                        });
+                    });
+                }
+            });
+
+            // Move down with slide animation
+            $(document).on('click', '.move-down', function (e) {
+                e.preventDefault();
+
+                const item = $(this).closest('.option-item');
+                const next = item.next('.option-item');
+
+                if (next.length) {
+                    item.slideUp(150, function () {
+                        item.insertAfter(next).slideDown(150, function () {
+                            updateMoveButtons();
+                        });
+                    });
+                }
+            });
+
+            $(document).on('click', '.move-option-down', function (e) {
+                e.preventDefault();
+
+                const item = $(this).closest('.option_price_item');
+                const next = item.next('.option_price_item');
+
+                if (next.length) {
+                    item.slideUp(150, function () {
+                        item.insertAfter(next).slideDown(150, function () {
+                            updateMoveOptionButtons();
+                        });
+                    });
+                }
+            });
+
+            // Initialize button states on load
+            updateMoveButtons();
+            updateMoveOptionButtons();
+        });
+
     </script>
 
     @if (isset($_GET['type']) && $_GET['type'] == 'offer')
@@ -579,7 +675,7 @@
             Object.entries(foodList).forEach(([id, item]) => {
                 foodListOptions += `<option value="${item.id}">${item.name}</option>`;
             });
-            $(document).ready(function() {
+            $(document).ready(function() {                
                 $("#add_new_option_button").click(function(e) {
                     $('#empty-variation').hide();
                     count++;
@@ -812,227 +908,228 @@
         <script>
             $(document).ready(function() {
                 $("#add_new_option_button").click(function(e) {
-                    $('#empty-variation').hide();
-                    count++;
-                    let add_option_view = `
-                        <div class="__bg-F8F9FC-card view_new_option mb-2">
-                            <div>
-                                <div class="d-flex align-items-center justify-content-between mb-3">
-                                    <div class="d-flex align-items-center gap-3">
-                                        <label class="form-check form--check">
-                                            <input id="options[` + count + `][required]" name="options[` + count + `][required]" class="form-check-input" type="checkbox">
-                                            <span class="form-check-label">{{ translate('Required') }}</span>
+                $('#empty-variation').hide();
+                count++;
+                let add_option_view = `
+                <div class="__bg-F8F9FC-card view_new_option mb-2 p-0 option-item">
+                    <div class="p-2 rounded d-flex gap-1 bg-white border border-bottom-0 justify-content-end align-center">
+                        <button type="button" class="move-up btn btn-sm btn-outline-primary">⬆</button>
+                        <button type="button" class="move-down btn btn-sm btn-outline-primary">⬇</button>
+                        <button type="button" class="btn btn-danger btn-sm delete_input_button" title="{{ translate('Delete') }}">
+                            <i class="tio-add-to-trash"></i>
+                        </button>
+                    </div>
+                    <div class="p-2">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <label class="form-check form--check">
+                                    <input id="options[` + count + `][required]" name="options[` + count + `][required]" class="form-check-input" type="checkbox">
+                                    <span class="form-check-label">{{ translate('Required') }}</span>
+                                </label>
+                                <label class="form-check form--check">
+                                    <input id="options[` + count + `][link_addons]" name="options[` + count + `][link_addons]" class="form-check-input" type="checkbox">
+                                    <span class="form-check-label">{{ translate('Link Addons') }}</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-xl-4 col-lg-6">
+                                <label for="">{{ translate('name') }}  &nbsp; <span class="form-label-secondary text-danger"
+                            data-toggle="tooltip" data-placement="right"
+                            data-original-title="{{ translate('messages.Required.') }}"> *
+                            </span></label>
+                                <input required name=options[` + count + `][name] class="form-control new_option_name" type="text" data-count="` + count + `">
+                            </div>
+
+                            <div class="col-xl-4 col-lg-6">
+                                <div>
+                                    <label class="input-label text-capitalize d-flex align-items-center"><span class="line--limit-1">{{ translate('messages.selcetion_type') }} </span>
+                                    </label>
+                                    <div class="resturant-type-group px-0">
+                                        <label class="form-check form--check mr-2 mr-md-4">
+                                            <input class="form-check-input show_min_max" data-count="` + count + `" type="radio" value="multi"
+                                            name="options[` + count + `][type]" id="type` + count + `" checked>
+                                            <span class="form-check-label">
+                                                {{ translate('Multiple Selection') }}
+                                            </span>
                                         </label>
-                                        <label class="form-check form--check">
-                                            <input id="options[` + count + `][link_addons]" name="options[` + count + `][link_addons]" class="form-check-input" type="checkbox">
-                                            <span class="form-check-label">{{ translate('Link Addons') }}</span>
+                                        <label class="form-check form--check mr-2 mr-md-4">
+                                            <input class="form-check-input hide_min_max" data-count="` + count + `" type="radio" value="single"
+                                                name="options[` + count + `][type]" id="type` + count + `">
+                                            <span class="form-check-label">
+                                                {{ translate('Single Selection') }}
+                                            </span>
                                         </label>
-                                    </div>
-                                    <div>
-                                        <button type="button" class="btn btn-danger btn-sm delete_input_button"
-                                            title="{{ translate('Delete') }}">
-                                            <i class="tio-add-to-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="row g-2">
-                                    <div class="col-xl-4 col-lg-6">
-                                        <label for="">{{ translate('name') }}&nbsp;<span class="form-label-secondary text-danger"
-                                    data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.') }}"> *
-                                    </span></label>
-                                        <input required name=options[` + count +
-                        `][name] class="form-control new_option_name" type="text" data-count="` +
-                        count + `">
-                                    </div>
-
-                                    <div class="col-xl-4 col-lg-6">
-                                        <div>
-                                            <label class="input-label text-capitalize d-flex align-items-center"><span class="line--limit-1">{{ translate('messages.Variation_Selection_Type') }} </span>
-                                            </label>
-                                            <div class="resturant-type-group px-0">
-                                                <label class="form-check form--check mr-2 mr-md-4">
-                                                    <input class="form-check-input show_min_max" data-count="` +
-                        count + `" type="radio" value="multi"
-                                                    name="options[` + count + `][type]" id="type` + count +
-                        `" checked
-                                                    >
-                                                    <span class="form-check-label">
-                                                        {{ translate('Multiple Selection') }}
-                        </span>
-                    </label>
-
-                    <label class="form-check form--check mr-2 mr-md-4">
-                        <input class="form-check-input hide_min_max" data-count="` + count + `" type="radio" value="single"
-                        name="options[` + count + `][type]" id="type` + count +
-                        `"
-                                                    >
-                                                    <span class="form-check-label">
-                                                        {{ translate('Single Selection') }}
-                        </span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-4 col-lg-6">
-            <div class="row g-2">
-                <div class="col-6">
-                    <label for="">{{ translate('Min') }}</label>
-                                                <input id="min_max1_` + count + `" required  name="options[` + count + `][min]" class="form-control" type="number" min="1">
-                                            </div>
-                                            <div class="col-6">
-                                                <label for="">{{ translate('Max') }}</label>
-                                                <input id="min_max2_` + count + `"   required name="options[` + count + `][max]" class="form-control" type="number" min="1">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-xl-4 col-lg-6">
-                <label for="">
-                    {{ translate('Print') }}
-                    &nbsp;<span class="form-label-secondary text-danger"
-                        data-toggle="tooltip" data-placement="right"
-                        data-original-title="{{ translate('messages.Required.') }}"> *
-                    </span>
-                </label>
-                <select name="options[` + count + `][printing_option]" id="" class="form-control js-select2-custom">
-                    <option value="option_name" selected>Option Name</option>
-                    <option value="option_list_name">Option List Name</option>
-                </select>
-            </div>
-                                </div>
-
-                                <div id="option_price_` + count + `" >
-                                    <div class="bg-white border rounded p-3 pb-0 mt-3">
-                                        <div  id="option_price_view_` + count + `">
-                                            <div class="row g-3 add_new_view_row_class mb-3">
-                                                <div class="col-md-3 col-sm-6">
-                                                    <label for="">{{ translate('Option_name') }} &nbsp;<span class="form-label-secondary text-danger"
-                                    data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.') }}"> *
-                                    </span></label>
-                                                    <input class="form-control" required type="text" name="options[` +
-                        count +
-                        `][values][0][label]" id="">
-                                                </div>
-
-<div class="col-md-3 col-sm-6">
-                                                    <label for="">Option List Name &nbsp;<span class="form-label-secondary text-danger"
-                                    data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.') }}"> *
-                                    </span></label>
-                                    <select name="options[` +count +`][values][0][options_list_id]" id="" class="form-control js-select2-custom">
-                                        @foreach ($optionList as $options)
-                                            <option value="{{ $options->id }}">{{ $options->name }}</option>
-                                        @endforeach
-                                        </select>
-                                                </div>
-
-                                                <div class="col-md-3 col-sm-6">
-                                                    <label for="">{{ translate('Additional_price') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})&nbsp;<span class="form-label-secondary text-danger"
-                                    data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.') }}"> *
-                                    </span></label>
-                                                    <input class="form-control" required type="number" min="0" step="0.01" name="options[` +
-                        count +
-                        `][values][0][optionPrice]" id="">
-                                                </div>
-
-                                                 @foreach ($PARTNER_VARIATION_OPTION as $row)
-                    <div class="col-md-3 col-sm-6">
-                    <label for="">{{ translate($row->partner_name.' Additional_price') }}  &nbsp; <span class="form-label-secondary text-danger"
-                    data-toggle="tooltip" data-placement="right"
-                    data-original-title="{{ translate('messages.Required.') }}"> *
-                    </span></label>
-                    <input class="form-control" required type="number" min="0" step="0.01" name="options[` + count + `][values][0][partneroptionPrice][` +{{$row->partner_id}} + `]" id=""></div>
-
-                @endforeach
-
-                                                <div class="col-md-3 col-sm-6 hide_this">
-                                                    <label for="">{{ translate('Stock') }}</label>
-                                                    <input class="form-control stock_disable count_stock" required type="number" min="0" max="9999999" name="options[` +
-                        count + `][values][0][total_stock]" id="">
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-3 p-3 mr-1 d-flex "  id="add_new_button_` + count +
-                        `">
-                                            <button type="button" class="btn btn--primary btn-outline-primary add_new_row_button" data-count="` +
-                        count + `">{{ translate('Add_New_Option') }}</button>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>`;
+                            <div class="col-xl-4 col-lg-6">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="">{{ translate('Min') }}</label>
+                                        <input id="min_max1_` + count + `" required  name="options[` + count + `][min]" class="form-control" type="number" min="1">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="">{{ translate('Max') }}</label>
+                                        <input id="min_max2_` + count + `"   required name="options[` + count + `][max]" class="form-control" type="number" min="1">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-xl-4 col-lg-6">
+                                <label for="">
+                                    {{ translate('Print') }}
+                                    &nbsp;<span class="form-label-secondary text-danger"
+                                        data-toggle="tooltip" data-placement="right"
+                                        data-original-title="{{ translate('messages.Required.') }}"> *
+                                    </span>
+                                </label>
+                                <select name="options[` + count + `][printing_option]" id="" class="form-control js-select2-custom">
+                                    <option value="option_name" selected>Option Name</option>
+                                    <option value="option_list_name">Option List Name</option>
+                                </select>
+                            </div>
+                        </div>
 
-                    $("#add_new_option").append(add_option_view);
-                    updatestockCount();
-                });
+                        <div id="option_price_` + count + `" class="option_price">
+                            <div class="mt-3">
+                                <div  id="option_price_view_` + count + `">
+                                    <div class="row add_new_view_row_class mb-2 position-relative pt-3 pt-md-0 option_price_item">
+                                        <div class="col-12 px-5">
+                                            <div class="row bg-white border py-2">
+                                                <div class="col-md-3 col-sm-6">
+                                                    <label for="">{{ translate('Option_name') }}  &nbsp; 
+                                                        <span class="form-label-secondary text-danger"
+                                                            data-toggle="tooltip" data-placement="right"
+                                                            data-original-title="{{ translate('messages.Required.') }}"> *
+                                                        </span>
+                                                    </label>
+                                                    <input class="form-control" required type="text" name="options[` + count + `][values][0][label]" id="">
+                                                </div>
+
+                                                <div class="col-md-3 col-sm-6">
+                                                    <label for="">Option List Name &nbsp;
+                                                        <span class="form-label-secondary text-danger"
+                                                            data-toggle="tooltip" data-placement="right"
+                                                            data-original-title="{{ translate('messages.Required.') }}"> *
+                                                        </span>
+                                                    </label>
+                                                    <select name="options[` +count +`][values][0][options_list_id]" id="" class="form-control js-select2-custom">
+                                                        @foreach ($optionList as $options)
+                                                            <option value="{{ $options->id }}">{{ $options->name }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                </div>
+
+                                                <div class="col-md-2 col-sm-6">
+                                                    <label for="">{{ translate('Additional_price') }}  &nbsp; 
+                                                        <span class="form-label-secondary text-danger"
+                                                            data-toggle="tooltip" data-placement="right"
+                                                            data-original-title="{{ translate('messages.Required.') }}"> *
+                                                        </span>
+                                                    </label>
+                                                    <input class="form-control" required type="number" min="0" step="0.01" name="options[` + count + `][values][0][optionPrice]" id="">
+                                                </div>
+
+                                                @foreach ($PARTNER_VARIATION_OPTION as $row)
+                                                    <div class="col-md-2 col-sm-6">
+                                                        <label for="">{{ translate($row->partner_name.' Extra') }}  &nbsp; 
+                                                            <span class="form-label-secondary text-danger"
+                                                                data-toggle="tooltip" data-placement="right"
+                                                                data-original-title="{{ translate('messages.Required.') }}"> *
+                                                            </span>
+                                                        </label>
+                                                    <input class="form-control" required type="number" min="0" step="0.01" name="options[` + count + `][values][0][partneroptionPrice][` +{{$row->partner_id}} + `]" id=""></div>
+                                                @endforeach
+
+                                                <div class="col-md-3 col-sm-6 hide_this">
+                                                    <label for="">{{ translate('Stock') }} </label>
+                                                    <input class="form-control stock_disable count_stock" required type="number" max="99999999" min="0"  name="options[` + count + `][values][0][total_stock]" id="">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <input type="hidden" hidden name="options[` + count + `][values][0][option_id]" value="null" >
+
+                                <div class="row mt-3 p-3 mr-1 d-flex "  id="add_new_button_` + count + `">
+                                    <button type="button" class="btn btn--primary btn-outline-primary add_new_row_button" data-count="` + count + `" >{{ translate('Add_New_Option') }}</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                $("#add_new_option").append(add_option_view);
+                updatestockCount();
+                $('.js-select2-custom').select2();
+                updateMoveButtons();
             });
 
-            function add_new_row_button(data) {
-                countRow = 1 + $('#option_price_view_' + data).children('.add_new_view_row_class').length;
-                let add_new_row_view = `
-                <div class="row add_new_view_row_class mb-3 position-relative pt-3 pt-sm-0">
-                    <div class="col-md-3 col-sm-5">
-                            <label for="">{{ translate('Option_name') }} &nbsp;<span class="form-label-secondary text-danger"
-                                    data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.') }}"> *
-                                    </span></label>
-                            <input class="form-control" required type="text" name="options[` + data + `][values][` +
-                    countRow + `][label]" id="">
-                        </div>
-                        <div class="col-md-3 col-sm-5">
-                            <label for="">Option List Name &nbsp;<span class="form-label-secondary text-danger"
-                                    data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.') }}"> *
-                                    </span></label>
-                            <select name="options[` + data + `][values][` + countRow + `][options_list_id]" id="" class="form-control js-select2-custom">
-                                @foreach ($optionList as $options)
-                                    <option value="{{ $options->id }}">{{ $options->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3 col-sm-5">
-                            <label for="">{{ translate('Additional_price') }} ({{ \App\CentralLogics\Helpers::currency_symbol() }})&nbsp;<span class="form-label-secondary text-danger"
-                                    data-toggle="tooltip" data-placement="right"
-                                    data-original-title="{{ translate('messages.Required.') }}"> *
-                                    </span></label>
-                            <input class="form-control"  required type="number" min="0" step="0.01" name="options[` +
-                    data + `][values][` + countRow +
-                    `][optionPrice]" id="">
-                        </div>
+        });
 
-                        @foreach ($PARTNER_VARIATION_OPTION as $row)
+            function add_new_row_button(data) {
+                var countRow = 1 + $('#option_price_view_' + data).children('.add_new_view_row_class').length;
+                let add_new_row_view = `
+                <div class="row add_new_view_row_class mb-2 position-relative pt-3 pt-md-0 option_price_item">
+                    <div class="col-12 px-5">
+                        <div class="row bg-white border py-2">
                             <div class="col-md-3 col-sm-5">
-                                <label for="">{{ translate($row->partner_name.' Additional_price') }}  &nbsp;<span class="form-label-secondary text-danger"
+                                <label for="">{{ translate('Option_name') }}  &nbsp;<span class="form-label-secondary text-danger"
                                         data-toggle="tooltip" data-placement="right"
                                         data-original-title="{{ translate('messages.Required.') }}"> *
                                         </span></label>
-                                <input class="form-control"  required type="number" min="0" step="0.01" name="options[` + data + `][values][` + countRow + `][partneroptionPrice][` +{{$row->partner_id}} + `]" id="">
+                                <input class="form-control" required type="text" name="options[` + data + `][values][` + countRow + `][label]" id="">
                             </div>
-                        @endforeach
+                            <div class="col-md-3 col-sm-5">
+                                <label for="">Option List Name &nbsp;
+                                    <span class="form-label-secondary text-danger" data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.Required.') }}"> *
+                                    </span>
+                                </label>
+                                <select name="options[` + data + `][values][` + countRow + `][options_list_id]" id="" class="form-control js-select2-custom">
+                                    @foreach ($optionList as $options)
+                                        <option value="{{ $options->id }}">{{ $options->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2 col-sm-5">
+                                <label for="">{{ translate('Additional_price') }}  &nbsp;<span class="form-label-secondary text-danger"
+                                        data-toggle="tooltip" data-placement="right"
+                                        data-original-title="{{ translate('messages.Required.') }}"> *
+                                        </span></label>
+                                <input class="form-control"  required type="number" min="0" step="0.01" name="options[` + data + `][values][` + countRow + `][optionPrice]" id="">
+                            </div>
+                            @foreach ($PARTNER_VARIATION_OPTION as $row)
+                                <div class="col-md-2 col-sm-5">
+                                    <label for="">{{ translate($row->partner_name.' Extra') }}  &nbsp;<span class="form-label-secondary text-danger"
+                                            data-toggle="tooltip" data-placement="right"
+                                            data-original-title="{{ translate('messages.Required.') }}"> *
+                                            </span></label>
+                                    <input class="form-control"  required type="number" min="0" step="0.01" name="options[` + data + `][values][` + countRow + `][partneroptionPrice][` +{{$row->partner_id}} + `]" id="">
+                                </div>
+                            @endforeach
 
+                            <div class="col-md-3 col-sm-5 hide_this">
+                                <label for="">{{ translate('Stock') }}  </label>
+                                <input class="form-control stock_disable count_stock"  required type="number" min="0" max="99999999"  name="options[` + data + `][values][` + countRow + `][total_stock]" id="">
+                            </div>
 
-                        <div class="col-md-3 col-sm-6 hide_this">
-                                                    <label for="">{{ translate('Stock') }}</label>
-                                                    <input class="form-control stock_disable count_stock" required type="number" min="0" max="9999999" name="options[` +
-                    data + `][values][` + countRow + `][total_stock]" id="">
-                                                </div>
+                            <input type="hidden" hidden name="options[` + data + `][values][` + countRow + `][option_id]" value="null" >
 
-
-                        <div class="col-sm-2 max-sm-absolute">
-                            <label class="d-none d-sm-block">&nbsp;</label>
-                            <div class="mt-1">
+                            <div class="col-sm-12 text-right max-sm-absolute mt-1">
+                                <button type="button" class="move-option-up btn btn-sm btn-outline-primary">⬆</button>
+                                <button type="button" class="move-option-down btn btn-sm btn-outline-primary" disabled="">⬇</button>
                                 <button type="button" class="btn btn-danger btn-sm deleteRow"
                                     title="{{ translate('Delete') }}">
                                     <i class="tio-add-to-trash"></i>
                                 </button>
                             </div>
+                        </div>
                     </div>
                 </div>`;
                 $('#option_price_view_' + data).append(add_new_row_view);
                 updatestockCount();
-
+                $('.js-select2-custom').select2();
+                updateMoveOptionButtons();
             }
         </script>
     @endif

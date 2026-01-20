@@ -91,31 +91,31 @@ return [
         ],
 
         // Oracle connection using host, port, and service name
-  'oracle' => [
-    'driver'         => 'oracle',
-    'tns'            => '',
-    'host'           => env('DB_HOST'),
-    'port'           => env('DB_PORT'),
-    'database'       => env('DB_DATABASE'),
-    'username'       => env('DB_USERNAME'),
-    'password'       => env('DB_PASSWORD'),
-    'charset'        => 'AL32UTF8',
-    'prefix'         => '',
-    'prefix_schema'  => '',
-],
+        'oracle' => [
+            'driver'         => 'oracle',
+            'tns'            => '',
+            'host'           => env('DB_HOST'),
+            'port'           => env('DB_PORT'),
+            'database'       => env('DB_DATABASE'),
+            'username'       => env('DB_USERNAME'),
+            'password'       => env('DB_PASSWORD'),
+            'charset'        => 'AL32UTF8',
+            'prefix'         => '',
+            'prefix_schema'  => '',
+        ],
 
-    // live DB connection
-    'oracle_live' => [
-        'driver'         => env('ORACLE_LIVE_CONNECTION', 'oracle'),
-        'host'           => env('ORACLE_LIVE_HOST'),
-        'port'           => env('ORACLE_LIVE_PORT'),
-        'database'       => env('ORACLE_LIVE_DATABASE'),
-        'username'       => env('ORACLE_LIVE_USERNAME'),
-        'password'       => env('ORACLE_LIVE_PASSWORD'),
-        'charset'        => 'AL32UTF8',
-        'prefix'         => '',
-        'prefix_schema'  => '',
-    ],
+        // live DB connection
+        'oracle_live' => [
+            'driver'         => env('ORACLE_LIVE_CONNECTION', 'oracle'),
+            'host'           => env('ORACLE_LIVE_HOST'),
+            'port'           => env('ORACLE_LIVE_PORT'),
+            'database'       => env('ORACLE_LIVE_DATABASE'),
+            'username'       => env('ORACLE_LIVE_USERNAME'),
+            'password'       => env('ORACLE_LIVE_PASSWORD'),
+            'charset'        => 'AL32UTF8',
+            'prefix'         => '',
+            'prefix_schema'  => '',
+        ],
 
 
         // Optional: Oracle connection using TNS name

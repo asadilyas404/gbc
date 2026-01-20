@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
@@ -15,9 +16,14 @@ class SyncOrdersJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    private const SYNC_ENTITY_TYPES = [
+        'orders',
+        'shift_sessions',
+    ];
+
     public function handle()
     {
-        set_time_limit(300);
+        set_time_limit(600);
         Log::info('SyncOrdersJob started (API-based)');
 
         try {
@@ -77,15 +83,9 @@ class SyncOrdersJob implements ShouldQueue
 
                 $allOrdersData[] = [
                     'order'             => (array) $order,
-                    'order_details'     => $orderDetails->map(function ($detail) {
-                        return (array) $detail;
-                    })->toArray(),
-                    'additional_details'=> $orderAdditionalDetails->map(function ($detail) {
-                        return (array) $detail;
-                    })->toArray(),
-                    'kitchen_status'    => $kitchenStatus->map(function ($status) {
-                        return (array) $status;
-                    })->toArray(),
+                    'order_details'     => $orderDetails->map(fn($detail) => (array) $detail)->toArray(),
+                    'additional_details'=> $orderAdditionalDetails->map(fn($detail) => (array) $detail)->toArray(),
+                    'kitchen_status'    => $kitchenStatus->map(fn($status) => (array) $status)->toArray(),
                 ];
             }
 
@@ -121,8 +121,8 @@ class SyncOrdersJob implements ShouldQueue
                         ->withoutVerifying()
                         ->retry(3, 1000)
                         ->post(config('services.live_server.url') . '/orders/sync-bulk', [
-                            'orders'         => $ordersChunk, // can be []
-                            'shift_sessions' => $shiftChunk,   // can be []
+                            'orders'         => $ordersChunk ?? [], // can be []
+                            'shift_sessions' => $shiftChunk ?? [],   // can be []
                         ]);
 
                     if ($response->successful()) {
@@ -177,6 +177,56 @@ class SyncOrdersJob implements ShouldQueue
             Log::error('SyncOrdersJob failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+        }
+    }
+
+    private function sendSyncStateUpdate(int $branchId, array $latestSyncedTimestamps): void
+    {
+        $payload = [
+            'branch_id' => $branchId,
+        ];
+
+        foreach (self::SYNC_ENTITY_TYPES as $entity) {
+            if (empty($latestSyncedTimestamps[$entity])) {
+                continue;
+            }
+
+            try {
+                $payload[$entity . '_last_synced_at'] = Carbon::parse($latestSyncedTimestamps[$entity])->toIso8601String();
+            } catch (\Exception $e) {
+                Log::warning('Invalid timestamp while preparing customer sync update', [
+                    'entity' => $entity,
+                    'timestamp' => $latestSyncedTimestamps[$entity],
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        if (count($payload) === 1) {
+            return;
+        }
+
+        try {
+            $response = Http::timeout(30)
+                ->withToken(config('services.live_server.token'))
+                ->post(config('services.live_server.url') . '/customers/update-sync-state', $payload);
+
+            if ($response->successful()) {
+                Log::info('Branch sync state updated on live server (customers)', [
+                    'branch_id' => $branchId,
+                    'entities' => array_keys(array_diff_key($payload, ['branch_id' => null])),
+                ]);
+            } else {
+                Log::warning('Failed to update branch sync state on live server (customers)', [
+                    'branch_id' => $branchId,
+                    'status' => $response->status(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Exception while updating branch sync state (customers)', [
+                'branch_id' => $branchId,
+                'error' => $e->getMessage(),
             ]);
         }
     }

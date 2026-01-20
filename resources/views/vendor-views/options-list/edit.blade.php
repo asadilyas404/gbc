@@ -70,6 +70,13 @@
                         <input type="hidden" name="lang[]" value="default">
                     @endif
 
+                    <div class="form-group col-md-6">
+                        <label class="form-label" for="exampleFormControlInput1">{{ translate('messages.price') }}</label>
+                        <input type="number" min="0" max="999999999999.99" name="price" step="0.01"
+                            class="form-control h--45px" placeholder="{{ translate('Ex : 100.00') }}"
+                            value="{{ $option->price ?? old('price') }}">
+                    </div>
+
                     <div class="col-12">
                         <div class="btn--container justify-content-end">
                             <button type="reset" id="reset_btn" class="btn btn--reset">{{translate('messages.reset')}}</button>

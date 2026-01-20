@@ -36,6 +36,7 @@ class FoodController extends Controller
             Toastr::warning(translate('messages.permission_denied'));
             return back();
         }
+
         $categories = Category::where(['position' => 0])->get();
         $optionList = DB::table('options_list')->get();
 
@@ -255,8 +256,7 @@ class FoodController extends Controller
                 $food->is_offer = 1;
             }
             $food->save();
-
-            // dd('hello');
+            $sr_no = 0;
             if (isset($request->type) && $request->type == "offer") {
                 $foodList = Food::orderBy('name', 'asc')->select('id', 'name')->get();
                 $VariationOptionList = VariationOption::select('id', 'option_name as name')->get();
@@ -270,8 +270,10 @@ class FoodController extends Controller
                     $variation->is_required =   data_get($option, 'required') == 'on' ? true : false;
                     $variation->link_addons =   data_get($option, 'link_addons') == 'on' ? true : false;
                     $variation->printing_option =  $option['printing_option'] ?? 'option_name';
+                    $variation->sr_no = $sr_no++;
                     $variation->save();
 
+                    $sub_sr_no = 0;
                     foreach (array_values($option['values']) as $value) {
                         $foodName = isset($foodList->firstWhere('id', $value['food'])->name) ? $foodList->firstWhere('id', $value['food'])->name : "";
                         $variation_optionName = "";
@@ -291,6 +293,7 @@ class FoodController extends Controller
                             $VariationOption->sub_food_id = $value['food'];
                             $VariationOption->sub_variation_id = isset($value['variation']) ? $value['variation'] : null;
                             $VariationOption->sub_variation_options_id = isset($value['variation_option']) ? $value['variation_option'] : null;
+                            $VariationOption->sr_no = $sub_sr_no++;
                             $VariationOption->save();
                         }
                     }
@@ -306,8 +309,10 @@ class FoodController extends Controller
                     $variation->is_required =   data_get($option, 'required') == 'on' ? true : false;
                     $variation->link_addons =   data_get($option, 'link_addons') == 'on' ? true : false;
                     $variation->printing_option =  $option['printing_option'] ?? 'option_name';
+                    $variation->sr_no = $sr_no++;
                     $variation->save();
 
+                    $sub_sr_no = 0;
                     foreach (array_values($option['values']) as $value) {
                         $VariationOption =  new VariationOption();
                         $VariationOption->food_id = $food->id;
@@ -317,6 +322,7 @@ class FoodController extends Controller
                         $VariationOption->option_price = $value['optionPrice'];
                         $VariationOption->stock_type = $request->stock_type ?? 'unlimited';
                         $VariationOption->total_stock = data_get($value, 'total_stock') == null || $VariationOption->stock_type == 'unlimited' ? 0 : data_get($value, 'total_stock');
+                        $VariationOption->sr_no = $sub_sr_no++;
                         $VariationOption->save();
 
                          $partner_price=$value['partneroptionPrice'];
@@ -327,10 +333,10 @@ class FoodController extends Controller
                             ->updateOrInsert(
                                 [ 'is_deleted' => 0,'VARIATION_OPTION_ID' => $VariationOption->id, 'PARTNER_ID' => $partner_id,'FOOD_ID' => $food->id,'TYPE' => 'option'],
                                 [
-                                        'price' => $price,
-                                        'created_at' => date('Y/m/d H:is'),
-                                        'updated_at' =>date('Y/m/d H:is'),
-                                        ]
+                                    'price' => $price,
+                                    'created_at' => date('Y/m/d H:is'),
+                                    'updated_at' =>date('Y/m/d H:is'),
+                                ]
                             );
                         }
                     }
@@ -370,7 +376,7 @@ class FoodController extends Controller
 
         // Build variations payload from normalized tables for edit view
         $variationsPayload = [];
-        $dbVariations = Variation::where('food_id', $product->id)->orderBy('id')->get();
+        $dbVariations = Variation::where('food_id', $product->id)->orderBy('sr_no')->get();
         if ($dbVariations->count() > 0) {
             foreach ($dbVariations as $v) {
                 $entry = [
@@ -386,7 +392,7 @@ class FoodController extends Controller
                 ];
                 $dbOptions = VariationOption::where('food_id', $product->id)
                     ->where('variation_id', $v->id)
-                    ->orderBy('id')
+                    ->orderBy('sr_no')
                     ->get();
                 foreach ($dbOptions as $opt) {
                     $entry['values'][] = [
@@ -472,7 +478,7 @@ class FoodController extends Controller
         $optionList = DB::table('options_list')->get();
 
         $variationsPayload = [];
-        $dbVariations = Variation::where('food_id', $originalProduct->id)->orderBy('id')->get();
+        $dbVariations = Variation::where('food_id', $originalProduct->id)->orderBy('sr_no')->get();
         if ($dbVariations->count() > 0) {
             foreach ($dbVariations as $v) {
                 $entry = [
@@ -488,7 +494,7 @@ class FoodController extends Controller
                 ];
                 $dbOptions = VariationOption::where('food_id', $originalProduct->id)
                     ->where('variation_id', $v->id)
-                    ->orderBy('id')
+                    ->orderBy('sr_no')
                     ->get();
                 foreach ($dbOptions as $opt) {
                     $entry['values'][] = [
@@ -556,7 +562,6 @@ class FoodController extends Controller
 
     public function update(Request $request, $id)
     {
-        // DD($request->toArray());
         if (!Helpers::get_restaurant_data()->food_section) {
             return response()->json([
                 'errors' => [
@@ -723,6 +728,7 @@ class FoodController extends Controller
         $p->partner_price= json_encode($arr);
 
         if (isset($request->options)) {
+            $sr_no = 0;
             foreach (array_values($request->options) as $key => $option) {
                 if ($option['min'] > 0 &&  $option['min'] > $option['max']) {
                     $validator->getMessageBag()->add('name', translate('messages.minimum_value_can_not_be_greater_then_maximum_value'));
@@ -749,9 +755,7 @@ class FoodController extends Controller
                     $variation->is_required = data_get($option, 'required') == 'on' ? true : false;
                     $variation->link_addons = data_get($option, 'link_addons') == 'on' ? true : false;
                     $variation->printing_option =  $option['printing_option'] ?? 'option_name';
-                    // if($option['type'] == 'multi') {
-                    //     dd($variation);
-                    // }
+                    $variation->sr_no = $sr_no++;
                     $variation->save();
 
                 } else {
@@ -764,9 +768,11 @@ class FoodController extends Controller
                         "is_required" => data_get($option, 'required') == 'on' ? true : false,
                         "link_addons" => data_get($option, 'link_addons') == 'on' ? true : false,
                         "printing_option" =>  $option['printing_option'] ?? 'option_name',
+                        "sr_no" => $sr_no++
                     ]);
                 }
 
+                $sub_sr_no = 0;
                 foreach (array_values($option['values']) as $value) {
                     $v = null;
                     if (isset($value['option_id']) && !empty($value['option_id']) && $value['option_id'] != 'null') {
@@ -779,9 +785,8 @@ class FoodController extends Controller
                         $v->total_stock = data_get($value, 'total_stock') == null ||  $request->stock_type == 'unlimited' ? 0 : data_get($value, 'total_stock');
                         $v->stock_type = $request->stock_type ?? 'unlimited';
                         $v->sell_count = 0;
+                        $v->sr_no = $sub_sr_no++;
                         $v->save();
-
-
                     } else {
                         $v = VariationOption::create([
                             "food_id" => $p->id,
@@ -792,6 +797,7 @@ class FoodController extends Controller
                             "total_stock" => data_get($value, 'total_stock') == null ||  $request->stock_type == 'unlimited' ? 0 : data_get($value, 'total_stock'),
                             "stock_type" => $request->stock_type ?? 'unlimited',
                             "sell_count" => 0,
+                            "sr_no" => $sub_sr_no++
                         ]);
 
                     }
@@ -803,10 +809,10 @@ class FoodController extends Controller
                         ->updateOrInsert(
                             [ 'is_deleted' => 0,'VARIATION_OPTION_ID' => $v->id, 'PARTNER_ID' => $partner_id,'FOOD_ID' => $id,'TYPE' => 'option'],
                             [
-                                    'price' => $price,
-                                    'created_at' => date('Y/m/d H:is'),
-                                    'updated_at' =>date('Y/m/d H:is'),
-                                    ]
+                                'price' => $price,
+                                'created_at' => date('Y/m/d H:is'),
+                                'updated_at' =>date('Y/m/d H:is'),
+                            ]
                         );
                     }
                 }
@@ -865,6 +871,11 @@ class FoodController extends Controller
             return back();
         }
 
+        if($product->orders()->exists()){
+            Toastr::error(translate('messages.food_cannot_be_deleted_because_it_is_associated_with_orders'));
+            return back();
+        }
+
         if ($product->image) {
             Helpers::safe_delete_image('product/', $product->image, Food::class, $product->id);
         }
@@ -900,18 +911,79 @@ class FoodController extends Controller
     public function list(Request $request)
     {
         $category_id = $request->query('category_id', 'all');
-        $type = $request->query('type', 'all');
-        $foods = Food::when(is_numeric($category_id), function ($query) use ($category_id) {
-                return $query->whereHas('category', function ($q) use ($category_id) {
-                    return $q->whereId($category_id)->orWhere('parent_id', $category_id);
-                });
+        $type        = $request->query('type', 'all');
+
+        $foodsQuery = Food::query()
+            ->with(['category.parent']); // ✅ prevent N+1 in blade
+
+        if (is_numeric($category_id)) {
+            $categoryIds = Category::where('id', $category_id)
+                ->orWhere('parent_id', $category_id)
+                ->pluck('id');
+
+            $foodsQuery->whereIn('category_id', $categoryIds);
+        }
+
+        $foods = $foodsQuery
+            ->type($type)
+            ->latest('id')
+            ->paginate(config('default_pagination'));
+
+        // ✅ Build addons map ONCE for current page foods
+        $allAddonIds = $foods->getCollection()
+            ->pluck('add_ons')
+            ->filter()
+            ->flatMap(function ($json) {
+                $ids = json_decode($json, true);
+                return is_array($ids) ? $ids : [];
             })
-            ->type($type)->latest()->paginate(config('default_pagination'));
+            ->unique()
+            ->values()
+            ->all();
 
+        $addonsMap = \App\Models\AddOn::whereIn('id', $allAddonIds)
+            ->pluck('name', 'id'); // [id => name]
 
-        $category = $category_id != 'all' ? Category::findOrFail($category_id) : null;
-        return view('vendor-views.product.list', compact('foods', 'category', 'type'));
+        // ✅ Precompute stock-out flags ONCE (avoid heavy blade loops)
+        $stockOutMap = [];
+        foreach ($foods as $food) {
+            $stockOut = false;
+
+            if ($food->stock_type !== 'unlimited' && (int)$food->item_stock <= 0) {
+                $stockOut = true;
+            } else {
+                $variations = json_decode($food->variations, true);
+                if (is_array($variations)) {
+                    foreach ($variations as $item) {
+                        foreach (($item['values'] ?? []) as $value) {
+                            $stockType = $value['stock_type'] ?? 'unlimited';
+                            $current   = (int)($value['current_stock'] ?? 0);
+
+                            if ($stockType !== 'unlimited' && $current <= 0) {
+                                $stockOut = true;
+                                break 2;
+                            }
+                        }
+                    }
+                }
+            }
+
+            $stockOutMap[$food->id] = $stockOut;
+        }
+
+        $category = $category_id !== 'all'
+            ? Category::findOrFail($category_id)
+            : null;
+
+        return view('vendor-views.product.list', compact(
+            'foods',
+            'category',
+            'type',
+            'addonsMap',
+            'stockOutMap'
+        ));
     }
+
 
     public function search(Request $request)
     {
@@ -1281,7 +1353,7 @@ class FoodController extends Controller
             return response()->json(['success' => false, 'data' => [], 'message' => 'Food not found']);
         }
 
-        $data = Variation::where('food_id', $id)->orderBy('name', 'asc')->select('id', 'name')->get();
+        $data = Variation::where('food_id', $id)->orderBy('sr_no')->select('id', 'name')->get();
 
         return response()->json(['success' => true, 'data' => $data, 'message' => 'list of variations']);
     }
@@ -1295,7 +1367,7 @@ class FoodController extends Controller
             return response()->json(['success' => false, 'data' => [], 'message' => 'Food variation not found']);
         }
 
-        $data = VariationOption::where('food_id', $food_id)->where('variation_id', $id)->orderBy('name', 'asc')->select('id', 'option_name as name')->get();
+        $data = VariationOption::where('food_id', $food_id)->where('variation_id', $id)->orderBy('sr_no')->select('id', 'option_name as name')->get();
 
         return response()->json(['success' => true, 'data' => $data, 'message' => 'list of variations']);
     }

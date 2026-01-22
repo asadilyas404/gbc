@@ -56,7 +56,7 @@
                 <div id="orders">
                     <div class="row">
                         @foreach ($data['orders'] as $order)
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-4 mb-2" id="{{ $order->id }}">
                                 <div class="card" id="{{ $order->kitchen_status }}">
                                     <div class="card-body">
                                         <div class="d-flex justify-content-between">
@@ -86,10 +86,18 @@
                                         <div class="d-flex justify-content-between">
                                             @if ($order->kitchen_status == 'ready')
                                                 <div class="text-right">
-                                                    <button class="btn btn-danger btn-sm btn-style deliverOrder btn-block"
+                                                    <button class="btn btn-danger btn-sm btn-style orderCompleted btn-block"
                                                         data-id="{{ $order->id }}">
                                                         <i class="tio-shopping-cart"></i>
                                                         Handed Over
+                                                    </button>
+                                                </div>
+                                            @elseif ($order->kitchen_status == 'cooking')
+                                                <div class="text-right">
+                                                    <button class="btn btn-primary btn-sm btn-style orderReady btn-block"
+                                                        data-id="{{ $order->id }}">
+                                                        <i class="tio-checkmark-circle"></i>
+                                                        Order Ready
                                                     </button>
                                                 </div>
                                             @else
@@ -118,7 +126,7 @@
                                                     x 
                                                     <strong>{{ $detail->quantity }}</strong>
                                                 </div>
-                                                <button class="btn btn-sm btn-outline-success py-1">
+                                                <button disabled class="btn btn-sm btn-outline-success py-1">
                                                     Start Cooking
                                                 </button>
                                             </div>
@@ -235,15 +243,22 @@
                         let cookingList = data.cooking;
                         let readyList = data.ready;
                         if (orders) {
-                            let pendingCard = ``;
-                            Object.entries(pendingList).forEach(([id, item]) => {
-                                let customer = (item.customer && item.customer?.customer_name) ? item.customer
-                                    ?.customer_name : "Walk-in-Customer"
-                                pendingCard += funViewCard(customer, item, 'Start Cooking',
-                                    'startCooking');
-                            });
+                            // let pendingCard = ``;
+                            // Object.entries(pendingList).forEach(([id, item]) => {
+                            //     let customer = (item.customer && item.customer?.customer_name) ? item.customer
+                            //         ?.customer_name : "Walk-in-Customer"
+                            //     pendingCard += funViewCard(customer, item, 'Start Cooking',
+                            //         'startCooking');
+                            // });
 
-                            $('#orders').html(`<div class="row">${pendingCard}<div>`);
+                            // $('#orders').html(`<div class="row">${pendingCard}<div>`);
+                            if(type == 'completed'){
+                                $("#" + id).fadeOut(300, function () {
+                                    $(this).remove();
+                                });
+                            }else{
+                                window.location.reload();
+                            }
                         }
                         
                         updateTimers();
@@ -335,6 +350,8 @@
         $(document).on('click', '.startCooking', function() {
             const thix = $(this);
             const data_id = thix.attr('data-id');
+            thix.prop('disabled', true);
+            thix.text('Processing...');
             if (data_id) {
                 updateAllOrders('cooking', data_id);
             }
@@ -343,6 +360,8 @@
         $(document).on('click', '.orderReady', function() {
             const thix = $(this);
             const data_id = thix.attr('data-id');
+            thix.prop('disabled', true);
+            thix.text('Processing...');
             if (data_id) {
                 updateAllOrders('ready', data_id);
             }
@@ -351,6 +370,8 @@
         $(document).on('click', '.orderCompleted', function() {
             const thix = $(this);
             const data_id = thix.attr('data-id');
+            thix.prop('disabled', true);
+            thix.text('Processing...');
             if (data_id) {
                 updateAllOrders('completed', data_id);
             }

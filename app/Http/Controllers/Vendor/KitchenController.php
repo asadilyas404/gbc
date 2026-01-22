@@ -29,6 +29,9 @@ class KitchenController extends Controller
 
     public function getOrderList()
     {
+        $branchId = Helpers::get_restaurant_id();
+        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+        $orderDate = $branch ? $branch->orders_date : null;
         $orders = Order::with('customer', 'kitchen_log','details', 'details.food', 'details.food.latestKitchenLog')
             ->whereIn('kitchen_status', [
                 Helpers::kitchenStatus('pending')['key'],
@@ -36,6 +39,7 @@ class KitchenController extends Controller
                 Helpers::kitchenStatus('ready')['key']
             ])
             ->select('id', 'order_amount', 'order_type', 'kitchen_status', 'order_serial', 'order_date')
+            ->where('order_date', $orderDate)
             ->orderBy('created_at', 'desc')->get();
 
         $pending = [];
@@ -55,7 +59,6 @@ class KitchenController extends Controller
                 $pending[] = $order;
             }
             if ($order->kitchen_status == 'cooking') {
-
                 $cooking[] = $order;
             }
             if ($order->kitchen_status == 'ready') {

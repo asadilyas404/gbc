@@ -188,7 +188,7 @@ class PrintController extends Controller
 
             // Arabic text
             $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
-            $currencyImagePath = storage_path('app/public/prints/arabic_currency_text.png');
+            $currencyImagePath = public_path('assets/arabic_currency_text.png');
             ReceiptImageHelper::createArabicImageForPrinter($currencyText, $currencyImagePath, 16);
             $currencyTextimage = EscposImage::load($currencyImagePath);
 
@@ -779,7 +779,7 @@ class PrintController extends Controller
 
             // Arabic text
             $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
-            $currencyImagePath = storage_path('app/public/prints/arabic_currency_text.png');
+            $currencyImagePath = public_path('assets/arabic_currency_text.png');
             ReceiptImageHelper::createArabicImageForPrinter($currencyText, $currencyImagePath, 16);
             $currencyTextimage = EscposImage::load($currencyImagePath);
 
@@ -1162,7 +1162,7 @@ class PrintController extends Controller
 
             // Arabic text
             $currencyText = "ر.ع"; // "مرحبا بكم في مالك البيتزا"; // "Welcome to Malek Pizza"
-            $currencyImagePath = storage_path('app/public/prints/arabic_currency_text.png');
+            $currencyImagePath = public_path('assets/arabic_currency_text.png');
             ReceiptImageHelper::createArabicImageForPrinter($currencyText, $currencyImagePath, 16);
             $currencyTextimage = EscposImage::load($currencyImagePath);
 

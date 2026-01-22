@@ -1295,11 +1295,9 @@ class POSController extends Controller
                     error_log('Order detail variation field: ' . $or_d['variation']);
 
                     $order_details[] = $or_d;
-                    $allCanceled = true;
                     if($or_d['is_deleted'] == 'Y'){
                         continue;
                     }else{
-                        $allCanceled = false;
                         $total_addon_price += $or_d['total_add_on_price'];
                         $product_price += $price * $or_d['quantity'];
                         $discount_on_product += $or_d['discount_on_food'] * $or_d['quantity'];
@@ -1308,6 +1306,8 @@ class POSController extends Controller
             }
         }
 
+        $allCanceled = collect($order_details)->every(fn($od) => $od['is_deleted'] === 'Y');
+        
         $order->discount_on_product_by = 'vendor';
         $restaurant_discount = Helpers::get_restaurant_discount($restaurant);
         if (isset($restaurant_discount)) {

@@ -1467,9 +1467,9 @@
         window.addEventListener('load', function () {
             const scrollPosition = localStorage.getItem('scrollPosition');
             if (scrollPosition) {
-            window.scrollTo(0, parseInt(scrollPosition));
-            // Clear it if you only want to restore once
-            localStorage.removeItem('scrollPosition');
+                window.scrollTo(0, parseInt(scrollPosition));
+                // Clear it if you only want to restore once
+                localStorage.removeItem('scrollPosition');
             }
         });
     </script>

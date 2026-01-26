@@ -18,10 +18,31 @@ echo ===== POS UPDATE START =====
 echo Repo: %REPO%
 echo Branch: %BRANCH%
 
-echo --- git pull origin %BRANCH% ---
-"%GIT%" pull origin %BRANCH%
+echo --- git fetch origin %BRANCH% ---
+"%GIT%" fetch origin %BRANCH%
 if errorlevel 1 (
-  echo FAILED: git pull
+  echo FAILED: git fetch
+  exit /b 1
+)
+
+echo --- git reset --hard origin/%BRANCH% ---
+"%GIT%" reset --hard origin/%BRANCH%
+if errorlevel 1 (
+  echo FAILED: git reset --hard
+  exit /b 1
+)
+
+echo --- git clean -fd ---
+"%GIT%" clean -fd
+if errorlevel 1 (
+  echo FAILED: git clean
+  exit /b 1
+)
+
+echo --- composer install ---
+"%PHP%" composer.phar install --no-dev --optimize-autoloader
+if errorlevel 1 (
+  echo FAILED: composer install
   exit /b 1
 )
 

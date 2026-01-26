@@ -859,8 +859,10 @@ function escapeHtml(str) {
 }
 
 // On page load + every 5 minutes
-// posCheckForUpdates();
-// setInterval(posCheckForUpdates, 1 * 60 * 1000);
+@if (Auth::check())
+    posCheckForUpdates();
+    setInterval(posCheckForUpdates, 1 * 60 * 1000);
+@endif
 </script>
 
 

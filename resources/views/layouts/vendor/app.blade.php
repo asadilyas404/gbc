@@ -863,6 +863,7 @@ function escapeHtml(str) {
     posCheckForUpdates();
     setInterval(posCheckForUpdates, 1 * 60 * 1000);
 @endif
+
 </script>
 
 

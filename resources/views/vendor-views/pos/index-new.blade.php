@@ -2455,9 +2455,10 @@
                 updateCalculations();
             });
 
-
+            $('#cash_paid, #card_paid').prop('readOnly', true);
             $(document).on('change', 'input[name="select_payment_type"]', function() {
                 var value = $(this).val();
+                $('#cash_paid, #card_paid').prop('readOnly', false).val('').trigger('input');
                 handlePaymentTypeChange(value);
                 updateCalculations();
             });

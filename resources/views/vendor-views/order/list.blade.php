@@ -1114,8 +1114,10 @@
                 updateCalculations();
             });
 
+            $('#cash_paid, #card_paid').prop('readOnly', true);
             $(document).on('change', 'input[name="select_payment_type"]', function() {
                 var value = $(this).val();
+                $('#cash_paid, #card_paid').prop('readOnly', false).val('').trigger('input');
                 handlePaymentTypeChange(value);
             });
 
@@ -1283,7 +1285,10 @@
                         }else{
                             $('#payment_type_credit').prop('checked', false);
                             $('#payment_type_credit').prop('disabled', true);
-                            handlePaymentTypeChange('cash_payment');                        
+                            if($('input[name="select_payment_type"]:checked').length > 0){
+                                $('input[name="select_payment_type"]').prop('checked', false);
+                                $('#cash_paid, #card_paid').prop('readOnly', true).val('').trigger('input');
+                            }  
                         }
 
                         updateCalculations();

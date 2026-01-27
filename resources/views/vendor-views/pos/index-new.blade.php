@@ -1023,8 +1023,7 @@
                 $('#unpaidOrderBtn').hide();
             @else
                 $('#payment_type_credit_wrapper').remove();
-                // $('#payment_type_credit').prop('checked', false);
-                // $('#payment_type_credit').hide();
+                $('#cash_paid, #card_paid').prop('readonly', true);
                 $('.payment_type').prop('disabled', false);
                 $('#unpaidOrderBtn').prop('disabled', false);
             @endif   

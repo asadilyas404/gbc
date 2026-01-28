@@ -499,14 +499,20 @@ class PrintController extends Controller
 
                     // Notes
                     if ($detail->notes) {
-                        $printer->text("  Note: \n");
-                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
+                        $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                        "Note | ملحوظة " . $lrm .":",
+                            "",
+                            "",
+                            storage_path('app/public/prints/row.png')
+                        );
+                        $rowImg = EscposImage::load($rowPath, false);
+                        $printer->bitImageColumnFormat($rowImg);
+                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_' . $count++ . '_notes.png'), 20);
                         $notes = EscposImage::load($notes, false);
                         $printer->setPrintLeftMargin(40);
                         $printer->bitImageColumnFormat($notes);
                         $printer->setPrintLeftMargin(0);
                     }
-
                     $itemTotal = $detail->price * $detail->quantity;
                     $subTotal += $itemTotal - ($detail->discount_on_food * $detail->quantity);
 
@@ -529,6 +535,24 @@ class PrintController extends Controller
 
             // Order summary
             // $printer->text("Items Price: " . number_format($subTotal, 3, '.', ''));
+
+            // Order Notes
+            if ($order->order_note) {
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Order Note | ملاحظة الطلب " . $lrm .":",
+                    "",
+                    "",
+                    storage_path('app/public/prints/row.png')
+                );
+                $rowImg = EscposImage::load($rowPath, false);
+                $printer->bitImageColumnFormat($rowImg);
+                $orderNoteImage = ReceiptImageHelper::createArabicImageForPrinter($order->order_note, storage_path('app/public/prints/order_note_' . $count++ . '_order_note.png'), 20);
+                $orderNoteImage = EscposImage::load($orderNoteImage, false);
+                $printer->setPrintLeftMargin(0);
+                $printer->bitImageColumnFormat($orderNoteImage);
+                $printer->setPrintLeftMargin(0);
+                $printer->text($linedash);
+            }
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "Items Price | سعر العناصر " . $lrm . "(" . $currencyText . ") :",
@@ -909,7 +933,7 @@ class PrintController extends Controller
                         $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                         $printer->setReverseColors(true);
                         $printer->setTextSize(2, 2);
-                        $printer->text("NEW ITEM\n");
+                        $printer->text("NEW ITEM\n\n");
                         $printer->setTextSize(1, 1);
                         $printer->selectPrintMode();
                         $printer->setReverseColors(false);
@@ -919,7 +943,7 @@ class PrintController extends Controller
                         $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                         $printer->setReverseColors(true);
                         $printer->setTextSize(2, 2);
-                        $printer->text("ITEM MODIFIED\n");
+                        $printer->text("ITEM MODIFIED\n\n");
                         $printer->setTextSize(1, 1);
                         $printer->selectPrintMode();
                         $printer->setReverseColors(false);
@@ -1064,7 +1088,7 @@ class PrintController extends Controller
                     // Notes
                     if ($detail->notes) {
                         $printer->text("  Note: \n");
-                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_' . $count++ . '_arabic.png'), 20);
+                        $notes = ReceiptImageHelper::createArabicImageForPrinter($detail->notes, storage_path('app/public/prints/food_' . $count++ . '_notes.png'), 20);
                         $notes = EscposImage::load($notes, false);
                         $printer->setPrintLeftMargin(40);
                         $printer->bitImageColumnFormat($notes);
@@ -1086,7 +1110,7 @@ class PrintController extends Controller
             // Order Notes
             if ($order->order_note) {
                 $printer->text("Order Note: \n");
-                $orderNoteImage = ReceiptImageHelper::createArabicImageForPrinter($order->order_note, storage_path('app/public/prints/order_note_' . $count++ . '_arabic.png'), 20);
+                $orderNoteImage = ReceiptImageHelper::createArabicImageForPrinter($order->order_note, storage_path('app/public/prints/order_note_' . $count++ . '_order_note.png'), 20);
                 $orderNoteImage = EscposImage::load($orderNoteImage, false);
                 $printer->setPrintLeftMargin(0);
                 $printer->bitImageColumnFormat($orderNoteImage);

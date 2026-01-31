@@ -1087,6 +1087,7 @@ class POSController extends Controller
         DB::beginTransaction();
         if ($editing_order_id) {
             $order = Order::find($editing_order_id);
+            $order->is_pushed = 'N';
             // if (!$order || $order->payment_status != 'unpaid') {
             //     Toastr::error('Invalid or already paid order.');
             //     return back();
@@ -1094,7 +1095,7 @@ class POSController extends Controller
         } else {
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
-
+            $order->is_pushed = 'N';
             $branchId = Helpers::get_restaurant_id();
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
             $orderDate = $branch ? $branch->orders_date : null;
@@ -1154,7 +1155,6 @@ class POSController extends Controller
         $order->updated_at = now();
         $order->otp = rand(1000, 9999);
         $order->partner_id = $request->partner_id ?? '';
-        $order->is_pushed = 'N';
 
         // dd($request->all(), $request->partner_id);
         // Set the User ID

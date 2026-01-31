@@ -6649,4 +6649,7 @@
   'order_sent_to_the_kitchen' => 'Order sent to the kitchen',
   'Select_Payment_Method' => 'Select Payment Method',
   'order_note' => 'Order note',
+  'Discount x items' => 'Discount x items',
+  'Discount x Item\'s' => 'Discount x Item s',
+  'Actual_Price' => 'Actual Price',
 );

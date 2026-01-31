@@ -50,11 +50,19 @@
                     </span>
                 </div>
                 {{-- @if ($product->discount > 0) --}}
-                <div class="mb-3 text-dark">
+                <div class="mb-1 text-dark chosen_price_div">
+                    <strong>{{ translate('messages.Actual_Price') }}:</strong>
+                    <strong class="actual_price"></strong>
+                </div>
+                <div class="mb-1 text-dark">
                     <strong>{{ translate('messages.discount') }} : </strong>
                     <strong id="set-discount-amount">{{ Helpers::get_product_discount($product) }}</strong>
                 </div>
                 {{-- @endif --}}
+                <div class="mb-1 text-dark chosen_price_div">
+                    <strong>{{ translate('messages.Total_Price') }}:</strong>
+                    <strong class="chosen_price"></strong>
+                </div>
             </div>
         </div>
 
@@ -84,15 +92,15 @@
 
                     <div class="row justify-content-between mt-4">
                         <div class="product-description-label mt-2 text-dark h4 col-12">
-                            {{ translate('messages.Discount') }}:
+                            {{ translate("messages.Discount x Item's") }}:
                         </div>
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-6 mb-1">
                             <input type="number" class="form-control" name="product_discount" min="0.0001"
                                 id="product_discount" value="{{ $product->discount }}"
                                 onkeyup="calculateTotal()"
                                 max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                         </div>
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-6 mb-1">
                             <select name="product_discount_type" class="form-control discount-type"
                                 id="product_discount_type" onchange="calculateTotal()">
                                 <option value="amount" {{ $product['discount_type'] == 'amount' ? 'selected' : '' }}>
@@ -317,13 +325,13 @@
                         </div>
                     </div>
                     
-                    <div class="row no-gutters mt-2 text-dark" id="chosen_price_div">
+                    <div class="row no-gutters mt-2 text-dark chosen_price_div" id="chosen_price_div">
                         <div class="col-2">
                             <div class="product-description-label">{{ translate('messages.Total_Price') }}:</div>
                         </div>
                         <div class="col-10">
                             <div class="product-price">
-                                <strong id="chosen_price"></strong>
+                                <strong id="chosen_price" class="chosen_price"></strong>
                             </div>
                         </div>
                     </div>
@@ -454,11 +462,13 @@
         }
 
         // 5) Final total after discount
+        const actualPrice = subTotal + addonsTotal;
         const finalTotal = subTotal - discountAmount + addonsTotal;
 
         // 6) Update UI (adjust selectors to your HTML)
         // $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text
-        $('#chosen_price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
+        $('.actual_price').text(actualPrice.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
+        $('.chosen_price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
     }
 
 
@@ -534,8 +544,8 @@
                         }
                     } else {
                         // Update the price display
-                        $('#add-to-cart-form #chosen_price_div').removeClass('d-none');
-                        $('#add-to-cart-form #chosen_price_div #chosen_price').html(data.price);
+                        $('#add-to-cart-form .chosen_price_div').removeClass('d-none');
+                        $('#add-to-cart-form .chosen_price_div .chosen_price').html(data.price);
                         $('.add-To-Cart').removeAttr("disabled");
                         $('.increase-button').removeAttr("disabled");
                         $('#quantity_increase_button').removeAttr("disabled");

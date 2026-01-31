@@ -52,9 +52,17 @@
                 </div>
 
                 {{-- @if ($product->discount > 0 || Helpers::get_restaurant_discount($product->restaurant)) --}}
-                <div class="mb-3 text-dark">
+                <div class="mb-1 text-dark chosen_price_div">
+                    <strong>{{ translate('messages.Actual_Price') }}:</strong>
+                    <strong class="actual_price"></strong>
+                </div>
+                <div class="mb-1 text-dark">
                     <strong>{{ translate('messages.discount') }} : </strong>
                     <strong id="set-discount-amount">{{ $cart_item['discountAmount'] ?? 0 }}</strong>
+                </div>
+                <div class="mb-1 text-dark chosen_price_div">
+                    <strong>{{ translate('messages.Total_Price') }}:</strong>
+                    <strong class="chosen_price"></strong>
                 </div>
                 {{-- @endif --}}
 
@@ -91,15 +99,15 @@
                     
                     <div class="row justify-content-between mt-4">
                         <div class="product-description-label mt-2 text-dark h3 col-12">
-                            {{ translate('messages.Discount') }}:
+                            {{ translate("messages.Discount x Item's") }}:
                         </div>
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-6 mb-1">
                             <input type="number" class="form-control" name="product_discount" min="0.0001"
                                 onkeyup="calculateTotal()"
                                 id="product_discount" value="{{ $cart_item['discountAmount'] ?? 0 }}"
                                 max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                         </div>
-                        <div class="form-group col-md-6">
+                        <div class="form-group col-md-6 mb-1">
                             <select name="product_discount_type" class="form-control discount-type"
                                 id="product_discount_type" onchange="calculateTotal()">
                                 <option value="amount"
@@ -323,14 +331,14 @@
                         </div>
                     </div>
                     
-                    <div class="row no-gutters mt-2 text-dark" id="chosen_price_div">
+                    <div class="row no-gutters mt-2 text-dark chosen_price_div" id="chosen_price_div">
 
                         <div class="col-2">
                             <div class="product-description-label">{{ translate('messages.Total_Price') }}:</div>
                         </div>
                         <div class="col-10">
                             <div class="product-price">
-                                <strong id="chosen_price"></strong>
+                                <strong id="chosen_price" class="chosen_price"></strong>
                             </div>
                         </div>
                     </div>
@@ -369,6 +377,7 @@
     // getVariantPrice();
     calculateTotal(1);
     var finalTotal = 0;
+    var actualPrice = 0;
     $('#add-to-cart-form input').on('change', function() {
         // getVariantPrice();
         calculateTotal();
@@ -563,14 +572,15 @@
 
         // 5) Final total after discount
         finalTotal = subTotal - discountAmount + addonsTotal;
-
+        actualPrice = subTotal + addonsTotal;
         if(initial){
             $('#cart_item_total_price').val(finalTotal.toFixed(3));
         }
 
         // 6) Update UI (adjust selectors to your HTML)
         // $('#product-price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // e.g. visible text
-        $('#chosen_price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
+        $('.actual_price').text(actualPrice.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
+        $('.chosen_price').text(finalTotal.toFixed(3) + 'ر.ع.‏');       // hidden/input for form submit
     }
 
     (() => {

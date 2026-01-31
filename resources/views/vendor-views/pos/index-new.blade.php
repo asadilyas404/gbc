@@ -1024,11 +1024,13 @@
                 $('#unpaidOrderBtn').hide();
             @else
                 $('#payment_type_credit_wrapper').remove();
-                console.log($('input[name="select_payment_type"]:checked'));
-               if($('input[name="select_payment_type"]:checked').length > 0){
+               if ($('input[name="select_payment_type"]:checked').length > 0) {
                     $('input[name="select_payment_type"]').prop('checked', false);
-                    $('#cash_paid, #card_paid').prop('readOnly', true).val('').trigger('input');
-                }  
+                    $('#cash_paid, #card_paid')
+                    .prop('readOnly', true)
+                    .val('')
+                    .trigger('input');
+                }
                 $('.payment_type').prop('disabled', false);
                 $('#unpaidOrderBtn').prop('disabled', false);
             @endif   

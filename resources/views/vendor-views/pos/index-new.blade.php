@@ -1009,6 +1009,7 @@
         });
 
         $(document).on('click', '#orderFinalModal_btn', function(e) {
+
             @if (!empty($orderPartner))
                 $('#payment_type_credit').prop('checked', true);
                 $('.payment_type').prop('disabled', true);
@@ -1023,6 +1024,7 @@
                 $('#unpaidOrderBtn').hide();
             @else
                 $('#payment_type_credit_wrapper').remove();
+                console.log($('input[name="select_payment_type"]:checked'));
                if($('input[name="select_payment_type"]:checked').length > 0){
                     $('input[name="select_payment_type"]').prop('checked', false);
                     $('#cash_paid, #card_paid').prop('readOnly', true).val('').trigger('input');

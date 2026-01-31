@@ -444,7 +444,7 @@
             $('#set-discount-amount').text(discountValue + '%' );
         } else {
             // fixed amount
-            discountAmount = discountValue;
+            discountAmount = discountValue * $('#add_new_product_quantity').val();
             $('#set-discount-amount').text(discountAmount.toFixed(3) + 'ر.ع.‏' );
         }
 

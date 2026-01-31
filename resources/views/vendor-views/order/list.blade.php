@@ -1117,7 +1117,17 @@
             $('#cash_paid, #card_paid').prop('readOnly', true);
             $(document).on('change', 'input[name="select_payment_type"]', function() {
                 var value = $(this).val();
-                $('#cash_paid, #card_paid').prop('readOnly', false).val('').trigger('input');
+                if(value == 'cash_payment'){
+                    $('#cash_paid').prop('readOnly', false).val('').trigger('input');
+                    $('#card_paid').prop('readOnly', true).val('').trigger('input');
+                }
+                if(value == 'card_payment'){
+                    $('#card_paid').prop('readOnly', false).val('').trigger('input');
+                    $('#cash_paid').prop('readOnly', true).val('').trigger('input');
+                }
+                if(value == 'both_payment'){
+                    $('#cash_paid, #card_paid').prop('readOnly', false).val('').trigger('input');
+                }
                 handlePaymentTypeChange(value);
             });
 

@@ -861,6 +861,17 @@ function escapeHtml(str) {
 // On page load + every 5 minutes
 // posCheckForUpdates();
 // setInterval(posCheckForUpdates, 1 * 60 * 1000);
+
+$(document).on('wheel', 'input[type=number]', function () {
+    $(this).blur();
+});
+
+$(document).on('keydown', 'input[type=number]', function (e) {
+    if (e.which === 38 || e.which === 40) {
+        e.preventDefault();
+    }
+});
+
 </script>
 
 

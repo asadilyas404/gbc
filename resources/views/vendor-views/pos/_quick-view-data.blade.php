@@ -115,8 +115,8 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="row justify-content-between mt-4">
+
+                    <div class="row justify-content-between mt-1">
                         <div class="product-description-label mt-2 text-dark h4 col-12">
                             {{ translate("messages.Discount x Item's") }}:
                         </div>

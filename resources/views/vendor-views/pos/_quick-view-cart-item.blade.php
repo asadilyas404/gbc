@@ -124,6 +124,45 @@
                             </select>
                         </div>
                     </div>
+                    <!-- Quantity + Add to cart -->
+                    <div class="d-flex justify-content-between mt-4">
+                        <div class="product-description-label mt-2 text-dark h3">
+                            {{ translate('messages.quantity') }}:
+                        </div>
+                        <div class="product-quantity d-flex align-items-center">
+                            <div class="input-group input-group--style-2 pr-3 w-160px">
+                                @php($disableMinus = false)
+                                <span class="input-group-btn">
+                                    <button class="btn btn-number text-dark" type="button"
+                                        data-type="minus"
+                                        data-field="quantity"
+                                        data-editing="{{ (int)($cart_item['draft_product'] ?? 0) }}"
+                                        {{ $disableMinus ? 'disabled' : '' }}
+                                    >
+                                        <i class="tio-remove font-weight-bold"></i>
+                                    </button>
+                                </span>
+                                <label for="add_new_product_quantity">
+                                </label>
+                                <input id="add_new_product_quantity" type="text" name="quantity"
+                                    class="form-control input-number text-center cart-qty-field" placeholder="1"
+                                    value="{{ $cart_item['quantity'] }}" min="1" readonly
+                                    data-maximum_cart_quantity='{{ min($product->maximum_cart_quantity ?? '9999999999', $product->stock_type == 'unlimited' ? '999999999' : $product->item_stock) }}'
+                                    max="{{ $product->maximum_cart_quantity ?? '9999999999' }}">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-number text-dark"
+                                            type="button"
+                                            id="quantity_increase_button"
+                                            data-type="plus"
+                                            data-field="quantity"
+                                            data-editing="{{ $cart_item['draft_product'] ?? 0 }}"
+                                    >
+                                        <i class="tio-add font-weight-bold"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
                     
                     <div class="@if ($orderPaymentStatus == 'paid') pe-none @endif">
                         @foreach (json_decode($product->variations) as $key => $choice)
@@ -291,58 +330,6 @@
                         @endforeach
                     </div>
                     <input type="hidden" hidden name="option_ids" id="option_ids">
-
-                    <!-- Quantity + Add to cart -->
-                    <div class="d-flex justify-content-between mt-4">
-                        <div class="product-description-label mt-2 text-dark h3">
-                            {{ translate('messages.quantity') }}:
-                        </div>
-                        <div class="product-quantity d-flex align-items-center">
-                            <div class="input-group input-group--style-2 pr-3 w-160px">
-                                @php($disableMinus = false)
-                                <span class="input-group-btn">
-                                    <button class="btn btn-number text-dark" type="button"
-                                        data-type="minus"
-                                        data-field="quantity"
-                                        data-editing="{{ (int)($cart_item['draft_product'] ?? 0) }}"
-                                        {{ $disableMinus ? 'disabled' : '' }}
-                                    >
-                                        <i class="tio-remove font-weight-bold"></i>
-                                    </button>
-                                </span>
-                                <label for="add_new_product_quantity">
-                                </label>
-                                <input id="add_new_product_quantity" type="text" name="quantity"
-                                    class="form-control input-number text-center cart-qty-field" placeholder="1"
-                                    value="{{ $cart_item['quantity'] }}" min="1" readonly
-                                    data-maximum_cart_quantity='{{ min($product->maximum_cart_quantity ?? '9999999999', $product->stock_type == 'unlimited' ? '999999999' : $product->item_stock) }}'
-                                    max="{{ $product->maximum_cart_quantity ?? '9999999999' }}">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-number text-dark"
-                                            type="button"
-                                            id="quantity_increase_button"
-                                            data-type="plus"
-                                            data-field="quantity"
-                                            data-editing="{{ $cart_item['draft_product'] ?? 0 }}"
-                                    >
-                                        <i class="tio-add font-weight-bold"></i>
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row no-gutters mt-2 text-dark chosen_price_div" id="chosen_price_div">
-
-                        <div class="col-2">
-                            <div class="product-description-label">{{ translate('messages.Total_Price') }}:</div>
-                        </div>
-                        <div class="col-10">
-                            <div class="product-price">
-                                <strong id="chosen_price" class="chosen_price"></strong>
-                            </div>
-                        </div>
-                    </div>
                     <div class="row no-gutters mt-2 text-dark" id="notes_div">
                         <div class="col-2">
                             <div class="product-description-label">{{ translate('messages.Notes') }}:</div>

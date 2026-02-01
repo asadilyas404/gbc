@@ -115,6 +115,31 @@
                             </select>
                         </div>
                     </div>
+                    <div class="d-flex justify-content-between mt-1">
+                        <div class="product-description-label mt-2 text-dark h3">{{ translate('messages.quantity') }}:
+                        </div>
+                        <div class="product-quantity d-flex align-items-center">
+                            <div class="input-group input-group--style-2 pr-3 w-160px">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-number text-dark p--10px" type="button" data-type="minus"
+                                        data-field="quantity">
+                                        <i class="tio-remove font-weight-bold"></i>
+                                    </button>
+                                </span>
+                                <input type="text" name="quantity" id="add_new_product_quantity"
+                                    class="form-control input-number text-center cart-qty-field" placeholder="1"
+                                    value="1" min="1"
+                                    data-maximum_cart_quantity='{{ min($product->maximum_cart_quantity ?? '9999999999', $product->stock_type == 'unlimited' ? '999999999' : $product->item_stock) }}'
+                                    max="{{ $product->maximum_cart_quantity ?? '9999999999' }}">
+                                <span class="input-group-btn">
+                                    <button class="btn btn-number text-dark p--10px" id="quantity_increase_button"
+                                        type="button" data-type="plus" data-field="quantity">
+                                        <i class="tio-add  font-weight-bold"></i>
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
 
                     @php ($add_ons = json_decode($product->add_ons)); $index = 0; @endphp
 
@@ -299,43 +324,6 @@
                     @endforeach
 
                     <input type="hidden" hidden name="option_ids" id="option_ids">
-
-                    <div class="d-flex justify-content-between mt-1">
-                        <div class="product-description-label mt-2 text-dark h3">{{ translate('messages.quantity') }}:
-                        </div>
-                        <div class="product-quantity d-flex align-items-center">
-                            <div class="input-group input-group--style-2 pr-3 w-160px">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-number text-dark p--10px" type="button" data-type="minus"
-                                        data-field="quantity">
-                                        <i class="tio-remove font-weight-bold"></i>
-                                    </button>
-                                </span>
-                                <input type="text" name="quantity" id="add_new_product_quantity"
-                                    class="form-control input-number text-center cart-qty-field" placeholder="1"
-                                    value="1" min="1"
-                                    data-maximum_cart_quantity='{{ min($product->maximum_cart_quantity ?? '9999999999', $product->stock_type == 'unlimited' ? '999999999' : $product->item_stock) }}'
-                                    max="{{ $product->maximum_cart_quantity ?? '9999999999' }}">
-                                <span class="input-group-btn">
-                                    <button class="btn btn-number text-dark p--10px" id="quantity_increase_button"
-                                        type="button" data-type="plus" data-field="quantity">
-                                        <i class="tio-add  font-weight-bold"></i>
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="row no-gutters mt-2 text-dark chosen_price_div" id="chosen_price_div">
-                        <div class="col-2">
-                            <div class="product-description-label">{{ translate('messages.Total_Price') }}:</div>
-                        </div>
-                        <div class="col-10">
-                            <div class="product-price">
-                                <strong id="chosen_price" class="chosen_price"></strong>
-                            </div>
-                        </div>
-                    </div>
                     <div class="row no-gutters mt-2 text-dark" id="notes_div">
                         <div class="col-2">
                             <div class="product-description-label">{{ translate('messages.Notes') }}:</div>

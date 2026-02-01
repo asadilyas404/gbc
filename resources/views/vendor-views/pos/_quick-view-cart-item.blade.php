@@ -97,33 +97,6 @@
                         @endif
                     @endforeach
                     
-                    <div class="row justify-content-between mt-4">
-                        <div class="product-description-label mt-2 text-dark h3 col-12">
-                            {{ translate("messages.Discount x Item's") }}:
-                        </div>
-                        <div class="form-group col-md-6 mb-1">
-                            <input type="number" class="form-control" name="product_discount" min="0.0001"
-                                onwheel="this.blur()"
-                                onkeyup="calculateTotal()"
-                                id="product_discount" value="{{ $cart_item['discountAmount'] ?? 0 }}"
-                                max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
-                        </div>
-                        <div class="form-group col-md-6 mb-1">
-                            <select name="product_discount_type" class="form-control discount-type"
-                                id="product_discount_type" onchange="calculateTotal()">
-                                <option value="amount"
-                                    {{ ($cart_item['discountType'] ?? '') == 'amount' ? 'selected' : '' }}>
-                                    {{ translate('messages.amount') }}
-                                    ({{ Helpers::currency_symbol() }})
-                                </option>
-                                <option value="percent"
-                                    {{ ($cart_item['discountType'] ?? '') == 'percent' ? 'selected' : '' }}>
-                                    {{ translate('messages.percent') }}
-                                    (%)
-                                </option>
-                            </select>
-                        </div>
-                    </div>
                     <!-- Quantity + Add to cart -->
                     <div class="d-flex justify-content-between mt-4">
                         <div class="product-description-label mt-2 text-dark h3">
@@ -161,6 +134,34 @@
                                     </button>
                                 </span>
                             </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row justify-content-between mt-4">
+                        <div class="product-description-label mt-2 text-dark h3 col-12">
+                            {{ translate("messages.Discount x Item's") }}:
+                        </div>
+                        <div class="form-group col-md-6 mb-1">
+                            <input type="number" class="form-control" name="product_discount" min="0.0001"
+                                onwheel="this.blur()"
+                                onkeyup="calculateTotal()"
+                                id="product_discount" value="{{ $cart_item['discountAmount'] ?? 0 }}"
+                                max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
+                        </div>
+                        <div class="form-group col-md-6 mb-1">
+                            <select name="product_discount_type" class="form-control discount-type"
+                                id="product_discount_type" onchange="calculateTotal()">
+                                <option value="amount"
+                                    {{ ($cart_item['discountType'] ?? '') == 'amount' ? 'selected' : '' }}>
+                                    {{ translate('messages.amount') }}
+                                    ({{ Helpers::currency_symbol() }})
+                                </option>
+                                <option value="percent"
+                                    {{ ($cart_item['discountType'] ?? '') == 'percent' ? 'selected' : '' }}>
+                                    {{ translate('messages.percent') }}
+                                    (%)
+                                </option>
+                            </select>
                         </div>
                     </div>
                     

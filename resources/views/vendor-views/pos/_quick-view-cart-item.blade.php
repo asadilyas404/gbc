@@ -102,7 +102,7 @@
                             {{ translate("messages.Discount x Item's") }}:
                         </div>
                         <div class="form-group col-md-6 mb-1">
-                            <input type="number" class="form-control" name="product_discount" min="0.0001"
+                            <input type="text" class="form-control" name="product_discount" min="0.0001"
                                 onwheel="this.blur()"
                                 onkeyup="calculateTotal()"
                                 id="product_discount" value="{{ $cart_item['discountAmount'] ?? 0 }}"

@@ -608,9 +608,6 @@
                                                 @if ($order->pos_details->car_number)
                                                     <div>Car: {{ $order->pos_details->car_number }}</div>
                                                 @endif
-                                                @if ($order->pos_details->phone)
-                                                    <div>Phone: {{ $order->pos_details->phone }}</div>
-                                                @endif
                                             @else
                                                 <label
                                                     class="badge badge-danger">{{ translate('messages.invalid_customer_data') }}</label>

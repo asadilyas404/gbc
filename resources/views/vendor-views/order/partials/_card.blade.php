@@ -50,7 +50,6 @@
                     {{ $order->customer['customer_mobile_no'] }}
                 @elseif($order->pos_details)
                     {{ $order->pos_details->customer_name ?? '-' }}<br>
-                    Phone: {{ $order->pos_details->phone ?? '-' }} &nbsp;
                     Car No. {{ $order->pos_details->car_number ?? '-' }}
                 @endif
             </div>

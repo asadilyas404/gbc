@@ -10,6 +10,7 @@ use App\CentralLogics\Helpers;
 use App\Models\VendorEmployee;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
+use App\Jobs\SyncOrdersJob;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 
@@ -119,21 +120,33 @@ class ShiftSessionController extends Controller
 
         try {
             $closingData = [
-                'closing_cash' => $request->closing_cash,
-                'closing_visa' => $request->closing_visa,
+                'closing_cash'     => $request->closing_cash,
+                'closing_visa'     => $request->closing_visa,
                 'closing_incharge' => $request->closing_incharge,
-                'verified' => 0,
-                'is_pushed' => 'N'
+                'verified'         => 0,
+                'is_pushed'        => 'N',
             ];
 
             $currentSession->closeSession($closingData);
-
-            Toastr::success('Shift session closed successfully!');
-            return back();
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Toastr::error('Failed to close shift session. Please try again.');
             return back();
         }
+
+        // Shift closed successfully, now try syncing
+        try {
+            SyncOrdersJob::dispatchSync();
+            Toastr::success('Shift session closed & synced successfully!');
+        } catch (\Throwable $e) {
+            \Log::error('SyncOrdersJob failed after session close', [
+                'session_id' => $currentSession->id ?? null,
+                'message'    => $e->getMessage(),
+            ]);
+
+            Toastr::warning('Shift session closed successfully, but order sync failed. Please try syncing again.');
+        }
+
+        return back();
     }
 
     public function getShiftDetails($shiftId)

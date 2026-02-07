@@ -14,8 +14,10 @@ class OrderObserver
      */
     public function created(Order $order)
     {
-        $order->is_pushed = 'N';
-        $order->save();
+        if ($order->is_pushed !== 'N') {
+            $order->is_pushed = 'N';
+            $order->saveQuietly(); // does NOT trigger events
+        }
     }
 
     /**
@@ -26,8 +28,15 @@ class OrderObserver
      */
     public function updated(Order $order)
     {
-        $order->is_pushed = 'N';
-        $order->save();
+        // If only is_pushed changed, don't re-trigger
+        if ($order->wasChanged(['is_pushed']) && $order->is_pushed === 'N') {
+            return;
+        }
+
+        if ($order->is_pushed !== 'N') {
+            $order->is_pushed = 'N';
+            $order->saveQuietly();
+        }
     }
 
     /**

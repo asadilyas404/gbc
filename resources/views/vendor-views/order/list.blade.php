@@ -267,6 +267,7 @@
                             </a>
 
                             <p class="my-1"><strong>Last Sync At:</strong> {{ $lastSync ?? '-' }}</p>
+                            <p class="my-1"><strong>Pending Sync:</strong> {{ $pendingSync ?? 0 }}</p>
                         </div>
                     </div>
                 </div>

@@ -187,10 +187,10 @@ class OrderController extends Controller
         });
 
         $lastSync = DB::table('branch_sync_state')->where('restaurant_id', Helpers::get_restaurant_id())->value('last_synced_at');
-
+        $pendingSync = Order::where('restaurant_id', Helpers::get_restaurant_id())->where('is_pushed', 'N')->count();
         $st=$status;
         $status = translate('messages.'.$status);
-        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders','canceledOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount','deletedItems','creditCustomerAmount', 'creditPartnerAmount', 'lastSync'));
+        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders','canceledOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount','deletedItems','creditCustomerAmount', 'creditPartnerAmount', 'lastSync', 'pendingSync'));
     }
 
     public function search(Request $request){

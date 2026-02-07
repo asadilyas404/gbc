@@ -265,7 +265,8 @@
                             <a href="{{ route('vendor.order.sync.orders') }}" class="btn max-sm-12 btn--primary w-100">
                                 Sync Orders
                             </a>
-                            <p>Last Sync: {{ $lastSync ?? '-' }}</p>
+
+                            <p class="my-1"><strong>Last Sync At:</strong> {{ $lastSync ?? '-' }}</p>
                         </div>
                     </div>
                 </div>

@@ -34,6 +34,6 @@ class EventServiceProvider extends ServiceProvider
     {
         BusinessSetting::observe(BusinessSettingObserver::class);
         DataSetting::observe(DataSettingObserver::class);
-        Order::observe(OrderObserver::class);
+        // Order::observe(OrderObserver::class);
     }
 }

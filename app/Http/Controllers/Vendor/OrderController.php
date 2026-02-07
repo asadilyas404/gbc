@@ -1460,9 +1460,29 @@ class OrderController extends Controller
 
     public function sync()
     {
+        if(!$this->isInternetAvailable()) {
+            Toastr::error('No internet connection. Please check your connection and try again.');
+            return back();
+        }
+        
         SyncOrdersJob::dispatchSync();
         Toastr::success('Orders Sync completed!');
         return back();
+    }
+
+    function isInternetAvailable(): bool
+    {
+        try {
+            $connected = @fsockopen("8.8.8.8", 53, $errno, $errstr, 3);
+            if ($connected) {
+                fclose($connected);
+                return true;
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return false;
     }
 
     public function printCanacledOrderItems(Request $request){

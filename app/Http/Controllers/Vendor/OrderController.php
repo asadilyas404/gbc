@@ -186,9 +186,11 @@ class OrderController extends Controller
             $order->deleted_items_count = $deletedCount;
         });
 
+        $lastSync = DB::table('branch_sync_state')->where('restaurant_id', Helpers::get_restaurant_id())->value('last_synced_at');
+
         $st=$status;
         $status = translate('messages.'.$status);
-        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders','canceledOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount','deletedItems','creditCustomerAmount', 'creditPartnerAmount'));
+        return view('vendor-views.order.list', compact('orders', 'status','st', 'totalOrders', 'paidOrders', 'unpaidOrders','canceledOrders', 'totalAmount', 'paidAmount', 'unpaidAmount','canceledAmount','deletedItems','creditCustomerAmount', 'creditPartnerAmount', 'lastSync'));
     }
 
     public function search(Request $request){

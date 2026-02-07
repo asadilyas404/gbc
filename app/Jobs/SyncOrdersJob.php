@@ -32,7 +32,7 @@ class SyncOrdersJob implements ShouldQueue
                 ->table('shift_sessions')
                 ->where(function ($q) {
                     $q->where('is_pushed', '!=', 'Y')
-                      ->orWhereNull('is_pushed');
+                        ->orWhereNull('is_pushed');
                 })
                 ->get();
 
@@ -49,7 +49,7 @@ class SyncOrdersJob implements ShouldQueue
                 ->table('orders')
                 ->where(function ($q) {
                     $q->where('is_pushed', '!=', 'Y')
-                      ->orWhereNull('is_pushed');
+                        ->orWhereNull('is_pushed');
                 })
                 ->get();
 
@@ -84,7 +84,7 @@ class SyncOrdersJob implements ShouldQueue
                 $allOrdersData[] = [
                     'order'             => (array) $order,
                     'order_details'     => $orderDetails->map(fn($detail) => (array) $detail)->toArray(),
-                    'additional_details'=> $orderAdditionalDetails->map(fn($detail) => (array) $detail)->toArray(),
+                    'additional_details' => $orderAdditionalDetails->map(fn($detail) => (array) $detail)->toArray(),
                     'kitchen_status'    => $kitchenStatus->map(fn($status) => (array) $status)->toArray(),
                 ];
             }
@@ -142,6 +142,18 @@ class SyncOrdersJob implements ShouldQueue
                                 ->update(['is_pushed' => 'Y']);
                         }
 
+                        // Get the last Order and Shift Session from this chunk to update sync state
+                        $this->updateSyncState(
+                            collect($ordersChunk)->pluck('order')->toArray(),
+                            'orders'
+                        );
+
+                        $this->updateSyncState(
+                            $shiftChunk,
+                            'shift_sessions'
+                        );
+
+
                         Log::info('Orders chunk synced successfully', [
                             'chunk'                  => $index + 1,
                             'orders_count'           => count($orderIds),
@@ -177,6 +189,41 @@ class SyncOrdersJob implements ShouldQueue
             Log::error('SyncOrdersJob failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+        }
+    }
+
+    function updateSyncState(array $chunk, string $entityType, string $dateKey = 'updated_at')
+    {
+        if (empty($chunk)) {
+            return;
+        }
+
+        // Always get the latest updated_at safely
+        $latestSyncedAt = collect($chunk)
+            ->pluck($dateKey)
+            ->filter()
+            ->sort()
+            ->last();
+
+        if (!$latestSyncedAt) {
+            return;
+        }
+
+        try {
+            DB::table('branch_sync_state')->updateOrInsert(
+                [
+                    'restaurant_id' => config('constants.branch_id'),
+                    'entity_type'   => $entityType,
+                ],
+                [
+                    'last_synced_at' => Carbon::parse($latestSyncedAt),
+                    'updated_at'     => now(),
+                ]
+            );
+        } catch (\Exception $e) {
+            logger()->error("Sync state update failed for {$entityType}", [
+                'error' => $e->getMessage(),
             ]);
         }
     }

@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
-use App\Models\BusinessSetting;
+use App\Models\Order;
 use App\Models\DataSetting;
-use App\Observers\BusinessSettingObserver;
+use App\Models\BusinessSetting;
+use App\Observers\OrderObserver;
 use App\Observers\DataSettingObserver;
 use Illuminate\Auth\Events\Registered;
+use App\Observers\BusinessSettingObserver;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
 
@@ -32,5 +34,6 @@ class EventServiceProvider extends ServiceProvider
     {
         BusinessSetting::observe(BusinessSettingObserver::class);
         DataSetting::observe(DataSettingObserver::class);
+        Order::observe(OrderObserver::class);
     }
 }

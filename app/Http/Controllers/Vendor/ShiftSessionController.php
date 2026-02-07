@@ -135,8 +135,12 @@ class ShiftSessionController extends Controller
 
         // Shift closed successfully, now try syncing
         try {
-            SyncOrdersJob::dispatchSync();
-            Toastr::success('Shift session closed & synced successfully!');
+            if($this->isInternetAvailable()) {
+                SyncOrdersJob::dispatchSync();
+                Toastr::success('Shift session closed & synced started running successfully!');
+            }else {
+                Toastr::warning('Shift session closed successfully, but no internet connection for syncing. Please try syncing again when you have a connection.');
+            }
         } catch (\Throwable $e) {
             \Log::error('SyncOrdersJob failed after session close', [
                 'session_id' => $currentSession->id ?? null,
@@ -147,6 +151,21 @@ class ShiftSessionController extends Controller
         }
 
         return back();
+    }
+
+    function isInternetAvailable(): bool
+    {
+        try {
+            $connected = @fsockopen("8.8.8.8", 53, $errno, $errstr, 3);
+            if ($connected) {
+                fclose($connected);
+                return true;
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return false;
     }
 
     public function getShiftDetails($shiftId)

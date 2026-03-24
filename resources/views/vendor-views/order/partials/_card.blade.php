@@ -48,7 +48,7 @@
                 @elseif($order->customer)
                     {{ $order->customer['customer_name'] }}<br>
                     Phone # {{ $order->customer['customer_mobile_no'] }}<br>
-                    Car No. <strong><u>{{ $order->customer['car_number'] ?? '-' }}</u></strong>
+                    Car No. <strong><u>{{ $order->customer['customer_car_number'] ?? '-' }}</u></strong>
                     
                 @elseif($order->pos_details)
                     {{ $order->pos_details->customer_name ?? '-' }}<br>

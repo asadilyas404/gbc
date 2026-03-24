@@ -781,7 +781,7 @@ class PrintController extends Controller
             $orderId = $request->input('order_id') ?: $request->query('order_id');
 
             // Find the order
-            $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details'])
+            $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details','customer'])
                 ->where('id', $orderId)
                 ->first();
 
@@ -881,10 +881,13 @@ class PrintController extends Controller
                 if ($order->pos_details->phone) {
                     $printer->text("Phone: " . $order->pos_details->phone . "\n");
                 }
+                
+                $carNumber = optional($order->pos_details)->car_number
+                    ?: (optional($order->customer)->car_number ?: '-');
 
-                if ($order->pos_details->car_number) {
-                    $printer->text("Car No: " . $order->pos_details->car_number . "\n");
-                }
+                $printer->setReverseColors(true);
+                $printer->text("Car No: " . $carNumber . "\n");
+                $printer->setReverseColors(false);
             }
 
             if ($order->takenBy) {

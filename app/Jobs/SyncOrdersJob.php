@@ -125,7 +125,16 @@ class SyncOrdersJob implements ShouldQueue
                             'shift_sessions' => $shiftChunk ?? [],   // can be []
                         ]);
 
-                    if ($response->successful()) {
+                    $responseData = $response->json();
+
+                    $isReallySynced =
+                        $response->successful()
+                        && is_array($responseData)
+                        && ($responseData['success'] ?? false) === true
+                        && ($responseData['failed'] ?? 0) == 0
+                        && ($responseData['shift_sessions_failed'] ?? 0) == 0;
+
+                    if ($isReallySynced) {
                         // Mark orders pushed
                         if (!empty($orderIds)) {
                             DB::connection('oracle')

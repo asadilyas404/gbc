@@ -48,11 +48,14 @@
                 @elseif($order->customer)
                     {{ $order->customer['customer_name'] }}<br>
                     {{ $order->customer['customer_mobile_no'] }}
+                    Car No. <strong><u>{{ $order->customer['car_number'] ?? '-' }}</u></strong>
+                    
                 @elseif($order->pos_details)
                     {{ $order->pos_details->customer_name ?? '-' }}<br>
-                    Car No. {{ $order->pos_details->car_number ?? '-' }}
+                    Car No. <strong><u>{{ $order->pos_details->car_number ?? '-' }}</u></strong>
                 @endif
             </div>
+
 
             <div class="text-muted">
                 <strong>{{ translate('messages.order_taken_by') }}:</strong>

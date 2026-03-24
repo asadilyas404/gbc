@@ -1170,6 +1170,7 @@ class POSController extends Controller
                 $customer->customer_name = $request->customer_name ?? $customer->customer_name;
                 $customer->customer_email = $request->customer_email ?? $customer->customer_email;
                 $order->user_id = $customer->customer_id;
+                $order->customer_car_number = $request->car_number ?? $customer->car_number;
                 $customer->is_pushed = 'N';
                 $customer->save();
             }else{
@@ -1180,6 +1181,7 @@ class POSController extends Controller
                     'customer_name' => $request->customer_name ?? 'Customer - ' . $request->phone,
                     'customer_mobile_no' => $request->phone,
                     'customer_email' => $request->customer_email ?? null,
+                    'car_number' => $request->car_number ?? null,
                     'customer_user_id' => $authUserId,
                     'business_id' => 1,
                     'company_id' => 1,
@@ -1692,6 +1694,7 @@ class POSController extends Controller
             'customer_mobile_no' => $request['phone'],
             'customer_email' => $request['email'],
             'customer_user_id' => $authUserId,
+            'customer_car_number' => $request['car_number'] ?? null,
             'business_id' => 1,
             'company_id' => 1,
             'branch_id' => $branchId,

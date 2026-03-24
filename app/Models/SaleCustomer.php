@@ -20,7 +20,8 @@ class SaleCustomer extends Model
         'business_id',
         'company_id',
         'branch_id',
-        'customer_id'
+        'customer_id',
+        'customer_car_number'
     ];
 
     protected $casts = [

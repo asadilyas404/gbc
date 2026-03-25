@@ -14,3 +14,5 @@ npm-debug.log
 yarn-error.log
 error_log
 /storage/tmp/
+run-schedule-hidden.vbs
+run-schedule.cmd

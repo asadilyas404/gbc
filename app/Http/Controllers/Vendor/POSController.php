@@ -1178,7 +1178,7 @@ class POSController extends Controller
                 $customer = SaleCustomer::create([
                     'customer_code' => SaleCustomer::generateCustomerCode(),
                     'customer_type' => '19148225011030',
-                    'customer_name' => $request->customer_name ?? 'Customer - ' . $request->phone,
+                    'customer_name' => $request->customer_name ?? '-',
                     'customer_mobile_no' => $request->phone,
                     'customer_email' => $request->customer_email ?? null,
                     'customer_car_number' => $request->car_number ?? null,

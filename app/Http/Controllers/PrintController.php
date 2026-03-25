@@ -882,12 +882,13 @@ class PrintController extends Controller
                     $printer->text("Phone: " . $order->pos_details->phone . "\n");
                 }
                 
-                $carNumber = optional($order->pos_details)->car_number
-                    ?: (optional($order->customer)->car_number ?: '-');
+                $carNumber = optional($order->pos_details)->car_number ?? '';
 
-                $printer->setReverseColors(true);
-                $printer->text("Car No: " . $carNumber . "\n");
-                $printer->setReverseColors(false);
+                if(!empty($carNumber)) {
+                    $printer->setReverseColors(true);
+                    $printer->text("Car No: " . $carNumber . "\n");
+                    $printer->setReverseColors(false);
+                }
             }
 
             if ($order->takenBy) {

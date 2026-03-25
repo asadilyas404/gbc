@@ -41,6 +41,9 @@
             <!-- Customer Info -->
             <div class="text-muted mb-1">
                 <strong>{{ translate('messages.customer_information') }}:</strong><br>
+                @php
+                    $carNumber = optional($order->pos_details)->car_number ?: '-';
+                @endphp
                 @if ($order->is_guest)
                     @php $cust = json_decode($order['delivery_address'], true); @endphp
                     {{ $cust['contact_person_name'] ?? '-' }}<br>
@@ -48,11 +51,11 @@
                 @elseif($order->customer)
                     {{ $order->customer['customer_name'] }}<br>
                     Phone # {{ $order->customer['customer_mobile_no'] }}<br>
-                    Car No. <strong><u>{{ $order->customer['customer_car_number'] ?? '-' }}</u></strong>
+                    Car No. <strong><u>{{ $carNumber }}</u></strong>
                     
                 @elseif($order->pos_details)
                     {{ $order->pos_details->customer_name ?? '-' }}<br>
-                    Car No. <strong><u>{{ $order->pos_details->car_number ?? '-' }}</u></strong>
+                    Car No. <strong><u>{{ $carNumber }}</u></strong>
                 @endif
             </div>
 

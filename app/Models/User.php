@@ -59,7 +59,22 @@ class User extends Authenticatable
         'social_id' => 'integer',
     ];
 
-    protected $appends = ['image_full_url'];
+    protected $appends = ['image_full_url', 'f_name','l_name'];
+
+    public function getFNameAttribute()
+    {
+        $name = $this->attributes['name'] ?? '';
+        return explode(' ', $name)[0] ?? '';
+    }
+
+    public function getLNameAttribute()
+    {
+        $name = $this->attributes['name'] ?? '';
+        $parts = explode(' ', $name);
+        array_shift($parts);
+        return implode(' ', $parts) ?? '';
+    }
+
     public function getImageFullUrlAttribute(){
         $value = $this->image;
         if (count($this->storage) > 0) {

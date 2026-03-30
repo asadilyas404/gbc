@@ -36,19 +36,18 @@ class ProfileController extends Controller
             'f_name' => 'required|max:100',
             'l_name' => 'nullable|max:100',
             'email' => 'required|unique:'.$table.',email,'.$seller->id,
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|max:20|unique:'.$table.',phone,'.$seller->id,
+            'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|max:20|unique:'.$table.',phone,'.$seller->id,
             'image' => 'nullable|max:2048',
         ], [
             'f_name.required' => translate('messages.first_name_is_required'),
         ]);
         $seller = auth('vendor')->check()?auth('vendor')->user():auth('vendor_employee')->user();
-        $seller->f_name = $request->f_name;
-        $seller->l_name = $request->l_name;
-        $seller->phone = $request->phone;
+        $seller->name = $request->f_name . ' ' . $request->l_name;
+        $seller->mobile_no = $request->phone;
         $seller->email = $request->email;
 
         if ($request->image) {
-            $seller->image = Helpers::update('vendor/', $seller->image, 'png',  $request->file('image'));
+            $seller->image_url = Helpers::update('vendor/', $seller->image, 'png',  $request->file('image'));
         }
         $seller->save();
 
@@ -59,16 +58,13 @@ class ProfileController extends Controller
     public function settings_password_update(Request $request)
     {
         $request->validate([
-            'password' => ['required', 'same:confirm_password', Password::min(8)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
+            'password' => ['required', 'same:confirm_password', 'min:8', 'regex:/^(?=.*[A-Z])(?=.*[0-9])(?=.*[\W_]).+$/'],
             'confirm_password' => 'required',
         ],[
             'password.min_length' => translate('The password must be at least :min characters long'),
-            'password.mixed' => translate('The password must contain both uppercase and lowercase letters'),
-            'password.letters' => translate('The password must contain letters'),
-            'password.numbers' => translate('The password must contain numbers'),
-            'password.symbols' => translate('The password must contain symbols'),
-            'password.uncompromised' => translate('The password is compromised. Please choose a different one'),
-            'password.custom' => translate('The password cannot contain white spaces.'),
+            'password.regex' => translate('The password must contain at least one uppercase letter, one number, and one special character.'),
+            'confirm_password.required' => translate('The confirm password field is required.'),
+            'password.same' => translate('The password and confirm password must match.'),
         ]);
 
         $seller = auth('vendor')->check()?Helpers::get_vendor_data():auth('vendor_employee')->user();

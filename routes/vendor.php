@@ -319,7 +319,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('/sync/branches-restaurants', 'BusinessSettingsController@syncBranchesRestaurants')->name('sync.branches.restaurants');
         });
 
-        Route::group(['prefix' => 'profile', 'as' => 'profile.', 'middleware' => ['module:bank_info', 'subscription:bank_info']], function () {
+        Route::group(['prefix' => 'profile', 'as' => 'profile.'], function () {
             Route::get('view', 'ProfileController@view')->name('view');
             // Route::get('update', 'ProfileController@edit')->name('update');
             Route::post('update', 'ProfileController@update')->name('update');

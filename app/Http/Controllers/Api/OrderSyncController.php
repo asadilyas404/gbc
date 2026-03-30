@@ -48,54 +48,54 @@ class OrderSyncController extends Controller
         try {
             foreach ($orders as $data) {
                 try {
-                    $orderIds[] = $data['order']['id'];
+                    DB::connection('oracle')->transaction(function () use ($data, &$orderIds, &$syncedCount) {
+                        DB::connection('oracle')
+                            ->table('orders')
+                            ->updateOrInsert(
+                                ['id' => $data['order']['id']],
+                                $data['order']
+                            );
 
-                    DB::connection('oracle')
-                        ->table('orders')
-                        ->updateOrInsert(
-                            ['id' => $data['order']['id']],
-                            $data['order']
-                        );
-
-                    if (!empty($data['order_details'])) {
-                        foreach ($data['order_details'] as $detail) {
-                            DB::connection('oracle')
-                                ->table('order_details')
-                                ->updateOrInsert(
-                                    ['id' => $detail['id']],
-                                    $detail
-                                );
-                        }
-                    }
-
-                    if (!empty($data['additional_details'])) {
-                        foreach ($data['additional_details'] as $detail) {
-                            DB::connection('oracle')
-                                ->table('pos_order_additional_dtl')
-                                ->updateOrInsert(
-                                    ['id' => $detail['id']],
-                                    $detail
-                                );
-                        }
-                    }
-
-                    if (!empty($data['kitchen_status'])) {
-                        foreach ($data['kitchen_status'] as $status) {
-                            $exists = DB::connection('oracle')
-                                ->table('kitchen_order_status_logs')
-                                ->where('id', $status['id'])
-                                ->exists();
-
-                            if (!$exists) {
+                        if (!empty($data['order_details'])) {
+                            foreach ($data['order_details'] as $detail) {
                                 DB::connection('oracle')
-                                    ->table('kitchen_order_status_logs')
-                                    ->insert($status);
+                                    ->table('order_details')
+                                    ->updateOrInsert(
+                                        ['id' => $detail['id']],
+                                        $detail
+                                    );
                             }
                         }
-                    }
 
-                    $syncedCount++;
+                        if (!empty($data['additional_details'])) {
+                            foreach ($data['additional_details'] as $detail) {
+                                DB::connection('oracle')
+                                    ->table('pos_order_additional_dtl')
+                                    ->updateOrInsert(
+                                        ['id' => $detail['id']],
+                                        $detail
+                                    );
+                            }
+                        }
 
+                        if (!empty($data['kitchen_status'])) {
+                            foreach ($data['kitchen_status'] as $status) {
+                                $exists = DB::connection('oracle')
+                                    ->table('kitchen_order_status_logs')
+                                    ->where('id', $status['id'])
+                                    ->exists();
+
+                                if (!$exists) {
+                                    DB::connection('oracle')
+                                        ->table('kitchen_order_status_logs')
+                                        ->insert($status);
+                                }
+                            }
+                        }
+
+                        $orderIds[] = $data['order']['id'];
+                        $syncedCount++;
+                    });
                 } catch (\Exception $e) {
                     $failedCount++;
                     Log::error("Failed syncing individual order in bulk", [
@@ -108,8 +108,6 @@ class OrderSyncController extends Controller
             if (!empty($shiftSessions)) {
                 foreach ($shiftSessions as $session) {
                     try {
-                        $shiftSessionIds[] = $session['session_id'];
-
                         DB::connection('oracle')
                             ->table('shift_sessions')
                             ->updateOrInsert(
@@ -117,6 +115,7 @@ class OrderSyncController extends Controller
                                 $session
                             );
 
+                        $shiftSessionIds[] = $session['session_id'];
                         $shiftSyncedCount++;
                     } catch (\Exception $e) {
                         $shiftFailedCount++;

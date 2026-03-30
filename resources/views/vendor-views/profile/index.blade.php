@@ -200,6 +200,7 @@
                                            }
                                          }' required>
 
+                                    <small>* Min 8 chars, include a mix of uppercase letters, lowercase letters, numbers & symbols.</small>
                                     <p id="passwordStrengthVerdict" class="form-text mb-2"></p>
 
                                     <div id="passwordStrengthProgress"></div>

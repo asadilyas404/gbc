@@ -22,7 +22,22 @@ class VendorEmployee extends Authenticatable
     ];
     protected $fillable = ['id','f_name','l_name','phone','email','image','employee_role_id','vendor_id','restaurant_id','password','status','remember_token','created_at','updated_at','is_pushed'];
 
-    protected $appends = ['image_full_url'];
+    protected $appends = ['image_full_url', 'f_name','l_name'];
+
+    public function getFNameAttribute()
+    {
+        $name = $this->attributes['name'] ?? '';
+        return explode(' ', $name)[0] ?? '';
+    }
+
+    public function getLNameAttribute()
+    {
+        $name = $this->attributes['name'] ?? '';
+        $parts = explode(' ', $name);
+        array_shift($parts);
+        return implode(' ', $parts) ?? '';
+    }
+    
     public function getImageFullUrlAttribute(){
         $value = $this->image;
         if (count($this->storage) > 0) {

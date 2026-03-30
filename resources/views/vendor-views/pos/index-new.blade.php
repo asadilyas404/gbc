@@ -14,7 +14,7 @@
 @endphp
 @extends('layouts.vendor.app')
 
-@section('title', translate('messages.pos'))
+@section('title', translate('messages.POS'))
 
 @section('content')
 

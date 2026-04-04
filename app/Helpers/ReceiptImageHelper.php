@@ -377,6 +377,150 @@ public static function createSingleRowImageForPrinter(
 }
 
 
+public static function createMixedRowImageForPrinter(
+    array $leftParts,
+    string $centerText,
+    string $rightText,
+    string $outputPath,
+    int $paperDots = 576,
+    int $rowHeight = 38,
+    int $padding = 8,
+    int $latinFontSize = 22,
+    int $arabicFontSize = 18,
+    bool $bold = true,
+    int $gapDots = 8
+): string {
+    $fontPath = public_path('fonts/Amiri-Regular.ttf');
+    if (!file_exists($fontPath)) {
+        throw new \Exception("Font missing: " . $fontPath);
+    }
+
+    $Arabic = new Arabic('Glyphs');
+
+    $shapeArabic = function(string $s) use ($Arabic): string {
+        return $Arabic->utf8Glyphs($s);
+    };
+
+    $measureW = function(string $txt, int $size) use ($fontPath): int {
+        if ($txt === '') return 0;
+        $box = imagettfbbox($size, 0, $fontPath, $txt);
+        return abs($box[2] - $box[0]);
+    };
+
+    $baselineY = function(string $txt, int $size, int $h) use ($fontPath): int {
+        $box = imagettfbbox($size, 0, $fontPath, $txt);
+        $textH = abs($box[7] - $box[1]);
+        return intdiv($h + $textH, 2) - 2;
+    };
+
+    $w = $paperDots;
+    $h = $rowHeight;
+
+    $im = imagecreatetruecolor($w, $h);
+    $white = imagecolorallocate($im, 255, 255, 255);
+    $black = imagecolorallocate($im, 0, 0, 0);
+    imagefilledrectangle($im, 0, 0, $w, $h, $white);
+
+    $draw = function(string $txt, int $size, int $x, int $baselineY) use ($im, $fontPath, $black, $bold) {
+        imagettftext($im, $size, 0, $x, $baselineY, $black, $fontPath, $txt);
+        if ($bold) {
+            imagettftext($im, $size, 0, $x + 1, $baselineY, $black, $fontPath, $txt);
+        }
+    };
+
+    // Prepare left mixed parts
+    $preparedLeft = [];
+    $leftTotalW = 0;
+
+    foreach ($leftParts as $part) {
+        $type = $part['type'] ?? 'latin';
+        $text = $part['text'] ?? '';
+
+        if ($type === 'arabic') {
+            $drawText = $shapeArabic($text);
+            $size = $arabicFontSize;
+        } else {
+            $drawText = $text;
+            $size = $latinFontSize;
+        }
+
+        $width = $measureW($drawText, $size);
+
+        $preparedLeft[] = [
+            'text' => $drawText,
+            'size' => $size,
+            'width' => $width,
+        ];
+
+        $leftTotalW += $width;
+    }
+
+    // Prepare center
+    $centerHasArabic = (bool) preg_match('/\p{Arabic}/u', $centerText)
+        && !(bool) preg_match('/[A-Za-z]/u', $centerText);
+
+    $centerDraw = $centerHasArabic ? $shapeArabic($centerText) : $centerText;
+    $centerSize = $centerHasArabic ? $arabicFontSize : $latinFontSize;
+    $centerW = $measureW($centerDraw, $centerSize);
+
+    // Prepare right
+    $rightHasArabic = (bool) preg_match('/\p{Arabic}/u', $rightText)
+        && !(bool) preg_match('/[A-Za-z]/u', $rightText);
+
+    $rightDraw = $rightHasArabic ? $shapeArabic($rightText) : $rightText;
+    $rightSize = $rightHasArabic ? $arabicFontSize : $latinFontSize;
+    $rightW = $measureW($rightDraw, $rightSize);
+
+    // Positions
+    $leftX = $padding;
+    $rightX = max($padding, $w - $rightW - $padding);
+
+    $centerRegionLeft  = min($w, $leftX + $leftTotalW + $gapDots);
+    $centerRegionRight = max($centerRegionLeft, $rightX - $gapDots);
+
+    $centerX = max(
+        $centerRegionLeft,
+        intdiv(($centerRegionLeft + $centerRegionRight - $centerW), 2)
+    );
+
+    if ($centerX + $centerW > $centerRegionRight) {
+        $centerX = max($centerRegionLeft, $centerRegionRight - $centerW);
+    }
+
+    // Draw right
+    if ($rightDraw !== '') {
+        $draw($rightDraw, $rightSize, $rightX, $baselineY($rightDraw, $rightSize, $h));
+    }
+
+    // Draw left mixed parts on same line
+    $cursorX = $leftX;
+    foreach ($preparedLeft as $part) {
+        if ($part['text'] !== '') {
+            $draw(
+                $part['text'],
+                $part['size'],
+                $cursorX,
+                $baselineY($part['text'], $part['size'], $h)
+            );
+            $cursorX += $part['width'];
+        }
+    }
+
+    // Draw center
+    if ($centerDraw !== '') {
+        $draw($centerDraw, $centerSize, $centerX, $baselineY($centerDraw, $centerSize, $h));
+    }
+
+    if (!is_dir(dirname($outputPath))) {
+        mkdir(dirname($outputPath), 0755, true);
+    }
+
+    imagepng($im, $outputPath);
+    imagedestroy($im);
+
+    return $outputPath;
+}
+
 
     // public static function createArabicImageForPrinter(string $text, string $fileName, int $fontSize = 20, int $printerWidth = 384, int $padding = 5)
     // {

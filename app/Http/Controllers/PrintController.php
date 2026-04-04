@@ -158,7 +158,7 @@ class PrintController extends Controller
                 ->where('id', $orderId)
                 ->first();
 
-            dd($order);
+            // dd($order);
 
             if (!$order) {
                 return response()->json([
@@ -208,17 +208,17 @@ class PrintController extends Controller
                 "",     // Arabic
                 storage_path('app/public/prints/date_row.png'),
                 576,
-                48,
+                120,
                 8,
                 22,
-                28
+                56
             );
             $rowImg = EscposImage::load($rowPath, false);
             $printer->bitImageColumnFormat($rowImg);
             $printer->setTextSize(1, 1);
             
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "CR No. | رقم السجل التجاري \u{200F} :",
+                "CR No. |  رقم السجل التجاري  \u{200F} :",
                 "",
                 1356079,
                 storage_path('app/public/prints/row.png')

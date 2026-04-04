@@ -288,12 +288,8 @@ public static function createSingleRowImageForPrinter(
 
     $Arabic = new Arabic('Glyphs');
 
-    $shapeIfArabic = function(string $s) use ($Arabic): string {
-        // shape only if the whole text is Arabic-ish
-        if (preg_match('/^[\s\p{Arabic}\d\W]+$/u', $s)) {
-            return $Arabic->utf8Glyphs($s);
-        }
-        return $s;
+    $shapeIfArabic = function(string $s) use ($Arabic, $hasArabic): string {
+        return $hasArabic($s) ? $Arabic->utf8Glyphs($s) : $s;
     };
 
     // Shape all 3

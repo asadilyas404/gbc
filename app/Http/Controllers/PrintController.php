@@ -217,12 +217,8 @@ class PrintController extends Controller
             $printer->bitImageColumnFormat($rowImg);
             $printer->setTextSize(1, 1);
             
-            $rowPath = ReceiptImageHelper::createMixedRowImageForPrinter(
-                [
-                    ['text' => 'CR No. | ', 'type' => 'latin'],
-                    ['text' => 'رقم السجل التجاري', 'type' => 'arabic'],
-                    ['text' => ':', 'type' => 'latin'],
-                ],
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "CR No. |  رقم السجل التجاري  \u{200F} :",
                 "",
                 1356079,
                 storage_path('app/public/prints/row.png')
@@ -231,12 +227,8 @@ class PrintController extends Controller
             $rowImg = EscposImage::load($rowPath, false);
             $printer->bitImageColumnFormat($rowImg);
 
-            $rowPath = ReceiptImageHelper::createMixedRowImageForPrinter(
-                [
-                    ['text' => 'VATIN | ', 'type' => 'latin'],
-                    ['text' => 'رقم التعريف الضريبي', 'type' => 'arabic'],
-                    ['text' => ':', 'type' => 'latin'],
-                ],
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "VATIN | رقم التعريف الضريبي \u{200F} :",
                 "",
                 "OM1100049948",
                 storage_path('app/public/prints/row.png')
@@ -281,12 +273,8 @@ class PrintController extends Controller
 
             $date = date('Y-m-d H:i', strtotime($order->created_at));
 
-            $rowPath = ReceiptImageHelper::createMixedRowImageForPrinter(
-                [
-                    ['text' => 'Order Date | ', 'type' => 'latin'],
-                    ['text' => 'تاريخ الطلب', 'type' => 'arabic'],
-                    ['text' => ' :', 'type' => 'latin'],
-                ],
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Date | تاريخ \u{200F} :",      // can be Arabic too
                 "",         // can be Arabic too
                 $date,     // Arabic
                 storage_path('app/public/prints/date_row.png')
@@ -294,13 +282,9 @@ class PrintController extends Controller
             $rowImg = EscposImage::load($rowPath, false);
             $printer->bitImageColumnFormat($rowImg);
 
-            $rowPath = ReceiptImageHelper::createMixedRowImageForPrinter(
-                [
-                    ['text' => 'Order Type | ', 'type' => 'latin'],
-                    ['text' => 'نوع الطلب', 'type' => 'arabic'],
-                    ['text' => ' :', 'type' => 'latin'],
-                ],
-                "",         // can be Arabic too
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Order Type | نوع الطلب \u{200F} :",
+                "",
                 ucfirst($order->order_type),
                 storage_path('app/public/prints/row.png')
             );
@@ -317,12 +301,8 @@ class PrintController extends Controller
                 // $printer->text("Customer: ");
                 // $printer->bitImageColumnFormat($customerName);
 
-                $rowPath = ReceiptImageHelper::createMixedRowImageForPrinter(
-                    [
-                        ['text' => 'Customer | ', 'type' => 'latin'],
-                        ['text' => 'اسم العميل', 'type' => 'arabic'],
-                        ['text' => ' :', 'type' => 'latin'],
-                    ],
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Customer | اسم العميل \u{200F} :",
                     "",
                     $customerName,
                     storage_path('app/public/prints/row.png')
@@ -331,13 +311,8 @@ class PrintController extends Controller
                 $printer->bitImageColumnFormat($rowImg);
 
                 if ($order->pos_details->phone) {
-                    $rowPath = ReceiptImageHelper::createMixedRowImageForPrinter(
-                        [
-                            ['text' => 'Phone | ', 'type' => 'latin'],
-                            ['text' => 'هاتف', 'type' => 'arabic'],
-                            ['text' => ' :', 'type' => 'latin'],
-                        ],
-                        "",
+                    $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                        "Phone | هاتف \u{200F} :",
                         "",
                         $order->pos_details->phone,
                         storage_path('app/public/prints/row.png')
@@ -347,12 +322,8 @@ class PrintController extends Controller
                 }
 
                 if ($order->pos_details->car_number) {
-                    $rowPath = ReceiptImageHelper::createMixedRowImageForPrinter(
-                        [
-                            ['text' => 'Car No | ', 'type' => 'latin'],
-                            ['text' => 'رقم السيارة', 'type' => 'arabic'],
-                            ['text' => ' :', 'type' => 'latin'],
-                        ],
+                    $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                        "Car No | رقم السيارة \u{200F} :",
                         "",
                         $order->pos_details->car_number,
                         storage_path('app/public/prints/row.png')
@@ -363,13 +334,8 @@ class PrintController extends Controller
             }
 
             if ($order->takenBy) {
-                $rowPath = ReceiptImageHelper::createMixedRowImageForPrinter(
-                    [
-                        ['text' => 'Order Taker | ', 'type' => 'latin'],
-                        ['text' => 'متلقي الطلب', 'type' => 'arabic'],
-                        ['text' => ' :', 'type' => 'latin'],
-                    ],
-                    "",
+                $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                    "Order Taker | متلقي الطلب \u{200F} :",
                     "",
                     $order->takenBy->name,
                     storage_path('app/public/prints/row.png')

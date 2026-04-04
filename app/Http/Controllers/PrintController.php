@@ -154,9 +154,11 @@ class PrintController extends Controller
             $orderId = $request->input('order_id') ?: $request->query('order_id');
 
             // Find the order
-            $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details'])
+            $order = Order::with(['restaurant', 'restaurant.translations', 'details.food', 'takenBy', 'pos_details'])
                 ->where('id', $orderId)
                 ->first();
+
+            dd($order);
 
             if (!$order) {
                 return response()->json([
@@ -198,9 +200,43 @@ class PrintController extends Controller
             $printer->setEmphasis(true);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->setTextSize(2, 2);
-            $printer->text($order->restaurant->name . "\n");
+            // $printer->text($order->restaurant->name . "\n");
             // $printer->text(mb_convert_encoding("مرحبا مرحبا مرحبا", "CP864", "UTF-8"));
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "",      // can be Arabic too
+                "ملك البيتزا",         // can be Arabic too
+                "",     // Arabic
+                storage_path('app/public/prints/date_row.png'),
+                576,
+                48,
+                8,
+                22,
+                28
+            );
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
             $printer->setTextSize(1, 1);
+            
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "CR No. | رقم السجل التجاري \u{200F} :",
+                "",
+                1356079,
+                storage_path('app/public/prints/row.png')
+            );
+
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "VATIN | رقم التعريف الضريبي \u{200F} :",
+                "",
+                "OM1100049948",
+                storage_path('app/public/prints/row.png')
+            );
+
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+
             $printer->text($order->restaurant->address . "\n");
             $printer->text("Phone: " . $order->restaurant->phone . "\n");
             $printer->text($linedash);
@@ -238,7 +274,7 @@ class PrintController extends Controller
             $date = date('Y-m-d H:i', strtotime($order->created_at));
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Date | تاريخ " . $lrm . ":",      // can be Arabic too
+                "Date | تاريخ \u{200F} :",      // can be Arabic too
                 "",         // can be Arabic too
                 $date,     // Arabic
                 storage_path('app/public/prints/date_row.png')
@@ -247,7 +283,7 @@ class PrintController extends Controller
             $printer->bitImageColumnFormat($rowImg);
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Order Type | نوع الطلب " . $lrm . ":",
+                "Order Type | نوع الطلب \u{200F} :",
                 "",
                 ucfirst($order->order_type),
                 storage_path('app/public/prints/row.png')
@@ -266,7 +302,7 @@ class PrintController extends Controller
                 // $printer->bitImageColumnFormat($customerName);
 
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Customer | اسم العميل " . $lrm . ":",
+                    "Customer | اسم العميل \u{200F} :",
                     "",
                     $customerName,
                     storage_path('app/public/prints/row.png')
@@ -276,7 +312,7 @@ class PrintController extends Controller
 
                 if ($order->pos_details->phone) {
                     $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Phone | هاتف " . $lrm . ":",
+                        "Phone | هاتف \u{200F} :",
                         "",
                         $order->pos_details->phone,
                         storage_path('app/public/prints/row.png')
@@ -287,7 +323,7 @@ class PrintController extends Controller
 
                 if ($order->pos_details->car_number) {
                     $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Car No | رقم السيارة " . $lrm . ":",
+                        "Car No | رقم السيارة \u{200F} :",
                         "",
                         $order->pos_details->car_number,
                         storage_path('app/public/prints/row.png')
@@ -299,7 +335,7 @@ class PrintController extends Controller
 
             if ($order->takenBy) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Order Taker | متلقي الطلب " . $lrm . ":",
+                    "Order Taker | متلقي الطلب \u{200F} :",
                     "",
                     $order->takenBy->name,
                     storage_path('app/public/prints/row.png')
@@ -623,7 +659,7 @@ class PrintController extends Controller
             // Payment info
             $printer->setJustification(Printer::JUSTIFY_LEFT);
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Payment Method | طريقة الدفع " . $lrm . ":",
+                "Payment Method | طريقة الدفع \u{200F} :",
                 "",
                 ucfirst(str_replace('_', ' ', $order->payment_method)),
                 storage_path('app/public/prints/row.png')

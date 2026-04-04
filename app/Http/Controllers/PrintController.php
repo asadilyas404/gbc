@@ -200,7 +200,7 @@ class PrintController extends Controller
             $printer->setEmphasis(true);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->setTextSize(2, 2);
-            // $printer->text($order->restaurant->name . "\n");
+            
             // $printer->text(mb_convert_encoding("مرحبا مرحبا مرحبا", "CP864", "UTF-8"));
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "",      // can be Arabic too
@@ -217,6 +217,8 @@ class PrintController extends Controller
             $printer->bitImageColumnFormat($rowImg);
             $printer->setTextSize(1, 1);
             
+            $printer->text($order->restaurant->name . "\n");
+
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "CR No. |  رقم السجل التجاري ",
                 "",

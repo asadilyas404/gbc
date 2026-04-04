@@ -218,7 +218,7 @@ class PrintController extends Controller
             $printer->setTextSize(1, 1);
             
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "CR No. |  رقم السجل التجاري  \u{200F} :",
+                "CR No. |  رقم السجل التجاري ",
                 "",
                 1356079,
                 storage_path('app/public/prints/row.png')
@@ -228,7 +228,7 @@ class PrintController extends Controller
             $printer->bitImageColumnFormat($rowImg);
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "VATIN | رقم التعريف الضريبي \u{200F} :",
+                "VATIN | رقم التعريف الضريبي ",
                 "",
                 "OM1100049948",
                 storage_path('app/public/prints/row.png')
@@ -274,7 +274,7 @@ class PrintController extends Controller
             $date = date('Y-m-d H:i', strtotime($order->created_at));
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Date | تاريخ \u{200F} :",      // can be Arabic too
+                "Date | تاريخ ",      // can be Arabic too
                 "",         // can be Arabic too
                 $date,     // Arabic
                 storage_path('app/public/prints/date_row.png')
@@ -283,7 +283,7 @@ class PrintController extends Controller
             $printer->bitImageColumnFormat($rowImg);
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Order Type | نوع الطلب \u{200F} :",
+                "Order Type | نوع الطلب ",
                 "",
                 ucfirst($order->order_type),
                 storage_path('app/public/prints/row.png')
@@ -302,7 +302,7 @@ class PrintController extends Controller
                 // $printer->bitImageColumnFormat($customerName);
 
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Customer | اسم العميل \u{200F} :",
+                    "Customer | اسم العميل ",
                     "",
                     $customerName,
                     storage_path('app/public/prints/row.png')
@@ -312,7 +312,7 @@ class PrintController extends Controller
 
                 if ($order->pos_details->phone) {
                     $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Phone | هاتف \u{200F} :",
+                        "Phone | هاتف ",
                         "",
                         $order->pos_details->phone,
                         storage_path('app/public/prints/row.png')
@@ -323,7 +323,7 @@ class PrintController extends Controller
 
                 if ($order->pos_details->car_number) {
                     $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Car No | رقم السيارة \u{200F} :",
+                        "Car No | رقم السيارة ",
                         "",
                         $order->pos_details->car_number,
                         storage_path('app/public/prints/row.png')
@@ -335,7 +335,7 @@ class PrintController extends Controller
 
             if ($order->takenBy) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Order Taker | متلقي الطلب \u{200F} :",
+                    "Order Taker | متلقي الطلب ",
                     "",
                     $order->takenBy->name,
                     storage_path('app/public/prints/row.png')
@@ -536,7 +536,7 @@ class PrintController extends Controller
                     // Notes
                     if ($detail->notes) {
                         $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Note | ملحوظة " . $lrm .":",
+                        "Note | ملحوظة ",
                             "",
                             "",
                             storage_path('app/public/prints/row.png')
@@ -573,7 +573,7 @@ class PrintController extends Controller
             // $printer->text("Items Price: " . number_format($subTotal, 3, '.', ''));
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Items Price | سعر العناصر " . $lrm . "(" . $currencyText . ") :",
+                "Items Price | سعر العناصر " . $lrm . "(" . $currencyText . ")",
                 "",
                 number_format($subTotal, 3, '.', ''),
                 storage_path('app/public/prints/row.png')
@@ -584,7 +584,7 @@ class PrintController extends Controller
             // $printer->bitImageColumnFormat($currencyTextimage);
             // $printer->text("\n");
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Add-ons | الإضافات " . $lrm . "(" . $currencyText . ") :",
+                "Add-ons | الإضافات " . $lrm . "(" . $currencyText . ")",
                 "",
                 number_format($addOnsCost, 3, '.', ''),
                 storage_path('app/public/prints/row.png')
@@ -594,7 +594,7 @@ class PrintController extends Controller
 
             $subTotalWithAddons = $subTotal + $addOnsCost;
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Subtotal | المجموع الفرعي " . $lrm . "(" . $currencyText . ") :",
+                "Subtotal | المجموع الفرعي " . $lrm . "(" . $currencyText . ")",
                 "",
                 number_format($subTotalWithAddons, 3, '.', ''),
                 storage_path('app/public/prints/row.png')
@@ -604,7 +604,7 @@ class PrintController extends Controller
 
             if ($order->restaurant_discount_amount > 0) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Discount On Bill | خصم على الفاتورة " . $lrm . "(" . $currencyText . ") :",
+                    "Discount On Bill | خصم على الفاتورة " . $lrm . "(" . $currencyText . ")",
                     "",
                     number_format($order->restaurant_discount_amount, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -615,7 +615,7 @@ class PrintController extends Controller
 
             if ($order->tax_status == 'excluded' || $order->tax_status == null) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Tax | ضريبة " . $lrm . "(" . $currencyText . ") :",
+                    "Tax | ضريبة " . $lrm . "(" . $currencyText . ")",
                     "",
                     number_format($order->total_tax_amount, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -625,7 +625,7 @@ class PrintController extends Controller
             }
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Delivery | توصيل " . $lrm . "(" . $currencyText . ") :",
+                "Delivery | توصيل " . $lrm . "(" . $currencyText . ")",
                 "",
                 number_format($order->delivery_charge, 3, '.', ''),
                 storage_path('app/public/prints/row.png')
@@ -635,7 +635,7 @@ class PrintController extends Controller
 
             if ($order->additional_charge > 0) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Additional | إضافي " . $lrm . "(" . $currencyText . ") :",
+                    "Additional | إضافي " . $lrm . "(" . $currencyText . ")",
                     "",
                     number_format($order->additional_charge, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -647,7 +647,7 @@ class PrintController extends Controller
             $printer->text($linedash);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "TOTAL | المجموع " . $lrm . "(" . $currencyText . ") :",
+                "TOTAL | المجموع " . $lrm . "(" . $currencyText . ")",
                 "",
                 number_format($order->order_amount, 3, '.', ''),
                 storage_path('app/public/prints/row.png')
@@ -659,7 +659,7 @@ class PrintController extends Controller
             // Payment info
             $printer->setJustification(Printer::JUSTIFY_LEFT);
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Payment Method | طريقة الدفع \u{200F} :",
+                "Payment Method | طريقة الدفع ",
                 "",
                 ucfirst(str_replace('_', ' ', $order->payment_method)),
                 storage_path('app/public/prints/row.png')
@@ -669,7 +669,7 @@ class PrintController extends Controller
 
             if ($order->pos_details) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Cash | نقدي " . $lrm . "(" . $currencyText . ") :",
+                    "Cash | نقدي " . $lrm . "(" . $currencyText . ")",
                     "",
                     number_format($order->pos_details->cash_paid, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -678,7 +678,7 @@ class PrintController extends Controller
                 $printer->bitImageColumnFormat($rowImg);
 
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                    "Card | بطاقة " . $lrm . "(" . $currencyText . ") :",
+                    "Card | بطاقة " . $lrm . "(" . $currencyText . ")",
                     "",
                     number_format($order->pos_details->card_paid, 3, '.', ''),
                     storage_path('app/public/prints/row.png')
@@ -689,7 +689,7 @@ class PrintController extends Controller
                 $change = $order->pos_details->cash_paid + $order->pos_details->card_paid - $order->pos_details->invoice_amount;
                 if ($change > 0) {
                     $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                        "Change | يتغير " . $lrm . "(" . $currencyText . ") :",
+                        "Change | يتغير " . $lrm . "(" . $currencyText . ")",
                         "",
                         number_format($change, 3, '.', ''),
                         storage_path('app/public/prints/row.png')
@@ -702,7 +702,7 @@ class PrintController extends Controller
             // Order Notes
             if ($order->order_note) {
                 $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
-                "Order Note | ملاحظة الطلب " . $lrm .":",
+                "Order Note | ملاحظة الطلب ",
                     "",
                     "",
                     storage_path('app/public/prints/row.png')

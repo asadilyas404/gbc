@@ -1965,6 +1965,7 @@ class PrintController extends Controller
             // Check unpaid orders for current date
             $ordersExist = Order::where('payment_status', 'unpaid')
                 ->whereDate('order_date', $currentDate)
+                ->where('restaurant_id', $branchId)
                 ->exists();
 
             if ($ordersExist) {

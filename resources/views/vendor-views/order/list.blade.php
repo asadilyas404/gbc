@@ -265,10 +265,25 @@
                             <a href="{{ route('vendor.order.sync.orders') }}" class="btn max-sm-12 btn--primary w-100">
                                 Sync Orders
                             </a>
-                            <div style="display: flex;gap:5px;align-items: center;">
-                                <p class="my-1"><strong>Last Sync At:</strong> {{ $lastSync ?? '-' }}</p>
-                                <span> / </span>
-                                <p class="my-1"><strong>Pending Sync:</strong> {{ $pendingSync ?? 0 }}</p>
+                        </div>
+                        <div>
+                                <a href="{{ route('vendor.order.sync.order-items') }}" class="btn max-sm-12 btn--primary w-100">
+                                    Sync Order Items
+                                </a>
+                                <div style="display: flex;gap:5px;align-items: center;">
+                                    <p class="my-1"><strong>Last Order Sync At:</strong> {{ $lastSync ?? '-' }}</p>
+                                    <span> / </span>
+                                    <p class="my-1">
+                                        <strong>Last Sync Run at:</strong> 
+                                        @if (strtotime($lastSyncRunAt) > strtotime('-5 minutes'))
+                                            <span class="text-danger">{{ $lastSyncRunAt ?? '-' }}</span>
+                                        @else
+                                            <span>{{ $lastSyncRunAt ?? '-' }}</span>
+                                        @endif
+                                    </p>
+                                    <span> / </span>
+                                    <p class="my-1"><strong>Pending Sync:</strong> {{ $pendingSync ?? 0 }}</p>
+                                </div>
                             </div>
                         </div>
                     </div>

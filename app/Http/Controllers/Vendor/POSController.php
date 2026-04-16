@@ -1532,6 +1532,7 @@ class POSController extends Controller
                 }
 
                 $order->printed = 1;
+                $order->is_pushed = 'N';
                 $order->save();
 
             } catch (\Exception $printException) {

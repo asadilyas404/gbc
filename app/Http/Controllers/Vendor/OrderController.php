@@ -189,6 +189,7 @@ class OrderController extends Controller
         $lastSync = DB::table('branch_sync_state')->where('restaurant_id', Helpers::get_restaurant_id())->value('last_synced_at');
         $lastSyncRunAt = DB::table('branch_sync_state')
         ->where('restaurant_id', Helpers::get_restaurant_id())
+        ->selectRaw('"last_synced_run_at"')
         ->value('last_synced_run_at');
 
         $lastSyncRunAt = $lastSyncRunAt ?: '';

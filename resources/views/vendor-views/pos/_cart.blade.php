@@ -493,7 +493,7 @@ if (isset($cart['paid'])) {
                                 </div>
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_take_away" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
-                                        <input type="radio" id="delivery_type_take_away" name="delivery_type" value="take_away" required> 
+                                        <input type="radio" id="delivery_type_take_away" name="delivery_type" value="take_away" required @if($draftDetails->delivery_type == 'take_away') checked @endif> 
                                         <span class="input-label m-0">
                                            {{ translate('Take Away') }} <br /> {{ translate('يسلب') }} 
                                         </span>
@@ -501,7 +501,7 @@ if (isset($cart['paid'])) {
                                 </div> 
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
-                                        <input type="radio" id="delivery_type_dine_in" name="delivery_type" value="dine_in">
+                                        <input type="radio" id="delivery_type_dine_in" name="delivery_type" value="dine_in" required @if($draftDetails->delivery_type == 'dine_in') checked @endif>
                                         <span class="input-label m-0">
                                             {{ translate('Dine In') }} <br /> {{ translate('أكل في المطعم') }}
                                         </span>
@@ -509,7 +509,7 @@ if (isset($cart['paid'])) {
                                 </div>     
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
-                                        <input type="radio" id="delivery_type_delivery" name="delivery_type" value="delivery">
+                                        <input type="radio" id="delivery_type_delivery" name="delivery_type" value="delivery" required @if($draftDetails->delivery_type == 'delivery') checked @endif>
                                         <span class="input-label m-0">
                                             {{ translate('Delivery') }} <br /> {{ translate('التوصيل') }}
                                         </span>

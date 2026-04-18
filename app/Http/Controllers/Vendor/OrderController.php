@@ -188,7 +188,7 @@ class OrderController extends Controller
 
         $lastSync = DB::table('branch_sync_state')->where('restaurant_id', Helpers::get_restaurant_id())->value('last_synced_at');
         $lastSyncRunAt = DB::table('branch_sync_state')
-        ->where('restaurant_id', Helpers::get_restaurant_id())->get()->pluck('last_synced_run_at')->first();
+        ->where('restaurant_id', Helpers::get_restaurant_id())->where('entity_type', 'last_sync_run_at')->first()->last_synced_at ?? null;
 
         $pendingSync = Order::where('restaurant_id', Helpers::get_restaurant_id())->where('is_pushed', 'N')->count();
         $st=$status;

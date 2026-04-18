@@ -268,12 +268,12 @@
                     </div>
                     <div class="row g-2 mt-1">
                         <div style="display: flex;gap:5px;align-items: center;">
-                            <p class="my-1"><strong>Last Sync Order At:</strong> {{ $lastSync ?? '-' }}</p>
+                            <p class="my-1"><strong>Last Sync Order At:</strong> {{ $lastSync ? date('d M Y, h:i A', strtotime($lastSync)) : '-' }}</p>
                             <span> / </span>
                             <p class="my-1"><strong>Pending Orders Sync:</strong> {{ $pendingSync ?? 0 }}</p>
                             <span> / </span>
                             <p class="my-1 @if(strtotime($lastSyncRunAt) < strtotime("-5 minutes")) text-danger @endif"><strong>Last Sync Run:</strong> 
-                                {{ $lastSyncRunAt ?? 0 }}
+                                {{ $lastSyncRunAt ? date('d M Y, h:i A', strtotime($lastSyncRunAt)) : '-' }}
                             </p>
                         </div>
                     </div>

@@ -101,7 +101,6 @@
 
 <?php
 $add = false;
-$delivery_type = session()->has('cart') && isset(session()->get('cart')['delivery_type']) ? session()->get('cart')['delivery_type'] : '';
 if (session()->has('address') && count(session()->get('address')) > 0) {
     $add = true;
     $delivery_fee += session()->get('address')['delivery_fee'];
@@ -494,7 +493,7 @@ if (isset($cart['paid'])) {
                                 </div>
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_take_away" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
-                                        <input type="radio" id="delivery_type_take_away" name="delivery_type" value="take_away" required @if($delivery_type == 'take_away') checked @endif> 
+                                        <input type="radio" id="delivery_type_take_away" name="delivery_type" value="take_away" required @if($draftDetails->delivery_type == 'take_away') checked @endif> 
                                         <span class="input-label m-0">
                                            {{ translate('Take Away') }} <br /> {{ translate('يسلب') }} 
                                         </span>
@@ -502,7 +501,7 @@ if (isset($cart['paid'])) {
                                 </div> 
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
-                                        <input type="radio" id="delivery_type_dine_in" name="delivery_type" value="dine_in" @if($delivery_type == 'dine_in') checked @endif>
+                                        <input type="radio" id="delivery_type_dine_in" name="delivery_type" value="dine_in" @if($draftDetails->delivery_type == 'dine_in') checked @endif>
                                         <span class="input-label m-0">
                                             {{ translate('Dine In') }} <br /> {{ translate('أكل في المطعم') }}
                                         </span>
@@ -510,7 +509,7 @@ if (isset($cart['paid'])) {
                                 </div>     
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
-                                        <input type="radio" id="delivery_type_delivery" name="delivery_type" value="delivery" @if($delivery_type == 'delivery') checked @endif>
+                                        <input type="radio" id="delivery_type_delivery" name="delivery_type" value="delivery" @if($draftDetails->delivery_type == 'delivery') checked @endif>
                                         <span class="input-label m-0">
                                             {{ translate('Delivery') }} <br /> {{ translate('التوصيل') }}
                                         </span>

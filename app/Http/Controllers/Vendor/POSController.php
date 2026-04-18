@@ -143,6 +143,7 @@ class POSController extends Controller
             $draftDetails = PosOrderAdditionalDtl::where('order_id', $editingOrderId)->first();
             $editingOrder = Order::find($editingOrderId);
 
+            $draftDetails['delivery_type'] = $editingOrder->delivery_type ?? null;
             if ($editingOrder && $editingOrder->user_id) {
                 $draftCustomer = SaleCustomer::where('customer_id', $editingOrder->user_id)->first();
             }

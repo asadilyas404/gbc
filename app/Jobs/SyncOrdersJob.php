@@ -162,24 +162,6 @@ class SyncOrdersJob implements ShouldQueue
                             'shift_sessions'
                         );
 
-                        try {
-                            DB::table('branch_sync_state')->updateOrInsert(
-                                [
-                                    'restaurant_id' => config('constants.branch_id'),
-                                    'entity_type'   => 'last_sync_run_at',
-                                ],
-                                [
-                                    'last_synced_at' => now(),
-                                    'updated_at'     => now(),
-                                ]
-                            );
-                        } catch (\Exception $e) {
-                            logger()->error("Sync state update failed for {last_sync_run_at}", [
-                                'error' => $e->getMessage(),
-                            ]);
-                        }
-
-
                         Log::info('Orders chunk synced successfully', [
                             'chunk'                  => $index + 1,
                             'orders_count'           => count($orderIds),
@@ -208,6 +190,23 @@ class SyncOrdersJob implements ShouldQueue
                         'trace' => $e->getTraceAsString(),
                     ]);
                 }
+            }
+
+            try {
+                DB::table('branch_sync_state')->updateOrInsert(
+                    [
+                        'restaurant_id' => config('constants.branch_id'),
+                        'entity_type'   => 'last_sync_run_at',
+                    ],
+                    [
+                        'last_synced_at' => now(),
+                        'updated_at'     => now(),
+                    ]
+                );
+            } catch (\Exception $e) {
+                logger()->error("Sync state update failed for {last_sync_run_at}", [
+                    'error' => $e->getMessage(),
+                ]);
             }
 
             Log::info('SyncOrdersJob completed');

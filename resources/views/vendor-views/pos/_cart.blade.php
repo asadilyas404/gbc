@@ -417,7 +417,7 @@ if (isset($cart['paid'])) {
                     <div class="row pl-2">
                         <div class="col-lg-8">
                             <div class="row mb-4">
-                                <div class="col-md-6 mb-1">
+                                <div class="col-md-4 mb-1">
                                     <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_cash" class="payment_type" name="select_payment_type" value="cash_payment">
                                         <span class="input-label m-0">
@@ -425,7 +425,7 @@ if (isset($cart['paid'])) {
                                         </span>
                                     </label>
                                 </div>        
-                                <div class="col-md-6 mb-1">
+                                <div class="col-md-4 mb-1">
                                     <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment"
                                             >
@@ -434,7 +434,7 @@ if (isset($cart['paid'])) {
                                         </span>
                                     </label>
                                 </div>        
-                                <div class="col-md-6 mb-1">
+                                <div class="col-md-4 mb-1">
                                     <label for="payment_type_both" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_both" class="payment_type" name="select_payment_type" value="both_payment" >
                                         <span class="input-label m-0">
@@ -442,7 +442,7 @@ if (isset($cart['paid'])) {
                                         </span>
                                     </label>
                                 </div> 
-                                <div class="col-md-6 mb-1" id="payment_type_credit_wrapper">
+                                <div class="col-md-4 mb-1" id="payment_type_credit_wrapper">
                                     <label for="payment_type_credit" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_credit" class="payment_type" name="select_payment_type" value="credit_payment" >
                                         <span class="input-label m-0">
@@ -493,7 +493,7 @@ if (isset($cart['paid'])) {
                                 </div>
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_take_away" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box">
-                                        <input type="radio" id="delivery_type_take_away" class="payment_type" name="delivery_type" value="take_away" required> 
+                                        <input type="radio" id="delivery_type_take_away" class="payemnt-selection-box" name="delivery_type" value="take_away" required> 
                                         <span class="input-label m-0">
                                             {{ translate('Take Away') }}
                                         </span>
@@ -501,7 +501,7 @@ if (isset($cart['paid'])) {
                                 </div> 
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box">
-                                        <input type="radio" id="delivery_type_dine_in" class="payment_type" name="delivery_type" value="dine_in">
+                                        <input type="radio" id="delivery_type_dine_in" class="payemnt-selection-box" name="delivery_type" value="dine_in">
                                         <span class="input-label m-0">
                                             {{ translate('Dine In') }}
                                         </span>
@@ -509,7 +509,7 @@ if (isset($cart['paid'])) {
                                 </div>     
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box">
-                                        <input type="radio" id="delivery_type_delivery" class="payment_type" name="delivery_type" value="delivery">
+                                        <input type="radio" id="delivery_type_delivery" class="payemnt-selection-box" name="delivery_type" value="delivery">
                                         <span class="input-label m-0">
                                             {{ translate('Delivery') }}
                                         </span>

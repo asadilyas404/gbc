@@ -186,7 +186,7 @@ class OrderController extends Controller
             $order->deleted_items_count = $deletedCount;
         });
 
-        $lastSync = DB::table('branch_sync_state')->where('restaurant_id', Helpers::get_restaurant_id())->where('entity_type', 'order')->value('last_synced_at') ?? null;
+        $lastSync = DB::table('branch_sync_state')->where('restaurant_id', Helpers::get_restaurant_id())->where('entity_type', 'orders')->value('last_synced_at') ?? null;
         $lastSyncRunAt = DB::table('branch_sync_state')
         ->where('restaurant_id', Helpers::get_restaurant_id())->where('entity_type', 'last_sync_run_at')->first()->last_synced_at ?? null;
 

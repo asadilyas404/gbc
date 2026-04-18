@@ -100,6 +100,7 @@
 </div>
 
 <?php
+dd($draftDetails);
 $add = false;
 if (session()->has('address') && count(session()->get('address')) > 0) {
     $add = true;

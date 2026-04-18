@@ -490,24 +490,24 @@ if (isset($cart['paid'])) {
                                     </div>
                                 </div>
                                 <div class="col-md-6 mb-1">
-                                    <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" class="payment_type" name="delivery_type" value="take_away">
+                                    <label for="delivery_type_take_away" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                        <input type="radio" id="delivery_type_take_away" class="payment_type" name="delivery_type" value="take_away">
                                         <span class="input-label m-0">
                                             {{ translate('Take Away') }}
                                         </span>
                                     </label>
                                 </div> 
                                 <div class="col-md-6 mb-1">
-                                    <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" class="payment_type" name="delivery_type" value="dine_in">
+                                    <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                        <input type="radio" id="delivery_type_dine_in" class="payment_type" name="delivery_type" value="dine_in">
                                         <span class="input-label m-0">
                                             {{ translate('Dine In') }}
                                         </span>
                                     </label>
                                 </div>     
                                 <div class="col-md-6 mb-1">
-                                    <label for="payment_type_cash" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="payment_type_cash" class="payment_type" name="delivery_type" value="delivery">
+                                    <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                        <input type="radio" id="delivery_type_delivery" class="payment_type" name="delivery_type" value="delivery">
                                         <span class="input-label m-0">
                                             {{ translate('Delivery') }}
                                         </span>

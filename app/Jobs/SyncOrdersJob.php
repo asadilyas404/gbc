@@ -59,6 +59,7 @@ class SyncOrdersJob implements ShouldQueue
 
             if ($orders->isEmpty() && $shiftSessions->isEmpty()) {
                 Log::info('No orders or shift sessions to sync');
+                $this->updateLastSyncedRunAt('last_synced_run_at');
                 return;
             }
 
@@ -192,6 +193,8 @@ class SyncOrdersJob implements ShouldQueue
                 }
             }
 
+            $this->updateLastSyncedRunAt('last_synced_run_at');
+
             Log::info('SyncOrdersJob completed');
         } catch (\Exception $e) {
             Log::error('SyncOrdersJob failed', [
@@ -199,22 +202,23 @@ class SyncOrdersJob implements ShouldQueue
                 'trace' => $e->getTraceAsString()
             ]);
         }
+    }
 
+    function updateLastSyncedRunAt(string $entityType)
+    {
         try {
-            Log::info('Updateing last_sync_run_at for SyncOrdersJob');
             DB::table('branch_sync_state')->updateOrInsert(
                 [
                     'restaurant_id' => config('constants.branch_id'),
-                    'entity_type'   => 'last_sync_run_at',
+                    'entity_type'   => $entityType,
                 ],
                 [
-                    'last_synced_at' => now(),
-                    'updated_at'     => now(),
-                    'created_at'     => now(),
+                    'last_synced_run_at' => now(),
+                    'updated_at'         => now(),
                 ]
             );
         } catch (\Exception $e) {
-            logger()->error("Sync state update failed for {last_sync_run_at}", [
+            logger()->error("Failed to update last_synced_run_at for {$entityType}", [
                 'error' => $e->getMessage(),
             ]);
         }

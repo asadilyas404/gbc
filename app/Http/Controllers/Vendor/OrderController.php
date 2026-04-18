@@ -187,7 +187,7 @@ class OrderController extends Controller
         });
 
         $lastSync = DB::table('branch_sync_state')->where('restaurant_id', Helpers::get_restaurant_id())->value('last_synced_at');
-        $lastSyncRunAt =    now();
+        $lastSyncRunAt =  DB::table('branch_sync_state')->where('restaurant_id', Helpers::get_restaurant_id())->value('last_synced_run_at');
         $pendingSync = Order::where('restaurant_id', Helpers::get_restaurant_id())->where('is_pushed', 'N')->count();
         $st=$status;
         $status = translate('messages.'.$status);

@@ -260,16 +260,21 @@
             @if (app()->environment('local'))
                 <div class="my-2">
                     <div class="row g-2 align-items-center justify-content-end">
-
                         <div class="col-auto">
                             <a href="{{ route('vendor.order.sync.orders') }}" class="btn max-sm-12 btn--primary w-100">
                                 Sync Orders
                             </a>
-                            <div style="display: flex;gap:5px;align-items: center;">
-                                <p class="my-1"><strong>Last Sync At:</strong> {{ $lastSync ?? '-' }}</p>
-                                <span> / </span>
-                                <p class="my-1"><strong>Pending Sync:</strong> {{ $pendingSync ?? 0 }}</p>
-                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-2 mt-1">
+                        <div style="display: flex;gap:5px;align-items: center;">
+                            <p class="my-1"><strong>Last Sync Order At:</strong> {{ $lastSync ?? '-' }}</p>
+                            <span> / </span>
+                            <p class="my-1"><strong>Pending Orders Sync:</strong> {{ $pendingSync ?? 0 }}</p>
+                            <span> / </span>
+                            <p class="my-1 @if(strtotime($lastSyncRunAt) < strtotime("-5 minutes")) text-danger @endif"><strong>Last Sync Run:</strong> 
+                                {{ $lastSyncRunAt ?? 0 }}
+                            </p>
                         </div>
                     </div>
                 </div>

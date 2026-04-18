@@ -213,9 +213,8 @@ class SyncOrdersJob implements ShouldQueue
                     'entity_type'   => $entityType,
                 ],
                 [
-                    'last_sync_run_at' => now(),
-                    'updated_at'         => now(),
-                    'created_at'         => now(),
+                    'last_synced_at' => now(),
+                    'updated_at'     => now()
                 ]
             );
         } catch (\Exception $e) {

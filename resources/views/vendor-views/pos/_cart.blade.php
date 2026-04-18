@@ -452,7 +452,7 @@ if (isset($cart['paid'])) {
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-12 col-lg-12">
+                                <div class="col-12 col-lg-6">
                                     <div class="form-group">
                                         <label for="cash_paid"
                                             class="input-label">{{ translate('Cash Amount') }}</label>
@@ -462,6 +462,8 @@ if (isset($cart['paid'])) {
                                             placeholder="{{ translate('Enter cash amount') }}"
                                             value="{{ old('cash_paid', 0) }}">
                                     </div>
+                                </div>
+                                <div class="col-12 col-lg-6">
                                     <div class="form-group">
                                         <label for="card_paid"
                                             class="input-label">{{ translate('Card Amount') }}</label>
@@ -489,24 +491,24 @@ if (isset($cart['paid'])) {
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-md-6 mb-1">
-                                    <label for="delivery_type_take_away" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
-                                        <input type="radio" id="delivery_type_take_away" class="payment_type" name="delivery_type" value="take_away">
+                                <div class="col-md-4 mb-1">
+                                    <label for="delivery_type_take_away" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box">
+                                        <input type="radio" id="delivery_type_take_away" class="payment_type" name="delivery_type" value="take_away" required> 
                                         <span class="input-label m-0">
                                             {{ translate('Take Away') }}
                                         </span>
                                     </label>
                                 </div> 
-                                <div class="col-md-6 mb-1">
-                                    <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                <div class="col-md-4 mb-1">
+                                    <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box">
                                         <input type="radio" id="delivery_type_dine_in" class="payment_type" name="delivery_type" value="dine_in">
                                         <span class="input-label m-0">
                                             {{ translate('Dine In') }}
                                         </span>
                                     </label>
                                 </div>     
-                                <div class="col-md-6 mb-1">
-                                    <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
+                                <div class="col-md-4 mb-1">
+                                    <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box">
                                         <input type="radio" id="delivery_type_delivery" class="payment_type" name="delivery_type" value="delivery">
                                         <span class="input-label m-0">
                                             {{ translate('Delivery') }}

@@ -201,6 +201,9 @@ class SyncOrdersJob implements ShouldQueue
         }
 
         try {
+            logger()->error("Sync state update failed for {last_sync_run_at}", [
+                'error' => $e->getMessage(),
+            ]);
             DB::table('branch_sync_state')->updateOrInsert(
                 [
                     'restaurant_id' => config('constants.branch_id'),

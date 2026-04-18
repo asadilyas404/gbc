@@ -146,17 +146,6 @@
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter cash amount') }}" value="">
                                     </div>
-                                    <div class="form-group mt-3">
-                                        <label for="delivery_type" class="input-label">Order Type</label>
-                                        <select id="delivery_type" name="delivery_type" class="form-control">
-                                        <option value="take_away">
-                                                Take away</option>
-                                            <option value="dine_in">
-                                                Dine In</option>
-                                            <option value="delivery">
-                                                Delivery</option>
-                                        </select>
-                                    </div>
                                 </div>
                                 <div class="col-12 col-lg-6">
                                     <div class="form-group">
@@ -167,7 +156,9 @@
                                             min="0" step="0.001"
                                             placeholder="{{ translate('Enter card amount') }}" value="">
                                     </div>
-                                    <div class="form-group mt-3">
+                                </div>
+                                <div class="col-12 col-lg-12">
+                                    <div class="form-group">
                                         <label for="bank_account"
                                             class="input-label">{{ translate('Select Account') }}</label>
                                         <select id="bank_account" name="bank_account" class="form-control">
@@ -184,6 +175,30 @@
                                             @endforeach
                                         </select>
                                     </div>
+                                </div>
+                                <div class="col-md-4 mb-1">
+                                    <label for="delivery_type_take_away" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
+                                        <input type="radio" id="delivery_type_take_away" name="delivery_type" value="take_away" required> 
+                                        <span class="input-label m-0">
+                                            {{ translate('Take Away') }}
+                                        </span>
+                                    </label>
+                                </div> 
+                                <div class="col-md-4 mb-1">
+                                    <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
+                                        <input type="radio" id="delivery_type_dine_in" name="delivery_type" value="dine_in">
+                                        <span class="input-label m-0">
+                                            {{ translate('Dine In') }}
+                                        </span>
+                                    </label>
+                                </div>     
+                                <div class="col-md-4 mb-1">
+                                    <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
+                                        <input type="radio" id="delivery_type_delivery" name="delivery_type" value="delivery">
+                                        <span class="input-label m-0">
+                                            {{ translate('Delivery') }}
+                                        </span>
+                                    </label>
                                 </div>
                             </div>
                             <div class="col-12">

@@ -192,28 +192,29 @@ class SyncOrdersJob implements ShouldQueue
                 }
             }
 
-            try {
-                DB::table('branch_sync_state')->updateOrInsert(
-                    [
-                        'restaurant_id' => config('constants.branch_id'),
-                        'entity_type'   => 'last_sync_run_at',
-                    ],
-                    [
-                        'last_synced_at' => now(),
-                        'updated_at'     => now(),
-                    ]
-                );
-            } catch (\Exception $e) {
-                logger()->error("Sync state update failed for {last_sync_run_at}", [
-                    'error' => $e->getMessage(),
-                ]);
-            }
-
             Log::info('SyncOrdersJob completed');
         } catch (\Exception $e) {
             Log::error('SyncOrdersJob failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
+            ]);
+        }
+
+        try {
+            DB::table('branch_sync_state')->updateOrInsert(
+                [
+                    'restaurant_id' => config('constants.branch_id'),
+                    'entity_type'   => 'last_sync_run_at',
+                ],
+                [
+                    'last_synced_at' => now(),
+                    'updated_at'     => now(),
+                    'created_at'     => now(),
+                ]
+            );
+        } catch (\Exception $e) {
+            logger()->error("Sync state update failed for {last_sync_run_at}", [
+                'error' => $e->getMessage(),
             ]);
         }
     }

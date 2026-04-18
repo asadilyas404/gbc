@@ -473,7 +473,7 @@ if (isset($cart['paid'])) {
                                             value="{{ old('card_paid', 0) }}">
                                     </div>
                                 </div>
-                                <div class="col-12 col-lg-6">
+                                <div class="col-12 col-lg-12">
                                     <div class="form-group mt-3">
                                         <label for="bank_account"
                                             class="input-label">{{ translate('Select Account') }}</label>

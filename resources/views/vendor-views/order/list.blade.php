@@ -1290,7 +1290,9 @@
                         $('#phone').val(data.phone ?? '');
                         // $('#cash_paid').val(data.cash_paid ?? '');
                         // $('#card_paid').val(data.card_paid ?? '');
-                        $('#delivery_type').val(data.delivery_type ?? '');
+                        if (data.delivery_type) {
+                            $('input[name="delivery_type"][value="' + data.delivery_type + '"]').prop('checked', true);
+                        }
                         $('#bank_account').val(data.bank_account ?? '');
                         $('#partner_id').val(data.partner_id ?? '');
                         $('#invoice_amount_input').val(data.total_amount_formatted ?? '');

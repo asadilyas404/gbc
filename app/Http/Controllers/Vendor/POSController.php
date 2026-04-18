@@ -797,6 +797,7 @@ class POSController extends Controller
         if ($editingOrderId) {
             $editingOrder = Order::with('posAdditionalDetail')->find($editingOrderId);
             $draftDetails = $editingOrder ? $editingOrder->posAdditionalDetail : null;
+            $draftDetails['delivery_type'] = $editingOrder->delivery_type ?? null;
         }
 
         return view('vendor-views.pos._cart', compact(

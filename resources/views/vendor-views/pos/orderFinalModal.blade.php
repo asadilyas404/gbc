@@ -180,7 +180,7 @@
                                     <label for="delivery_type_take_away" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
                                         <input type="radio" id="delivery_type_take_away" name="delivery_type" value="take_away" required> 
                                         <span class="input-label m-0">
-                                            {{ translate('Take Away') }}
+                                            {{ translate('Take Away / يسلب') }}
                                         </span>
                                     </label>
                                 </div> 
@@ -188,7 +188,7 @@
                                     <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
                                         <input type="radio" id="delivery_type_dine_in" name="delivery_type" value="dine_in">
                                         <span class="input-label m-0">
-                                            {{ translate('Dine In') }}
+                                            {{ translate('Dine In / أكل في المطعم') }}
                                         </span>
                                     </label>
                                 </div>     
@@ -196,7 +196,7 @@
                                     <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
                                         <input type="radio" id="delivery_type_delivery" name="delivery_type" value="delivery">
                                         <span class="input-label m-0">
-                                            {{ translate('Delivery') }}
+                                            {{ translate('Delivery / التوصيل') }}
                                         </span>
                                     </label>
                                 </div>

@@ -59,7 +59,7 @@ class SyncOrdersJob implements ShouldQueue
 
             if ($orders->isEmpty() && $shiftSessions->isEmpty()) {
                 Log::info('No orders or shift sessions to sync');
-                $this->updateLastSyncedRunAt('last_synced_run_at');
+                $this->updateLastSyncedRunAt('last_sync_run_at');
                 return;
             }
 
@@ -193,7 +193,7 @@ class SyncOrdersJob implements ShouldQueue
                 }
             }
 
-            $this->updateLastSyncedRunAt('last_synced_run_at');
+            $this->updateLastSyncedRunAt('last_sync_run_at');
 
             Log::info('SyncOrdersJob completed');
         } catch (\Exception $e) {
@@ -213,12 +213,13 @@ class SyncOrdersJob implements ShouldQueue
                     'entity_type'   => $entityType,
                 ],
                 [
-                    'last_synced_run_at' => now(),
+                    'last_sync_run_at' => now(),
                     'updated_at'         => now(),
+                    'created_at'         => now(),
                 ]
             );
         } catch (\Exception $e) {
-            logger()->error("Failed to update last_synced_run_at for {$entityType}", [
+            logger()->error("Failed to update last_sync_run_at for {$entityType}", [
                 'error' => $e->getMessage(),
             ]);
         }

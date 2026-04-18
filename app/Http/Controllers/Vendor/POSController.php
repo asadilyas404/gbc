@@ -1650,6 +1650,8 @@ class POSController extends Controller
             }
         }
 
+        $cartSession['delivery_type'] = $order->delivery_type ?? '';
+
         session()->put('cart', $cartSession);
         session()->put('editing_order_id', $order->id);
 

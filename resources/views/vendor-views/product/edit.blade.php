@@ -645,7 +645,7 @@
                     <div class="p-2 rounded d-flex gap-1 bg-white border border-bottom-0 justify-content-end align-center">
                         <button type="button" class="move-up btn btn-sm btn-outline-primary">⬆</button>
                         <button type="button" class="move-down btn btn-sm btn-outline-primary">⬇</button>
-                        <button type="button" data-id="{{ data_get($item, 'variation_id') }}"
+                        <button type="button" data-id="{{ data_get($item ?? [], 'variation_id') }}"
                             class="btn btn-danger btn-sm delete_input_button remove_variation" title="{{ translate('Delete') }}">
                             <i class="tio-add-to-trash"></i>
                         </button>

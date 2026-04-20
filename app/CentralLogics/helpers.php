@@ -286,7 +286,14 @@ class Helpers
                 }
 
                 $item['free_delivery'] = (int) $item->restaurant->free_delivery ?? 0;
-                $item['halal_tag_status'] = (int) $item->restaurant->restaurant_config->halal_tag_status ?? 0;
+                $data['halal_tag_status'] = 0;
+                if (
+                    isset($item->restaurant) &&
+                    isset($item->restaurant->restaurant_config) &&
+                    isset($item->restaurant->restaurant_config->halal_tag_status)
+                ) {
+                    $data['halal_tag_status'] = (int) $data->restaurant->restaurant_config->halal_tag_status;
+                }
                 $item['nutritions_name'] = $item->nutritions ? Nutrition::whereIn('id', $item->nutritions->pluck('id'))->pluck('nutrition') : null;
                 $item['allergies_name'] = $item->allergies ? Allergy::whereIn('id', $item->allergies->pluck('id'))->pluck('allergy') : null;
 
@@ -362,7 +369,14 @@ class Helpers
             }
 
             $data['free_delivery'] = (int) $data->restaurant->free_delivery ?? 0;
-            $data['halal_tag_status'] = (int) $data->restaurant->restaurant_config->halal_tag_status ?? 0;
+            $data['halal_tag_status'] = 0;
+            if (
+                isset($data->restaurant) &&
+                isset($data->restaurant->restaurant_config) &&
+                isset($data->restaurant->restaurant_config->halal_tag_status)
+            ) {
+                $data['halal_tag_status'] = (int) $data->restaurant->restaurant_config->halal_tag_status;
+            }
             $data['nutritions_name'] = $data->nutritions ? Nutrition::whereIn('id', $data->nutritions->pluck('id'))->pluck('nutrition') : null;
             $data['allergies_name'] = $data->allergies ? Allergy::whereIn('id', $data->allergies->pluck('id'))->pluck('allergy') : null;
 
@@ -778,7 +792,7 @@ class Helpers
                 $item['customer_order_date'] = (int) $item->restaurant_config->customer_order_date;
                 $item['customer_date_order_sratus'] = (bool) $item->restaurant_config->customer_date_order_sratus;
                 $item['instant_order'] = (bool) $item->restaurant_config->instant_order;
-                $item['halal_tag_status'] = (bool) $item->restaurant_config->halal_tag_status;
+                $item['halal_tag_status'] = (bool) $item->restaurant_config->halal_tag_status ?? 0;
                 $item['current_opening_time'] = self::getNextOpeningTime($item['schedules']) ?? 'closed';
 
                 $item['is_extra_packaging_active'] = (bool) ($extra_packaging_data == 1 ? $item->restaurant_config->is_extra_packaging_active : false);
@@ -838,7 +852,7 @@ class Helpers
             $data['customer_order_date'] = (int) $data->restaurant_config->customer_order_date;
             $data['customer_date_order_sratus'] = (bool) $data->restaurant_config->customer_date_order_sratus;
             $data['instant_order'] = (bool) $data->restaurant_config->instant_order;
-            $data['halal_tag_status'] = (bool) $data->restaurant_config->halal_tag_status;
+            $data['halal_tag_status'] = (bool) $data->restaurant_config->halal_tag_status ?? 0;
             $data['is_extra_packaging_active'] = (bool) ($extra_packaging_data == 1 ? $data->restaurant_config->is_extra_packaging_active : false);
             $data['extra_packaging_status'] = (bool) ($data['is_extra_packaging_active'] == 1 ? $data->restaurant_config->extra_packaging_status : false);
             $data['extra_packaging_amount'] = (float) ($data['is_extra_packaging_active'] == 1 ? $data->restaurant_config->extra_packaging_amount : 0);

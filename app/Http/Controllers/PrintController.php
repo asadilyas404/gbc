@@ -215,9 +215,12 @@ class PrintController extends Controller
             );
             $rowImg = EscposImage::load($rowPath, false);
             $printer->bitImageColumnFormat($rowImg);
+
+            $printer->text($order->restaurant->name . "\n");
+            
             $printer->setTextSize(1, 1);
             
-            $printer->text($order->restaurant->name . "\n");
+            
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "CR No. |  رقم السجل التجاري ",

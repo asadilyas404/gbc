@@ -283,7 +283,7 @@
                                         alt="{{ translate('messages.restaurant_required_warning') }}"></span></label>
                             <select name="addon_ids[]" class="form-control h--45px js-select2-custom"
                                 multiple="multiple">
-                                @foreach (\App\Models\AddOn::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->orderBy('name')->get() as $addon)
+                                @foreach (\App\Models\AddOn::orderBy('name')->get() as $addon)
                                     <option value="{{ $addon['id'] }}"
                                         {{ in_array($addon->id, json_decode($product['add_ons'], true)) ? 'selected' : '' }}>
                                         {{ $addon['name'] }}</option>

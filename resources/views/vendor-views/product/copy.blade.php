@@ -281,7 +281,7 @@
                                     data-original-title="{{ translate('messages.restaurant_required_warning') }}"><img
                                         src="{{ dynamicAsset('/public/assets/admin/img/info-circle.svg') }}"
                                         alt="{{ translate('messages.restaurant_required_warning') }}"></span></label>
-                            <select name="addon_ids[]" class="form-control h--45px js-select2-custom"
+                            <select name="addon_ids[]" class="form-control js-select2-custom"
                                 multiple="multiple">
                                 @foreach (\App\Models\AddOn::orderBy('name')->get() as $addon)
                                     <option value="{{ $addon['id'] }}"

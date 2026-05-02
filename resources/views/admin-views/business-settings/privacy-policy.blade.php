@@ -48,24 +48,28 @@
                     </div>
 
                     @if ($language)
+
                         @forelse(json_decode($language) as $lang)
+
                             <?php
-                                if($privacy_policy->translations){
-                                    $translate = [];
-                                    foreach($privacy_policy->translations as $t)
-                                    {
-                                        if($t->locale == $lang && $t->key=="privacy_policy"){
-                                            $translate[$lang]['privacy_policy'] = $t->value;
-                                        }
-                                    }
-                                }
-                                ?>
-                            <div class="form-group d-none lang_form" id="{{$lang}}-form">
-                                <textarea class="ckeditor form-control" name="privacy_policy[]">{!!  $translate[$lang]['privacy_policy'] ?? null !!}</textarea>
+                                $translation = optional($privacy_policy)->translations
+                                    ? $privacy_policy->translations
+                                        ->where('locale', $lang)
+                                        ->where('key', 'privacy_policy')
+                                        ->first()
+                                    : null;
+                            ?>
+
+                            <div class="form-group d-none lang_form" id="{{ $lang }}-form">
+                                <textarea class="ckeditor form-control" name="privacy_policy[]">{!! $translation->value ?? '' !!}</textarea>
                             </div>
-                            <input type="hidden" name="lang[]" value="{{$lang}}">
-                            @empty
+
+                            <input type="hidden" name="lang[]" value="{{ $lang }}">
+
+                        @empty
+
                         @endforelse
+
                     @endif
 
                     <div class="btn--container justify-content-end">

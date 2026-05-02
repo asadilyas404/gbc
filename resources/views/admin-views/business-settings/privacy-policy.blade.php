@@ -44,7 +44,7 @@
 
                     <div class="form-group lang_form" id="default-form">
                         <input type="hidden" name="lang[]" value="default">
-                        <textarea class="ckeditor form-control" name="privacy_policy[]">{!! $privacy_policy->getRawOriginal('value') ?? '' !!}</textarea>
+                        <textarea class="ckeditor form-control" name="privacy_policy[]">{{ optional($privacy_policy)->getRawOriginal('value') ?? '' }}</textarea>
                     </div>
 
                     @if ($language)

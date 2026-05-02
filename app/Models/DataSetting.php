@@ -11,7 +11,13 @@ use Illuminate\Support\Facades\DB;
 class DataSetting extends Model
 {
     use HasFactory;
-    protected $guarded = ['id'];
+    
+
+    protected $table = 'data_settings';
+    protected $primaryKey = 'id';
+    public $incrementing = true;
+
+    protected $keyType = 'int';
 
     protected $casts = [
         'id' => 'integer',

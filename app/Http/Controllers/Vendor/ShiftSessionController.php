@@ -11,6 +11,7 @@ use App\Models\VendorEmployee;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Jobs\SyncOrdersJob;
+use App\Models\Order;
 use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\Auth;
 
@@ -93,6 +94,17 @@ class ShiftSessionController extends Controller
             Toastr::error('Failed to start shift session. Please try again.');
             return back();
         }
+    }
+
+    public function checkUnpaidOrdersInSession(Request $request){
+        
+        $hasUnpaidOrders = Order::where('user_id', auth()->id())
+        ->where('payment_status', 'unpaid')
+        ->exists();
+
+        return response()->json([
+            'has_unpaid_orders' => $hasUnpaidOrders,
+        ]);
     }
 
     public function close(Request $request)

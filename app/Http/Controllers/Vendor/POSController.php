@@ -256,6 +256,7 @@ class POSController extends Controller
     {
         $product = Food::findOrFail($request->product_id);
         $partner_id = session()->get('current_partner_id', null);
+        
         if (!empty($partner_id)) {
 
             // 1) Partner base price from JSON
@@ -318,7 +319,7 @@ class POSController extends Controller
 
         return response()->json([
             'success' => 1,
-            'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key', 'editing_order_id','orderPaymentStatus'))->render(),
+            'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key', 'editing_order_id','orderPaymentStatus', 'partner_id'))->render(),
         ]);
     }
 

@@ -80,6 +80,7 @@
                 <form id="add-to-cart-form" class="mb-2">
                     @csrf
                     <input type="hidden" name="id" value="{{ $product->id }}">
+                    <input type="hidden" name="partner_id" value="{{ $partner_id }}">
                     <input type="hidden" name="cart_item_key" value="{{ $item_key }}">
                     <input type="hidden" id="cart_item_total_price" value="{{ (($cart_item['price'] * $cart_item['quantity']) - ($cart_item['discount_on_food'] ?? 0)) + ($cart_item['total_add_on_price'] ?? 0) }}">
                     <input type="hidden" name="base_price" id="base_price" value="{{ $product->price }}">

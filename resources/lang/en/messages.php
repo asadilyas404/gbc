@@ -6652,4 +6652,10 @@
   'Discount x items' => 'Discount x items',
   'Discount x Item\'s' => 'Discount x Item s',
   'Actual_Price' => 'Actual Price',
+  'توصيل' => 'توصيل',
+  'Delivery' => 'Delivery',
+  'تناول في المطعم' => 'تناول في المطعم',
+  'Dine In' => 'Dine In',
+  'سفري' => 'سفري',
+  'Take Away' => 'Take Away',
 );

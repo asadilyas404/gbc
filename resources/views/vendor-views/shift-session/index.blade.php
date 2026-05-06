@@ -112,8 +112,7 @@
                                     </div>
                                 </div>
                                 <div class="btn--container justify-content-end">
-                                    <button type="submit" class="btn btn--danger"
-                                            onclick="return confirm('Are you sure you want to close this shift session?')">
+                                    <button type="submit" class="btn btn--danger">
                                         <i class="tio-close"></i> Close Session
                                     </button>
                                 </div>
@@ -222,21 +221,70 @@
                 }
             });
 
+            let forceSubmitCloseSession = false;
+
             $('#closeSessionForm').on('submit', function(e) {
+                e.preventDefault();
+
+                const form = this;
+                const submitButton = $(form).find('button[type="submit"]');
+
+                if (forceSubmitCloseSession) {
+                    form.submit(); // Native submit, skips jQuery submit handler
+                    return;
+                }
+
                 const closingCash = $('input[name="closing_cash"]').val();
                 const closingVisa = $('input[name="closing_visa"]').val();
 
                 if (!closingCash || !closingVisa) {
-                    e.preventDefault();
                     toastr.error('Please fill in all required fields.');
                     return false;
                 }
 
                 if (parseFloat(closingCash) < 0 || parseFloat(closingVisa) < 0) {
-                    e.preventDefault();
                     toastr.error('Amounts cannot be negative.');
                     return false;
                 }
+
+                $.ajax({
+                    url: "{{ route('vendor.shift-session.check-unpaid-orders') }}",
+                    type: "GET",
+                    dataType: "json",
+
+                    beforeSend: function () {
+                        submitButton.prop('disabled', true);
+                    },
+
+                    success: function(response) {
+                        if (response.has_unpaid_orders) {
+                            Swal.fire({
+                                title: 'Unpaid Orders Found',
+                                text: 'There are some unpaid orders with your ID. Would you like to close this session anyway?',
+                                type: 'warning',
+                                showCancelButton: true,
+                                confirmButtonText: 'Yes, close session',
+                                cancelButtonText: 'No, cancel',
+                                confirmButtonColor: '#d33'
+                            }).then((result) => {
+                                if (result.value) {
+                                    forceSubmitCloseSession = true;
+                                    form.submit();
+                                } else {
+                                    submitButton.prop('disabled', false);
+                                }
+                            });
+                        } else {
+                            forceSubmitCloseSession = true;
+                            form.submit();
+                        }
+                    },
+
+                    error: function() {
+                        submitButton.prop('disabled', false);
+                        toastr.error('Could not check unpaid orders. Please try again.');
+                    }
+                });
             });
         });
     </script>

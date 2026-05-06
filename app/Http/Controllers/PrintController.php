@@ -158,8 +158,6 @@ class PrintController extends Controller
                 ->where('id', $orderId)
                 ->first();
 
-            // dd($order);
-
             if (!$order) {
                 return response()->json([
                     'success' => false,
@@ -204,7 +202,7 @@ class PrintController extends Controller
             // $printer->text(mb_convert_encoding("مرحبا مرحبا مرحبا", "CP864", "UTF-8"));
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "",      // can be Arabic too
-                "ملك البيتزا",         // can be Arabic too
+                config('constants.invoice_restaurant_name'),         // can be Arabic too
                 "",     // Arabic
                 storage_path('app/public/prints/date_row.png'),
                 576,
@@ -225,7 +223,7 @@ class PrintController extends Controller
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "CR No. |  رقم السجل التجاري ",
                 "",
-                1356079,
+                config('constants.cr_no'),
                 storage_path('app/public/prints/row.png')
             );
 
@@ -235,15 +233,33 @@ class PrintController extends Controller
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "VATIN | رقم التعريف الضريبي ",
                 "",
-                "OM1100049948",
+                config('constants.vat_no'),
                 storage_path('app/public/prints/row.png')
             );
 
             $rowImg = EscposImage::load($rowPath, false);
             $printer->bitImageColumnFormat($rowImg);
 
-            $printer->text($order->restaurant->address . "\n");
-            $printer->text("Phone: " . $order->restaurant->phone . "\n");
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Branch Name | اسم الفرع ",
+                "",
+                config('constants.invoice_branch_name'),
+                storage_path('app/public/prints/row.png')
+            );
+
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+
+            $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
+                "Phone No. | رقم الهاتف ",
+                "",
+                $order->restaurant->phone,
+                storage_path('app/public/prints/row.png')
+            );
+
+            $rowImg = EscposImage::load($rowPath, false);
+            $printer->bitImageColumnFormat($rowImg);
+            
             $printer->text($linedash);
             //  $printer->feed(1);
 

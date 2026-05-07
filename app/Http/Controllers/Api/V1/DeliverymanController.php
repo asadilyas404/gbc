@@ -644,7 +644,8 @@ class DeliverymanController extends Controller
 
         if (Order::where(['delivery_man_id' => $dm['id'], 'id' => $request['order_id']])->Notpos()->first()) {
             Order::where(['delivery_man_id' => $dm['id'], 'id' => $request['order_id']])->update([
-                'payment_status' => $request['status']
+                'payment_status' => $request['status'],
+                'is_pushed' => 'N',
             ]);
             return response()->json(['message' => translate('Payment status updated')], 200);
         }

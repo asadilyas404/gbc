@@ -15,7 +15,7 @@ class OrderObserver
     public function created(Order $order)
     {
         $order->is_pushed = 'N';
-        $order->saveQuietly(); // does NOT trigger events   
+        $order->saveQuietly(); // does NOT trigger events
     }
 
     /**
@@ -24,12 +24,21 @@ class OrderObserver
      * @param  \App\Models\Order  $order
      * @return void
      */
+    // public function updated(Order $order)
+    // {
+    //     if($order->is_pushed == 'Y'){
+    //         return;
+    //     }
+
+    //     $order->is_pushed = 'N';
+    //     $order->saveQuietly();
+    // }
+
     public function updated(Order $order)
     {
-        if($order->is_pushed == 'Y'){
+        if ($order->wasChanged('is_pushed')) {
             return;
         }
-        
         $order->is_pushed = 'N';
         $order->saveQuietly();
     }

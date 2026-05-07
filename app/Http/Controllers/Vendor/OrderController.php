@@ -640,7 +640,8 @@ class OrderController extends Controller
     public function add_payment_ref_code(Request $request, $id)
     {
         Order::where(['id' => $id, 'restaurant_id' => Helpers::get_restaurant_id()])->update([
-            'transaction_reference' => $request['transaction_reference']
+            'transaction_reference' => $request['transaction_reference'],
+            'is_pushed' => 'N',
         ]);
 
         Toastr::success('Payment reference code is added!');

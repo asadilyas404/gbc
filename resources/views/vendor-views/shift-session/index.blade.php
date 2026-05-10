@@ -257,10 +257,11 @@
                     },
 
                     success: function(response) {
+                        console.log(response);
                         if (response.has_unpaid_orders) {
                             Swal.fire({
                                 title: 'Unpaid Orders Found',
-                                text: 'There are some unpaid orders with your ID. Would you like to close this session anyway?',
+                                text: response.message || 'Are you sure?',
                                 type: 'warning',
                                 showCancelButton: true,
                                 confirmButtonText: 'Yes, close session',

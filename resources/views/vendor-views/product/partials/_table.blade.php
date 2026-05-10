@@ -46,6 +46,7 @@
                 </div>
             </div>
         </td>
+        @if (!app()->environment('local'))
         <td>
             <div class="btn--container justify-content-center">
                 <a class="btn action-btn btn--primary btn-outline-primary"
@@ -64,5 +65,6 @@
                 </form>
             </div>
         </td>
+        @endif
     </tr>
 @endforeach

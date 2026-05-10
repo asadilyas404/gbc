@@ -9,7 +9,7 @@
 
     <div class="card-body inline_product text-center px-2 py-2 clickable">
         <div class="product-title1 position-relative text-dark font-weight-bold text-capitalize">
-            {{ Str::limit($product['name'], 25,'...') }}
+            {{ $product['name'] }}
         </div>
         <div class="justify-content-between text-center">
             <div class="product-price text-center">

@@ -114,17 +114,28 @@ class POSController extends Controller
         ->latest()
         ->get();
         
-        if(!empty($id)){
-            $products->each(function ($item) use ($id) {
+        if (!empty($id)) {
+            $products = $products->filter(function ($item) use ($id) {
                 $partnerPrices = json_decode($item->partner_price, true) ?: [];
 
                 foreach ($partnerPrices as $pp) {
                     if (($pp['partner_id'] ?? null) == $id) {
+
+                        // If enabled exists and is false, remove item
+                        if (isset($pp['enable']) && $pp['enable'] == 'off') {
+                            return false;
+                        }
+
+                        // If enabled is true, or enabled does not exist, set partner price
                         $item->price = $pp['price'] ?? $item->price;
-                        break;
+
+                        return true;
                     }
                 }
-            });
+
+                // Keep item if this partner has no special price record
+                return true;
+            })->values();
         }
 
         // dd('All Data Loaded');

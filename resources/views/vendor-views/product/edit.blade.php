@@ -424,20 +424,29 @@
                                     </div>
                                 </div>
 
-                                @foreach ($PARTNER_VARIATION_OPTION as $row)
+                                @foreach ($PARTNER_VARIATION_OPTION as $row)                                   
                                     <div class="col-md-3">
                                         <div class="form-group mb-0">
-                                            <label class="input-label"
-                                                for="">{{  $row->partner_name." Price" }}</label>
-                                            <input type="number" min="0" max="999999999999.99" step="0.01"
-                                                data-id="{{ $row->p_id }}"
-                                                value="{{ $row->price }}" name="partner_price[{{$row->p_id }}]" class="form-control"
-                                                placeholder="{{ translate('messages.Ex :') }} 100" required>
+                                            <label class="input-label" for="">{{  $row->partner_name." Price" }}</label>
+                                            <div class="input-group">
+                                                <input type="number" min="0" max="999999999999.99" step="0.01"
+                                                    data-id="{{ $row->p_id }}"
+                                                    value="{{ $row->price }}" name="partner_price[{{$row->p_id }}][price]" class="form-control"
+                                                    placeholder="{{ translate('messages.Ex :') }} 100" required>
+                                                <div class="input-group-append">
+                                                    <div class="input-group-text py-0 px-2">
+                                                        <label class="toggle-switch toggle-switch-sm" data-toggle="tooltip" data-placement="top" title="Change food visibility to delivery partner" for="partner_price-{{$row->p_id }}">
+                                                            <input type="checkbox" id="partner_price-{{$row->p_id }}" class="toggle-switch-input" name="partner_price[{{$row->p_id }}][enable]" {{ !isset($row->enable) || $row->enable == 'on' ? 'checked' : '' }}>
+                                                            <span class="toggle-switch-label">
+                                                                <span class="toggle-switch-indicator"></span>
+                                                            </span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
-                                
                                 @endforeach
-
                             </div>
                         </div>
                     </div>
@@ -504,7 +513,6 @@
             </div>
         </form>
     </div>
-
 @endsection
 
 @push('script')

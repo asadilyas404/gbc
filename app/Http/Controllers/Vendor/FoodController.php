@@ -179,8 +179,12 @@ class FoodController extends Controller
         $arr=[];
         if (isset($request->partner_price)) {
             $partner_price=$request->partner_price;
-            foreach($partner_price as $partner_id=>$price){
-                $arr[]=['partner_id'=>$partner_id,'price'=>$price];
+            foreach($partner_price as $partner_id => $values){
+                $arr[] = [
+                    'partner_id' => $partner_id,
+                    'price' => $values['price'],
+                    'enable' => isset($values['enable']) ? 'on' : 'off'
+                ];    
             }
         }
 
@@ -427,12 +431,12 @@ class FoodController extends Controller
                 ->select('p.*','p.partner_id as p_id')
                  ->where('partner_entry_status',1)
                  ->get();
-
+        
         foreach($PARTNER_VARIATION_OPTION as $p){
             $p->price=optional( $partner_price->where('partner_id',$p->p_id)->first())->price;
+            $p->enable = optional( $partner_price->where('partner_id',$p->p_id)->first())->enable ?? 'on';
         }
-
-
+        
         return view('vendor-views.product.edit', compact('product', 'product_category', 'categories', 'optionList', 'variationsPayload','PARTNER_VARIATION_OPTION'));
     }
 
@@ -527,6 +531,7 @@ class FoodController extends Controller
 
         foreach($PARTNER_VARIATION_OPTION as $p){
             $p->price=optional( $partner_price->where('partner_id',$p->p_id)->first())->price;
+            $p->enable=optional( $partner_price->where('partner_id',$p->p_id)->first())->enable ?? 'on';
         }
 
         return view('vendor-views.product.copy', compact('PARTNER_VARIATION_OPTION','product', 'product_category', 'categories', 'optionList', 'variationsPayload', 'originalProduct'));
@@ -720,8 +725,12 @@ class FoodController extends Controller
         $arr=[];
         if (isset($request->partner_price)) {
             $partner_price=$request->partner_price;
-            foreach($partner_price as $partner_id=>$price){
-                $arr[]=['partner_id'=>$partner_id,'price'=>$price];
+            foreach($partner_price as $partner_id => $values){
+                $arr[] = [
+                    'partner_id' => $partner_id,
+                    'price' => $values['price'],
+                    'enable' => isset($values['enable']) ? 'on' : 'off'
+                ];    
             }
         }
 

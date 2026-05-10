@@ -6658,4 +6658,5 @@
   'Dine In' => 'Dine In',
   'سفري' => 'سفري',
   'Take Away' => 'Take Away',
+  'Management Credit Extra' => 'Management Credit Extra',
 );

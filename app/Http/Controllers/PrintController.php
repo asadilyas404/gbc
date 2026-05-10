@@ -198,11 +198,11 @@ class PrintController extends Controller
             $printer->setEmphasis(true);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->setTextSize(2, 2);
-            
+
             // $printer->text(mb_convert_encoding("مرحبا مرحبا مرحبا", "CP864", "UTF-8"));
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "",      // can be Arabic too
-                config('constants.invoice_restaurant_name'),         // can be Arabic too
+                $order->restaurant->translations()->where('key', 'name')->where('locale', 'ar')->first()->value ?? config('constants.invoice_restaurant_name'),         // can be Arabic too
                 "",     // Arabic
                 storage_path('app/public/prints/date_row.png'),
                 576,
@@ -217,8 +217,6 @@ class PrintController extends Controller
             $printer->text($order->restaurant->name . "\n");
             
             $printer->setTextSize(1, 1);
-            
-            
 
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "CR No. |  رقم السجل التجاري ",
@@ -1995,9 +1993,7 @@ class PrintController extends Controller
                 ]);
             }
 
-            $openSessions = ShiftSession::where('branch_id', $branchId)
-                ->where('session_status', 'open')
-                ->exists();
+            $openSessions = ShiftSession::current()->exists();
 
             if ($openSessions) {
                 return response()->json([

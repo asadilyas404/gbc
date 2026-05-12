@@ -100,13 +100,6 @@ class ShiftSessionController extends Controller
     {
         $sessionsOpened = ShiftSession::current()->count();
 
-        if ($sessionsOpened > 1) {
-            return response()->json([
-                'has_unpaid_orders' => false,
-                'message' => '',
-            ]);
-        }
-
         $currentSession = ShiftSession::current()->first();
 
         if (!$currentSession) {
@@ -116,27 +109,27 @@ class ShiftSessionController extends Controller
             ]);
         }
 
-        $hasAnyUnpaidOrders = Order::where('payment_status', 'unpaid')
-            ->exists();
+        if ($sessionsOpened <= 1) {
+            // Only active session: warn if there are unpaid orders under any user
+            $hasUnpaidOrders = Order::where('payment_status', 'unpaid')
+                ->exists();
+        } else {
+            // Multiple active sessions: warn only for this user's unpaid orders
+            $hasUnpaidOrders = Order::where('payment_status', 'unpaid')
+                ->where('order_taken_by', auth('vendor')->id() ?? auth('vendor_employee')->id())
+                ->exists();
+        }
 
-        if (!$hasAnyUnpaidOrders) {
+        if (!$hasUnpaidOrders) {
             return response()->json([
                 'has_unpaid_orders' => false,
                 'message' => '',
             ]);
         }
 
-        $hasUnpaidOrdersInCurrentSession = Order::where('payment_status', 'unpaid')
-            ->where('session_id', $currentSession->session_id)
-            ->exists();
-
-        $message = $hasUnpaidOrdersInCurrentSession
-            ? 'There are some unpaid orders with your ID. Would you like to close this session anyway?'
-            : 'There are some unpaid orders. Would you like to close this session anyway?';
-
         return response()->json([
             'has_unpaid_orders' => true,
-            'message' => $message,
+            'message' => 'There are some unpaid orders. Would you like to close this session anyway?',
         ]);
     }
 

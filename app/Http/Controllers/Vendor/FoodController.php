@@ -373,6 +373,10 @@ class FoodController extends Controller
             return back();
         }
 
+        if(!app()->environment('live')){
+            abort(404);
+        }
+
         $product = Food::withoutGlobalScope('translate')->findOrFail($id);
         $product_category = json_decode($product->category_ids);
         $categories = Category::where(['parent_id' => 0])->get();

@@ -330,9 +330,22 @@
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.Unit_Price') }}
                                             {{ \App\CentralLogics\Helpers::currency_symbol() }}</label>
-                                        <input type="number" min="0" max="999999999999.99" step="0.01"
+                                        <div class="input-group">
+                                            <input type="number" min="0" max="999999999999.99" step="0.01"
                                             value="1" name="price" class="form-control"
                                             placeholder="{{ translate('messages.Ex :') }} 100" required>
+                                            <div class="input-group-append">
+                                                <div class="input-group-text py-0 px-2">
+                                                <label class="toggle-switch toggle-switch-sm" data-toggle="tooltip" data-placement="top" title="Change food visibility to default menu" for="visibility">
+                                                    <input type="checkbox" id="visibility" class="toggle-switch-input" name="visibility" checked>
+                                                    <span class="toggle-switch-label">
+                                                        <span class="toggle-switch-indicator"></span>
+                                                    </span>
+                                                </label>
+                                                </div>
+                                            </div>    
+                                        </div>
+                                        
                                     </div>
                                 </div>
                                 <div class="col-md-3">

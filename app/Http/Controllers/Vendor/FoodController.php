@@ -175,6 +175,7 @@ class FoodController extends Controller
         $food->price = $request->price;
         $food->veg = $request->veg;
         $food->status = 1;
+        $food->visibility = $request->visibility ?? 'off';
 
         $arr=[];
         if (isset($request->partner_price)) {
@@ -682,6 +683,7 @@ class FoodController extends Controller
         $p->choice_options = json_encode([]);
         $p->variations = json_encode([]);
 
+        $p->visibility = $request->visibility ?? 'off';
 
         // if (isset($request->partner_option_price)) {
 

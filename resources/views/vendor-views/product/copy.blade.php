@@ -339,9 +339,22 @@
                                     <div class="form-group mb-0">
                                         <label class="input-label"
                                             for="exampleFormControlInput1">{{ translate('messages.price') }}</label>
-                                        <input type="number" min="0" max="999999999999.99" step="0.01"
+                                            <div class="input-group">
+                                                <input type="number" min="0" max="999999999999.99" step="0.01"
                                             value="{{ $product['price'] }}" name="price" class="form-control"
                                             placeholder="{{ translate('messages.Ex :') }} 100" required>
+                                            <div class="input-group-append">
+                                                <div class="input-group-text py-0 px-2">
+                                                <label class="toggle-switch toggle-switch-sm" data-toggle="tooltip" data-placement="top" title="Change food visibility to default menu" for="visibility">
+                                                    <input type="checkbox" id="visibility" class="toggle-switch-input" name="visibility"  @if(isset($product['visibility']) && $product['visibility'] == 'on') checked @endif>
+                                                    <span class="toggle-switch-label">
+                                                        <span class="toggle-switch-indicator"></span>
+                                                    </span>
+                                                </label>
+                                                </div>
+                                            </div> 
+                                            </div>
+                                        
                                     </div>
                                 </div>
                                 <div class="col-md-3">
@@ -439,7 +452,7 @@
                                             <div class="input-group-append">
                                                 <div class="input-group-text py-0 px-2">
                                                 <label class="toggle-switch toggle-switch-sm" data-toggle="tooltip" data-placement="top" title="Change food visibility to delivery partner" for="partner_price[{{$row->p_id }}]">
-                                                    <input type="checkbox" id="partner_price[{{$row->p_id }}]" class="toggle-switch-input" name="partner_price[{{$row->p_id }}][enable]" {{ !isset($row->enable) || $row->enable == 'on' ? 'checked' : '' }}>
+                                                    <input type="checkbox" id="partner_price[{{$row->p_id }}]" class="toggle-switch-input" name="enable" @if(isset($product['enable']) && $product['enable'] == 'on') checked @endif>
                                                     <span class="toggle-switch-label">
                                                         <span class="toggle-switch-indicator"></span>
                                                     </span>

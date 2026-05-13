@@ -136,9 +136,16 @@ class POSController extends Controller
                 // Keep item if this partner has no special price record
                 return true;
             })->values();
+        }else{
+           $products = $products->filter(function ($item) {
+                if ($item->visibility == 'off') {
+                    return false;
+                }
+
+                return true;
+            })->values();
         }
 
-        // dd('All Data Loaded');
         if ($request->ajax()) {
             return response()->json([
                 'subcategoryHtml' => view('vendor-views.pos._subcategory_list', compact('subcategories'))->render(),

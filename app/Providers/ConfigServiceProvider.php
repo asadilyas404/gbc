@@ -171,7 +171,7 @@ class ConfigServiceProvider extends ServiceProvider
             if ($pagination) {
                 Config::set('default_pagination', $pagination->value);
             } else {
-                Config::set('default_pagination', 250);
+                Config::set('default_pagination', 1000);
             }
 
             $round_up_to_digit = BusinessSetting::where(['key' => 'digit_after_decimal_point'])->first();

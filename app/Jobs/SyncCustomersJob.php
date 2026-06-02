@@ -28,7 +28,7 @@ class SyncCustomersJob implements ShouldQueue
         Log::info('SyncCustomersJob started (API-based)');
 
         try {
-            $branchId = Helpers::get_restaurant_id();
+            $branchId = config('constants.branch_id');
 
             if (empty($branchId)) {
                 Log::warning('SyncCustomersJob halted: branch/restaurant context missing');

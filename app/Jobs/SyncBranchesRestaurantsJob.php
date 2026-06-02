@@ -22,7 +22,8 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         'restaurants',
         'partners',
         'banks',
-        'vendors'
+        'vendors',
+        'pos_discount_types'
     ];
 
     public function handle()
@@ -31,7 +32,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         Log::info('SyncBranchesRestaurantsJob started (API-based)');
         
         try {
-            $branchId = Helpers::get_restaurant_id();
+            $branchId = config('constants.branch_id');
             
             if (empty($branchId)) {
                 Log::warning('SyncBranchesRestaurantsJob halted: branch/restaurant context missing');
@@ -64,6 +65,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'partners' => count($data['partners'] ?? []),
                 'banks' => count($data['banks'] ?? []),
                 'vendors' => count($data['vendors'] ?? []),
+                'pos_discount_types' => count($data['pos_discount_types'] ?? []),
             ]);
 
             $syncedBranchIds = [];
@@ -71,6 +73,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             $syncPartnerIds = [];
             $syncBankIds = [];
             $syncVendorIds = [];
+            $syncPosDiscountTypeIds = [];
             $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
 
             foreach ($data['branches'] ?? [] as $branch) {
@@ -228,6 +231,29 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 }
             }
 
+            foreach ($data['pos_discount_types'] ?? [] as $posDiscountType) {
+                try {
+                    DB::connection('oracle')
+                        ->table('tbl_pos_discount_types')
+                        ->updateOrInsert(
+                            ['id' => $posDiscountType['id']],
+                            $posDiscountType
+                        );
+
+                    $syncPosDiscountTypeIds[] = $posDiscountType['id'];
+                    $latestSyncedTimestamps['pos_discount_types'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['pos_discount_types'],
+                        $posDiscountType['updated_at'] ?? null
+                    );
+                    Log::info("POS Discount Type ID {$posDiscountType['id']} synced successfully.");
+
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing POS Discount Type ID {$posDiscountType['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
             $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
             Log::info('SyncBranchesRestaurantsJob completed successfully', [
@@ -236,6 +262,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'synced_partners' => count($syncPartnerIds),
                 'synced_banks' => count($syncBankIds),
                 'synced_vendors' => count($syncVendorIds),
+                'synced_pos_discount_types' => count($syncPosDiscountTypeIds),
             ]);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {

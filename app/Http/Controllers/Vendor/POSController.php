@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Models\KitchenOrderStatusLog;
 use App\Models\PosOrderAdditionalDtl;
+use DebugBar\DataCollector\PDO\TraceablePDOStatement;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -187,6 +188,9 @@ class POSController extends Controller
         $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'restaurant')->get();
         $cancelStatuses = ['Unprepared', 'Prepared', 'Wasted'];
 
+
+        $discountTypes = DB::table('tbl_pos_discount_types')->where('status', 1)->get();
+
         return view('vendor-views.pos.index-new', compact(
             'categories',
             'subcategories',
@@ -203,7 +207,8 @@ class POSController extends Controller
             'bankaccounts',
             'updateDate',
             'reasons',
-            'cancelStatuses'
+            'cancelStatuses',
+            'discountTypes'
         ));
     }
 

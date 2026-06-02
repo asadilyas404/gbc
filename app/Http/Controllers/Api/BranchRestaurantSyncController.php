@@ -16,6 +16,7 @@ class BranchRestaurantSyncController extends Controller
         'partners',
         'banks',
         'vendors',
+        'pos_discount_types',
     ];
 
     /**
@@ -39,6 +40,8 @@ class BranchRestaurantSyncController extends Controller
                 'restaurants' => [],
                 'partners'  => [],
                 'banks'    => [],
+                'vendors'  => [],
+                'pos_discount_types' => [],
             ];
 
             $branches = DB::connection('oracle')
@@ -144,13 +147,32 @@ class BranchRestaurantSyncController extends Controller
                 $data['vendors'][] = $vendorRecord;
             }
 
+            $posDiscountTypes = DB::connection('oracle')
+                ->table('tbl_pos_discount_types')
+                ->when(!$snapshot && $cursorMap['pos_discount_types'] ?? null, function ($query, Carbon $cursor) {
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
+                })
+                ->orderBy('updated_at')
+                ->get();
+
+            foreach ($posDiscountTypes as $discountType) {
+                $discountTypeRecord = $this->ensureUpdatedAt((array) $discountType, 'tbl_pos_discount_types', 'id');
+                $discountType->updated_at = $discountTypeRecord['updated_at'] ?? $discountType->updated_at;
+
+                $data['pos_discount_types'][] = $discountTypeRecord;
+            }
+
             Log::info('Branch, restaurant and partner data retrieved for sync', [
                 'branch_id' => $branchId,
                 'branches_count' => count($data['branches']),
                 'restaurants_count' => count($data['restaurants']),
                 'partners_count' => count($data['partners']),
                 'banks_count' => count($data['banks']),
-                'vendors_count' => count($vendors),
+                'vendors_count' => count($data['vendors']),
+                'pos_discount_types_count' => count($data['pos_discount_types']),
             
             ]);
 
@@ -163,6 +185,7 @@ class BranchRestaurantSyncController extends Controller
                     'partners' => count($data['partners']),
                     'banks' => count($data['banks']),
                     'vendors' => count($data['vendors']),
+                    'pos_discount_types' => count($data['pos_discount_types']),
                 ],
                 'cursor' => array_map(function ($item) {
                     return $item ? $item->toIso8601String() : null;
@@ -198,13 +221,14 @@ class BranchRestaurantSyncController extends Controller
                 'partners_last_synced_at' => 'nullable|string',
                 'banks_last_synced_at' => 'nullable|string',
                 'vendors_last_synced_at' => 'nullable|string',
+                'pos_discount_types_last_synced_at' => 'nullable|string',
             ]);
 
             $branchId = (int) $validated['branch_id'];
             $timestamps = $this->parseTimestampPayload($validated);
             $this->persistBranchSyncState($branchId, $timestamps);
 
-            Log::info('Branch sync state updated for branches/restaurants/partners/banks/vendors', [
+            Log::info('Branch sync state updated for branches/restaurants/partners/banks/vendors/pos_discount_types', [
                 'branch_id' => $branchId,
                 'payload' => array_intersect_key(
                     $validated,
@@ -267,6 +291,10 @@ class BranchRestaurantSyncController extends Controller
         return [
             'branches' => $this->extractMaxTimestamp($data['branches']),
             'restaurants' => $this->extractMaxTimestamp($data['restaurants'], 'restaurant'),
+            'partners' => $this->extractMaxTimestamp($data['partners']),
+            'banks' => $this->extractMaxTimestamp($data['banks']),
+            'vendors' => $this->extractMaxTimestamp($data['vendors']),
+            'pos_discount_types' => $this->extractMaxTimestamp($data['pos_discount_types']),
         ];
     }
 

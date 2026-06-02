@@ -142,14 +142,25 @@
                         <div class="product-description-label mt-2 text-dark h3 col-12">
                             {{ translate("messages.Discount x Item's") }}:
                         </div>
-                        <div class="form-group col-md-6 mb-1">
+                        <div class="form-group col-md-4 mb-1">
+                            <select name="pos_discount_type" class="form-control pos-discount-type"
+                                id="pos_discount_type" onchange="applyPOSDiscount()">
+                                <option value="" {{ $product['discount'] <= 0 ? 'selected' : '' }} data-type="percent" data-value="0" @if($product['discount'] > 0) disabled @endif>
+                                    Select Discount Type
+                                </option>
+                                @foreach ($discounts as $discount)
+                                    <option value="{{ $discount->id }}" @if($discount->id == ($cart_item['pos_discount_type'] ?? null)) selected @endif data-type="{{ $discount->id == ($cart_item['pos_discount_type'] ?? null) ? ($cart_item['discountType'] ?? 'percent') : ((($product['discount'] ?? 0) > 0 && $discount->id == 1) ? ($product['discount_type'] ?? 'percent') : 'percent') }}" data-value="{{ $discount->id == ($cart_item['pos_discount_type'] ?? null) ? ($cart_item['discountAmount'] ?? $discount->default_discount) : ((($product['discount'] ?? 0) > 0 && $discount->id == 1) ? ($product['discount'] ?? 0) : $discount->default_discount) }}">{{ $discount->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4 mb-1">
                             <input type="number" class="form-control" name="product_discount" min="0.0001"
                                 onwheel="this.blur()"
                                 onkeyup="calculateTotal()"
                                 id="product_discount" value="{{ $cart_item['discountAmount'] ?? 0 }}"
                                 max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                         </div>
-                        <div class="form-group col-md-6 mb-1">
+                        <div class="form-group col-md-4 mb-1">
                             <select name="product_discount_type" class="form-control discount-type"
                                 id="product_discount_type" onchange="calculateTotal()">
                                 <option value="amount"
@@ -524,6 +535,29 @@
             addonsTotal: addonsGrandTotal,
             total: grandTotal
         };
+    }
+
+    function applyPOSDiscount(){
+        const selectedDiscountId = $('#pos_discount_type').val();
+        if (selectedDiscountId) {
+            const selectedOption = $('#pos_discount_type option:selected');
+            const discountValue = parseFloat(selectedOption.data('value')) || 0;
+            $('#product_discount').val(discountValue);
+
+            // Also change the discount type to percentage
+            $('#product_discount_type').val(selectedOption.data('type') || 'percent');
+        } else {
+            var productDiscount = {{ $product->discount }};
+            if(productDiscount > 0){
+                $('#pos_discount_type').val(1);
+                $('#product_discount').val(productDiscount);
+                $('#product_discount_type').val('{{ $product->discount_type }}');
+            }else{
+                $('#product_discount').val(0);
+                $('#product_discount_type').val('percent');
+            }
+        }
+        calculateTotal();
     }
 
     function calculateTotal(initial = 0) {

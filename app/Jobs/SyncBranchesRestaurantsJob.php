@@ -30,7 +30,10 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
     {
         set_time_limit(300);
         Log::info('SyncBranchesRestaurantsJob started (API-based)');
-        
+        Log::info('SyncBranchesRestaurantsJob configuration', [
+            'live_server_url' => config('services.live_server.url'),
+            'timeout' => config('services.live_server.timeout', 60),
+        ]);
         try {
             $branchId = config('constants.branch_id');
             
@@ -45,7 +48,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 ->retry(3, 1000)
                 ->get(config('services.live_server.url') . '/branches-restaurants/get-data', [
                     'branch_id' => $branchId,
-                    'snapshot' => true,
+                    'snapshot' => false,
                 ]);
 
             if (!$response->successful()) {
@@ -58,7 +61,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
 
             $result = $response->json();
             $data = $result['data'] ?? [];
-
+            
             Log::info('Received branch/restaurant data from live server', [
                 'branches' => count($data['branches'] ?? []),
                 'restaurants' => count($data['restaurants'] ?? []),

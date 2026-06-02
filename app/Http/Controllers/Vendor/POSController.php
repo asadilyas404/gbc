@@ -188,9 +188,6 @@ class POSController extends Controller
         $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'restaurant')->get();
         $cancelStatuses = ['Unprepared', 'Prepared', 'Wasted'];
 
-
-        $discountTypes = DB::table('tbl_pos_discount_types')->where('status', 1)->get();
-
         return view('vendor-views.pos.index-new', compact(
             'categories',
             'subcategories',
@@ -207,8 +204,7 @@ class POSController extends Controller
             'bankaccounts',
             'updateDate',
             'reasons',
-            'cancelStatuses',
-            'discountTypes'
+            'cancelStatuses'
         ));
     }
 
@@ -268,9 +264,11 @@ class POSController extends Controller
             }
         }
 
+        $discounts = DB::table('tbl_pos_discount_types')->where('status', 1)->get();
+
         return response()->json([
             'success' => 1,
-            'view' => view('vendor-views.pos._quick-view-data', compact('product', 'partner_id'))->render(),
+            'view' => view('vendor-views.pos._quick-view-data', compact('product', 'partner_id', 'discounts'))->render(),
         ]);
     }
 
@@ -340,9 +338,11 @@ class POSController extends Controller
             $orderPaymentStatus = 'unpaid';
         }
 
+        $discounts = DB::table('tbl_pos_discount_types')->where('status', 1)->get();
+
         return response()->json([
             'success' => 1,
-            'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key', 'editing_order_id','orderPaymentStatus', 'partner_id'))->render(),
+            'view' => view('vendor-views.pos._quick-view-cart-item', compact('product', 'cart_item', 'item_key', 'editing_order_id','orderPaymentStatus', 'partner_id', 'discounts'))->render(),
         ]);
     }
 
@@ -684,6 +684,7 @@ class POSController extends Controller
                 );
             }
 
+            $data['pos_discount_type'] = $request->pos_discount_type ?? 0;
             // Decide what you want to store as unit "price"
             $data['price'] = $unit_base_plus_variation; // keeping your original meaning
 
@@ -1311,6 +1312,7 @@ class POSController extends Controller
                         'options_changed' => $c['options_changed'] ?? 0,
                         'payment_status' => $c['payment_status'] ?? 'unpaid',
                         'food_create_time'  => $c['food_create_time'] ?? Carbon::now(),
+                        'pos_discount_type' => $c['pos_discount_type'] ?? null,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];
@@ -1653,6 +1655,7 @@ class POSController extends Controller
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
                 'draft_product' => true,
+                'pos_discount_type' => $item->pos_discount_type ?? null,
             ];
         }
 

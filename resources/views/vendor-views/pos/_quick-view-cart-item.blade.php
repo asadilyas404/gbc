@@ -156,12 +156,13 @@
                         <div class="form-group col-md-4 mb-1">
                             <input type="number" class="form-control" name="product_discount" min="0.0001"
                                 onwheel="this.blur()"
+                                readonly="true"
                                 onkeyup="calculateTotal()"
                                 id="product_discount" value="{{ $cart_item['discountAmount'] ?? 0 }}"
                                 max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                         </div>
                         <div class="form-group col-md-4 mb-1">
-                            <select name="product_discount_type" class="form-control discount-type"
+                            <select name="product_discount_type" class="form-control discount-type" style="pointer-events: none;background: #f8fafd !important;"
                                 id="product_discount_type" onchange="calculateTotal()">
                                 <option value="amount"
                                     {{ ($cart_item['discountType'] ?? '') == 'amount' ? 'selected' : '' }}>

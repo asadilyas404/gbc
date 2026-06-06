@@ -684,7 +684,7 @@ class POSController extends Controller
                 );
             }
 
-            $data['pos_discount_type'] = $request->pos_discount_type ?? 0;
+            $data['pos_discount_type'] = $request->pos_discount_type ?? null;
             // Decide what you want to store as unit "price"
             $data['price'] = $unit_base_plus_variation; // keeping your original meaning
 

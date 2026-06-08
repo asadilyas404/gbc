@@ -120,7 +120,7 @@
                         <div class="product-description-label mt-2 text-dark h4 col-12">
                             {{ translate("messages.Discount x Item's") }}:
                         </div>
-                        <div class="form-group col-md-4 mb-1">
+                        <div class="form-group col-md-6 mb-1">
                             <select name="pos_discount_type" class="form-control pos-discount-type"
                                 id="pos_discount_type" onchange="applyPOSDiscount()">
                                 <option value="" {{ $product->discount <= 0 ? 'selected' : '' }} data-type="percent" data-value="0" @if($product->discount > 0) disabled @endif>
@@ -133,7 +133,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="form-group col-md-4 mb-1">
+                        <div class="form-group col-md-3 mb-1">
                             <input type="number" class="form-control" name="product_discount" min="0.0001"
                             onwheel="this.blur()"
                             readonly="true"
@@ -141,7 +141,7 @@
                                 onkeyup="calculateTotal()"
                                 max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                         </div>
-                        <div class="form-group col-md-4 mb-1">
+                        <div class="form-group col-md-3 mb-1">
                             <select name="product_discount_type" class="form-control discount-type" style="pointer-events: none;background: #f8fafd !important;"
                                 id="product_discount_type" onchange="calculateTotal()">
                                 <option value="amount" {{ $product['discount_type'] == 'amount' ? 'selected' : '' }}>

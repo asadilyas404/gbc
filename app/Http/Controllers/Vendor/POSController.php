@@ -264,7 +264,7 @@ class POSController extends Controller
             }
         }
 
-        $discounts = DB::table('tbl_pos_discount_types')->where('status', 1)->orderBy('id')->get();
+        $discounts = DB::table('tbl_pos_discount_types')->where('status', 1)->orderBy('name', 'desc')->get();
 
         return response()->json([
             'success' => 1,
@@ -338,7 +338,7 @@ class POSController extends Controller
             $orderPaymentStatus = 'unpaid';
         }
 
-        $discounts = DB::table('tbl_pos_discount_types')->where('status', 1)->orderBy('id')->get();
+        $discounts = DB::table('tbl_pos_discount_types')->where('status', 1)->orderBy('name', 'desc')->get();
 
         return response()->json([
             'success' => 1,

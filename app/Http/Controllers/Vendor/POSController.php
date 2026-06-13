@@ -1129,11 +1129,19 @@ class POSController extends Controller
             $order->order_date = $orderDate;
 
             $today = Carbon::parse($orderDate);
+
+            // xxx: branch id
+            $branchPart = str_pad($branchId, 3, '0', STR_PAD_LEFT);
+
+            // yyy: day number in year
+            $dayPart = str_pad($today->dayOfYear, 3, '0', STR_PAD_LEFT);
+
+            // zzz: daily serial number branch-wise
             $todayOrderCount = Order::whereDate('order_date', $today)->count();
 
-            $dayPart = $today->format('d');
             $sequencePart = str_pad($todayOrderCount + 1, 3, '0', STR_PAD_LEFT);
-            $order->order_serial = "{$dayPart}-{$sequencePart}";
+
+            $order->order_serial = "{$branchPart}-{$dayPart}-{$sequencePart}";
 
             $order->created_at = now();
             $order->schedule_at = now();

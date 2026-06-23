@@ -42,6 +42,7 @@ class BranchRestaurantSyncController extends Controller
                 'banks'    => [],
                 'vendors'  => [],
                 'pos_discount_types' => [],
+                'unpaid_orders' => []
             ];
 
             $branches = DB::connection('oracle')
@@ -165,6 +166,16 @@ class BranchRestaurantSyncController extends Controller
                 $data['pos_discount_types'][] = $discountTypeRecord;
             }
 
+            $unPaidOrders = DB::connection('oracle')
+                ->table('orders')
+                ->where('payment_status', 'unpaid')
+                ->where('restaurant_id', $request->branch_id)
+                ->get('id');
+
+            foreach ($unPaidOrders as $unPaidOrder) {
+                $data['unpaid_orders'][] = $unPaidOrder;
+            }
+
             Log::info('Branch, restaurant and partner data retrieved for sync', [
                 'branch_id' => $branchId,
                 'branches_count' => count($data['branches']),
@@ -173,6 +184,7 @@ class BranchRestaurantSyncController extends Controller
                 'banks_count' => count($data['banks']),
                 'vendors_count' => count($data['vendors']),
                 'pos_discount_types_count' => count($data['pos_discount_types']),
+                'unpaid_orders' => count($data['unpaid_orders'])
             
             ]);
 
@@ -186,6 +198,7 @@ class BranchRestaurantSyncController extends Controller
                     'banks' => count($data['banks']),
                     'vendors' => count($data['vendors']),
                     'pos_discount_types' => count($data['pos_discount_types']),
+                    'unpaid_orders' => count($data['unpaid_orders'])
                 ],
                 'cursor' => array_map(function ($item) {
                     return $item ? $item->toIso8601String() : null;

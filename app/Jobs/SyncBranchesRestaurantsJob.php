@@ -23,7 +23,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         'partners',
         'banks',
         'vendors',
-        'pos_discount_types'
+        'pos_discount_types',
     ];
 
     public function handle()
@@ -69,6 +69,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'banks' => count($data['banks'] ?? []),
                 'vendors' => count($data['vendors'] ?? []),
                 'pos_discount_types' => count($data['pos_discount_types'] ?? []),
+                'unpaid_orders' => count($data['unpaid_orders'] ?? [])
             ]);
 
             $syncedBranchIds = [];
@@ -78,10 +79,10 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             $syncVendorIds = [];
             $syncPosDiscountTypeIds = [];
             $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
+            $unpaidOrderIds=[];
 
             foreach ($data['branches'] ?? [] as $branch) {
                 try {
-
                     unset(
                         $branch['orders_date'],
                         $branch['bill_printer'],
@@ -256,6 +257,25 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                     ]);
                 }
             }
+            
+            foreach ($data['unpaid_orders'] ?? [] as $unPaidOrder) {
+                try {
+                    DB::connection('oracle')
+                    ->table('orders')
+                    ->where('id', $unPaidOrder['id'])
+                    ->update([
+                        'is_pushed' => 'N'
+                    ]);
+
+                    $unpaidOrderIds[] = $unPaidOrder['id'];
+                    Log::info("POS Unpaid Order ID {$unPaidOrder['id']} synced successfully.");
+
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing POS Unpaid ID {$posDiscountType['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
 
             $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
@@ -266,6 +286,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'synced_banks' => count($syncBankIds),
                 'synced_vendors' => count($syncVendorIds),
                 'synced_pos_discount_types' => count($syncPosDiscountTypeIds),
+                'unpaid_orders' => count($unpaidOrderIds)
             ]);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {

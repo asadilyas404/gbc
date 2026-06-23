@@ -30,7 +30,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->job(new SyncOrdersJob)->everyMinute()->withoutOverlapping();
-        $schedule->job(new SyncBranchesRestaurantsJob)->everyFourHours();
+        $schedule->job(new SyncBranchesRestaurantsJob)->everyTwoHours();
         $schedule->job(new SyncEmployeesJob)->everyFourHours();
         $schedule->job(new SyncFoodJob)->hourly();
         $schedule->job(new SyncCustomersJob)->everyFourHours();

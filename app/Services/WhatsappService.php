@@ -341,7 +341,11 @@ class WhatsappService
 
         $serverUrl = config('services.live_server.url') . '/upload-order-pdf';
 
-        $response = Http::attach(
+        $response = Http::timeout(config('services.live_server.timeout', 60))
+        ->withToken(config('services.live_server.token'))
+        ->withoutVerifying()
+        ->retry(3, 1000)
+        ->attach(
             'pdf',
             file_get_contents($localPath),
             $fileName

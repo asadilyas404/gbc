@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Models\KitchenOrderStatusLog;
 use App\Models\PosOrderAdditionalDtl;
+use App\Services\WhatsappService;
 use DebugBar\DataCollector\PDO\TraceablePDOStatement;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
@@ -1575,6 +1576,14 @@ class POSController extends Controller
                 info('Print error: ' . $printException->getMessage());
             }
 
+            // Place Whatsapp Send Message
+            try {
+                $wService = new WhatsappService();
+                $respo = $wService->sendOrderConfirmationMessage('+923029292980', $order, isset($editing_order_id) ? 'update' : 'new');
+                dd($respo);
+            } catch (\Exception $e) {
+                info('Whatsapp Message Send Error:' . $e->getMessage());
+            }
             //PlaceOrderMail
             // try {
             //     $notification_status = Helpers::getNotificationStatusData('customer', 'customer_order_notification');

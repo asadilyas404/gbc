@@ -2,27 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use I18N_Arabic;
-use App\Models\Food;
+use App\CentralLogics\Helpers;
+use App\Helpers\ReceiptImageHelper;
 use App\Models\AddOn;
+use App\Models\Food;
+use App\Models\OptionsList;
 use App\Models\Order;
 use App\Models\Shift;
-use Mike42\Escpos\Printer;
-use App\Models\OptionsList;
 use App\Models\ShiftSession;
+use ArPHP\I18N\Arabic;
+use Dompdf\Dompdf;
+use I18N_Arabic;
 use Illuminate\Http\Request;
-use App\CentralLogics\Helpers;
 use Illuminate\Support\Carbon;
-use Mike42\Escpos\EscposImage;
-use PhpParser\Node\Stmt\TryCatch;
-use Illuminate\Support\Facades\DB;
-use App\Helpers\ReceiptImageHelper;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
 use Intervention\Image\ImageManager;
+use Mike42\Escpos\EscposImage;
 use Mike42\Escpos\ImagickEscposImage;
 use Mike42\Escpos\PrintConnectors\WindowsPrintConnector;
+use Mike42\Escpos\Printer;
+use PhpParser\Node\Stmt\TryCatch;
+use Spatie\Browsershot\Browsershot;
 
 class PrintController extends Controller
 {
@@ -81,51 +84,6 @@ class PrintController extends Controller
         return $line;
     }
 
-    public function printOrderFromHTML(Request $request)
-    {
-        $request->validate([
-            'order_id' => 'required|string'
-        ]);
-
-        $orderId = $request->input('order_id') ?: $request->query('order_id');
-        // Find the order
-        $order = Order::with(['restaurant', 'details.food', 'takenBy', 'pos_details', 'payments'])
-            ->where('id', $orderId)
-            ->first();
-
-        if (!$order) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Order not found'
-            ], 404);
-        }
-
-        // Check if ALL details have is_deleted = 'Y'
-        $allDeleted = $order->details->every(function ($detail) {
-            return $detail->is_deleted === 'Y';
-        });
-
-        if ($allDeleted) {
-            return redirect()->back()->with('warning', 'Cannot print order: All items have been deleted.');
-        }
-
-        // Get printer name from database
-        $user = Auth::user();
-
-        $branchId = $order->restaurant_id;
-        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
-        $printerName = $branch->bill_printer ?? 'BillPrinter';
-
-        // Connect to printer
-        $connector = new WindowsPrintConnector($printerName);
-        $printer = new Printer($connector);
-
-        $htmlContent = View::make('vendor-views.order.invoice', ['order' => $order])->render();
-
-        Browsershot::html($htmlContent)->save(public_path('generated_image.png'));
-
-        dd('Check Image');
-    }
     public function getPrintableSummary($label, $value, $is_double_width = false, $labelRight = '')
     {
         $left_cols = $is_double_width ? 6 : 12;

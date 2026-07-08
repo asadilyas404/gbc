@@ -37,10 +37,10 @@
             box-sizing: border-box;
         }
 
-        @page {
+        /* @page {
             size: 80mm 1000mm;
             margin: 0;
-        }
+        } */
 
         html,
         body {

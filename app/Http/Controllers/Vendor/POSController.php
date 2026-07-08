@@ -1578,9 +1578,8 @@ class POSController extends Controller
 
             // Place Whatsapp Send Message
             try {
-                $wService = new WhatsappService();
-                $respo = $wService->sendOrderConfirmationMessage('+923029292980', $order, isset($editing_order_id) ? 'update' : 'new');
-                dd($respo);
+                // $wService = new WhatsappService();
+                // $respo = $wService->sendOrderConfirmationMessage($request->phone, $order, isset($editing_order_id) ? 'update' : 'new');
             } catch (\Exception $e) {
                 info('Whatsapp Message Send Error:' . $e->getMessage());
             }

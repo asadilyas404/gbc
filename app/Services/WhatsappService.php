@@ -35,15 +35,16 @@ class WhatsappService
             $itemCount = count($items);
 
             if ($itemCount < 1) {
-                return [
-                    'success' => false,
-                    'message' => 'Order must have at least 1 item.',
-                ];
+                throw new \Exception('Order must have at least 1 item.');
             }
 
             $templateName = "malek_al_pizza_items_1_order_confirmation";
 
             $parameters = [];
+
+            if(!$to || empty($to)) {
+                throw new \Exception('Recipient phone number is required.');
+            }
 
             /*
             |--------------------------------------------------------------------------
@@ -54,12 +55,8 @@ class WhatsappService
             */
 
             $pdf = $this->savePDFOnServer($order->id);
-            dd($pdf);
             if (!$pdf) {
-                return [
-                    'success' => false,
-                    'message' => 'PDF upload failed.',
-                ];
+                throw new \Exception('PDF upload failed.');
             }
 
             $headerParameters = [
@@ -67,7 +64,7 @@ class WhatsappService
                     'type' => 'document',
                     'document' => [
                         'link' => $pdf['url'],
-                        'filename' => $pdf['file_name'],
+                        'filename' => $order['order_serial'] ?? 'Order Invoice.pdf',
                     ],
                 ],
             ];
@@ -137,8 +134,6 @@ class WhatsappService
                 ->acceptJson()
                 ->post($url, $payload);
 
-                dd($response->json());
-
             if ($response->failed()) {
                 Log::error('WhatsApp order confirmation failed', [
                     'status' => $response->status(),
@@ -147,13 +142,10 @@ class WhatsappService
                     'payload' => $payload,
                 ]);
 
-                return [
-                    'success' => false,
-                    'status' => $response->status(),
-                    'template_name' => $templateName,
-                    'response' => $response->json(),
-                ];
+                throw new \Exception('WhatsApp order confirmation failed: ' . json_encode($response->json()));
             }
+
+            dd($response->json());
 
             return [
                 'success' => true,
@@ -168,10 +160,7 @@ class WhatsappService
                 'file' => $e->getFile(),
             ]);
 
-            return [
-                'success' => false,
-                'message' => $e->getMessage(),
-            ];
+            throw new \Exception('WhatsApp order confirmation exception: ' . $e->getMessage());
         }
     }
 

@@ -1727,7 +1727,7 @@ class POSController extends Controller
             'email' => 'nullable|email',
         ]);
         $authUserId = Auth::guard('vendor')->id() ?? Auth::guard('vendor_employee')->id();
-        $branchId = Helpers::get_restaurant_id();
+        $branchId = Helpers::get_restaurant_id() ?? config('constants.branch_id');
         $customerName = $request['f_name'] ?? 'Customer - ' . $request['phone'];
 
         $customer = SaleCustomer::where('customer_mobile_no', $request['phone'])

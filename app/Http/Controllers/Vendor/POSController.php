@@ -1113,6 +1113,7 @@ class POSController extends Controller
 
         $editing_order_id = session('editing_order_id');
         $oldVariationJson = '';
+        $branchId = Helpers::get_restaurant_id();
         DB::beginTransaction();
         if ($editing_order_id) {
             $order = Order::find($editing_order_id);
@@ -1125,7 +1126,6 @@ class POSController extends Controller
             $order = new Order();
             $order->id = Helpers::generateGlobalId($restaurant->id);
             $order->is_pushed = 'N';
-            $branchId = Helpers::get_restaurant_id();
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
             $orderDate = $branch ? $branch->orders_date : null;
             $order->order_date = $orderDate;
@@ -1200,6 +1200,7 @@ class POSController extends Controller
             $order->payment_user_session_id = $activeSession->session_id;
         }
 
+        
         if(isset($request->phone) && !empty($request->phone)){
             $customer = SaleCustomer::where('customer_mobile_no', $request->phone);
             if($customer->exists()){
@@ -1727,7 +1728,7 @@ class POSController extends Controller
             'email' => 'nullable|email',
         ]);
         $authUserId = Auth::guard('vendor')->id() ?? Auth::guard('vendor_employee')->id();
-        $branchId = Helpers::get_restaurant_id() ?? config('constants.branch_id');
+        $branchId = Helpers::get_restaurant_id();
         $customerName = $request['f_name'] ?? 'Customer - ' . $request['phone'];
 
         $customer = SaleCustomer::where('customer_mobile_no', $request['phone'])

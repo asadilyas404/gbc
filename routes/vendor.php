@@ -287,6 +287,8 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('add-order-proof/{id}', 'OrderController@add_order_proof')->name('add-order-proof');
             Route::get('remove-proof-image', 'OrderController@remove_proof_image')->name('remove-proof-image');
 
+            Route::get('kitchen-card/{id}', 'OrderController@kitchen_card')->name('kitchen-card');
+            Route::get('order-card/{id}', 'OrderController@order_card')->name('order-card');
 
             Route::group(['as' => 'subscription.'], function () {
                 Route::get('subscription/update-status/{supscription_id}/{status}', 'OrderSubscriptionController@view')->name('update-status');

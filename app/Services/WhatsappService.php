@@ -38,7 +38,7 @@ class WhatsappService
                 throw new \Exception('Order must have at least 1 item.');
             }
 
-            $templateName = "malek_al_pizza_items_1_order_confirmation";
+            $templateName = "malek_al_pizza_order_confirmation_notification_v2";
 
             $parameters = [];
 
@@ -59,22 +59,26 @@ class WhatsappService
                 throw new \Exception('PDF upload failed.');
             }
 
+            $orderSerial = str_replace("-", ".", $order['order_serial']);
+
             $headerParameters = [
                 [
                     'type' => 'document',
                     'document' => [
                         'link' => $pdf['url'],
-                        'filename' => $order['order_serial'] ?? 'Order Invoice.pdf',
+                        'filename' => $orderSerial ?? 'Order Invoice.pdf',
                     ],
                 ],
             ];
 
+
             $order->restaurant->load('branch');
             $parameters[] = $this->textParam('order_status_ar',$status == 'new' ? 'استلام' : 'تعديل');
-            $parameters[] = $this->textParam('branch_name_ar',config('constants.invoice_branch_name') ?? '');
+            $parameters[] = $this->textParam('branch_name_ar',config('constants.invoice_branch_name') ?? '-');
             $parameters[] = $this->textParam('order_status_en',$status == 'new' ? 'received' : 'modified');
-            $parameters[] = $this->textParam('branch_name_en',$order->restaurant->branch->branch_name ?? '');
-            $parameters[] = $this->textParam('order_id',$order['order_serial'] ?? '');
+            $parameters[] = $this->textParam('branch_name_en',$order->restaurant->branch->branch_name ?? '-');
+            $parameters[] = $this->textParam('order_id_ar',$orderSerial ?? '-');
+            $parameters[] = $this->textParam('order_id_en',$orderSerial ?? '-');
 
             /*
             |--------------------------------------------------------------------------
@@ -82,17 +86,8 @@ class WhatsappService
             |--------------------------------------------------------------------------
             */
 
-            $amounts = $this->padAmounts([
-                'discount_amnt' => $totalDiscountPrice ?? '0.000 OMR',
-                'add_on_amnt' => $totalAdOnPrice ?? '0.000 OMR',
-                'delivery_amnt' => $order['delivery_charge'] ?? '0.000 OMR',
-                'total_amnt' => $order['order_amount'] ?? '0.000 OMR',
-            ]);
-
-            // $parameters[] = $this->textParam('discount_amnt',$amounts['discount_amnt'] ?? '0.000 OMR');
-            // $parameters[] = $this->textParam('add_on_amnt',$amounts['add_on_amnt'] ?? '0.000 OMR');
-            // $parameters[] = $this->textParam('delivery_amnt',$amounts['delivery_amnt'] ?? '0.000 OMR');
-            $parameters[] = $this->textParam('total_amnt',$amounts['total_amnt'] ?? '0.000 OMR');
+            $parameters[] = $this->textParam('total_amnt_ar',number_format($order['order_amount'], 3) . ' ر.ع.' ?? '0.000 ر.ع.');
+            $parameters[] = $this->textParam('total_amnt_en',number_format($order['order_amount'], 3) . ' OMR' ?? '0.000 OMR');
             $parameters[] = $this->textParam('branch_no_ar',$order->restaurant->phone ?? '-');
             $parameters[] = $this->textParam('branch_no_en',$order->restaurant->phone ?? '-');
 
@@ -145,7 +140,8 @@ class WhatsappService
                 throw new \Exception('WhatsApp order confirmation failed: ' . json_encode($response->json()));
             }
 
-            dd($response->json());
+            $order->whatsapp_confirmation_sent_at = now();
+            $order->save();
 
             return [
                 'success' => true,
@@ -161,6 +157,110 @@ class WhatsappService
             ]);
 
             throw new \Exception('WhatsApp order confirmation exception: ' . $e->getMessage());
+        }
+    }
+
+    public function sendOrderReadyMessage($to, $order, $status = 'new', $partner = null)
+    {
+        try {
+            $parameters = [];
+
+            if(!$to || empty($to)) {
+                throw new \Exception('Recipient phone number is required.');
+            }
+
+            if($partner) {
+                $order->load('partner');   
+            }
+
+            $templateName = "v3_order_ready_malek_al_pizza";
+
+            /*
+            |--------------------------------------------------------------------------
+            | Common parameters
+            |--------------------------------------------------------------------------
+            | Keep this order exactly same as your WhatsApp template variables.
+            |--------------------------------------------------------------------------
+            */
+
+            $headerParameters = [];
+            $order->restaurant->load('branch');
+            $parameters[] = $this->textParam('order_no_ar',$order['order_serial'] ?? '');
+            $parameters[] = $this->textParam('order_no_en',$order['order_serial'] ?? '');
+            $parameters[] = $this->textParam('branch_no_ar',$order->restaurant->phone ?? '-');
+            $parameters[] = $this->textParam('branch_no_en',$order->restaurant->phone ?? '-');
+            $parameters[] = $this->textParam('branch_map',config('constants.branch_map_link') ?? '-');
+
+
+            \Log::info('WhatsApp order ready parameters', [
+                'template_name' => $templateName,
+                'parameters' => $parameters,
+                'header_parameters' => $headerParameters,
+            ]);
+
+            $url = "https://graph.facebook.com/{$this->apiVersion}/{$this->phoneNoId}/messages";
+
+            $components = [];
+
+            // Add header only if header parameters exist
+            if (!empty($headerParameters)) {
+                $components[] = [
+                    'type' => 'header',
+                    'parameters' => $headerParameters,
+                ];
+            }
+
+            // Add body only if body parameters exist
+            if (!empty($parameters)) {
+                $components[] = [
+                    'type' => 'body',
+                    'parameters' => $parameters,
+                ];
+            }
+
+            $payload = [
+                'messaging_product' => 'whatsapp',
+                'recipient_type' => 'individual',
+                'to' => $this->formatPhoneNumber($to),
+                'type' => 'template',
+                'template' => [
+                    'name' => $templateName,
+                    'language' => [
+                        'code' => 'ar',
+                    ],
+                    'components' => $components,
+                ],
+            ];
+
+            $response = Http::withToken($this->token)
+                ->acceptJson()
+                ->post($url, $payload);
+
+            if ($response->failed()) {
+                Log::error('WhatsApp order ready failed', [
+                    'status' => $response->status(),
+                    'response' => $response->json(),
+                    'template_name' => $templateName,
+                    'payload' => $payload,
+                ]);
+
+                throw new \Exception('WhatsApp order ready failed: ' . json_encode($response->json()));
+            }
+
+            return [
+                'success' => true,
+                'template_name' => $templateName,
+                'response' => $response->json(),
+            ];
+
+        } catch (\Exception $e) {
+            Log::error('WhatsApp order ready exception', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            throw new \Exception('WhatsApp order ready exception: ' . $e->getMessage());
         }
     }
 

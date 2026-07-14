@@ -1498,4 +1498,46 @@ class OrderController extends Controller
         $printer = new PrintController();
         return $printer->printCanceledOrderItems($request->order_date);
     }
+
+    public function kitchen_card(Request $request, $order_id)
+    {
+        $order = Order::with([
+            'details',
+            'restaurant',
+            'restaurant.translations',
+            'details.food',
+            'takenBy',
+            'pos_details',
+            'partner',
+            'customer'
+        ])->findOrFail($order_id);
+
+        
+        $timer = "";
+        if (isset($order->created_at) && !empty($order->created_at)) {
+            $timer = date('H:i:s', strtotime($order->created_at));
+        }
+        $order->setAttribute('kitchen_time', $timer);
+        
+
+        $printableContent = view('vendor-views.kitchen.partials._card', compact('order'))->render();
+        return response()->json(['html' => $printableContent]);
+    }
+    
+    public function order_card(Request $request, $order_id)
+    {
+        $order = Order::with([
+            'details',
+            'restaurant',
+            'restaurant.translations',
+            'details.food',
+            'takenBy',
+            'pos_details',
+            'partner',
+            'customer'
+        ])->findOrFail($order_id);
+
+        $printableContent = view('vendor-views.order.partials._card', compact('order'))->render();
+        return response()->json(['html' => $printableContent]);
+    }
 }

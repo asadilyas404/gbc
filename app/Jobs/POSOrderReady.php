@@ -1,0 +1,116 @@
+<?php
+
+namespace App\Jobs;
+
+use App\Models\Log;
+use App\Models\Order;
+use App\Services\WhatsappService;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Throwable;
+
+class POSOrderReady implements ShouldQueue, ShouldBeUnique
+{
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+
+    public string $phone;
+    public int $orderId;
+    public string $state;
+
+    public int $tries = 3;
+    public int $timeout = 60;
+
+    public int $uniqueFor = 600;
+
+    public function uniqueId(): string
+    {
+        return 'pos-order-whatsapp-' . $this->orderId . '-' . $this->phone . '-' . $this->state;
+    }
+
+    public function backoff(): array
+    {
+        return [30, 120, 300];
+    }
+
+    public function __construct(string $phone, int $orderId, string $state = 'new')
+    {
+        $this->phone = $phone;
+        $this->orderId = $orderId;
+        $this->state = $state;
+    }
+
+    public function handle(): void
+    {
+        try {
+            $order = Order::with([
+                'restaurant',
+                'restaurant.translations',
+                'details.food',
+                'takenBy',
+                'pos_details',
+                'partner',
+            ])->findOrFail($this->orderId);
+
+            $wService = new WhatsappService();
+
+            $response = $wService->sendOrderReadyMessage(
+                $this->phone,
+                $order,
+                $this->state,
+                $order->partner ?? null
+            );
+
+            \Log::info('Whatsapp Order Ready Message Sent', [
+                'phone' => $this->phone,
+                'order_id' => $this->orderId,
+                'state' => $this->state,
+                'partner' => $order->partner ?? null,
+                'response' => $response,
+            ]);
+
+        } catch (Throwable $e) {
+            \Log::error('Whatsapp Order Ready Message Send Error: ' . $e->getMessage(), [
+                'phone' => $this->phone,
+                'order_id' => $this->orderId,
+                'state' => $this->state,
+                'attempt' => $this->attempts(),
+            ]);
+
+            if ($this->isTemporaryWhatsappError($e)) {
+                throw $e;
+            }
+
+            $this->fail($e);
+        }
+    }
+
+    private function isTemporaryWhatsappError(Throwable $e): bool
+    {
+        $message = strtolower($e->getMessage());
+
+        return str_contains($message, 'timeout')
+            || str_contains($message, 'timed out')
+            || str_contains($message, 'connection refused')
+            || str_contains($message, 'could not resolve host')
+            || str_contains($message, 'server error')
+            || str_contains($message, '500')
+            || str_contains($message, '502')
+            || str_contains($message, '503')
+            || str_contains($message, '504');
+    }
+
+    public function failed(Throwable $e): void
+    {
+        \Log::error('Whatsapp Order Ready Message Job Permanently Failed', [
+            'phone' => $this->phone,
+            'order_id' => $this->orderId,
+            'state' => $this->state,
+            'partner' => $order->partner ?? null,
+            'error' => $e->getMessage(),
+        ]);
+    }
+}

@@ -332,7 +332,7 @@ if (isset($cart['paid'])) {
                         class="btn  btn--primary btn-sm btn-block">{{ translate('place_order') }} </button>
             </div> --}}
             <div class="col-sm-6">
-                <a href="#" class="btn btn--reset btn-sm btn-block empty-Cart">{{ translate('Clear_Cart') }}</a>
+                <a href="#" class="btn btn--reset btn-sm btn-block empty-Cart">{{ translate('New_Order') }}</a>
             </div>
         </div>
     </div>

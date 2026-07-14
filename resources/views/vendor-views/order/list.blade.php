@@ -559,7 +559,7 @@
                                 <th class="w-140px">{{ translate('messages.customer_information') }}</th>
                                 <th class="w-100px">{{ translate('messages.total_amount') }}</th>
                                 <th class="w-100px text-center">{{ translate('messages.order_status') }}</th>
-                                <th class="w-100px text-center">Order Partner</th>
+                                <th class="w-100px text-center">{{translate('messages.order_partner')}}</th>
                                 <th class="w-100px text-center">{{ translate('messages.actions') }}</th>
                             </tr>
                         </thead>
@@ -603,10 +603,10 @@
                                             <a class="text-body text-capitalize"
                                                 href="{{ route('vendor.order.details', ['id' => $order['id']]) }}">
                                                 <span class="d-block font-semibold">
-                                                    {{ $order->customer['f_name'] . ' ' . $order->customer['l_name'] }}
+                                                    {{ $order->customer['customer_name'] }}
                                                 </span>
                                                 <span class="d-block">
-                                                    {{ $order->customer['phone'] }}
+                                                    {{ $order->customer['customer_mobile_no'] }}
                                                 </span>
                                             </a>
                                         @else
@@ -703,7 +703,7 @@
                                         </div>
                                     </td>
                                       <td class="">
-                                        {{ $order['partner_name'] }}
+                                        {{ $order['partner_name'] ?? '-' }}
                                     </td>
                                     <td>
                                         <div class="btn--container justify-content-center">
@@ -839,47 +839,36 @@
             var channel = pusher.subscribe('my-channel');
             channel.bind('my-event', function(data) {
                 if((data.message =='unpaid' || data.message == 'unpaid_edited') && data.branch_id == {{ auth('vendor_employee')->user()->branch_id }}){
-                    upsertOrderCard(data.order_id, data.order_html);
+                    upsertOrderCard(data.order_id);
                 }
             });
 
-            function upsertOrderCard(orderId, html) {
-                const cardId = `#order-card-${orderId}`;
-                const $existing = $(cardId);
+            const notificationSound = new Audio('/sounds/notification.wav');
+            notificationSound.preload = 'auto';
+            function upsertOrderCard(orderId) {
+                $.ajax({
+                    url: '/restaurant-panel/order/order-card/' + orderId,
+                    type: 'GET',
+                    success: function (response) {
+                        const orderSelector = `#order-card-${orderId}`;
 
-                if ($existing.length) {
-                    // UPDATE → replace + highlight
-                    $existing.replaceWith(html);
+                        if ($(orderSelector).length) {
+                            // Order already exists, update its HTML
+                            $(orderSelector).replaceWith(response.html);
+                        } else {
+                            // New order, add it to the top
+                            $('#orders-container').prepend(response.html);
 
-                    const $updated = $(cardId);
-                    $updated
-                        .addClass('border border-warning')
-                        .hide()
-                        .fadeIn(300);
-
-                    setTimeout(() => {
-                        $updated.removeClass('border-warning');
-                    }, 1500);
-
-                } else {
-                    // INSERT → smooth animation
-                    const $newCard = $(html)
-                        .css({
-                            opacity: 0,
-                            transform: 'translateY(-15px)'
-                        });
-
-                    $('#orders-container').prepend($newCard);
-
-                    // trigger animation
-                    setTimeout(() => {
-                        $newCard.css({
-                            transition: 'all 300ms ease',
-                            opacity: 1,
-                            transform: 'translateY(0)'
-                        });
-                    }, 10);
-                }
+                            notificationSound.currentTime = 0;
+                            notificationSound.play().catch(function (error) {
+                                console.log('Sound blocked:', error);
+                            });
+                        }
+                    },
+                    error: function (xhr) {
+                        console.log('Could not load order HTML:', xhr.responseText);
+                    }
+                });
             }
 
 

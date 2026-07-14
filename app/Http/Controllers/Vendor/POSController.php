@@ -2,29 +2,30 @@
 
 namespace App\Http\Controllers\Vendor;
 
-use Carbon\Carbon;
-use App\Models\Food;
-use App\Models\User;
-use App\Models\AddOn;
-use App\Models\Order;
-use App\Events\myevent;
-use App\Mail\PlaceOrder;
-use App\Models\Category;
-use App\Models\OrderDetail;
-use App\Models\SaleCustomer;
-use Illuminate\Http\Request;
 use App\CentralLogics\Helpers;
-use App\Models\BusinessSetting;
-use App\Models\OrderCancelReason;
-use Illuminate\Support\Facades\DB;
+use App\Events\myevent;
 use App\Http\Controllers\Controller;
-use Brian2694\Toastr\Facades\Toastr;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
+use App\Jobs\POSOrderReceived;
+use App\Mail\PlaceOrder;
+use App\Models\AddOn;
+use App\Models\BusinessSetting;
+use App\Models\Category;
+use App\Models\Food;
 use App\Models\KitchenOrderStatusLog;
+use App\Models\Order;
+use App\Models\OrderCancelReason;
+use App\Models\OrderDetail;
 use App\Models\PosOrderAdditionalDtl;
+use App\Models\SaleCustomer;
+use App\Models\User;
 use App\Services\WhatsappService;
+use Brian2694\Toastr\Facades\Toastr;
+use Carbon\Carbon;
 use DebugBar\DataCollector\PDO\TraceablePDOStatement;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
 
@@ -1150,7 +1151,7 @@ class POSController extends Controller
         // $order->payment_status = isset($address) ? 'unpaid' : 'paid';
         $order->payment_status = $request->order_draft == 'draft' ? 'unpaid' : 'paid';
         if (!$editing_order_id) {
-            $order->kitchen_status = 'pending';
+            $order->kitchen_status = 'cooking';
             $order->order_status = $order->kitchen_status;
         }
 
@@ -1525,18 +1526,19 @@ class POSController extends Controller
 
             // Print order receipts
             try {
-                if($order->payment_status == 'unpaid'){
-                    $order->load(['customer','pos_details']);
-                    $html = view('vendor-views.order.partials._card', compact('order'))->render();
-                    event(new myevent('unpaid', $order->restaurant_id, $order->id, $html));
-                }
+                
+                $order->load(['customer','pos_details']);
+                event(new myevent('unpaid', $order->restaurant_id, $order->id));
                 
                 $printController = new \App\Http\Controllers\PrintController();
 
                 if($order->payment_status == 'unpaid' && $order->printed == 0){
                     $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                    if($request->phone){
+                        POSOrderReceived::dispatch($request->phone, $order->id, isset($editing_order_id) ? 'update' : 'new')->onConnection('database')->onQueue('whatsapp');
+                    }
                 }
-                
+
                 if($order->payment_status == 'unpaid' && $order->printed == 1){
                     // That means we are in editing case
                     $requirePrint = false;
@@ -1548,6 +1550,9 @@ class POSController extends Controller
                     }
                     
                     if($requirePrint){
+                        if($request->phone){
+                            POSOrderReceived::dispatch($request->phone, $order->id, isset($editing_order_id) ? 'update' : 'new')->onConnection('database')->onQueue('whatsapp');
+                        }
                         $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
                     }
                 }
@@ -1563,6 +1568,9 @@ class POSController extends Controller
 
                     if($requirePrint){
                         $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
+                        if($request->phone){
+                            POSOrderReceived::dispatch($request->phone, $order->id, isset($editing_order_id) ? 'update' : 'new')->onConnection('database')->onQueue('whatsapp');
+                        }
                     }
 
                     $printController->printOrder(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
@@ -1578,8 +1586,8 @@ class POSController extends Controller
 
             // Place Whatsapp Send Message
             try {
-                // $wService = new WhatsappService();
-                // $respo = $wService->sendOrderConfirmationMessage($request->phone, $order, isset($editing_order_id) ? 'update' : 'new');
+                // Dispatch the job to send the order confirmation message
+                
             } catch (\Exception $e) {
                 info('Whatsapp Message Send Error:' . $e->getMessage());
             }

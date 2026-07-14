@@ -6659,4 +6659,6 @@
   'سفري' => 'سفري',
   'Take Away' => 'Take Away',
   'Management Credit Extra' => 'Management Credit Extra',
+  'New_Order' => 'New Order',
+  'order_partner' => 'Order partner',
 );

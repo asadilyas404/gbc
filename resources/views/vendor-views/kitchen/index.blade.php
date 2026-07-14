@@ -17,12 +17,32 @@
             padding: 5px 12px;
         }
 
-        #cooking .card-body {
+        #cooking .item-card-body{
+            background: #f9e2e4;
+        }
+        #cooking .card-body, #cooking .card-header  {
             background: #f8d7da;
         }
 
         #ready .card-body {
             background: #c3e6cb;
+        }
+        .accordion-toggle {
+            color: #212529;
+        }
+
+        .accordion-toggle:hover {
+            color: #212529;
+            text-decoration: none;
+        }
+
+        .accordion-arrow {
+            font-size: 18px;
+            transition: transform 0.2s ease;
+        }
+
+        .accordion-toggle:not(.collapsed) .accordion-arrow {
+            transform: rotate(180deg);
         }
     </style>
 @endpush
@@ -56,141 +76,7 @@
                 <div id="orders">
                     <div class="row">
                         @foreach ($data['orders'] as $order)
-                            <div class="col-md-4 mb-2" id="{{ $order->id }}">
-                                <div class="card" id="{{ $order->kitchen_status }}">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between">
-                                            <div>
-                                                <p><strong>{{ !empty($order->cutomer) ? $order->cutomer->customer_name : 'Walk-in-Customer' }}</strong>
-                                                </p>
-                                                <p><strong>Order Type:</strong>
-                                                    {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
-                                                </p>
-                                                <p><strong>Restaurant Date:</strong>
-                                                    @if(!empty($order->order_date))
-                                                        {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
-                                                    @else
-                                                        -
-                                                    @endif
-                                                </p>
-                                            </div>
-                                            <div class="text-right">
-                                                <h1><strong>#{{ $order->order_serial }}</strong></h1>
-                                                <p><strong>Amount:</strong> {{ number_format($order->order_amount, 3) }} </p>
-                                                @if ($order->kitchen_time)
-                                                    <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
-                                                        {{ $order->kitchen_time }}</p>
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="d-flex justify-content-between">
-                                            @if ($order->kitchen_status == 'ready')
-                                                <div class="text-right">
-                                                    <button class="btn btn-danger btn-sm btn-style orderCompleted btn-block"
-                                                        data-id="{{ $order->id }}">
-                                                        <i class="tio-shopping-cart"></i>
-                                                        Handed Over
-                                                    </button>
-                                                </div>
-                                            @elseif ($order->kitchen_status == 'cooking')
-                                                <div class="text-right">
-                                                    <button class="btn btn-primary btn-sm btn-style orderReady btn-block"
-                                                        data-id="{{ $order->id }}">
-                                                        <i class="tio-checkmark-circle"></i>
-                                                        Order Ready
-                                                    </button>
-                                                </div>
-                                            @else
-                                                <div class="text-right">
-                                                    <button class="btn btn-success btn-sm btn-style startCooking"
-                                                        data-id="{{ $order->id }}">Start Cooking</button>
-                                                </div>
-                                            @endif
-                                            <div>
-                                                <a href="/restaurant-panel/order/details/{{ $order->id }}"
-                                                    class="btn btn-primary btn-sm btn-style">
-                                                    <i class="tio-info"></i>
-                                                </a>
-                                                <button type="button" class="btn btn-info btn-sm btn-style direct-print-btn ml-1"
-                                                    data-order-id="{{ $order->id }}">
-                                                    <i class="tio-print"></i>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="card-footer">
-                                        @foreach ($order->details as $detail)
-                                            <div class="d-flex justify-content-between align-items-center mb-0">
-                                                <div>
-                                                    <strong>{{ $detail->food['name'] }}</strong>
-                                                    x 
-                                                    <strong>{{ $detail->quantity }}</strong>
-                                                </div>
-                                                <button disabled class="btn btn-sm btn-outline-success py-1">
-                                                    Start Cooking
-                                                </button>
-                                            </div>
-                                            <div>
-                                                @if (!empty($detail->variation) && count(json_decode($detail->variation, true)) > 0)
-                                                    @php $foodDetails = json_decode($detail->food_details, true); @endphp
-                                                    @foreach (json_decode($detail->variation, true) as $variation)
-                                                        @if (isset($variation['name']) && isset($variation['values']))
-                                                            @foreach ($variation['values'] as $value)
-                                                                @php
-                                                                    // Prepare some defaults
-                                                                    $optionName = '';
-                                                                @endphp
-                                                                @if (!empty($variation['printing_option']) && $variation['printing_option'] == 'option_name')
-                                                                    @php
-                                                                        // CASE 1: printing_option = option_name  → read from variation_options
-                                                                        $optionName = DB::table('variation_options')
-                                                                            ->where('id', $value['option_id'] ?? null)
-                                                                            ->value('option_name') ?? '';
-                                                                    @endphp
-                                                                @else
-                                                                    @php
-                                                                        // CASE 2: use options_list and its translation
-                                                                        $option = \App\Models\OptionsList::find($value['options_list_id'] ?? null);
-
-                                                                        if ($option) {
-                                                                            $optionName = $option->name ?? '';
-                                                                        }
-                                                                    @endphp
-                                                                @endif
-                                                                <p class="mb-1">- {{ $optionName }}</p>
-                                                            @endforeach
-                                                        @endif
-                                                    @endforeach
-                                                @endif
-                                                @if (isset($variation['addons']) && is_array($variation['addons']) && count($variation['addons']) > 0)
-                                                    <small class="text-muted"><strong><u>Addons:</u></strong></small>
-                                                    <div
-                                                        class="variation-addons-inline py-1">
-                                                        @foreach ($variation['addons'] as $addon)
-                                                            <span
-                                                                class="d-block text-capitalize">
-                                                                <small class="text-muted">
-                                                                    {{ Str::limit($addon['name'], 30, '...') }} x {{ $addon['quantity'] }}
-                                                                </small>
-                                                            </span>
-                                                            @php($total_variation_addon_price += $addon['price'] * $addon['quantity']) @endphp
-                                                        @endforeach
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <hr/>
-                                        @endforeach
-                                        @if($order->note)
-                                            <div>
-                                                <strong>Note: </strong> {{ $order->note }}
-                                            </div>
-                                        @endif
-                                        <div>
-                                            <strong>Total Items: </strong> {{ count($order->details) }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                            @include('vendor-views.kitchen.partials._card', $order)
                         @endforeach
                     </div>
                 </div>
@@ -222,7 +108,7 @@
     <script>
         var orderType = @json($data['order_type']);
         let currentRequest = null;
-
+    
         function updateAllOrders(type = null, id = null) {
             if (currentRequest !== null) {
                 currentRequest.abort();
@@ -243,17 +129,8 @@
                         let cookingList = data.cooking;
                         let readyList = data.ready;
                         if (orders) {
-                            // let pendingCard = ``;
-                            // Object.entries(pendingList).forEach(([id, item]) => {
-                            //     let customer = (item.customer && item.customer?.customer_name) ? item.customer
-                            //         ?.customer_name : "Walk-in-Customer"
-                            //     pendingCard += funViewCard(customer, item, 'Start Cooking',
-                            //         'startCooking');
-                            // });
-
-                            // $('#orders').html(`<div class="row">${pendingCard}<div>`);
-                            if(type == 'completed'){
-                                $("#" + id).fadeOut(300, function () {
+                            if(type == 'ready' || type == 'completed'){
+                                $("#order_" + id).fadeOut(300, function () {
                                     $(this).remove();
                                 });
                             }else{
@@ -287,10 +164,36 @@
             enabledTransports: ['ws', 'wss']
             });
 
+            const notificationSound = new Audio('/sounds/notification.wav');
+            notificationSound.preload = 'auto';
             var channel = pusher.subscribe('my-channel');
-            channel.bind('my-event', function(data) {
-                updateAllOrders();
+            channel.bind('my-event', function (data) {
+            $.ajax({
+                url: '/restaurant-panel/order/kitchen-card/' + data.order_id,
+                type: 'GET',
+                success: function (response) {
+                    const orderSelector = '#order_' + data.order_id;
+
+                    if ($(orderSelector).length) {
+                        // Order already exists, update its HTML
+                        $(orderSelector).replaceWith(response.html);
+                    } else {
+                        // New order, add it to the top
+                        $('#orders .row').prepend(response.html);
+
+                        notificationSound.currentTime = 0;
+                        notificationSound.play().catch(function (error) {
+                            console.log('Sound blocked:', error);
+                        });
+                    }
+
+                    updateTimers();
+                },
+                error: function (xhr) {
+                    console.log('Could not load order HTML:', xhr.responseText);
+                }
             });
+        });
 
        
         function funViewCard(customer, item, buttonName, btnAction) {
@@ -357,14 +260,27 @@
             }
         });
 
-        $(document).on('click', '.orderReady', function() {
+        $(document).on('click', '.orderReady', function () {
             const thix = $(this);
-            const data_id = thix.attr('data-id');
-            thix.prop('disabled', true);
-            thix.text('Processing...');
-            if (data_id) {
-                updateAllOrders('ready', data_id);
-            }
+            const dataId = thix.attr('data-id');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: 'You want to mark this order as ready!',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Yes, mark as ready!'
+            }).then((result) => {
+                if (result.value) {
+                    thix.prop('disabled', true);
+                    thix.text('Processing...');
+                    if (dataId) {
+                        updateAllOrders('ready', dataId);
+                    }
+                }
+            });
         });
 
         $(document).on('click', '.orderCompleted', function() {

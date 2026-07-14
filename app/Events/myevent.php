@@ -43,6 +43,6 @@ class myevent implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return ['message' => $this->message, 'branch_id' => $this->branch_id, 'order_id' => $this->order_id, 'order_html' => $this->order_html];
+        return ['message' => $this->message, 'branch_id' => $this->branch_id, 'order_id' => $this->order_id];
     }
 }

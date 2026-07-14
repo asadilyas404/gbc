@@ -1018,7 +1018,7 @@
                     name: 'select_payment_type',
                     value: 'credit_payment'
                 }).appendTo('#order_place');
-                $('#cash_paid, #card_paid, #customer_name, #car_number, #phone')
+                $('#cash_paid, #card_paid, #car_number')
                 .prop('readonly', true);
                 // Disable the Unpaid Order Button
                 $('#unpaidOrderBtn').hide();

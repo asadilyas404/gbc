@@ -139,37 +139,69 @@ class OrderController extends Controller
         ->paginate(config('default_pagination'));
 
         // Calculate order statistics
-        $totalOrders = $orders->total();
-        $paidOrders = $orders->where('payment_status', 'paid')
-        ->where('order_status', '!=', 'canceled')
-        ->count();
-        $unpaidOrders = $orders->where('payment_status', 'unpaid')
-        ->where('order_status', '!=', 'canceled')
-        ->count();
-        $canceledOrders = $orders->where('order_status', 'canceled')->count();
+        $statisticsQuery = Order::query()
+        ->Notpos()
+        ->hasSubscriptionToday()
+        ->where(
+            'restaurant_id',
+            Helpers::get_restaurant_id()
+        )
+        ->whereExists(function ($query) {
+            $query->select(DB::raw(1))
+                ->from('tbl_soft_branch')
+                ->whereColumn(
+                    'tbl_soft_branch.branch_id',
+                    'orders.restaurant_id'
+                )
+                ->whereColumn(
+                    'tbl_soft_branch.orders_date',
+                    'orders.order_date'
+                );
+        });
+
+
+        $totalOrders = (clone $statisticsQuery)->count();
+        $paidOrders = (clone $statisticsQuery)
+            ->where('payment_status', 'paid')
+            ->where('order_status', '!=', 'canceled')
+            ->count();
+        $unpaidOrders = (clone $statisticsQuery)
+            ->where('payment_status', 'unpaid')
+            ->where('order_status', '!=', 'canceled')
+            ->count();
+        $canceledOrders = (clone $statisticsQuery)
+            ->where('order_status', 'canceled')
+            ->count();
 
         // Calculate amounts
-        $paidAmount = $orders->where('payment_status', 'paid')
-        ->where('payment_method', '!=', 'credit')
-        ->sum('order_amount');
+        $paidAmount = (clone $statisticsQuery)
+            ->where('payment_status', 'paid')
+            ->where('payment_method', '!=', 'credit')
+            ->where('order_status', '!=', 'canceled')
+            ->sum('order_amount');
 
-        $canceledAmount = $orders
-        ->where('order_status', 'canceled')
-        ->whereIn('payment_status', ['paid'])
-        ->sum('order_amount');
+        $canceledAmount = (clone $statisticsQuery)
+            ->where('order_status', 'canceled')
+            ->where('payment_status', 'paid')
+            ->sum('order_amount');
         
-        $unpaidAmount = $orders->where('payment_status', 'unpaid')
-        // ->where('order_status', 'pending')
-        ->sum('order_amount');
+        $unpaidAmount = (clone $statisticsQuery)
+            ->where('payment_status', 'unpaid')
+            ->where('order_status', '!=', 'canceled')
+            ->sum('order_amount');
 
-        $creditCustomerAmount = $orders->where('payment_status', 'paid')
-        ->where('payment_method', 'credit')
-        ->where('user_id', '!=', null)->sum('order_amount');
+        $creditCustomerAmount = (clone $statisticsQuery)
+            ->where('payment_status', 'paid')
+            ->where('payment_method', 'credit')
+            ->whereNotNull('user_id')
+            ->sum('order_amount');
 
-        $creditPartnerAmount = $orders->where('payment_status', 'paid')
-        ->where('payment_method', 'credit')
-        ->where('user_id', null)
-        ->where('partner_id', '!=', null)->sum('order_amount');
+        $creditPartnerAmount = (clone $statisticsQuery)
+            ->where('payment_status', 'paid')
+            ->where('payment_method', 'credit')
+            ->whereNull('user_id')
+            ->whereNotNull('partner_id')
+            ->sum('order_amount');
 
         foreach($orders as $o){
             $o->partner_name = DB::table('tbl_sale_order_partners')->where('partner_id',$o->partner_id)->value('partner_name');

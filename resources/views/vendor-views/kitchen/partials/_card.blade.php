@@ -143,12 +143,11 @@
                                                         }
                                                     } else {
                                                         $option = \App\Models\OptionsList::where('id',$value['options_list_id'])->first() ?? null;
-
+                                                        dd($option);
                                                         if ($option) {
                                                             $optionName = $option->name ?? '';
 
-                                                            $optionArabicName = $option
-                                                                ->getTranslationValue('name', 'ar') ?? '';
+                                                            $optionArabicName = $option->getTranslationValue('name', 'ar') ?? '';
                                                         }
                                                     }
                                                 @endphp

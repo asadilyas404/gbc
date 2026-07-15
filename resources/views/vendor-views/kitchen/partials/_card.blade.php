@@ -142,9 +142,7 @@
                                                             $optionArabicName = \App\Models\OptionsList::where('id', $value['option_id'])->first()->getTranslationValue('name', 'ar') ?? '';
                                                         }
                                                     } else {
-                                                        $option = \App\Models\OptionsList::find(
-                                                            $value['options_list_id'] ?? null
-                                                        );
+                                                        $option = \App\Models\OptionsList::where('id',$value['options_list_id'])->first() ?? null;
 
                                                         if ($option) {
                                                             $optionName = $option->name ?? '';

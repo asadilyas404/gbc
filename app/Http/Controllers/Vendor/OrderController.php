@@ -159,7 +159,7 @@ class OrderController extends Controller
         ->sum('order_amount');
         
         $unpaidAmount = $orders->where('payment_status', 'unpaid')
-        ->where('order_status', 'pending')
+        // ->where('order_status', 'pending')
         ->sum('order_amount');
 
         $creditCustomerAmount = $orders->where('payment_status', 'paid')

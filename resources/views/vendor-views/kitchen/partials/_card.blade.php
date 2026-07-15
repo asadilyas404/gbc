@@ -6,28 +6,29 @@
         <div class="card-body">
             <div class="d-flex justify-content-between">
                 <div>
-                    <p><strong>{{ !empty($order->customer) ? $order->customer->customer_name : 'Walk-in-Customer' }}</strong>
+                    <h4 class="mb-0"><strong>#{{ $order->order_serial }}</strong></h4>
+                    <p class="mb-0">
+                        <strong>{{ !empty($order->customer) ? $order->customer->customer_name : 'Walk-in-Customer' }}</strong>
                     </p>
-                    <p><strong>Order Type:</strong>
-                        @if (isset($order->partner) && !empty($order->partner))
-                            {{ $order->partner->partner_name }}
-                        @else
-                            {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
-                        @endif
-                    </p>
-                    <p><strong>Restaurant Date:</strong>
-                        @if (!empty($order->order_date))
-                            {{ Carbon\Carbon::parse($order->order_date)->locale(app()->getLocale())->translatedFormat('d M Y') }}
+                    <p class="mb-0"><strong>Car #:</strong>
+                        @if (!empty($order->pos_details->car_number))
+                            {{ $order->pos_details->car_number }}
                         @else
                             -
                         @endif
                     </p>
                 </div>
                 <div class="text-right">
-                    <h4><strong>#{{ $order->order_serial }}</strong></h4>
-                    <p><strong>Amount:</strong> {{ number_format($order->order_amount, 3) }} </p>
+                    <p class="mb-0">
+                        @if (isset($order->partner) && !empty($order->partner))
+                            {{ $order->partner->partner_name }}
+                        @else
+                            {{ isset($data['order_type'][$order->order_type]) ? $data['order_type'][$order->order_type] : '' }}
+                        @endif
+                    </p>
+                    <p class="mb-0">OMR {{ number_format($order->order_amount, 3) }} </p>
                     @if ($order->kitchen_time)
-                        <p class="timer" data-time="{{ $order->kitchen_time }}">Time:
+                        <p class="timer mb-0" data-time="{{ $order->kitchen_time }}">
                             {{ $order->kitchen_time }}</p>
                     @endif
                 </div>
@@ -121,26 +122,52 @@
                                     @endphp
 
                                     @foreach ($variations as $variation)
-                                        @if (isset($variation['name']) && isset($variation['values']))
+                                        @if (isset($variation['name']) && !empty($variation['values']))
                                             @foreach ($variation['values'] as $value)
                                                 @php
                                                     $optionName = '';
+                                                    $optionArabicName = '';
 
-                                                    if (!empty($variation['printing_option']) && $variation['printing_option'] == 'option_name') {
-                                                        $optionName = DB::table('variation_options')
-                                                            ->where('id', $value['option_id'] ?? null)
-                                                            ->value('option_name') ?? '';
+                                                    if (
+                                                        !empty($variation['printing_option']) &&
+                                                        $variation['printing_option'] === 'option_name'
+                                                    ) {
+                                                        $variationOption = \App\Models\VariationOption::find(
+                                                            $value['option_id'] ?? null
+                                                        );
+
+                                                        if ($variationOption) {
+                                                            $optionName = $variationOption->option_name ?? '';
+
+                                                            $optionArabicName = \App\Models\OptionsList::where('id', $value['option_id'])->first()->getTranslationValue('name', 'ar') ?? '';
+                                                        }
                                                     } else {
-                                                        $option = \App\Models\OptionsList::find($value['options_list_id'] ?? null);
+                                                        $option = \App\Models\OptionsList::find(
+                                                            $value['options_list_id'] ?? null
+                                                        );
 
                                                         if ($option) {
                                                             $optionName = $option->name ?? '';
+
+                                                            $optionArabicName = $option
+                                                                ->getTranslationValue('name', 'ar') ?? '';
                                                         }
                                                     }
                                                 @endphp
 
                                                 @if (!empty($optionName))
-                                                    <p class="mb-1">- {{ $optionName }}</p>
+                                                    <p class="mb-0">
+                                                        - {{ $optionName }}
+                                                    </p>
+                                                @endif
+
+                                                @if (
+                                                    !empty($optionArabicName) &&
+                                                    $optionArabicName !== $optionName
+                                                )
+                                                    <p class="mb-1" dir="rtl" style="text-align: right;">
+                                                        - {{ $optionArabicName }}
+                                                    </p>
                                                 @endif
                                             @endforeach
                                         @endif
@@ -153,7 +180,7 @@
                                                     @endphp
                                                     <span class="d-block text-capitalize">
                                                         <small class="text-muted">
-                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ $addon['quantity'] }} x {{ Str::limit($addon['name'], 30, '...') }} {{ $addOnArabicName }}
+                                                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ Str::limit($addon['name'], 50, '...') }} | {{ $addOnArabicName }}
                                                         </small>
                                                     </span>
 

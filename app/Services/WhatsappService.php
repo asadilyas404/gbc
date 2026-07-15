@@ -183,14 +183,16 @@ class WhatsappService
             |--------------------------------------------------------------------------
             */
 
+            $orderSerial = str_replace("-", ".", $order['order_serial']);
+
             $headerParameters = [];
             $order->restaurant->load('branch');
-            $parameters[] = $this->textParam('order_no_ar',$order['order_serial'] ?? '');
-            $parameters[] = $this->textParam('order_no_en',$order['order_serial'] ?? '');
-            $parameters[] = $this->textParam('branch_no_ar',$order->restaurant->phone ?? '-');
-            $parameters[] = $this->textParam('branch_no_en',$order->restaurant->phone ?? '-');
-            $parameters[] = $this->textParam('branch_map',config('constants.branch_map_link') ?? '-');
-
+            $parameters[] = $this->textParam('order_number_ar',$orderSerial ?? '-');
+            $parameters[] = $this->textParam('order_number_en',$orderSerial ?? '-');
+            $parameters[] = $this->textParam('branch_name_ar',config('constants.invoice_branch_name') ?? '-');
+            $parameters[] = $this->textParam('branch_name_en',$order->restaurant->name ?? '-');
+            $parameters[] = $this->textParam('branch_phone_ar',$order->restaurant->phone ?? '-');
+            $parameters[] = $this->textParam('branch_phone_en',$order->restaurant->phone ?? '-');
 
             \Log::info('WhatsApp order ready parameters', [
                 'template_name' => $templateName,

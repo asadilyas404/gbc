@@ -33,7 +33,7 @@ class KitchenController extends Controller
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
-        $orders = Order::with('customer', 'kitchen_log','details', 'partner', 'details.food', 'details.food.latestKitchenLog')
+        $orders = Order::with('customer', 'kitchen_log','details', 'partner', 'details.food', 'details.food.latestKitchenLog', 'pos_details')
             ->whereIn('kitchen_status', [
                 Helpers::kitchenStatus('pending')['key'],
                 Helpers::kitchenStatus('cooking')['key'],
@@ -84,7 +84,7 @@ class KitchenController extends Controller
                 ]);
             }
 
-            $order = Order::where('id', $request->id)->with('customer')->first();
+            $order = Order::where('id', $request->id)->with('customer','pos_details')->first();
             if ($order) {
 
                 $idSuffix = '1'; // default
@@ -111,7 +111,7 @@ class KitchenController extends Controller
                     // Send WhatsApp message when order is ready
                     $phone = $order->customer ? $order->customer->customer_mobile_no : null;
                     if ($phone) {
-                        // POSOrderReady::dispatch($phone, $order->id, 'ready')->onConnection('database')->onQueue('whatsapp');
+                        POSOrderReady::dispatch($phone, $order->id, 'ready')->onConnection('database')->onQueue('whatsapp');
                     }
                 }
 

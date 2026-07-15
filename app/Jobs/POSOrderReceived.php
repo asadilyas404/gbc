@@ -55,6 +55,11 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
                 'partner',
             ])->findOrFail($this->orderId);
 
+
+            if($this->state == 'new' && !empty($order->whatsapp_confirmation_sent_at)){
+                return;
+            }
+
             $wService = new WhatsappService();
 
             $response = $wService->sendOrderConfirmationMessage(
@@ -62,8 +67,6 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
                 $order,
                 $this->state
             );
-
-            dd($response);
 
             \Log::info('Whatsapp Message Sent', [
                 'phone' => $this->phone,

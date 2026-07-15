@@ -130,7 +130,7 @@
 
                                                     if (
                                                         !empty($variation['printing_option']) &&
-                                                        $variation['printing_option'] === 'option_name'
+                                                        $variation['printing_option'] == 'option_name'
                                                     ) {
                                                         $variationOption = \App\Models\VariationOption::find(
                                                             $value['option_id'] ?? null

@@ -130,7 +130,7 @@
 
                                                     if (
                                                         !empty($variation['printing_option']) &&
-                                                        $variation['printing_option'] == 'option_name'
+                                                        $variation['printing_option'] === 'option_name'
                                                     ) {
                                                         $variationOption = \App\Models\VariationOption::find(
                                                             $value['option_id'] ?? null
@@ -139,15 +139,34 @@
                                                         if ($variationOption) {
                                                             $optionName = $variationOption->option_name ?? '';
 
-                                                            $optionArabicName = \App\Models\OptionsList::where('id', $value['option_id'])->first()->getTranslationValue('name', 'ar') ?? '';
+                                                            /*
+                                                            * Get the OptionsList record related to this
+                                                            * variation option.
+                                                            */
+                                                            $optionsListId =
+                                                                $variationOption->options_list_id
+                                                                ?? $value['options_list_id']
+                                                                ?? null;
+
+                                                            $option = $optionsListId
+                                                                ? \App\Models\OptionsList::find($optionsListId)
+                                                                : null;
+
+                                                            if ($option) {
+                                                                $optionArabicName =
+                                                                    $option->getTranslationValue('name', 'ar') ?? '';
+                                                            }
                                                         }
                                                     } else {
-                                                        $option = \App\Models\OptionsList::where('id',$value['options_list_id'])->first() ?? null;
-        
+                                                        $option = \App\Models\OptionsList::find(
+                                                            $value['options_list_id'] ?? null
+                                                        );
+
                                                         if ($option) {
                                                             $optionName = $option->name ?? '';
 
-                                                            $optionArabicName = $option->getTranslationValue('name', 'ar') ?? '';
+                                                            $optionArabicName =
+                                                                $option->getTranslationValue('name', 'ar') ?? '';
                                                         }
                                                     }
                                                 @endphp
@@ -162,7 +181,11 @@
                                                     !empty($optionArabicName) &&
                                                     $optionArabicName !== $optionName
                                                 )
-                                                    <p class="mb-1" dir="rtl" style="text-align: right;">
+                                                    <p
+                                                        class="mb-1"
+                                                        dir="rtl"
+                                                        style="text-align: right;"
+                                                    >
                                                         - {{ $optionArabicName }}
                                                     </p>
                                                 @endif

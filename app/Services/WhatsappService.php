@@ -38,7 +38,7 @@ class WhatsappService
                 throw new \Exception('Order must have at least 1 item.');
             }
 
-            $templateName = "malek_al_pizza_order_confirmation_notification_v2";
+            $templateName = "v3_malek_al_pizza_order_confirmation_notification";
 
             $parameters = [];
 
@@ -119,7 +119,7 @@ class WhatsappService
                 'template' => [
                     'name' => $templateName,
                     'language' => [
-                        'code' => 'ar',
+                        'code' => 'en',
                     ],
                     'components' => $components,
                 ],

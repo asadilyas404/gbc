@@ -2269,6 +2269,7 @@
                 $(this).addClass('clicked');
             });
 
+            const phoneInput = document.getElementById('phone');
             $(document).on('submit', 'form', function (e) {
                 const $form = $(this);
                 // Per-form lock (instead of global lock)
@@ -2282,7 +2283,15 @@
                         return false;
                     }
                 }
-                
+
+                if (!validatePhone()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    phoneInput.focus();
+                    phoneInput.reportValidity();
+                }
+
                 if ($form.data('submitting')) {
                     e.preventDefault();
                     return false;
@@ -2333,6 +2342,46 @@
                 }
                 // Allow normal submission (no preventDefault)
             });
+
+            phoneInput.addEventListener('keyup', validatePhone);
+            phoneInput.addEventListener('blur', validatePhone);
+
+            function validatePhone() {
+                const phoneInput = document.getElementById('phone');
+
+                let value = phoneInput.value.replace(/[^\d+]/g, '');
+
+                // Allow + only as the first character
+                value = value.replace(/(?!^)\+/g, '');
+
+                phoneInput.value = value;
+
+                // Empty phone number is allowed
+                if (value.trim() === '') {
+                    phoneInput.classList.remove('is-valid', 'is-invalid');
+                    phoneInput.setCustomValidity('');
+
+                    return true;
+                }
+
+                const omanMobileRegex = /^(?:\+?968)?[79]\d{7}$/;
+
+                if (omanMobileRegex.test(value)) {
+                    phoneInput.classList.add('is-valid');
+                    phoneInput.classList.remove('is-invalid');
+                    phoneInput.setCustomValidity('');
+
+                    return true;
+                }
+
+                phoneInput.classList.add('is-invalid');
+                phoneInput.classList.remove('is-valid');
+                phoneInput.setCustomValidity(
+                    'Please enter a valid Oman mobile number.'
+                );
+
+                return false;
+            }
 
             function fetchData(categoryId = '', subcategoryId = '', keyword = '', partner = '') {
                 $.ajax({

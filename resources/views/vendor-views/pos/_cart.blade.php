@@ -405,9 +405,25 @@ if (isset($cart['paid'])) {
                                 <label for="phone" class="input-label">
                                     {{ translate('Phone') }}
                                 </label>
-                                <input id="phone" type="tel" name="phone" class="form-control"
-                                    value="{{ old('phone', $draftDetails->phone ?? '') }}"
-                                    placeholder="{{ translate('Phone') }}">
+
+                                <input
+                                    id="phone"
+                                    type="tel"
+                                    name="phone"
+                                    class="form-control"
+                                    value=""
+                                    placeholder="{{ translate('Phone') }}"
+                                    maxlength="12"
+                                    autocomplete="tel"
+                                >
+
+                                <div class="valid-feedback">
+                                    Valid Oman mobile number.
+                                </div>
+
+                                <div class="invalid-feedback">
+                                    Enter a valid Oman mobile number, such as 91234567.
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -1038,10 +1038,11 @@
                 });
             }
 
+            const phoneInput = document.getElementById('phone');
             $(document).on('submit', 'form#order_place', function (e) {
                 const $form = $(this);
                 // Per-form lock (instead of global lock)
-                
+
                 if ($('#order_draft').val() !== 'draft') {
                     $("input[name='select_payment_type']").prop('required', true);
 
@@ -1050,6 +1051,14 @@
                         this.reportValidity(); // shows browser message immediately
                         return false;
                     }
+                }
+
+                if (!validatePhone()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    phoneInput.focus();
+                    phoneInput.reportValidity();
                 }
                 
                 if ($form.data('submitting')) {
@@ -1330,6 +1339,46 @@
                 $('#bank_account').val('').prop('disabled', true);
                 $('#invoice_amount span').text('0.0');
             });
+
+            phoneInput.addEventListener('keyup', validatePhone);
+            phoneInput.addEventListener('blur', validatePhone);
+
+            function validatePhone() {
+                const phoneInput = document.getElementById('phone');
+
+                let value = phoneInput.value.replace(/[^\d+]/g, '');
+
+                // Allow + only as the first character
+                value = value.replace(/(?!^)\+/g, '');
+
+                phoneInput.value = value;
+
+                // Empty phone number is allowed
+                if (value.trim() === '') {
+                    phoneInput.classList.remove('is-valid', 'is-invalid');
+                    phoneInput.setCustomValidity('');
+
+                    return true;
+                }
+
+                const omanMobileRegex = /^(?:\+?968)?[79]\d{7}$/;
+
+                if (omanMobileRegex.test(value)) {
+                    phoneInput.classList.add('is-valid');
+                    phoneInput.classList.remove('is-invalid');
+                    phoneInput.setCustomValidity('');
+
+                    return true;
+                }
+
+                phoneInput.classList.add('is-invalid');
+                phoneInput.classList.remove('is-valid');
+                phoneInput.setCustomValidity(
+                    'Please enter a valid Oman mobile number.'
+                );
+
+                return false;
+            }
 
             // Print Order Functionality
             // $(document).on('click', '.print-order-btn', function() {

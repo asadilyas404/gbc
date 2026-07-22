@@ -65,13 +65,13 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
                 $order->partner ?? null
             );
 
-
             OrderWhatsappMsgLog::create([
                 'order_id' => $order->id,
                 'message_status' => 'success',
                 'message_type' => 'order_ready',
                 'order_amount' => $order->order_amount,
                 'branch_id' => config('constants.branch_id'),
+                'phone' => $this->phone
             ]);
 
             \Log::info('Whatsapp Order Ready Message Sent', [
@@ -97,7 +97,8 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
                 'message_type' => 'order_ready',
                 'order_amount' => $order->order_amount,
                 'branch_id' => config('constants.branch_id'),
-                'message_exception' => $e->getMessage()
+                'message_exception' => $e->getMessage(),
+                'phone' => $this->phone
             ]);
 
             if ($this->isTemporaryWhatsappError($e)) {
@@ -133,7 +134,8 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
             'message_type' => 'order_ready',
             'order_amount' => $order->order_amount,
             'branch_id' => config('constants.branch_id'),
-            'message_exception' => $e->getMessage()
+            'message_exception' => $e->getMessage(),
+                'phone' => $this->phone
         ]);
 
         \Log::error('Whatsapp Order Ready Message Job Permanently Failed', [

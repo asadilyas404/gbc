@@ -75,6 +75,7 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
                 'message_type' => $this->state == 'new' ? 'order_creation' : 'order_modification',
                 'order_amount' => $order->order_amount,
                 'branch_id' => config('constants.branch_id'),
+                'phone' => $this->phone
             ]);
 
             \Log::info('Whatsapp Message Sent', [
@@ -99,7 +100,8 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
                 'message_type' => $this->state == 'new' ? 'order_creation' : 'order_modification',
                 'order_amount' => $order->order_amount,
                 'branch_id' => config('constants.branch_id'),
-                'message_exception' => $e->getMessage()
+                'message_exception' => $e->getMessage(),
+                'phone' => $this->phone
             ]);
 
             if ($this->isTemporaryWhatsappError($e)) {
@@ -142,7 +144,8 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
             'message_type' => $this->state == 'new' ? 'order_creation' : 'order_modification',
             'order_amount' => $order->order_amount,
             'branch_id' => config('constants.branch_id'),
-            'message_exception' => $e->getMessage()
+            'message_exception' => $e->getMessage(),
+            'phone' => $this->phone
         ]);
 
     }

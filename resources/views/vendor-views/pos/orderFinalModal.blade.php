@@ -81,7 +81,7 @@
                         <div class="col-12 col-lg-4">
                             <div class="form-group">
                                 <label for="car_number" class="input-label">{{ translate('Car Number') }}</label>
-                                <input id="car_number" type="text" name="car_number" class="form-control"
+                                <input id="car_number" type="number" name="car_number" class="form-control"
                                     value="" placeholder="{{ translate('Car Number') }}">
                             </div>
                         </div>
@@ -98,7 +98,7 @@
                                 class="form-control"
                                 value=""
                                 placeholder="{{ translate('Phone') }}"
-                                maxlength="12"
+                                maxlength="14"
                                 autocomplete="tel"
                             >
 
@@ -107,7 +107,7 @@
                             </div>
 
                             <div class="invalid-feedback">
-                                Enter a valid Oman mobile number, such as 91234567.
+                                Enter a valid Oman or international mobile number, such as 91234567 or 00923312345678.
                             </div>
                         </div>
                     </div>
@@ -233,7 +233,7 @@
                                     <button type="button" class="btn btn-secondary"
                                         data-dismiss="modal">{{ translate('Close') }}</button>
                                     <button type="submit"
-                                        class="btn btn--primary">{{ translate('Place Order') }}</button>
+                                        class="btn btn--primary" onclick="document.getElementById('order_draft').value='final'">{{ translate('Place Order') }}</button>
                                     <button type="submit" class="btn btn--warning"
                                         onclick="document.getElementById('order_draft').value='draft'">
                                         {{ translate('Unpaid Order') }}

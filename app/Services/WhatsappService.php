@@ -288,15 +288,36 @@ class WhatsappService
         return trim($text);
     }
 
-    private function formatPhoneNumber($phone)
+    private function formatPhoneNumber(string $phone): string
     {
-        $phone = preg_replace('/[^0-9]/', '', $phone);
+        $phone = trim($phone);
 
-        if (strlen($phone) == 8) {
-            $phone = '968' . $phone;
+        // Keep digits and an optional leading +
+        $phone = preg_replace('/(?!^\+)[^\d]/', '', $phone);
+
+        // Convert international 00 prefix to +
+        if (str_starts_with($phone, '00')) {
+            $phone = '+' . substr($phone, 2);
         }
 
-        return $phone;
+        // Oman local mobile number: 91234567
+        if (preg_match('/^[79]\d{7}$/', $phone)) {
+            return '+968' . $phone;
+        }
+
+        // Oman number without +: 96891234567
+        if (preg_match('/^968[79]\d{7}$/', $phone)) {
+            return '+' . $phone;
+        }
+
+        // International number already using +
+        if (preg_match('/^\+[1-9]\d{7,14}$/', $phone)) {
+            return $phone;
+        }
+
+        throw new \InvalidArgumentException(
+            'Invalid phone number format.'
+        );
     }
 
     private function padAmounts(array $amounts, string $defaultCurrency = 'OMR')

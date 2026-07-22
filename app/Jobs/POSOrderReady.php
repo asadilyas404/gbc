@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Log;
 use App\Models\Order;
+use App\Models\OrderWhatsappMsgLog;
 use App\Services\WhatsappService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -64,6 +65,15 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
                 $order->partner ?? null
             );
 
+
+            OrderWhatsappMsgLog::create([
+                'order_id' => $order->id,
+                'message_status' => 'success',
+                'message_type' => 'order_ready',
+                'order_amount' => $order->order_amount,
+                'branch_id' => config('constants.branch_id'),
+            ]);
+
             \Log::info('Whatsapp Order Ready Message Sent', [
                 'phone' => $this->phone,
                 'order_id' => $this->orderId,
@@ -78,6 +88,16 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
                 'order_id' => $this->orderId,
                 'state' => $this->state,
                 'attempt' => $this->attempts(),
+            ]);
+
+            $order = Order::find($this->orderId);
+            OrderWhatsappMsgLog::create([
+                'order_id' => $order->id,
+                'message_status' => 'failed',
+                'message_type' => 'order_ready',
+                'order_amount' => $order->order_amount,
+                'branch_id' => config('constants.branch_id'),
+                'message_exception' => $e->getMessage()
             ]);
 
             if ($this->isTemporaryWhatsappError($e)) {
@@ -105,6 +125,17 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
 
     public function failed(Throwable $e): void
     {
+        $order = Order::find($this->orderId);
+
+        OrderWhatsappMsgLog::create([
+            'order_id' => $order->id,
+            'message_status' => 'failed',
+            'message_type' => 'order_ready',
+            'order_amount' => $order->order_amount,
+            'branch_id' => config('constants.branch_id'),
+            'message_exception' => $e->getMessage()
+        ]);
+
         \Log::error('Whatsapp Order Ready Message Job Permanently Failed', [
             'phone' => $this->phone,
             'order_id' => $this->orderId,

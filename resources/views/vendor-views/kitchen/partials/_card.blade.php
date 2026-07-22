@@ -196,7 +196,7 @@
                                             <div class="variation-addons-inline mb-1">
                                                 @foreach ($variation['addons'] as $addon)
                                                     @php
-                                                        $addOnArabicName = App\Models\AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '';
+                                                        $addOnArabicName = App\Models\AddOn::where('id', $addon['id'])->first()->getTranslationValue('name', 'ar') ?? '-';
                                                     @endphp
                                                     <span class="d-block text-capitalize">
                                                         <small class="text-muted">

@@ -1527,9 +1527,7 @@ class POSController extends Controller
 
             // Print order receipts
             try {
-                
                 $order->load(['customer','pos_details']);
-                event(new myevent('unpaid', $order->restaurant_id, $order->id));
                 
                 $printController = new \App\Http\Controllers\PrintController();
 
@@ -1580,17 +1578,14 @@ class POSController extends Controller
                 $order->printed = 1;
                 $order->is_pushed = 'N';
                 $order->save();
-
             } catch (\Exception $printException) {
                 info('Print error: ' . $printException->getMessage());
             }
 
-            // Place Whatsapp Send Message
             try {
-                // Dispatch the job to send the order confirmation message
-                
+                event(new myevent('unpaid', $order->restaurant_id, $order->id));
             } catch (\Exception $e) {
-                info('Whatsapp Message Send Error:' . $e->getMessage());
+                info('Pusher Event Error:' . $e->getMessage());
             }
             //PlaceOrderMail
             // try {

@@ -395,7 +395,7 @@ if (isset($cart['paid'])) {
                         <div class="col-12 col-lg-4">
                             <div class="form-group">
                                 <label for="car_number" class="input-label">{{ translate('Car Number') }}</label>
-                                <input id="car_number" type="text" name="car_number" class="form-control"
+                                <input id="car_number" type="number" name="car_number" class="form-control"
                                     value="{{ old('car_number', $draftDetails->car_number ?? '') }}"
                                     placeholder="{{ translate('Car Number') }}">
                             </div>
@@ -413,7 +413,7 @@ if (isset($cart['paid'])) {
                                     class="form-control"
                                     value=""
                                     placeholder="{{ translate('Phone') }}"
-                                    maxlength="12"
+                                    maxlength="14"
                                     autocomplete="tel"
                                 >
 
@@ -422,7 +422,7 @@ if (isset($cart['paid'])) {
                                 </div>
 
                                 <div class="invalid-feedback">
-                                    Enter a valid Oman mobile number, such as 91234567.
+                                    Enter a valid Oman or international mobile number, such as 91234567 or 00923312345678.
                                 </div>
                             </div>
                         </div>
@@ -544,6 +544,7 @@ if (isset($cart['paid'])) {
                                     <button type="button" class="btn btn-secondary"
                                         data-dismiss="modal">{{ translate('Close') }}</button>
                                     <button type="submit"
+                                    onclick="document.getElementById('order_draft').value='final'"
                                         class="btn btn--primary">{{ translate('Place Order') }}</button>
                                     @if(isset($editingOrder) && $editingOrder->payment_status == 'paid')
                                         {{-- hide button --}}

@@ -1361,12 +1361,21 @@
                     return true;
                 }
 
-                const omanMobileRegex = /^(?:\+?968)?[79]\d{7}$/;
+                const omanMobileRegex = /^(?:(?:\+?968)?[79]\d{7}|00[1-9]\d{7,14})$/;
+
+                const validFeedback = phoneInput
+                .closest('.form-group')
+                ?.querySelector('.valid-feedback');
 
                 if (omanMobileRegex.test(value)) {
                     phoneInput.classList.add('is-valid');
                     phoneInput.classList.remove('is-invalid');
                     phoneInput.setCustomValidity('');
+                    if (validFeedback) {
+                        validFeedback.textContent = value.startsWith('00')
+                            ? 'Valid international phone number.'
+                            : 'Valid Oman mobile number.';
+                    }
 
                     return true;
                 }
@@ -1374,11 +1383,40 @@
                 phoneInput.classList.add('is-invalid');
                 phoneInput.classList.remove('is-valid');
                 phoneInput.setCustomValidity(
-                    'Please enter a valid Oman mobile number.'
+                    value.startsWith('00')
+                        ? 'Please enter a valid international phone number.'
+                        : 'Please enter a valid Oman mobile number.'
                 );
 
                 return false;
             }
+
+            Swal.fire({
+                title: 'Welcome to the Pending Orders Page',
+                text: 'Here you will find all pending orders that are waiting to be reviewed and processed.',
+                type: 'info',
+                confirmButtonText: 'View Pending Orders'
+            }).then(function (result) {
+                if (result.value) {
+                    const sound = document.getElementById('new-order-sound');
+
+                    if (!sound) {
+                        console.error('Notification sound element not found.');
+                        return;
+                    }
+
+                    sound.play()
+                        .then(function () {
+                            sound.pause();
+                            sound.currentTime = 0;
+
+                            window.kitchenAudioEnabled = true;
+                        })
+                        .catch(function (error) {
+                            console.error('Unable to activate notification sound:', error);
+                        });
+                }
+            });
 
             // Print Order Functionality
             // $(document).on('click', '.print-order-btn', function() {

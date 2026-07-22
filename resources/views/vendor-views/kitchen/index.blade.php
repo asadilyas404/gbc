@@ -99,6 +99,9 @@
         <!-- Will be populated dynamically -->
     </div>
 
+    <audio id="new-order-sound" preload="auto">
+        <source src="{{ asset('sounds/notification.wav') }}" type="audio/mpeg">
+    </audio>
 @endsection
 
 @push('script')
@@ -347,6 +350,33 @@
             const scrollY = localStorage.getItem("scrollPosition");
             if (scrollY !== null) {
                 window.scrollTo(0, parseInt(scrollY));
+            }
+        });
+
+        Swal.fire({
+            title: 'Welcome to the Kitchen Page',
+            text: 'Here you will find all the order items that need to be prepared.',
+            type: 'info',
+            confirmButtonText: 'View Kitchen Orders'
+        }).then(function (result) {
+            if (result.value) {
+                const sound = document.getElementById('new-order-sound');
+
+                if (!sound) {
+                    console.error('Notification sound element not found.');
+                    return;
+                }
+
+                sound.play()
+                    .then(function () {
+                        sound.pause();
+                        sound.currentTime = 0;
+
+                        window.kitchenAudioEnabled = true;
+                    })
+                    .catch(function (error) {
+                        console.error('Unable to activate notification sound:', error);
+                    });
             }
         });
 

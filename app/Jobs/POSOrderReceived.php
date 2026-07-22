@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Log;
 use App\Models\Order;
+use App\Models\OrderWhatsappMsgLog;
 use App\Services\WhatsappService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -68,6 +69,14 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
                 $this->state
             );
 
+            OrderWhatsappMsgLog::create([
+                'order_id' => $order->id,
+                'message_status' => 'success',
+                'message_type' => $this->state == 'new' ? 'order_creation' : 'order_modification',
+                'order_amount' => $order->order_amount,
+                'branch_id' => config('constants.branch_id'),
+            ]);
+
             \Log::info('Whatsapp Message Sent', [
                 'phone' => $this->phone,
                 'order_id' => $this->orderId,
@@ -81,6 +90,16 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
                 'order_id' => $this->orderId,
                 'state' => $this->state,
                 'attempt' => $this->attempts(),
+            ]);
+
+            $order = Order::find($this->orderId);
+            OrderWhatsappMsgLog::create([
+                'order_id' => $order->id,
+                'message_status' => 'failed',
+                'message_type' => $this->state == 'new' ? 'order_creation' : 'order_modification',
+                'order_amount' => $order->order_amount,
+                'branch_id' => config('constants.branch_id'),
+                'message_exception' => $e->getMessage()
             ]);
 
             if ($this->isTemporaryWhatsappError($e)) {
@@ -114,5 +133,17 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
             'state' => $this->state,
             'error' => $e->getMessage(),
         ]);
+
+        $order = Order::find($this->orderId);
+
+        OrderWhatsappMsgLog::create([
+            'order_id' => $order->id,
+            'message_status' => 'failed',
+            'message_type' => $this->state == 'new' ? 'order_creation' : 'order_modification',
+            'order_amount' => $order->order_amount,
+            'branch_id' => config('constants.branch_id'),
+            'message_exception' => $e->getMessage()
+        ]);
+
     }
 }

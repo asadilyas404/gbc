@@ -1125,8 +1125,8 @@
                         cancelButtonText: 'Go back',
 
                         // Reverse the usual colors
-                        confirmButtonColor: '#6c757d', // Gray
-                        cancelButtonColor: '#3085d6',  // Blue
+                        confirmButtonColor: '#3085d6', // Gray
+                        cancelButtonColor: '#6c757d',  // Blue
 
                         reverseButtons: true,
                         focusCancel: true,

@@ -1040,76 +1040,213 @@
 
             const phoneInput = document.getElementById('phone');
             $(document).on('submit', 'form#order_place', function (e) {
-                const $form = $(this);
-                // Per-form lock (instead of global lock)
+                const form = this;
+                const $form = $(form);
 
-                if ($('#order_draft').val() !== 'draft') {
-                    $("input[name='select_payment_type']").prop('required', true);
+                const phoneInput =
+                    form.querySelector('#phone, input[name="phone"]');
 
-                    if (!this.checkValidity()) {
-                        e.preventDefault();
-                        this.reportValidity(); // shows browser message immediately
-                        return false;
-                    }
+                const formHasPhoneInput = phoneInput !== null;
+                const isDraft = $('#order_draft').val() === 'draft';
+
+                /*
+                * Get the button that submitted the form.
+                */
+                let submitButton =
+                    e.originalEvent && e.originalEvent.submitter
+                        ? e.originalEvent.submitter
+                        : $form.find('button[type="submit"].clicked')[0] || null;
+
+                /*
+                * The phone field cannot be required because the user
+                * is allowed to skip the phone warning.
+                */
+                if (formHasPhoneInput) {
+                    phoneInput.removeAttribute('required');
                 }
 
-                if (!validatePhone()) {
+                /*
+                * Payment validation only for final orders.
+                */
+                if (!isDraft) {
+                    $("input[name='select_payment_type']")
+                        .prop('required', true);
+                } else {
+                    /*
+                    * Remove required when saving a draft.
+                    * This is important if a previous submission was final.
+                    */
+                    $("input[name='select_payment_type']")
+                        .prop('required', false);
+                }
+
+                /*
+                * Run native browser validation after phone checking.
+                */
+                if (!form.checkValidity()) {
                     e.preventDefault();
-                    e.stopPropagation();
+
+                    form.reportValidity();
+                    return false;
+                }
+
+                /*
+                * Allow only the immediate resubmission caused by
+                * clicking Skip.
+                *
+                * Remove the flag immediately so that every later
+                * form submission checks the phone again.
+                */
+                const skipPhoneWarningOnce =
+                    $form.data('skip-phone-warning-once') === true;
+
+                if (skipPhoneWarningOnce) {
+                    $form.removeData('skip-phone-warning-once');
+                }
+
+                /*
+                * Show SweetAlert for both draft and final orders.
+                */
+                if (
+                    formHasPhoneInput &&
+                    phoneInput.value.trim() === '' &&
+                    !skipPhoneWarningOnce
+                ) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+
+                    Swal.fire({
+                        title: 'Phone number is empty',
+                        text: 'The customer phone number has not been entered. Do you want to continue without a phone number?',
+                        icon: 'warning',
+                        showCancelButton: true,
+
+                        confirmButtonText: 'Skip',
+                        cancelButtonText: 'Go back',
+
+                        // Reverse the usual colors
+                        confirmButtonColor: '#6c757d', // Gray
+                        cancelButtonColor: '#3085d6',  // Blue
+
+                        reverseButtons: true,
+                        focusCancel: true,
+                        allowOutsideClick: false
+                    }).then(function (result) {
+                        /*
+                        * result.value supports older SweetAlert2 versions.
+                        * result.isConfirmed supports newer versions.
+                        */
+                        const confirmed =
+                            result.isConfirmed === true ||
+                            result.value === true;
+
+                        if (confirmed) {
+                            /*
+                            * Skip the warning only on the next immediate
+                            * form submission.
+                            */
+                            $form.data(
+                                'skip-phone-warning-once',
+                                true
+                            );
+
+                            phoneInput.setCustomValidity('');
+
+                            /*
+                            * Resubmit using the same button so the correct
+                            * action and loader are preserved.
+                            */
+                            if (typeof form.requestSubmit === 'function') {
+                                if (submitButton) {
+                                    form.requestSubmit(submitButton);
+                                } else {
+                                    form.requestSubmit();
+                                }
+                            } else {
+                                $form.trigger('submit');
+                            }
+                        } else {
+                            phoneInput.focus();
+                        }
+                    });
+
+                    return false;
+                }
+
+                /*
+                * Validate the phone format only when a value exists.
+                */
+                if (
+                    formHasPhoneInput &&
+                    phoneInput.value.trim() !== '' &&
+                    !validatePhone()
+                ) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
 
                     phoneInput.focus();
                     phoneInput.reportValidity();
+
+                    return false;
                 }
-                
-                if ($form.data('submitting')) {
+
+
+                /*
+                * Prevent duplicate submissions.
+                */
+                if ($form.data('submitting') === true) {
                     e.preventDefault();
                     return false;
                 }
+
                 $form.data('submitting', true);
 
-                const $buttons = $form.find('button[type="submit"]');
-                let $activeBtn = $form.find('button.clicked');
+                const $buttons =
+                    $form.find('button[type="submit"]');
 
-                // If user pressed Enter and no button was clicked, pick first submit button
+                let $activeBtn = submitButton
+                    ? $(submitButton)
+                    : $form.find('button[type="submit"].clicked');
+
+                /*
+                * When Enter is pressed, use the first submit button.
+                */
                 if (!$activeBtn.length) {
                     $activeBtn = $buttons.first();
                 }
 
-                $buttons.prop('disabled', true);
-
-                // Spinner only on active button
-                if ($activeBtn.length) {
-                    if (!$activeBtn.data('original-html')) {
-                    $activeBtn.data('original-html', $activeBtn.html());
-                    }
-                    $activeBtn.html(
-                    '<span class="spinner-border spinner-border-sm mr-1" role="status" aria-hidden="true"></span> Wait'
+                /*
+                * Save the original HTML before adding the loader.
+                */
+                if (
+                    $activeBtn.length &&
+                    !$activeBtn.data('original-html')
+                ) {
+                    $activeBtn.data(
+                        'original-html',
+                        $activeBtn.html()
                     );
                 }
 
-                // Fallback reset if submit is blocked or page doesn't unload (AJAX, validation, etc.)
-                const reset = () => {
-                    $form.data('submitting', false);
-                    $buttons.prop('disabled', false).removeClass('clicked');
+                /*
+                * Disable all submit buttons only after all validation
+                * has successfully passed.
+                */
+                $buttons.prop('disabled', true);
 
-                    $buttons.each(function () {
-                    const $btn = $(this);
-                    const original = $btn.data('original-html');
-                    if (original) $btn.html(original);
-                    });
-                };
-
-                // If browser doesn't navigate within X seconds, unlock UI
-                // setTimeout(reset, 15000);
-
-                // If HTML5 validation fails, submit event may fire but navigation won't happen in some flows
-                // This catches invalid forms before submit
-                if (this.checkValidity && !this.checkValidity()) {
-                    reset();
-                    // Let browser show validation messages
-                    return true;
+                /*
+                * Show loader on the button that submitted the form.
+                */
+                if ($activeBtn.length) {
+                    $activeBtn.html(
+                        '<span class="spinner-border spinner-border-sm mr-1" ' +
+                        'role="status" aria-hidden="true"></span> Wait'
+                    );
                 }
-                // Allow normal submission (no preventDefault)
+
+                /*
+                * Normal form submission continues here.
+                */
             });
 
             // Call updateCalculations when the modal is opened

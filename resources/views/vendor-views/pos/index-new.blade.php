@@ -2363,11 +2363,16 @@
                     Swal.fire({
                         title: 'Phone number is empty',
                         text: 'The customer phone number has not been entered. Do you want to continue without a phone number?',
-                        type: 'warning',
                         icon: 'warning',
                         showCancelButton: true,
+
                         confirmButtonText: 'Skip',
                         cancelButtonText: 'Go back',
+
+                        // Reverse the usual colors
+                        confirmButtonColor: '#6c757d', // Gray
+                        cancelButtonColor: '#3085d6',  // Blue
+
                         reverseButtons: true,
                         focusCancel: true,
                         allowOutsideClick: false

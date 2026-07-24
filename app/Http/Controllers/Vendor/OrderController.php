@@ -369,6 +369,7 @@ class OrderController extends Controller
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
                 'draft_product' => true,
+                'pos_discount_type' => $item->pos_discount_type ?? null,
             ];
         }
 

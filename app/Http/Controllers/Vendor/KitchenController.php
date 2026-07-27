@@ -110,7 +110,7 @@ class KitchenController extends Controller
                 if($request->type == 'ready'){
                     // Send WhatsApp message when order is ready
                     $phone = $order->customer ? $order->customer->customer_mobile_no : null;
-                    if ($phone) {
+                    if ($phone && config('whatsapp.whatsapp_mode') == 'LIVE') {
                         POSOrderReady::dispatch($phone, $order->id, 'ready')->onConnection('database')->onQueue('whatsapp');
                     }
                 }

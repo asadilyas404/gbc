@@ -1533,7 +1533,7 @@ class POSController extends Controller
 
                 if($order->payment_status == 'unpaid' && $order->printed == 0){
                     $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
-                    if($request->phone){
+                    if($request->phone && config('whatsapp.whatsapp_mode') == 'LIVE'){
                         POSOrderReceived::dispatch($request->phone, $order->id, isset($editing_order_id) ? 'update' : 'new')->onConnection('database')->onQueue('whatsapp');
                     }
                 }
@@ -1549,7 +1549,7 @@ class POSController extends Controller
                     }
                     
                     if($requirePrint){
-                        if($request->phone){
+                        if($request->phone && config('whatsapp.whatsapp_mode') == 'LIVE'){
                             POSOrderReceived::dispatch($request->phone, $order->id, isset($editing_order_id) ? 'update' : 'new')->onConnection('database')->onQueue('whatsapp');
                         }
                         $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
@@ -1567,7 +1567,7 @@ class POSController extends Controller
 
                     if($requirePrint){
                         $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));
-                        if($request->phone){
+                        if($request->phone && config('whatsapp.whatsapp_mode') == 'LIVE'){
                             POSOrderReceived::dispatch($request->phone, $order->id, isset($editing_order_id) ? 'update' : 'new')->onConnection('database')->onQueue('whatsapp');
                         }
                     }

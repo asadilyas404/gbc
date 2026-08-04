@@ -1417,4 +1417,217 @@ class FoodController extends Controller
         Toastr::success('Foods Sync completed!');
         return back();
     }
+
+    public function copy_partner_prices_index()
+    {
+        if (!Helpers::get_restaurant_data()->food_section) {
+            Toastr::warning(translate('messages.permission_denied'));
+            return back();
+        }
+
+        $partners = DB::table('TBL_SALE_ORDER_PARTNERS')
+            ->where('partner_entry_status', 1)
+            ->orderBy('partner_name')
+            ->get();
+
+        return view('vendor-views.product.copy-partner-prices', compact('partners'));
+    }
+
+    public function copy_partner_prices_data(Request $request)
+    {
+        if (!Helpers::get_restaurant_data()->food_section) {
+            Toastr::warning(translate('messages.permission_denied'));
+            return back();
+        }
+
+        $request->validate([
+            'source' => 'required',
+            'target_partner_id' => 'required',
+        ]);
+
+        $source = $request->source;
+        $targetPartnerId = $request->target_partner_id;
+
+        if ($source !== 'food' && (string) $source === (string) $targetPartnerId) {
+            Toastr::error(translate('Source and target partner must be different'));
+            return back();
+        }
+
+        $targetExists = DB::table('TBL_SALE_ORDER_PARTNERS')
+            ->where('partner_id', $targetPartnerId)
+            ->where('partner_entry_status', 1)
+            ->exists();
+
+        if (!$targetExists) {
+            Toastr::error(translate('Invalid target partner'));
+            return back();
+        }
+
+        if ($source !== 'food') {
+            $sourceExists = DB::table('TBL_SALE_ORDER_PARTNERS')
+                ->where('partner_id', $source)
+                ->where('partner_entry_status', 1)
+                ->exists();
+
+            if (!$sourceExists) {
+                Toastr::error(translate('Invalid source partner'));
+                return back();
+            }
+        }
+
+        $foodsUpdated = 0;
+        $optionsUpdated = 0;
+        $now = date('Y/m/d H:i:s');
+
+        $foods = Food::where('restaurant_id', Helpers::get_restaurant_id())->get();
+
+        foreach ($foods as $food) {
+            $foodChanged = false;
+            $partnerPrices = json_decode($food->partner_price, true);
+            if (!is_array($partnerPrices)) {
+                $partnerPrices = [];
+            }
+
+            if ($source === 'food') {
+                $partnerPrices = $this->upsertPartnerPriceEntry(
+                    $partnerPrices,
+                    $targetPartnerId,
+                    $food->price,
+                    'on'
+                );
+                $foodChanged = true;
+
+                $options = VariationOption::where('food_id', $food->id)->get();
+                foreach ($options as $option) {
+                    $this->upsertPartnerVariationOption(
+                        $option->id,
+                        $targetPartnerId,
+                        $food->id,
+                        $option->option_price,
+                        $now
+                    );
+                    $optionsUpdated++;
+                }
+            } else {
+                $sourceEntry = null;
+                foreach ($partnerPrices as $entry) {
+                    if (($entry['partner_id'] ?? null) == $source) {
+                        $sourceEntry = $entry;
+                        break;
+                    }
+                }
+
+                if ($sourceEntry !== null) {
+                    $partnerPrices = $this->upsertPartnerPriceEntry(
+                        $partnerPrices,
+                        $targetPartnerId,
+                        $sourceEntry['price'] ?? 0,
+                        $sourceEntry['enable'] ?? 'on'
+                    );
+                    $foodChanged = true;
+                }
+
+                $sourceOptionRows = DB::table('PARTNER_VARIATION_OPTION')
+                    ->where('FOOD_ID', $food->id)
+                    ->where('PARTNER_ID', $source)
+                    ->where('TYPE', 'option')
+                    ->where('is_deleted', 0)
+                    ->get();
+
+                foreach ($sourceOptionRows as $row) {
+                    $variationOptionId = $row->VARIATION_OPTION_ID ?? $row->variation_option_id ?? null;
+                    $price = $row->price ?? 0;
+                    if ($variationOptionId === null) {
+                        continue;
+                    }
+
+                    $this->upsertPartnerVariationOption(
+                        $variationOptionId,
+                        $targetPartnerId,
+                        $food->id,
+                        $price,
+                        $now
+                    );
+                    $optionsUpdated++;
+                }
+            }
+
+            if ($foodChanged) {
+                $food->partner_price = json_encode(array_values($partnerPrices));
+                $food->save();
+                $foodsUpdated++;
+            }
+        }
+
+        Toastr::success(translate('Partner prices copied successfully') . ". Foods: {$foodsUpdated}, Option prices: {$optionsUpdated}");
+        return back();
+    }
+
+    private function upsertPartnerPriceEntry(array $partnerPrices, $targetPartnerId, $price, $enable)
+    {
+        $found = false;
+        foreach ($partnerPrices as $index => $entry) {
+            if (($entry['partner_id'] ?? null) == $targetPartnerId) {
+                $partnerPrices[$index]['price'] = $price;
+                $partnerPrices[$index]['enable'] = $enable;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $partnerPrices[] = [
+                'partner_id' => (string) $targetPartnerId,
+                'price' => $price,
+                'enable' => $enable,
+            ];
+        }
+
+        return $partnerPrices;
+    }
+
+    private function upsertPartnerVariationOption($variationOptionId, $partnerId, $foodId, $price, $now)
+    {
+        $updated = DB::table('PARTNER_VARIATION_OPTION')
+            ->where('variation_option_id', $variationOptionId)
+            ->where('partner_id', $partnerId)
+            ->update([
+                'price' => $price,
+                'food_id' => $foodId,
+                'type' => 'option',
+                'is_deleted' => 0,
+                'updated_at' => $now,
+            ]);
+
+        if ($updated > 0) {
+            return;
+        }
+
+        $nextId = ((int) DB::table('PARTNER_VARIATION_OPTION')->max('id')) + 1;
+
+        try {
+            DB::table('PARTNER_VARIATION_OPTION')->insert([
+                'id' => $nextId,
+                'variation_option_id' => $variationOptionId,
+                'partner_id' => $partnerId,
+                'food_id' => $foodId,
+                'type' => 'option',
+                'price' => $price,
+                'is_deleted' => 0,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        } catch (\Illuminate\Database\QueryException $e) {
+            DB::table('PARTNER_VARIATION_OPTION')
+                ->where('variation_option_id', $variationOptionId)
+                ->where('partner_id', $partnerId)
+                ->update([
+                    'price' => $price,
+                    'food_id' => $foodId,
+                    'type' => 'option',
+                    'is_deleted' => 0,
+                    'updated_at' => $now,
+                ]);
+        }
+    }
 }

@@ -181,6 +181,8 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::post('bulk-import', 'FoodController@bulk_import_data');
             Route::get('bulk-export', 'FoodController@bulk_export_index')->name('bulk-export-index');
             Route::post('bulk-export', 'FoodController@bulk_export_data')->name('bulk-export');
+            Route::get('copy-partner-prices', 'FoodController@copy_partner_prices_index')->name('copy-partner-prices');
+            Route::post('copy-partner-prices', 'FoodController@copy_partner_prices_data')->name('copy-partner-prices-data');
         });
 
         Route::group(['prefix' => 'banner', 'as' => 'banner.', 'middleware' => ['module:banner', 'subscription:banner']], function () {

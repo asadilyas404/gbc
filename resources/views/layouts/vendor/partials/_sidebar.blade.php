@@ -265,6 +265,15 @@ use Illuminate\Support\Facades\DB;
                                                 class="text-truncate text-capitalize">{{ translate('messages.bulk_export') }}</span>
                                         </a>
                                     </li>
+                                    <li
+                                        class="nav-item {{ Request::is('restaurant-panel/food/copy-partner-prices') ? 'active' : '' }}">
+                                        <a class="nav-link " href="{{ route('vendor.food.copy-partner-prices') }}"
+                                            title="{{ translate('Copy Partner Prices') }}">
+                                            <span class="tio-circle nav-indicator-icon"></span>
+                                            <span
+                                                class="text-truncate text-capitalize">{{ translate('Copy Partner Prices') }}</span>
+                                        </a>
+                                    </li>
                                 @endif
                             </ul>
                         </li>

@@ -55,4 +55,9 @@ return [
         'token' => env('SYNC_API_TOKEN'),
     ],
 
+    'erp' => [
+        'base_url' => env('ERP_BASE_URL', 'https://deploylogics.royalerp.net'),
+        'timeout' => env('ERP_API_TIMEOUT', 30),
+    ],
+
 ];

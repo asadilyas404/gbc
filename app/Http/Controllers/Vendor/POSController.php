@@ -6,6 +6,7 @@ use App\CentralLogics\Helpers;
 use App\Events\myevent;
 use App\Http\Controllers\Controller;
 use App\Jobs\POSOrderReceived;
+use App\Jobs\SyncPosOrderVoucherJob;
 use App\Mail\PlaceOrder;
 use App\Models\AddOn;
 use App\Models\BusinessSetting;
@@ -1113,10 +1114,12 @@ class POSController extends Controller
 
         $editing_order_id = session('editing_order_id');
         $oldVariationJson = '';
+        $previousPaymentStatus = null;
         $branchId = Helpers::get_restaurant_id();
         DB::beginTransaction();
         if ($editing_order_id) {
             $order = Order::find($editing_order_id);
+            $previousPaymentStatus = $order->payment_status ?? null;
             $order->is_pushed = 'N';
             // if (!$order || $order->payment_status != 'unpaid') {
             //     Toastr::error('Invalid or already paid order.');
@@ -1524,6 +1527,14 @@ class POSController extends Controller
             }
 
             DB::commit();
+
+            if ($order->payment_status === 'paid') {
+                SyncPosOrderVoucherJob::dispatch($order->id)
+                    ->delay(now()->addSeconds(2));
+            } elseif ($previousPaymentStatus === 'paid') {
+                SyncPosOrderVoucherJob::dispatch($order->id, 'delete')
+                    ->delay(now()->addSeconds(2));
+            }
 
             // Print order receipts
             try {

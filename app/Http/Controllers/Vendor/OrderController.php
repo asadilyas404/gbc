@@ -17,6 +17,7 @@ use Brian2694\Toastr\Facades\Toastr;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Storage;
 use App\Jobs\SyncOrdersJob;
+use App\Jobs\SyncPosOrderVoucherJob;
 use Illuminate\Support\Str;
 use App\Events\myevent;
 use App\Http\Controllers\PrintController;
@@ -575,6 +576,8 @@ class OrderController extends Controller
 
         // Send Order Canceled Print Command to Kitchen Printer
         if($order->order_status == 'canceled'){
+            SyncPosOrderVoucherJob::dispatch($order->id, 'delete')
+                ->delay(now()->addSeconds(2));
             try {
                 $printController = new \App\Http\Controllers\PrintController();
                 $printController->printOrderKitchen(new \Illuminate\Http\Request(['order_id' => (string)  $order->id]));

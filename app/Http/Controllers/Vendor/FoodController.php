@@ -1493,7 +1493,7 @@ class FoodController extends Controller
                     $partnerPrices,
                     $targetPartnerId,
                     $food->price,
-                    'on'
+                    ($food->visibility ?? 'off') === 'on' ? 'on' : 'off'
                 );
                 $foodChanged = true;
 

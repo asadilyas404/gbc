@@ -171,32 +171,42 @@
             notificationSound.preload = 'auto';
             var channel = pusher.subscribe('my-channel');
             channel.bind('my-event', function (data) {
-            $.ajax({
-                url: '/restaurant-panel/order/kitchen-card/' + data.order_id,
-                type: 'GET',
-                success: function (response) {
-                    const orderSelector = '#order_' + data.order_id;
-
-                    if ($(orderSelector).length) {
-                        // Order already exists, update its HTML
-                        $(orderSelector).replaceWith(response.html);
-                    } else {
-                        // New order, add it to the top
-                        $('#orders .row').prepend(response.html);
-
-                        notificationSound.currentTime = 0;
-                        notificationSound.play().catch(function (error) {
-                            console.log('Sound blocked:', error);
-                        });
-                    }
-
-                    updateTimers();
-                },
-                error: function (xhr) {
-                    console.log('Could not load order HTML:', xhr.responseText);
+                if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
+                    return;
                 }
+
+                const orderSelector = '#order_' + data.order_id;
+                if (data.order_status === 'canceled' || data.order_status === 'completed' || data.order_status === 'delivered') {
+                    if ($(orderSelector).length) {
+                        $(orderSelector).fadeOut(300, function() { $(this).remove(); });
+                    }
+                    return;
+                }
+
+                $.ajax({
+                    url: '/restaurant-panel/order/kitchen-card/' + data.order_id,
+                    type: 'GET',
+                    success: function (response) {
+                        if ($(orderSelector).length) {
+                            // Order already exists, update its HTML
+                            $(orderSelector).replaceWith(response.html);
+                        } else {
+                            // New order, add it to the top
+                            $('#orders .row').prepend(response.html);
+
+                            notificationSound.currentTime = 0;
+                            notificationSound.play().catch(function (error) {
+                                console.log('Sound blocked:', error);
+                            });
+                        }
+
+                        updateTimers();
+                    },
+                    error: function (xhr) {
+                        console.log('Could not load order HTML:', xhr.responseText);
+                    }
+                });
             });
-        });
 
        
         function funViewCard(customer, item, buttonName, btnAction) {

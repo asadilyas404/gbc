@@ -838,9 +838,10 @@
 
             var channel = pusher.subscribe('my-channel');
             channel.bind('my-event', function(data) {
-                if((data.message =='unpaid' || data.message == 'unpaid_edited') && data.branch_id == {{ auth('vendor_employee')->user()->branch_id }}){
-                    upsertOrderCard(data.order_id);
+                if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
+                    return;
                 }
+                upsertOrderCard(data.order_id);
             });
 
             const notificationSound = new Audio('/sounds/notification.wav');

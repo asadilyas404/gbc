@@ -1605,6 +1605,14 @@ class POSController extends Controller
                 Toastr::success(translate('messages.order_placed_successfully'));
             }
 
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $request->order_draft == 'draft' ? translate('messages.order_sent_to_the_kitchen') : translate('messages.order_placed_successfully'),
+                    'order_id' => $order->id
+                ]);
+            }
+
             if(isset($request->partner_id) && !empty($request->partner_id)){
                 return redirect()->to('restaurant-panel/pos/new');
             }else{

@@ -573,6 +573,12 @@ class OrderController extends Controller
         $order[$request['order_status']] = now();
         $order->save();
 
+        try {
+            event(new myevent($order->payment_status, $order->restaurant_id, $order->id, null, $order->order_status, $order->payment_status, $order->order_type, 'status_changed'));
+        } catch (\Exception $e) {
+            info('Pusher Status Change Event Error:' . $e->getMessage());
+        }
+
         // Send Order Canceled Print Command to Kitchen Printer
         if($order->order_status == 'canceled'){
             try {

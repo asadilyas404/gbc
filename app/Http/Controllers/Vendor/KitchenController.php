@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Vendor;
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
 use App\Jobs\POSOrderReady;
+use App\Events\myevent;
 use App\Models\Food;
 use App\Models\KitchenOrderStatusLog;
 use App\Models\Order;
@@ -106,6 +107,12 @@ class KitchenController extends Controller
                 $order->order_status   = $request->type;
                 $order->is_pushed      = 'N';
                 $order->save();
+
+                try {
+                    event(new myevent($order->payment_status, $order->restaurant_id, $order->id, null, $order->order_status, $order->payment_status, $order->order_type, 'status_changed'));
+                } catch (\Exception $e) {
+                    info('Pusher Kitchen Event Error:' . $e->getMessage());
+                }
 
                 if($request->type == 'ready'){
                     // Send WhatsApp message when order is ready

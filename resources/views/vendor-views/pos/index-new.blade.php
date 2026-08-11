@@ -2906,5 +2906,19 @@
         // }
 
         
+        if (typeof Pusher !== 'undefined') {
+            Pusher.logToConsole = true;
+            var posPusher = new Pusher('3072d0c5201dc9141481', {
+                cluster: 'ap2',
+                enabledTransports: ['ws', 'wss']
+            });
+            var posChannel = posPusher.subscribe('my-channel');
+            posChannel.bind('my-event', function(data) {
+                if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
+                    return;
+                }
+                console.log('POS real-time order update event:', data);
+            });
+        }
     </script>
 @endpush

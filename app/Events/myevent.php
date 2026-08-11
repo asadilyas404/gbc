@@ -22,13 +22,21 @@ class myevent implements ShouldBroadcastNow
     public $branch_id;
     public $order_id;
     public $order_html;
+    public $order_status;
+    public $payment_status;
+    public $order_type;
+    public $event_type;
 
-    public function __construct($message, $branch_id = null, $order_id = null, $order_html = null)
+    public function __construct($message, $branch_id = null, $order_id = null, $order_html = null, $order_status = null, $payment_status = null, $order_type = null, $event_type = 'created')
     {
         $this->message = $message;
         $this->branch_id = $branch_id;
         $this->order_id = $order_id;
         $this->order_html = $order_html;
+        $this->order_status = $order_status;
+        $this->payment_status = $payment_status;
+        $this->order_type = $order_type;
+        $this->event_type = $event_type;
     }
 
     public function broadcastOn()
@@ -43,6 +51,14 @@ class myevent implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return ['message' => $this->message, 'branch_id' => $this->branch_id, 'order_id' => $this->order_id];
+        return [
+            'message' => $this->message,
+            'branch_id' => $this->branch_id,
+            'order_id' => $this->order_id,
+            'order_status' => $this->order_status,
+            'payment_status' => $this->payment_status,
+            'order_type' => $this->order_type,
+            'event_type' => $this->event_type,
+        ];
     }
 }

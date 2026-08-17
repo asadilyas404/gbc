@@ -862,6 +862,12 @@
                     },
                     error: function (xhr) {
                         console.log('Could not load order HTML:', xhr.responseText);
+                        if (xhr.status === 404) {
+                            const orderSelector = `#order-card-${orderId}`;
+                            if ($(orderSelector).length) {
+                                $(orderSelector).fadeOut(300, function () { $(this).remove(); });
+                            }
+                        }
                     }
                 });
             }

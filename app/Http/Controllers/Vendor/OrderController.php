@@ -1549,20 +1549,22 @@ class OrderController extends Controller
             'pos_details',
             'partner',
             'customer'
-        ])->findOrFail($order_id);
+        ])->where('id', $order_id)->orWhere('order_serial', $order_id)->first();
 
-        
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Order not found', 'html' => ''], 404);
+        }
+
         $timer = "";
         if (isset($order->created_at) && !empty($order->created_at)) {
             $timer = date('H:i:s', strtotime($order->created_at));
         }
         $order->setAttribute('kitchen_time', $timer);
-        
 
         $printableContent = view('vendor-views.kitchen.partials._card', compact('order'))->render();
-        return response()->json(['html' => $printableContent]);
+        return response()->json(['success' => true, 'html' => $printableContent]);
     }
-    
+
     public function order_card(Request $request, $order_id)
     {
         $order = Order::with([
@@ -1574,10 +1576,14 @@ class OrderController extends Controller
             'pos_details',
             'partner',
             'customer'
-        ])->findOrFail($order_id);
+        ])->where('id', $order_id)->orWhere('order_serial', $order_id)->first();
+
+        if (!$order) {
+            return response()->json(['success' => false, 'message' => 'Order not found', 'html' => ''], 404);
+        }
 
         $printableContent = view('vendor-views.order.partials._card', compact('order'))->render();
-        return response()->json(['html' => $printableContent]);
+        return response()->json(['success' => true, 'html' => $printableContent]);
     }
 
     public function sync(Request $request)

@@ -159,54 +159,147 @@
         //     updateAllOrders();
         // }, 10000)
 
-         Pusher.logToConsole = true;
-            var pusher = new Pusher('3072d0c5201dc9141481', {
+        Pusher.logToConsole = true;
+        var pusher = new Pusher('3072d0c5201dc9141481', {
             cluster: 'ap2',
-            // forceTLS: true,
-            //   enabledTransports: ['ws', 'wss', 'xhr_streaming', 'xhr_polling']
             enabledTransports: ['ws', 'wss']
-            });
+        });
 
-            const notificationSound = new Audio('/sounds/notification.wav');
-            notificationSound.preload = 'auto';
-            var channel = pusher.subscribe('my-channel');
-            channel.bind('my-event', function (data) {
-                if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
-                    return;
-                }
+        const notificationSound = new Audio('/sounds/notification.wav');
+        notificationSound.preload = 'auto';
 
-                const orderSelector = '#order_' + data.order_id;
-                if (data.order_status === 'canceled' || data.order_status === 'completed' || data.order_status === 'delivered') {
+        let fallbackInterval = null;
+        let isSyncingKitchen = false;
+
+        function fetchAndUpsertKitchenCard(orderId, isNew = false) {
+            return $.ajax({
+                url: '/restaurant-panel/order/kitchen-card/' + orderId,
+                type: 'GET',
+                success: function (response) {
+                    const orderSelector = '#order_' + orderId;
                     if ($(orderSelector).length) {
-                        $(orderSelector).fadeOut(300, function() { $(this).remove(); });
-                    }
-                    return;
-                }
-
-                $.ajax({
-                    url: '/restaurant-panel/order/kitchen-card/' + data.order_id,
-                    type: 'GET',
-                    success: function (response) {
-                        if ($(orderSelector).length) {
-                            // Order already exists, update its HTML
-                            $(orderSelector).replaceWith(response.html);
-                        } else {
-                            // New order, add it to the top
-                            $('#orders .row').prepend(response.html);
-
+                        $(orderSelector).replaceWith(response.html);
+                    } else {
+                        $('#orders .row').prepend(response.html);
+                        if (isNew) {
                             notificationSound.currentTime = 0;
                             notificationSound.play().catch(function (error) {
                                 console.log('Sound blocked:', error);
                             });
                         }
-
-                        updateTimers();
-                    },
-                    error: function (xhr) {
-                        console.log('Could not load order HTML:', xhr.responseText);
                     }
-                });
+                    updateTimers();
+                },
+                error: function (xhr) {
+                    console.log('Could not load order HTML:', xhr.responseText);
+                }
             });
+        }
+
+        function syncKitchenOrders() {
+            if (isSyncingKitchen) return;
+            isSyncingKitchen = true;
+
+            $.ajax({
+                url: '/restaurant-panel/kitchen/sync',
+                type: 'GET',
+                dataType: 'json',
+                success: function (response) {
+                    if (!response || !response.success || !Array.isArray(response.orders)) {
+                        return;
+                    }
+
+                    const serverOrders = response.orders;
+                    const serverOrderMap = {};
+                    serverOrders.forEach(function (order) {
+                        serverOrderMap[order.id] = order;
+                    });
+
+                    // 1. Check DOM cards for status changes or removed orders
+                    $('[data-order-id]').each(function () {
+                        const domOrderId = $(this).attr('data-order-id');
+                        const currentKitchenStatus = $(this).attr('data-kitchen-status');
+
+                        if (!serverOrderMap[domOrderId]) {
+                            // Order no longer active in kitchen (completed/canceled/delivered)
+                            $('#order_' + domOrderId).fadeOut(300, function () {
+                                $(this).remove();
+                            });
+                        } else {
+                            const serverOrder = serverOrderMap[domOrderId];
+                            if (serverOrder.kitchen_status && serverOrder.kitchen_status !== currentKitchenStatus) {
+                                fetchAndUpsertKitchenCard(domOrderId, false);
+                            }
+                        }
+                    });
+
+                    // 2. Check server orders for new orders missing in DOM
+                    serverOrders.forEach(function (order) {
+                        const orderSelector = '#order_' + order.id;
+                        if (!$(orderSelector).length) {
+                            fetchAndUpsertKitchenCard(order.id, true);
+                        }
+                    });
+                },
+                complete: function () {
+                    isSyncingKitchen = false;
+                }
+            });
+        }
+
+        function startFallbackPolling() {
+            if (fallbackInterval) return;
+            console.warn("Pusher disconnected/unavailable. Starting AJAX fallback polling every 10s...");
+            syncKitchenOrders();
+            fallbackInterval = setInterval(syncKitchenOrders, 10000);
+        }
+
+        function stopFallbackPolling() {
+            if (fallbackInterval) {
+                clearInterval(fallbackInterval);
+                fallbackInterval = null;
+                console.log("Pusher reconnected. Stopped AJAX fallback polling.");
+            }
+        }
+
+        // Real-time Pusher Event Listener
+        var channel = pusher.subscribe('my-channel');
+        channel.bind('my-event', function (data) {
+            if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
+                return;
+            }
+
+            const orderSelector = '#order_' + data.order_id;
+            if (data.order_status === 'canceled' || data.order_status === 'completed' || data.order_status === 'delivered') {
+                if ($(orderSelector).length) {
+                    $(orderSelector).fadeOut(300, function () { $(this).remove(); });
+                }
+                return;
+            }
+
+            const isNew = !$(orderSelector).length;
+            fetchAndUpsertKitchenCard(data.order_id, isNew);
+        });
+
+        // Pusher Connection State Listener
+        pusher.connection.bind('state_change', function (states) {
+            console.log('Pusher connection state:', states.current);
+            if (states.current === 'connected') {
+                if (fallbackInterval !== null) {
+                    stopFallbackPolling();
+                    syncKitchenOrders(); // Immediate recovery sync on reconnection
+                }
+            } else if (states.current === 'disconnected' || states.current === 'unavailable' || states.current === 'failed') {
+                startFallbackPolling();
+            }
+        });
+
+        // Safety check if Pusher fails to connect on initial page load
+        setTimeout(function () {
+            if (pusher.connection.state !== 'connected') {
+                startFallbackPolling();
+            }
+        }, 5000);
 
        
         function funViewCard(customer, item, buttonName, btnAction) {

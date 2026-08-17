@@ -1,7 +1,7 @@
 @php
     $total_variation_addon_price = 0;
 @endphp
-<div class="col-12 col-md-6 col-lg-4 mb-2" id="order_{{ $order->id }}">
+<div class="col-12 col-md-6 col-lg-4 mb-2" id="order_{{ $order->id }}" data-order-id="{{ $order->id }}" data-kitchen-status="{{ $order->kitchen_status }}" data-order-status="{{ $order->order_status }}">
     <div class="card" id="{{ $order->kitchen_status }}">
         <div class="card-body">
             <div class="d-flex justify-content-between">

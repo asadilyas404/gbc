@@ -1579,4 +1579,22 @@ class OrderController extends Controller
         $printableContent = view('vendor-views.order.partials._card', compact('order'))->render();
         return response()->json(['html' => $printableContent]);
     }
+
+    public function sync(Request $request)
+    {
+        $branchId = Helpers::get_restaurant_id();
+        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+        $orderDate = $branch ? $branch->orders_date : null;
+
+        $orders = Order::where('restaurant_id', $branchId)
+            ->where('order_date', $orderDate)
+            ->select('id', 'order_status', 'payment_status', 'updated_at')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders'  => $orders
+        ]);
+    }
 }

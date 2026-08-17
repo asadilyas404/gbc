@@ -1,4 +1,4 @@
-<div class="col-md-6 col-xl-4 p-2" id="order-card-{{ $order['id'] }}">
+<div class="col-md-6 col-xl-4 p-2" id="order-card-{{ $order['id'] }}" data-order-id="{{ $order['id'] }}" data-order-status="{{ $order['order_status'] }}" data-payment-status="{{ $order['payment_status'] }}">
     @php
         $authId = auth('vendor')->id() ?? auth('vendor_employee')->id();
     @endphp

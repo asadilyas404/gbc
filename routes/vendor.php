@@ -148,6 +148,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         Route::group(['prefix' => 'kitchen', 'as' => 'kitchen.', 'middleware' => ['module:kitchen_orders', 'subscription:kitchen_orders']], function () {
             Route::get('list', 'KitchenController@index')->name('index');
             Route::get('get-all-orders', 'KitchenController@getAllOrders')->name('get_all_orders');
+            Route::get('sync', 'KitchenController@sync')->name('sync');
         });
 
         Route::post('food/food-variation-generate', 'FoodController@food_variation_generator')->name('food.food-variation-generate');
@@ -291,6 +292,7 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
 
             Route::get('kitchen-card/{id}', 'OrderController@kitchen_card')->name('kitchen-card');
             Route::get('order-card/{id}', 'OrderController@order_card')->name('order-card');
+            Route::get('sync', 'OrderController@sync')->name('sync');
 
             Route::group(['as' => 'subscription.'], function () {
                 Route::get('subscription/update-status/{supscription_id}/{status}', 'OrderSubscriptionController@view')->name('update-status');

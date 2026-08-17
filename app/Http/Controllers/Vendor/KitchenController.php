@@ -136,4 +136,26 @@ class KitchenController extends Controller
 
         return response()->json(['success' => true, 'data' => $data, 'message' => "list of all orders"]);
     }
+
+    public function sync(Request $request)
+    {
+        $branchId = Helpers::get_restaurant_id();
+        $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+        $orderDate = $branch ? $branch->orders_date : null;
+
+        $orders = Order::where('restaurant_id', $branchId)
+            ->where('order_date', $orderDate)
+            ->whereIn('kitchen_status', [
+                Helpers::kitchenStatus('pending')['key'],
+                Helpers::kitchenStatus('cooking')['key'],
+            ])
+            ->select('id', 'kitchen_status', 'order_status', 'updated_at')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'orders'  => $orders
+        ]);
+    }
 }

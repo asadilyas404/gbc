@@ -137,7 +137,7 @@ class KitchenController extends Controller
         return response()->json(['success' => true, 'data' => $data, 'message' => "list of all orders"]);
     }
 
-    public function sync(Request $request)
+    public function realtime_sync(Request $request)
     {
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();

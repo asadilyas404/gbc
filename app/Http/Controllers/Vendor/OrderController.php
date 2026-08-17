@@ -1586,7 +1586,7 @@ class OrderController extends Controller
         return response()->json(['success' => true, 'html' => $printableContent]);
     }
 
-    public function sync(Request $request)
+    public function realtime_sync(Request $request)
     {
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();

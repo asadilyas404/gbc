@@ -826,7 +826,13 @@ class PrintController extends Controller
 
             $printer->setEmphasis(true);
             if ($order->printed == '1') {
+                $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
+                $printer->setReverseColors(true);
+                $printer->setTextSize(2, 2);
                 $printer->text("REPRINTED\n\n");
+                $printer->selectPrintMode();
+                $printer->setReverseColors(false);
+                $printer->setEmphasis(true);
             }
 
             $printer->setJustification(Printer::JUSTIFY_CENTER);

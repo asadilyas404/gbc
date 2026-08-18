@@ -80,12 +80,14 @@ class POSController extends Controller
             ->orderBy('id', 'asc')
             ->get();
 
-        // Check the Order Partner ID and Manage Cart Session
-        if($id != session()->get('current_partner_id', '')){
-            // If the current partner ID in session is different from the new one
+        $incomingPartner = (string) ($id ?? '');
+        $sessionPartner = (string) (session()->get('current_partner_id') ?? '');
 
-            session()->forget('cart'); // Clear the cart
-            session()->put('current_partner_id', $id); // Set the new partner ID
+        if ($incomingPartner !== $sessionPartner) {
+            if (!session()->has('editing_order_id')) {
+                session()->forget('cart');
+            }
+            session()->put('current_partner_id', $id ?: null);
         }
 
         $categoryIds = null;
@@ -1711,6 +1713,7 @@ class POSController extends Controller
 
         session()->put('cart', $cartSession);
         session()->put('editing_order_id', $order->id);
+        session()->put('current_partner_id', $order->partner_id ?: null);
 
         if ($order->delivery_address) {
             $deliveryAddress = json_decode($order->delivery_address, true);
@@ -1720,7 +1723,7 @@ class POSController extends Controller
         }
 
         Toastr::success('Unpaid order loaded to cart.');
-        return redirect()->route('vendor.pos.index.new', ['id' => $order->partner_id]);
+        return redirect()->route('vendor.pos.index.new', ['id' => $order->partner_id ?: null]);
     }
 
 

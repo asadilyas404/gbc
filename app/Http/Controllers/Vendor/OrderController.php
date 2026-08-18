@@ -318,6 +318,7 @@ class OrderController extends Controller
 
         session()->put('cart', $cartSession);
         session()->put('editing_order_id', $order->id);
+        session()->put('current_partner_id', $order->partner_id ?: null);
 
         // Toastr::success('Unpaid order loaded to cart.');
 

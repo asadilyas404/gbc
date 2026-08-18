@@ -37,86 +37,10 @@ class OrderController extends Controller
 
         Order::where(['checked' => 0])->where('restaurant_id',Helpers::get_restaurant_id())->update(['checked' => 1]);
 
-        $orders = Order::with(['customer', 'pos_details'])
-        ->when($status == 'searching_for_deliverymen', function($query){
-            return $query->SearchingForDeliveryman();
-        })
-        ->when($status == 'confirmed', function($query){
-            return $query->whereIn('order_status',['confirmed'])->whereNotNull('confirmed');
-        })
-        ->when($status == 'pending', function($query) use($data){
-            if(config('order_confirmation_model') == 'restaurant' || $data)
-            {
-                return $query->where('order_status','pending');
-            }
-            else
-            {
-                return $query->where('order_status','pending')->where('order_type', 'take_away');
-            }
-        })
-        ->when($status == 'cooking', function($query){
-            return $query->where('order_status','processing');
-        })
-        ->when($status == 'accepted', function($query){
-            return $query->where('order_status','accepted');
-        })
-        ->when($status == 'food_on_the_way', function($query){
-            return $query->where('order_status','picked_up');
-        })
-        ->when($status == 'delivered', function($query){
-            return $query->Delivered();
-        })
-        ->when($status == 'ready_for_delivery', function($query){
-            return $query->where('order_status','handover');
-        })
-        ->when($status == 'refund_requested', function($query){
-            return $query->Refund_requested();
-        })
-        ->when($status == 'refunded', function($query){
-            return $query->Refunded();
-        })
-        ->when($status == 'payment_failed', function($query){
-            return $query->where('order_status','failed');
-        })
-        ->when($status == 'canceled', function($query){
-            return $query->where('order_status','canceled');
-        })
-         ->when($status == 'assinged', function($query){
-             return $query->whereNotIn('order_status',['failed','canceled', 'refund_requested', 'refunded','delivered','refund_request_canceled'])->whereNotNull('delivery_man_id');
-         })
+        $query = Order::with(['customer', 'pos_details']);
+        $query = $this->filterStatusQuery($query, $status, $data);
 
-        ->when($status == 'scheduled', function($query) use($data){
-            return $query->Scheduled()->where(function($q) use($data){
-                if(config('order_confirmation_model') == 'restaurant' || $data)
-                {
-                    $q->whereNotIn('order_status',['failed','canceled', 'refund_requested', 'refunded']);
-                }
-                else
-                {
-                    $q->whereNotIn('order_status',['pending','failed','canceled', 'refund_requested', 'refunded'])->orWhere(function($query){
-                        $query->where('order_status','pending')->where('order_type', 'take_away');
-                    });
-                }
-            });
-        })
-        ->when($status == 'all', function($query) use($data){
-            return $query->where(function($q1) use($data) { //->where('updated_at', '>=', Carbon::now()->subHours(1))
-                $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['pending','failed', 'refund_requested', 'refunded'])
-                ->orWhere(function($q2){
-                    return $q2->where('order_status','pending')->where('order_type', 'take_away');
-                })->orWhere(function($q3){
-                    return $q3->where('order_status','pending')->whereNotNull('subscription_id');
-                });
-            });
-        })
-        ->when($status == 'draft', function($query){
-           return $query->where('payment_status', 'unpaid')
-             ->where('order_status', '!=', 'canceled');
-        })
-        ->when(in_array($status, ['pending','confirmed']), function($query){
-            return $query->OrderScheduledIn(30);
-        })
-        ->when(isset($key), function ($query) use ($key) {
+        $orders = $query->when(isset($key), function ($query) use ($key) {
             return $query->where(function ($q) use ($key) {
                 foreach ($key as $value) {
                     $q->orWhere('id', 'like', "%{$value}%")
@@ -1540,6 +1464,7 @@ class OrderController extends Controller
 
     public function kitchen_card(Request $request, $order_id)
     {
+        session_write_close();
         $order = Order::with([
             'details',
             'restaurant',
@@ -1565,8 +1490,92 @@ class OrderController extends Controller
         return response()->json(['success' => true, 'html' => $printableContent]);
     }
 
+    public function filterStatusQuery($query, $status, $data = 0)
+    {
+        return $query
+        ->when($status == 'searching_for_deliverymen', function($q){
+            return $q->SearchingForDeliveryman();
+        })
+        ->when($status == 'confirmed', function($q){
+            return $q->whereIn('order_status',['confirmed'])->whereNotNull('confirmed');
+        })
+        ->when($status == 'pending', function($q) use($data){
+            if(config('order_confirmation_model') == 'restaurant' || $data)
+            {
+                return $q->where('order_status','pending');
+            }
+            else
+            {
+                return $q->where('order_status','pending')->where('order_type', 'take_away');
+            }
+        })
+        ->when($status == 'cooking', function($q){
+            return $q->where('order_status','processing');
+        })
+        ->when($status == 'accepted', function($q){
+            return $q->where('order_status','accepted');
+        })
+        ->when($status == 'food_on_the_way', function($q){
+            return $q->where('order_status','picked_up');
+        })
+        ->when($status == 'delivered', function($q){
+            return $q->Delivered();
+        })
+        ->when($status == 'ready_for_delivery', function($q){
+            return $q->where('order_status','handover');
+        })
+        ->when($status == 'refund_requested', function($q){
+            return $q->Refund_requested();
+        })
+        ->when($status == 'refunded', function($q){
+            return $q->Refunded();
+        })
+        ->when($status == 'payment_failed', function($q){
+            return $q->where('order_status','failed');
+        })
+        ->when($status == 'canceled', function($q){
+            return $q->where('order_status','canceled');
+        })
+        ->when($status == 'assinged', function($q){
+            return $q->whereNotIn('order_status',['failed','canceled', 'refund_requested', 'refunded','delivered','refund_request_canceled'])->whereNotNull('delivery_man_id');
+        })
+        ->when($status == 'scheduled', function($q) use($data){
+            return $q->Scheduled()->where(function($q2) use($data){
+                if(config('order_confirmation_model') == 'restaurant' || $data)
+                {
+                    $q2->whereNotIn('order_status',['failed','canceled', 'refund_requested', 'refunded']);
+                }
+                else
+                {
+                    $q2->whereNotIn('order_status',['pending','failed','canceled', 'refund_requested', 'refunded'])->orWhere(function($query){
+                        $query->where('order_status','pending')->where('order_type', 'take_away');
+                    });
+                }
+            });
+        })
+        ->when($status == 'all', function($q) use($data){
+            return $q->where(function($q1) use($data) {
+                $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['pending','failed', 'refund_requested', 'refunded'])
+                ->orWhere(function($q2){
+                    return $q2->where('order_status','pending')->where('order_type', 'take_away');
+                })->orWhere(function($q3){
+                    return $q3->where('order_status','pending')->whereNotNull('subscription_id');
+                });
+            });
+        })
+        ->when($status == 'draft', function($q){
+           return $q->where('payment_status', 'unpaid')
+             ->where('order_status', '!=', 'canceled');
+        })
+        ->when(in_array($status, ['pending','confirmed']), function($q){
+            return $q->OrderScheduledIn(30);
+        });
+    }
+
     public function order_card(Request $request, $order_id)
     {
+        session_write_close();
+        $status = $request->get('status');
         $order = Order::with([
             'details',
             'restaurant',
@@ -1582,19 +1591,48 @@ class OrderController extends Controller
             return response()->json(['success' => false, 'message' => 'Order not found', 'html' => ''], 404);
         }
 
+        $matchesStatus = true;
+        if (!empty($status) && $status != 'all') {
+            $data = 0;
+            $restaurant = Helpers::get_restaurant_data();
+            if ($restaurant && (($restaurant->restaurant_model == 'subscription' && optional($restaurant->restaurant_sub)->self_delivery == 1) || ($restaurant->restaurant_model == 'commission' && $restaurant->self_delivery_system == 1))) {
+                $data = 1;
+            }
+
+            $checkQuery = Order::where('id', $order->id);
+            $checkQuery = $this->filterStatusQuery($checkQuery, $status, $data);
+            $matchesStatus = $checkQuery->exists();
+        }
+
         $printableContent = view('vendor-views.order.partials._card', compact('order'))->render();
-        return response()->json(['success' => true, 'html' => $printableContent]);
+        return response()->json([
+            'success' => true,
+            'matches_status' => $matchesStatus,
+            'html' => $printableContent
+        ]);
     }
 
     public function realtime_sync(Request $request)
     {
+        session_write_close();
+        $status = $request->get('status');
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
 
-        $orders = Order::where('restaurant_id', $branchId)
-            ->where('order_date', $orderDate)
-            ->select('id', 'order_status', 'payment_status', 'updated_at')
+        $query = Order::where('restaurant_id', $branchId)
+            ->where('order_date', $orderDate);
+
+        if (!empty($status) && $status != 'all') {
+            $data = 0;
+            $restaurant = Helpers::get_restaurant_data();
+            if ($restaurant && (($restaurant->restaurant_model == 'subscription' && optional($restaurant->restaurant_sub)->self_delivery == 1) || ($restaurant->restaurant_model == 'commission' && $restaurant->self_delivery_system == 1))) {
+                $data = 1;
+            }
+            $query = $this->filterStatusQuery($query, $status, $data);
+        }
+
+        $orders = $query->select('id', 'order_status', 'payment_status', 'updated_at')
             ->orderBy('created_at', 'desc')
             ->get();
 

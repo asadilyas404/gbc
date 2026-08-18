@@ -827,6 +827,8 @@
 
     <script>
         "use strict";
+        const currentStatusFilter = '{{ $st }}';
+
         $(document).on('ready', function() {
             Pusher.logToConsole = true;
             var pusher = new Pusher('3072d0c5201dc9141481', {
@@ -842,10 +844,17 @@
 
             function upsertOrderCard(orderId) {
                 return $.ajax({
-                    url: '/restaurant-panel/order/order-card/' + orderId,
+                    url: '/restaurant-panel/order/order-card/' + orderId + '?status=' + encodeURIComponent(currentStatusFilter),
                     type: 'GET',
                     success: function (response) {
                         const orderSelector = `#order-card-${orderId}`;
+
+                        if (response.matches_status === false) {
+                            if ($(orderSelector).length) {
+                                $(orderSelector).fadeOut(300, function () { $(this).remove(); });
+                            }
+                            return;
+                        }
 
                         if ($(orderSelector).length) {
                             // Order already exists, update its HTML
@@ -877,7 +886,7 @@
                 isSyncingOrderList = true;
 
                 $.ajax({
-                    url: '/restaurant-panel/order/sync',
+                    url: '/restaurant-panel/order/sync?status=' + encodeURIComponent(currentStatusFilter),
                     type: 'GET',
                     dataType: 'json',
                     success: function (response) {
@@ -891,7 +900,7 @@
                             serverOrderMap[order.id] = order;
                         });
 
-                        // 1. Check DOM cards for status changes
+                        // 1. Check DOM cards for status changes or removal
                         $('[data-order-id]').each(function () {
                             const domOrderId = $(this).attr('data-order-id');
                             const currentOrderStatus = $(this).attr('data-order-status');
@@ -902,6 +911,9 @@
                                 if (serverOrder.order_status !== currentOrderStatus || serverOrder.payment_status !== currentPaymentStatus) {
                                     upsertOrderCard(domOrderId);
                                 }
+                            } else {
+                                // Order no longer matches the current status filter, remove it
+                                $(this).fadeOut(300, function () { $(this).remove(); });
                             }
                         });
 

@@ -139,6 +139,7 @@ class KitchenController extends Controller
 
     public function realtime_sync(Request $request)
     {
+        session_write_close();
         $branchId = Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;

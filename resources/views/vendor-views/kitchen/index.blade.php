@@ -162,19 +162,52 @@
         Pusher.logToConsole = true;
         var pusher = new Pusher('3072d0c5201dc9141481', {
             cluster: 'ap2',
+            unavailableTimeout: 5000,
             enabledTransports: ['ws', 'wss']
         });
 
         const notificationSound = new Audio('/sounds/notification.wav');
         notificationSound.preload = 'auto';
 
-        let fallbackInterval = null;
-        let isSyncingKitchen = false;
+        let fallbackActive = false;
+        let isSyncing = false;
+        let fallbackTimeout = null;
+
+        function clearFallbackTimer() {
+            if (fallbackTimeout) {
+                clearTimeout(fallbackTimeout);
+                fallbackTimeout = null;
+            }
+        }
+
+        function scheduleNextFallbackSync() {
+            clearFallbackTimer();
+            if (fallbackActive) {
+                fallbackTimeout = setTimeout(function () {
+                    syncKitchenOrders();
+                }, 10000);
+            }
+        }
+
+        function startFallbackMode() {
+            if (fallbackActive) return;
+            fallbackActive = true;
+            console.warn("Fallback mode activated. Starting sequential kitchen sync...");
+            syncKitchenOrders(); // Execute immediately
+        }
+
+        function stopFallbackMode() {
+            if (!fallbackActive) return;
+            fallbackActive = false;
+            clearFallbackTimer();
+            console.log("Pusher reconnected. Fallback mode stopped.");
+        }
 
         function fetchAndUpsertKitchenCard(orderId, isNew = false) {
             return $.ajax({
                 url: '/restaurant-panel/order/kitchen-card/' + orderId,
                 type: 'GET',
+                timeout: 15000,
                 success: function (response) {
                     const orderSelector = '#order_' + orderId;
                     if ($(orderSelector).length) {
@@ -202,14 +235,27 @@
             });
         }
 
+        function fetchMissingCardsSequentially(ids, onComplete) {
+            if (!ids || ids.length === 0) {
+                if (typeof onComplete === 'function') onComplete();
+                return;
+            }
+
+            const nextId = ids.shift();
+            fetchAndUpsertKitchenCard(nextId, true).always(function () {
+                fetchMissingCardsSequentially(ids, onComplete);
+            });
+        }
+
         function syncKitchenOrders() {
-            if (isSyncingKitchen) return;
-            isSyncingKitchen = true;
+            if (isSyncing) return;
+            isSyncing = true;
 
             $.ajax({
                 url: '/restaurant-panel/kitchen/sync',
                 type: 'GET',
                 dataType: 'json',
+                timeout: 15000,
                 success: function (response) {
                     if (!response || !response.success || !Array.isArray(response.orders)) {
                         return;
@@ -240,32 +286,26 @@
                     });
 
                     // 2. Check server orders for new orders missing in DOM
+                    const missingOrderIds = [];
                     serverOrders.forEach(function (order) {
                         const orderSelector = '#order_' + order.id;
                         if (!$(orderSelector).length) {
-                            fetchAndUpsertKitchenCard(order.id, true);
+                            missingOrderIds.push(order.id);
                         }
                     });
+
+                    fetchMissingCardsSequentially(missingOrderIds);
+                },
+                error: function (xhr, status, error) {
+                    console.warn("Kitchen sync request failed or timed out:", status, error);
                 },
                 complete: function () {
-                    isSyncingKitchen = false;
+                    isSyncing = false;
+                    if (fallbackActive) {
+                        scheduleNextFallbackSync();
+                    }
                 }
             });
-        }
-
-        function startFallbackPolling() {
-            if (fallbackInterval) return;
-            console.warn("Pusher disconnected/unavailable. Starting AJAX fallback polling every 10s...");
-            syncKitchenOrders();
-            fallbackInterval = setInterval(syncKitchenOrders, 10000);
-        }
-
-        function stopFallbackPolling() {
-            if (fallbackInterval) {
-                clearInterval(fallbackInterval);
-                fallbackInterval = null;
-                console.log("Pusher reconnected. Stopped AJAX fallback polling.");
-            }
         }
 
         // Real-time Pusher Event Listener
@@ -291,21 +331,33 @@
         pusher.connection.bind('state_change', function (states) {
             console.log('Pusher connection state:', states.current);
             if (states.current === 'connected') {
-                if (fallbackInterval !== null) {
-                    stopFallbackPolling();
-                    syncKitchenOrders(); // Immediate recovery sync on reconnection
-                }
+                stopFallbackMode();
+                syncKitchenOrders(); // Perform ONE immediate sync on reconnection
             } else if (states.current === 'disconnected' || states.current === 'unavailable' || states.current === 'failed') {
-                startFallbackPolling();
+                startFallbackMode();
             }
         });
 
-        // Safety check if Pusher fails to connect on initial page load
-        setTimeout(function () {
-            if (pusher.connection.state !== 'connected') {
-                startFallbackPolling();
+        // Network offline / online events
+        window.addEventListener('offline', function () {
+            console.warn('Network offline event detected.');
+            startFallbackMode();
+        });
+
+        window.addEventListener('online', function () {
+            console.log('Network online event detected.');
+            if (pusher.connection.state === 'connected') {
+                stopFallbackMode();
+                syncKitchenOrders();
             }
-        }, 5000);
+        });
+
+        // Initial check if Pusher failed to connect on page load
+        setTimeout(function () {
+            if (pusher.connection.state !== 'connected' || !navigator.onLine) {
+                startFallbackMode();
+            }
+        }, 3000);
 
        
         function funViewCard(customer, item, buttonName, btnAction) {
@@ -447,7 +499,7 @@
 
         setInterval(function() {
             window.location.reload();
-        }, 600000);
+        }, 900000);
 
         // Save scroll position before the page unloads
         window.addEventListener("beforeunload", function () {

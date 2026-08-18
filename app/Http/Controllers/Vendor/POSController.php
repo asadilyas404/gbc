@@ -1583,6 +1583,7 @@ class POSController extends Controller
             }
 
             try {
+                session_write_close();
                 event(new myevent('unpaid', $order->restaurant_id, $order->id));
             } catch (\Exception $e) {
                 info('Pusher Event Error:' . $e->getMessage());

@@ -144,19 +144,38 @@ class KitchenController extends Controller
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
 
-        $orders = Order::where('restaurant_id', $branchId)
+        $orders = Order::with('customer', 'kitchen_log', 'details', 'partner', 'details.food', 'pos_details')
+            ->where('restaurant_id', $branchId)
             ->where('order_date', $orderDate)
             ->whereIn('kitchen_status', [
                 Helpers::kitchenStatus('pending')['key'],
                 Helpers::kitchenStatus('cooking')['key'],
             ])
-            ->select('id', 'kitchen_status', 'order_status', 'updated_at')
             ->orderBy('created_at', 'desc')
             ->get();
 
+        $formattedOrders = [];
+        foreach ($orders as $order) {
+            $timer = "";
+            if (isset($order->created_at) && !empty($order->created_at)) {
+                $timer = date('H:i:s', strtotime($order->created_at));
+            }
+            $order->setAttribute('kitchen_time', $timer);
+
+            $cardHtml = view('vendor-views.kitchen.partials._card', compact('order'))->render();
+
+            $formattedOrders[] = [
+                'id'             => $order->id,
+                'kitchen_status' => $order->kitchen_status,
+                'order_status'   => $order->order_status,
+                'updated_at'     => (string) $order->updated_at,
+                'html'           => $cardHtml
+            ];
+        }
+
         return response()->json([
             'success' => true,
-            'orders'  => $orders
+            'orders'  => $formattedOrders
         ]);
     }
 }

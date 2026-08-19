@@ -31,6 +31,124 @@ Route::get('/test-pusher', function () {
     event(new \App\Events\myevent('Hello from Laravel!'));
     return 'event sent';
 });
+
+Route::get('/ws-test', function () {
+    $v = time();
+    $html = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Diagnostic</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <script src="/assets/admin/js/pusher.min.js?v={$v}"></script>
+</head>
+<body style="background:#1e1e1e;color:#fff;font-family:sans-serif;padding:30px;">
+<h2>WebSocket Network Diagnostic Test</h2>
+<div id="status" style="padding:15px;background:#333;margin-bottom:20px;border-radius:5px;">Testing connection...</div>
+<pre id="log" style="background:#111;color:#0f0;padding:20px;font-size:14px;border-radius:5px;min-height:300px;"></pre>
+
+<script>
+function log(msg) {
+    var logEl = document.getElementById("log");
+    if (logEl) {
+        logEl.textContent += new Date().toLocaleTimeString() + " | " + msg + String.fromCharCode(10);
+    }
+    console.log(msg);
+}
+
+var wsHost = window.location.hostname;
+var wsPort = 6001;
+var appKey = "app-key";
+var wsUrl = "ws://" + wsHost + ":" + wsPort + "/app/" + appKey + "?protocol=7&client=js&version=8.4.0&flash=false";
+
+log("TEST 1: Connecting raw WebSocket to: " + wsUrl);
+
+try {
+    var ws = new WebSocket(wsUrl);
+
+    ws.onopen = function() {
+        var statusEl = document.getElementById("status");
+        if (statusEl) {
+            statusEl.style.background = "#28a745";
+            statusEl.innerHTML = "SUCCESS: Raw WebSocket Connected to " + wsHost + ":" + wsPort;
+        }
+        log("SUCCESS: Raw WebSocket connection established!");
+        log("Sending pusher:subscribe for my-channel...");
+        ws.send(JSON.stringify({
+            event: "pusher:subscribe",
+            data: { auth: "", channel: "my-channel" }
+        }));
+    };
+
+    ws.onmessage = function(event) {
+        log("EVENT RECEIVED ON RAW WEBSOCKET: " + event.data);
+    };
+
+    ws.onerror = function(err) {
+        var statusEl = document.getElementById("status");
+        if (statusEl) {
+            statusEl.style.background = "#dc3545";
+            statusEl.innerHTML = "FAILED: Connection to port 6001 blocked or refused!";
+        }
+        log("ERROR: WebSocket connection failed! Check Windows Firewall for port 6001.");
+    };
+
+    ws.onclose = function(event) {
+        log("Raw WebSocket closed. Code=" + event.code);
+    };
+} catch(e) {
+    log("RAW WEBSOCKET EXCEPTION: " + e.message);
+}
+
+setTimeout(function() {
+    log("");
+    log("TEST 2: Testing Pusher JS client library...");
+    if (typeof Pusher === "undefined") {
+        log("ERROR: Pusher JS library not loaded.");
+        return;
+    }
+    log("Pusher JS library loaded successfully! Version: " + (Pusher.VERSION || "8.4.0"));
+    Pusher.logToConsole = true;
+
+    try {
+        var pusher = new Pusher("app-key", {
+            cluster: "mt1",
+            wsHost: window.location.hostname,
+            wsPort: 6001,
+            forceTLS: false,
+            disableStats: true,
+            enabledTransports: ["ws"]
+        });
+
+        pusher.connection.bind("state_change", function(s) {
+            log("PUSHER CLIENT STATE CHANGE: " + s.previous + " => " + s.current);
+        });
+
+        pusher.connection.bind("connected", function() {
+            log("SUCCESS: Pusher JS Client connected! Socket ID: " + pusher.connection.socket_id);
+            var channel = pusher.subscribe("my-channel");
+            channel.bind("my-event", function(data) {
+                log("MY-EVENT RECEIVED BY PUSHER CLIENT: " + JSON.stringify(data));
+            });
+            log("Subscribed to my-channel. Now trigger event in another tab: http://" + window.location.hostname + ":8000/test-pusher");
+        });
+    } catch(e) {
+        log("PUSHER CONSTRUCTOR ERROR: " + (e.stack || e.message || e));
+    }
+}, 1000);
+</script>
+</body>
+</html>
+HTML;
+    return response($html, 200, [
+        'Content-Type' => 'text/html',
+        'Cache-Control' => 'no-cache, no-store, must-revalidate',
+        'Pragma' => 'no-cache',
+        'Expires' => '0'
+    ]);
+});
 /*
 |--------------------------------------------------------------------------
 | Web Routes

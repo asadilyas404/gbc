@@ -2,7 +2,6 @@
 
 namespace App\Events;
 
-
 use App\Models\Order;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Queue\SerializesModels;
@@ -10,8 +9,6 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Broadcasting\PresenceChannel;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
-
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
 
 class myevent implements ShouldBroadcastNow
@@ -51,7 +48,7 @@ class myevent implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        return [
+        $payload = [
             'message' => $this->message,
             'branch_id' => $this->branch_id,
             'order_id' => $this->order_id,
@@ -60,5 +57,7 @@ class myevent implements ShouldBroadcastNow
             'order_type' => $this->order_type,
             'event_type' => $this->event_type,
         ];
+        \Illuminate\Support\Facades\Log::info('[WebSocket] myevent dispatched:', $payload);
+        return $payload;
     }
 }

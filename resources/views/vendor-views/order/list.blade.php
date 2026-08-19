@@ -831,38 +831,76 @@
 
         $(document).on('ready', function() {
             Pusher.logToConsole = true;
-            var pusher = new Pusher('3072d0c5201dc9141481', {
-                cluster: 'ap2',
-                enabledTransports: ['ws', 'wss']
+            const localWsHost = window.location.hostname;
+            const pusherKey = '{{ env('PUSHER_APP_KEY', 'app-key') }}';
+            const pusherPort = parseInt('{{ env('PUSHER_PORT', 6001) }}') || 6001;
+
+            var pusher = new Pusher(pusherKey, {
+                cluster: 'mt1',
+                wsHost: localWsHost,
+                wsPort: pusherPort,
+                forceTLS: false,
+                disableStats: true,
+                enabledTransports: ['ws']
             });
 
             const notificationSound = new Audio('/sounds/notification.wav');
             notificationSound.preload = 'auto';
 
-            let fallbackOrderInterval = null;
+            let orderFallbackActive = false;
             let isSyncingOrderList = false;
+            let orderFallbackTimeout = null;
+
+            function clearOrderFallbackTimer() {
+                if (orderFallbackTimeout) {
+                    clearTimeout(orderFallbackTimeout);
+                    orderFallbackTimeout = null;
+                }
+            }
+
+            function scheduleNextOrderFallbackSync() {
+                clearOrderFallbackTimer();
+                if (orderFallbackActive) {
+                    orderFallbackTimeout = setTimeout(function () {
+                        syncOrderList();
+                    }, 15000);
+                }
+            }
+
+            function startOrderFallbackPolling() {
+                if (orderFallbackActive) return;
+                orderFallbackActive = true;
+                console.warn("Order list fallback mode activated. Starting 15s sequential sync...");
+                syncOrderList();
+            }
+
+            function stopOrderFallbackPolling() {
+                if (!orderFallbackActive) return;
+                orderFallbackActive = false;
+                clearOrderFallbackTimer();
+                console.log("Pusher reconnected. Stopped order list fallback polling.");
+            }
 
             function upsertOrderCard(orderId) {
                 return $.ajax({
                     url: '/restaurant-panel/order/order-card/' + orderId + '?status=' + encodeURIComponent(currentStatusFilter),
                     type: 'GET',
+                    timeout: 15000,
                     success: function (response) {
                         const orderSelector = `#order-card-${orderId}`;
+                        const $existingCard = $(orderSelector);
 
                         if (response.matches_status === false) {
-                            if ($(orderSelector).length) {
-                                $(orderSelector).fadeOut(300, function () { $(this).remove(); });
+                            if ($existingCard.length) {
+                                $existingCard.fadeOut(300, function () { $(this).remove(); });
                             }
                             return;
                         }
 
-                        if ($(orderSelector).length) {
-                            // Order already exists, update its HTML
-                            $(orderSelector).replaceWith(response.html);
+                        if ($existingCard.length) {
+                            $existingCard.replaceWith(response.html);
                         } else {
-                            // New order, add it to the top
                             $('#orders-container').prepend(response.html);
-
                             notificationSound.currentTime = 0;
                             notificationSound.play().catch(function (error) {
                                 console.log('Sound blocked:', error);
@@ -889,6 +927,7 @@
                     url: '/restaurant-panel/order/sync?status=' + encodeURIComponent(currentStatusFilter),
                     type: 'GET',
                     dataType: 'json',
+                    timeout: 15000,
                     success: function (response) {
                         if (!response || !response.success || !Array.isArray(response.orders)) {
                             return;
@@ -900,50 +939,55 @@
                             serverOrderMap[order.id] = order;
                         });
 
-                        // 1. Check DOM cards for status changes or removal
+                        // 1. Remove DOM cards that no longer exist or match status filter
                         $('[data-order-id]').each(function () {
                             const domOrderId = $(this).attr('data-order-id');
-                            const currentOrderStatus = $(this).attr('data-order-status');
-                            const currentPaymentStatus = $(this).attr('data-payment-status');
-
-                            const serverOrder = serverOrderMap[domOrderId];
-                            if (serverOrder) {
-                                if (serverOrder.order_status !== currentOrderStatus || serverOrder.payment_status !== currentPaymentStatus) {
-                                    upsertOrderCard(domOrderId);
-                                }
-                            } else {
-                                // Order no longer matches the current status filter, remove it
-                                $(this).fadeOut(300, function () { $(this).remove(); });
+                            if (!serverOrderMap[domOrderId]) {
+                                $(`#order-card-${domOrderId}`).fadeOut(300, function () {
+                                    $(this).remove();
+                                });
                             }
                         });
 
-                        // 2. Check server orders for new orders missing in DOM
+                        // 2. Reconcile server orders against DOM cards using pre-rendered card HTML
+                        let hasGenuinelyNewOrder = false;
+
                         serverOrders.forEach(function (order) {
                             const orderSelector = `#order-card-${order.id}`;
-                            if (!$(orderSelector).length) {
-                                upsertOrderCard(order.id);
+                            const $existingCard = $(orderSelector);
+
+                            if (!$existingCard.length) {
+                                // Genuinely missing order: prepend rendered html card from response payload
+                                $('#orders-container').prepend(order.html);
+                                hasGenuinelyNewOrder = true;
+                            } else {
+                                // Check if status changed
+                                const currentOrderStatus = $existingCard.attr('data-order-status');
+                                const currentPaymentStatus = $existingCard.attr('data-payment-status');
+
+                                if (order.order_status !== currentOrderStatus || order.payment_status !== currentPaymentStatus) {
+                                    $existingCard.replaceWith(order.html);
+                                }
                             }
                         });
+
+                        if (hasGenuinelyNewOrder) {
+                            notificationSound.currentTime = 0;
+                            notificationSound.play().catch(function (error) {
+                                console.log('Sound blocked:', error);
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.warn("Order list sync request failed or timed out:", status, error);
                     },
                     complete: function () {
                         isSyncingOrderList = false;
+                        if (orderFallbackActive) {
+                            scheduleNextOrderFallbackSync();
+                        }
                     }
                 });
-            }
-
-            function startOrderFallbackPolling() {
-                if (fallbackOrderInterval) return;
-                console.warn("Pusher disconnected/unavailable. Starting AJAX fallback polling every 10s for Order List...");
-                syncOrderList();
-                fallbackOrderInterval = setInterval(syncOrderList, 10000);
-            }
-
-            function stopOrderFallbackPolling() {
-                if (fallbackOrderInterval) {
-                    clearInterval(fallbackOrderInterval);
-                    fallbackOrderInterval = null;
-                    console.log("Pusher reconnected. Stopped AJAX fallback polling for Order List.");
-                }
             }
 
             // Real-time Pusher Event Listener
@@ -959,21 +1003,33 @@
             pusher.connection.bind('state_change', function (states) {
                 console.log('Order List Pusher connection state:', states.current);
                 if (states.current === 'connected') {
-                    if (fallbackOrderInterval !== null) {
-                        stopOrderFallbackPolling();
-                        syncOrderList(); // Immediate recovery sync on reconnection
-                    }
+                    stopOrderFallbackPolling();
+                    syncOrderList(); // Immediate recovery sync on reconnection
                 } else if (states.current === 'disconnected' || states.current === 'unavailable' || states.current === 'failed') {
                     startOrderFallbackPolling();
                 }
             });
 
+            // Network offline / online events
+            window.addEventListener('offline', function () {
+                console.warn('Order list network offline event detected.');
+                startOrderFallbackPolling();
+            });
+
+            window.addEventListener('online', function () {
+                console.log('Order list network online event detected.');
+                if (pusher.connection.state === 'connected') {
+                    stopOrderFallbackPolling();
+                    syncOrderList();
+                }
+            });
+
             // Safety check if Pusher fails to connect on initial page load
             setTimeout(function () {
-                if (pusher.connection.state !== 'connected') {
+                if (pusher.connection.state !== 'connected' || !navigator.onLine) {
                     startOrderFallbackPolling();
                 }
-            }, 5000);
+            }, 3000);
 
 
             ///////////////

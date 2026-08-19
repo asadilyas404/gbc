@@ -2489,6 +2489,10 @@
                     );
                 }
 
+                if (typeof notifyLocalOrderChange === 'function') {
+                    notifyLocalOrderChange();
+                }
+
                 /*
                 * Normal form submission continues here.
                 */
@@ -2908,16 +2912,24 @@
         
         if (typeof Pusher !== 'undefined') {
             Pusher.logToConsole = true;
-            var posPusher = new Pusher('3072d0c5201dc9141481', {
-                cluster: 'ap2',
-                enabledTransports: ['ws', 'wss']
+            const localWsHost = window.location.hostname;
+            const pusherKey = '{{ env('PUSHER_APP_KEY', 'app-key') }}';
+            const pusherPort = parseInt('{{ env('PUSHER_PORT', 6001) }}') || 6001;
+
+            var posPusher = new Pusher(pusherKey, {
+                cluster: 'mt1',
+                wsHost: localWsHost,
+                wsPort: pusherPort,
+                forceTLS: false,
+                disableStats: true,
+                enabledTransports: ['ws']
             });
             var posChannel = posPusher.subscribe('my-channel');
             posChannel.bind('my-event', function(data) {
                 if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
                     return;
                 }
-                console.log('POS real-time order update event:', data);
+                console.log('[DEBUG] POS real-time order update event:', data);
             });
         }
     </script>

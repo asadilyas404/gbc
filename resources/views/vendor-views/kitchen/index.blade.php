@@ -160,11 +160,41 @@
         // }, 10000)
 
         Pusher.logToConsole = true;
-        var pusher = new Pusher('3072d0c5201dc9141481', {
-            cluster: 'ap2',
-            unavailableTimeout: 5000,
-            enabledTransports: ['ws', 'wss']
-        });
+        const localWsHost = window.location.hostname;
+        const pusherKey = '{{ env('PUSHER_APP_KEY', 'app-key') }}';
+        const pusherPort = parseInt('{{ env('PUSHER_PORT', 6001) }}') || 6001;
+
+        console.log('[DEBUG] Initializing Pusher client with key:', pusherKey, 'host:', localWsHost, 'port:', pusherPort);
+        console.log('[DEBUG] Expected WebSocket URL: ws://' + localWsHost + ':' + pusherPort + '/app/' + pusherKey);
+
+        try {
+            var pusher = new Pusher(pusherKey, {
+                cluster: 'mt1',
+                wsHost: localWsHost,
+                wsPort: pusherPort,
+                forceTLS: false,
+                disableStats: true,
+                enabledTransports: ['ws']
+            });
+
+            console.log('[DEBUG] Pusher object created. Current state:', pusher.connection.state);
+
+            // Bind state_change immediately to catch ALL transitions
+            pusher.connection.bind('state_change', function(s) {
+                console.log('[DEBUG] Pusher STATE:', s.previous, '=>', s.current);
+            });
+
+            pusher.connection.bind('error', function(err) {
+                console.error('[DEBUG] Pusher connection ERROR:', err);
+            });
+
+            pusher.connection.bind('connected', function() {
+                console.log('[DEBUG] Pusher CONNECTED! Socket ID:', pusher.connection.socket_id);
+            });
+
+        } catch (e) {
+            console.error('[DEBUG] Pusher CONSTRUCTOR threw an error:', e);
+        }
 
         const notificationSound = new Audio('/sounds/notification.wav');
         notificationSound.preload = 'auto';
@@ -185,14 +215,14 @@
             if (fallbackActive) {
                 fallbackTimeout = setTimeout(function () {
                     syncKitchenOrders();
-                }, 10000);
+                }, 15000);
             }
         }
 
         function startFallbackMode() {
             if (fallbackActive) return;
             fallbackActive = true;
-            console.warn("Fallback mode activated. Starting sequential kitchen sync...");
+            console.warn("Fallback mode activated. Starting 15s sequential kitchen sync...");
             syncKitchenOrders(); // Execute immediately
         }
 
@@ -203,23 +233,32 @@
             console.log("Pusher reconnected. Fallback mode stopped.");
         }
 
-        function fetchAndUpsertKitchenCard(orderId, isNew = false) {
+        function fetchAndUpsertKitchenCard(orderId) {
             return $.ajax({
                 url: '/restaurant-panel/order/kitchen-card/' + orderId,
                 type: 'GET',
                 timeout: 15000,
                 success: function (response) {
                     const orderSelector = '#order_' + orderId;
-                    if ($(orderSelector).length) {
-                        $(orderSelector).replaceWith(response.html);
-                    } else {
-                        $('#orders .row').prepend(response.html);
-                        if (isNew) {
-                            notificationSound.currentTime = 0;
-                            notificationSound.play().catch(function (error) {
-                                console.log('Sound blocked:', error);
-                            });
+                    const $existingCard = $(orderSelector);
+
+                    if (response.matches_status === false) {
+                        if ($existingCard.length) {
+                            $existingCard.fadeOut(300, function () { $(this).remove(); });
                         }
+                        return;
+                    }
+
+                    if ($existingCard.length) {
+                        // Card already exists in DOM: update HTML, DO NOT play sound
+                        $existingCard.replaceWith(response.html);
+                    } else {
+                        // Card was genuinely missing from DOM: prepend card and play sound ONLY if missing
+                        $('#orders .row').prepend(response.html);
+                        notificationSound.currentTime = 0;
+                        notificationSound.play().catch(function (error) {
+                            console.log('Sound blocked:', error);
+                        });
                     }
                     updateTimers();
                 },
@@ -232,18 +271,6 @@
                         }
                     }
                 }
-            });
-        }
-
-        function fetchMissingCardsSequentially(ids, onComplete) {
-            if (!ids || ids.length === 0) {
-                if (typeof onComplete === 'function') onComplete();
-                return;
-            }
-
-            const nextId = ids.shift();
-            fetchAndUpsertKitchenCard(nextId, true).always(function () {
-                fetchMissingCardsSequentially(ids, onComplete);
             });
         }
 
@@ -267,37 +294,49 @@
                         serverOrderMap[order.id] = order;
                     });
 
-                    // 1. Check DOM cards for status changes or removed orders
+                    // 1. Remove DOM cards that no longer exist on server (completed/canceled/delivered)
                     $('[data-order-id]').each(function () {
                         const domOrderId = $(this).attr('data-order-id');
-                        const currentKitchenStatus = $(this).attr('data-kitchen-status');
-
                         if (!serverOrderMap[domOrderId]) {
-                            // Order no longer active in kitchen (completed/canceled/delivered)
                             $('#order_' + domOrderId).fadeOut(300, function () {
                                 $(this).remove();
                             });
+                        }
+                    });
+
+                    // 2. Reconcile server orders against DOM cards using pre-rendered card HTML
+                    let hasGenuinelyNewOrder = false;
+
+                    serverOrders.forEach(function (order) {
+                        const orderSelector = '#order_' + order.id;
+                        const $existingCard = $(orderSelector);
+
+                        if (!$existingCard.length) {
+                            // Genuinely missing order: prepend rendered html card from response payload
+                            $('#orders .row').prepend(order.html);
+                            hasGenuinelyNewOrder = true;
                         } else {
-                            const serverOrder = serverOrderMap[domOrderId];
-                            if (serverOrder.kitchen_status && serverOrder.kitchen_status !== currentKitchenStatus) {
-                                fetchAndUpsertKitchenCard(domOrderId, false);
+                            // Check if status changed
+                            const currentKitchenStatus = $existingCard.attr('data-kitchen-status');
+                            const currentOrderStatus = $existingCard.attr('data-order-status');
+
+                            if (order.kitchen_status !== currentKitchenStatus || order.order_status !== currentOrderStatus) {
+                                $existingCard.replaceWith(order.html);
                             }
                         }
                     });
 
-                    // 2. Check server orders for new orders missing in DOM
-                    const missingOrderIds = [];
-                    serverOrders.forEach(function (order) {
-                        const orderSelector = '#order_' + order.id;
-                        if (!$(orderSelector).length) {
-                            missingOrderIds.push(order.id);
-                        }
-                    });
+                    if (hasGenuinelyNewOrder) {
+                        notificationSound.currentTime = 0;
+                        notificationSound.play().catch(function (error) {
+                            console.log('Sound blocked:', error);
+                        });
+                    }
 
-                    fetchMissingCardsSequentially(missingOrderIds);
+                    updateTimers();
                 },
                 error: function (xhr, status, error) {
-                    console.warn("Kitchen sync request failed or timed out:", status, error);
+                    console.warn("Kitchen sync request failed or network unavailable (" + status + "):", error);
                 },
                 complete: function () {
                     isSyncing = false;
@@ -311,25 +350,22 @@
         // Real-time Pusher Event Listener
         var channel = pusher.subscribe('my-channel');
         channel.bind('my-event', function (data) {
-            if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
+            console.log('[DEBUG] Pusher my-event received:', data);
+            if (data.branch_id && window.currentBranchId && parseInt(data.branch_id) !== parseInt(window.currentBranchId)) {
+                console.log('[DEBUG] Event branch_id mismatch (' + data.branch_id + ' != ' + window.currentBranchId + '). Skipping.');
                 return;
             }
 
-            const orderSelector = '#order_' + data.order_id;
-            if (data.order_status === 'canceled' || data.order_status === 'completed' || data.order_status === 'delivered') {
-                if ($(orderSelector).length) {
-                    $(orderSelector).fadeOut(300, function () { $(this).remove(); });
-                }
-                return;
+            if (data.order_id) {
+                fetchAndUpsertKitchenCard(data.order_id);
+            } else {
+                syncKitchenOrders();
             }
-
-            const isNew = !$(orderSelector).length;
-            fetchAndUpsertKitchenCard(data.order_id, isNew);
         });
 
         // Pusher Connection State Listener
         pusher.connection.bind('state_change', function (states) {
-            console.log('Pusher connection state:', states.current);
+            console.log('[DEBUG] Pusher connection state changed:', states.previous, '=>', states.current);
             if (states.current === 'connected') {
                 stopFallbackMode();
                 syncKitchenOrders(); // Perform ONE immediate sync on reconnection

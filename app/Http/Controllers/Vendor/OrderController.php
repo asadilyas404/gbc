@@ -1621,8 +1621,17 @@ class OrderController extends Controller
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
 
-        $query = Order::where('restaurant_id', $branchId)
-            ->where('order_date', $orderDate);
+        $query = Order::with([
+            'details',
+            'restaurant',
+            'restaurant.translations',
+            'details.food',
+            'takenBy',
+            'pos_details',
+            'partner',
+            'customer'
+        ])->where('restaurant_id', $branchId)
+          ->where('order_date', $orderDate);
 
         if (!empty($status) && $status != 'all') {
             $data = 0;
@@ -1633,13 +1642,23 @@ class OrderController extends Controller
             $query = $this->filterStatusQuery($query, $status, $data);
         }
 
-        $orders = $query->select('id', 'order_status', 'payment_status', 'updated_at')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $orders = $query->orderBy('created_at', 'desc')->get();
+
+        $formattedOrders = [];
+        foreach ($orders as $order) {
+            $cardHtml = view('vendor-views.order.partials._card', compact('order'))->render();
+            $formattedOrders[] = [
+                'id'             => $order->id,
+                'order_status'   => $order->order_status,
+                'payment_status' => $order->payment_status,
+                'updated_at'     => (string) $order->updated_at,
+                'html'           => $cardHtml
+            ];
+        }
 
         return response()->json([
             'success' => true,
-            'orders'  => $orders
+            'orders'  => $formattedOrders
         ]);
     }
 }

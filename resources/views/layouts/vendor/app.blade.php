@@ -33,7 +33,8 @@
     <!-- Provider Panel Update CSS -->
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/css/vendor.css')}}">
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/intltelinput/css/intlTelInput.css')}}">
-       <script src="https://js.pusher.com/8.4.0/pusher.min.js"></script>
+
+       <script src="{{ dynamicAsset('public/assets/admin/js/pusher.min.js') }}"></script>
        <script>
            window.currentBranchId = {{ \App\CentralLogics\Helpers::get_restaurant_id() ?? 0 }};
        </script>
@@ -873,8 +874,30 @@ $(document).on('keydown', 'input[type=number]', function (e) {
     if (e.which === 38 || e.which === 40) {
         e.preventDefault();
     }
-});
+window.gbcLocalChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('gbc_local_events') : null;
 
+window.notifyLocalOrderChange = function(data) {
+    if (window.gbcLocalChannel) {
+        try {
+            window.gbcLocalChannel.postMessage(data || { action: 'order_updated' });
+        } catch (e) {
+            console.log('BroadcastChannel post error:', e);
+        }
+    }
+};
+
+if (window.gbcLocalChannel) {
+    window.gbcLocalChannel.onmessage = function(event) {
+        if (event.data && (event.data.action === 'order_updated' || event.data.type === 'order_updated')) {
+            if (typeof syncKitchenOrders === 'function') {
+                syncKitchenOrders();
+            }
+            if (typeof syncOrderList === 'function') {
+                syncOrderList();
+            }
+        }
+    };
+}
 </script>
 
 

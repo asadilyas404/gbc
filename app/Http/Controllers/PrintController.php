@@ -825,7 +825,7 @@ class PrintController extends Controller
             // Print order header
 
             $printer->setEmphasis(true);
-            if ($order->printed == '1') {
+            if ($request->boolean('manual')) {
                 $printer->selectPrintMode(Printer::MODE_EMPHASIZED);
                 $printer->setReverseColors(true);
                 $printer->setTextSize(2, 2);

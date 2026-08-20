@@ -1947,7 +1947,7 @@
             toastr.info('Sending to printer...');
 
             if(location == 'kitchen'){
-                window.location.href = '/api/v1/print/kitchen-order?order_id=' + orderId;
+                window.location.href = '/api/v1/print/kitchen-order?order_id=' + orderId + '&manual=1';
             }
             else{
                 window.location.href = '/api/v1/print/order?order_id=' + orderId;

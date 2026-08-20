@@ -6,6 +6,44 @@ use ArPHP\I18N\Arabic;
 
 class ReceiptImageHelper
 {
+    public static function createMixedHeadingImage(string $latinText, string $arabicText, string $fileName, int $fontSize = 22, int $padding = 8)
+    {
+        $fontPath = public_path('fonts/Amiri-Regular.ttf');
+        $Arabic = new Arabic('Glyphs');
+        $shapedArabic = $Arabic->utf8Glyphs($arabicText);
+        $latinText = rtrim($latinText) . ' ';
+
+        $latinBox = imagettfbbox($fontSize, 0, $fontPath, $latinText);
+        $arabicBox = imagettfbbox($fontSize, 0, $fontPath, $shapedArabic);
+
+        $latinWidth = abs($latinBox[2] - $latinBox[0]);
+        $arabicWidth = abs($arabicBox[2] - $arabicBox[0]);
+        $latinHeight = abs($latinBox[7] - $latinBox[1]);
+        $arabicHeight = abs($arabicBox[7] - $arabicBox[1]);
+
+        $width = $latinWidth + $arabicWidth + $padding * 2;
+        $height = max($latinHeight, $arabicHeight) + $padding * 2;
+
+        $im = imagecreatetruecolor($width, $height);
+        $white = imagecolorallocate($im, 255, 255, 255);
+        $black = imagecolorallocate($im, 0, 0, 0);
+        imagefilledrectangle($im, 0, 0, $width, $height, $white);
+
+        $y = $padding + $fontSize;
+        imagettftext($im, $fontSize, 0, $padding, $y, $black, $fontPath, $latinText);
+        imagettftext($im, $fontSize, 0, $padding + 1, $y, $black, $fontPath, $latinText);
+        imagettftext($im, $fontSize, 0, $padding + $latinWidth, $y, $black, $fontPath, $shapedArabic);
+        imagettftext($im, $fontSize, 0, $padding + $latinWidth + 1, $y, $black, $fontPath, $shapedArabic);
+
+        if (!is_dir(dirname($fileName))) {
+            mkdir(dirname($fileName), 0755, true);
+        }
+        imagepng($im, $fileName);
+        imagedestroy($im);
+
+        return $fileName;
+    }
+
     public static function createArabicImageForPrinter(string $text, string $fileName, int $fontSize = 16, int $padding = 5, $width = null)
     {
         // Shape Arabic text

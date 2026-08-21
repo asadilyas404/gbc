@@ -30,7 +30,7 @@ if (! function_exists('get_partner_option')) {
             ->where('partner_entry_status',1)   
             ->get();
 
-        return  $PARTNER_VARIATION_OPTION;
+        return $PARTNER_VARIATION_OPTION;
     }
 }
 

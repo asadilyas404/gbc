@@ -333,15 +333,12 @@ class FoodController extends Controller
                          $partner_price=$value['partneroptionPrice'];
 
                         foreach($partner_price as $partner_id=>$price){
-
-                            DB::table('PARTNER_VARIATION_OPTION')
-                            ->updateOrInsert(
-                                [ 'is_deleted' => 0,'VARIATION_OPTION_ID' => $VariationOption->id, 'PARTNER_ID' => $partner_id,'FOOD_ID' => $food->id,'TYPE' => 'option'],
-                                [
-                                    'price' => $price,
-                                    'created_at' => date('Y/m/d H:is'),
-                                    'updated_at' =>date('Y/m/d H:is'),
-                                ]
+                            $this->upsertPartnerVariationOption(
+                                $VariationOption->id,
+                                $partner_id,
+                                $food->id,
+                                $price,
+                                date('Y/m/d H:i:s')
                             );
                         }
                     }
@@ -819,15 +816,12 @@ class FoodController extends Controller
                     $partner_price=$value['partneroptionPrice'];
 
                     foreach($partner_price as $partner_id=>$price){
-
-                        DB::table('PARTNER_VARIATION_OPTION')
-                        ->updateOrInsert(
-                            [ 'is_deleted' => 0,'VARIATION_OPTION_ID' => $v->id, 'PARTNER_ID' => $partner_id,'FOOD_ID' => $id,'TYPE' => 'option'],
-                            [
-                                'price' => $price,
-                                'created_at' => date('Y/m/d H:is'),
-                                'updated_at' =>date('Y/m/d H:is'),
-                            ]
+                        $this->upsertPartnerVariationOption(
+                            $v->id,
+                            $partner_id,
+                            $id,
+                            $price,
+                            date('Y/m/d H:i:s')
                         );
                     }
                 }
@@ -1482,80 +1476,84 @@ class FoodController extends Controller
         $foods = Food::where('restaurant_id', Helpers::get_restaurant_id())->get();
 
         foreach ($foods as $food) {
-            $foodChanged = false;
-            $partnerPrices = json_decode($food->partner_price, true);
-            if (!is_array($partnerPrices)) {
-                $partnerPrices = [];
-            }
-
-            if ($source === 'food') {
-                $partnerPrices = $this->upsertPartnerPriceEntry(
-                    $partnerPrices,
-                    $targetPartnerId,
-                    $food->price,
-                    ($food->visibility ?? 'off') === 'on' ? 'on' : 'off'
-                );
-                $foodChanged = true;
-
-                $options = VariationOption::where('food_id', $food->id)->get();
-                foreach ($options as $option) {
-                    $this->upsertPartnerVariationOption(
-                        $option->id,
-                        $targetPartnerId,
-                        $food->id,
-                        $option->option_price,
-                        $now
-                    );
-                    $optionsUpdated++;
-                }
-            } else {
-                $sourceEntry = null;
-                foreach ($partnerPrices as $entry) {
-                    if (($entry['partner_id'] ?? null) == $source) {
-                        $sourceEntry = $entry;
-                        break;
-                    }
+            try {
+                $partnerPrices = json_decode($food->partner_price, true, 512, JSON_BIGINT_AS_STRING);
+                if (!is_array($partnerPrices)) {
+                    $partnerPrices = [];
                 }
 
-                if ($sourceEntry !== null) {
+                if ($source === 'food') {
                     $partnerPrices = $this->upsertPartnerPriceEntry(
                         $partnerPrices,
                         $targetPartnerId,
-                        $sourceEntry['price'] ?? 0,
-                        $sourceEntry['enable'] ?? 'on'
+                        $food->price,
+                        ($food->visibility ?? 'off') === 'on' ? 'on' : 'off'
                     );
-                    $foodChanged = true;
-                }
+                    $food->partner_price = json_encode(array_values($partnerPrices));
+                    $food->save();
+                    $foodsUpdated++;
 
-                $sourceOptionRows = DB::table('PARTNER_VARIATION_OPTION')
-                    ->where('FOOD_ID', $food->id)
-                    ->where('PARTNER_ID', $source)
-                    ->where('TYPE', 'option')
-                    ->where('is_deleted', 0)
-                    ->get();
-
-                foreach ($sourceOptionRows as $row) {
-                    $variationOptionId = $row->VARIATION_OPTION_ID ?? $row->variation_option_id ?? null;
-                    $price = $row->price ?? 0;
-                    if ($variationOptionId === null) {
-                        continue;
+                    $options = VariationOption::where('food_id', $food->id)->get();
+                    foreach ($options as $option) {
+                        $this->upsertPartnerVariationOption(
+                            $option->id,
+                            $targetPartnerId,
+                            $food->id,
+                            $option->option_price,
+                            $now
+                        );
+                        $optionsUpdated++;
+                    }
+                } else {
+                    $sourceEntry = null;
+                    foreach ($partnerPrices as $entry) {
+                        if (!is_array($entry)) {
+                            continue;
+                        }
+                        if ($this->partnerIdsMatch($entry['partner_id'] ?? null, $source)) {
+                            $sourceEntry = $entry;
+                            break;
+                        }
                     }
 
-                    $this->upsertPartnerVariationOption(
-                        $variationOptionId,
-                        $targetPartnerId,
-                        $food->id,
-                        $price,
-                        $now
-                    );
-                    $optionsUpdated++;
-                }
-            }
+                    if ($sourceEntry !== null) {
+                        $partnerPrices = $this->upsertPartnerPriceEntry(
+                            $partnerPrices,
+                            $targetPartnerId,
+                            $sourceEntry['price'] ?? 0,
+                            $sourceEntry['enable'] ?? 'on'
+                        );
+                        $food->partner_price = json_encode(array_values($partnerPrices));
+                        $food->save();
+                        $foodsUpdated++;
+                    }
 
-            if ($foodChanged) {
-                $food->partner_price = json_encode(array_values($partnerPrices));
-                $food->save();
-                $foodsUpdated++;
+                    $sourceOptionRows = DB::table('PARTNER_VARIATION_OPTION')
+                        ->where('FOOD_ID', $food->id)
+                        ->where('PARTNER_ID', $source)
+                        ->where('TYPE', 'option')
+                        ->where('is_deleted', 0)
+                        ->get();
+
+                    foreach ($sourceOptionRows as $row) {
+                        $variationOptionId = $row->VARIATION_OPTION_ID ?? $row->variation_option_id ?? null;
+                        $price = $row->price ?? 0;
+                        if ($variationOptionId === null) {
+                            continue;
+                        }
+
+                        $this->upsertPartnerVariationOption(
+                            $variationOptionId,
+                            $targetPartnerId,
+                            $food->id,
+                            $price,
+                            $now
+                        );
+                        $optionsUpdated++;
+                    }
+                }
+            } catch (\Exception $e) {
+                \Log::error('Copy partner prices failed for food ' . $food->id . ': ' . $e->getMessage());
             }
         }
 
@@ -1563,66 +1561,107 @@ class FoodController extends Controller
         return back();
     }
 
+    private function partnerIdsMatch($left, $right)
+    {
+        if ($left === null || $right === null || $left === '' || $right === '') {
+            return false;
+        }
+
+        if ((string) $left === (string) $right) {
+            return true;
+        }
+
+        return is_numeric($left) && is_numeric($right) && $left == $right;
+    }
+
     private function upsertPartnerPriceEntry(array $partnerPrices, $targetPartnerId, $price, $enable)
     {
         $found = false;
-        foreach ($partnerPrices as $index => $entry) {
-            if (($entry['partner_id'] ?? null) == $targetPartnerId) {
-                $partnerPrices[$index]['price'] = $price;
-                $partnerPrices[$index]['enable'] = $enable;
-                $found = true;
-                break;
+        $normalized = [];
+
+        foreach ($partnerPrices as $entry) {
+            if (!is_array($entry)) {
+                continue;
             }
+
+            if ($this->partnerIdsMatch($entry['partner_id'] ?? null, $targetPartnerId)) {
+                if ($found) {
+                    continue;
+                }
+                $entry['partner_id'] = (string) $targetPartnerId;
+                $entry['price'] = $price;
+                $entry['enable'] = $enable;
+                $found = true;
+            }
+
+            $normalized[] = $entry;
         }
 
         if (!$found) {
-            $partnerPrices[] = [
+            $normalized[] = [
                 'partner_id' => (string) $targetPartnerId,
                 'price' => $price,
                 'enable' => $enable,
             ];
         }
 
-        return $partnerPrices;
+        return $normalized;
     }
 
     private function upsertPartnerVariationOption($variationOptionId, $partnerId, $foodId, $price, $now)
     {
-        $updated = DB::table('PARTNER_VARIATION_OPTION')
+        $rows = DB::table('PARTNER_VARIATION_OPTION')
             ->where('variation_option_id', $variationOptionId)
             ->where('partner_id', $partnerId)
-            ->update([
-                'price' => $price,
-                'food_id' => $foodId,
-                'type' => 'option',
-                'is_deleted' => 0,
-                'updated_at' => $now,
-            ]);
+            ->orderBy('id')
+            ->get(['id']);
 
-        if ($updated > 0) {
+        if ($rows->isEmpty()) {
+            try {
+                DB::table('PARTNER_VARIATION_OPTION')->insert([
+                    'variation_option_id' => $variationOptionId,
+                    'partner_id' => $partnerId,
+                    'food_id' => $foodId,
+                    'type' => 'option',
+                    'price' => $price,
+                    'is_deleted' => 0,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ]);
+            } catch (\Illuminate\Database\QueryException $e) {
+                $keepId = DB::table('PARTNER_VARIATION_OPTION')
+                    ->where('variation_option_id', $variationOptionId)
+                    ->where('partner_id', $partnerId)
+                    ->min('id');
+
+                if ($keepId) {
+                    DB::table('PARTNER_VARIATION_OPTION')->where('id', $keepId)->update([
+                        'price' => $price,
+                        'food_id' => $foodId,
+                        'type' => 'option',
+                        'is_deleted' => 0,
+                        'updated_at' => $now,
+                    ]);
+                }
+            }
             return;
         }
 
-        try {
-            DB::table('PARTNER_VARIATION_OPTION')->insert([
-                'variation_option_id' => $variationOptionId,
-                'partner_id' => $partnerId,
-                'food_id' => $foodId,
-                'type' => 'option',
-                'price' => $price,
-                'is_deleted' => 0,
-                'created_at' => $now,
-                'updated_at' => $now,
-            ]);
-        } catch (\Illuminate\Database\QueryException $e) {
+        $keepId = $rows->first()->id;
+        DB::table('PARTNER_VARIATION_OPTION')->where('id', $keepId)->update([
+            'price' => $price,
+            'food_id' => $foodId,
+            'type' => 'option',
+            'is_deleted' => 0,
+            'updated_at' => $now,
+        ]);
+
+        $extraIds = $rows->slice(1)->pluck('id')->filter()->all();
+        if (!empty($extraIds)) {
             DB::table('PARTNER_VARIATION_OPTION')
-                ->where('variation_option_id', $variationOptionId)
-                ->where('partner_id', $partnerId)
+                ->whereIn('id', $extraIds)
                 ->update([
-                    'price' => $price,
-                    'food_id' => $foodId,
-                    'type' => 'option',
-                    'is_deleted' => 0,
+                    'is_deleted' => 1,
                     'updated_at' => $now,
                 ]);
         }

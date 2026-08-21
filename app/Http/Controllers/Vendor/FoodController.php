@@ -1603,11 +1603,8 @@ class FoodController extends Controller
             return;
         }
 
-        $nextId = ((int) DB::table('PARTNER_VARIATION_OPTION')->max('id')) + 1;
-
         try {
             DB::table('PARTNER_VARIATION_OPTION')->insert([
-                'id' => $nextId,
                 'variation_option_id' => $variationOptionId,
                 'partner_id' => $partnerId,
                 'food_id' => $foodId,

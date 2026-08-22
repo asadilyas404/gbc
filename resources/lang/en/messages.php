@@ -6674,4 +6674,5 @@
   'Select target partner' => 'Select target partner',
   'Copy Prices' => 'Copy Prices',
   'Partner prices copied successfully' => 'Partner prices copied successfully',
+  'Food recommendation updated!' => 'Food recommendation updated!',
 );

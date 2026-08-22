@@ -44,6 +44,28 @@
         .accordion-toggle:not(.collapsed) .accordion-arrow {
             transform: rotate(180deg);
         }
+
+        @keyframes cardPulseGlow {
+            0% {
+                box-shadow: 0 0 20px 5px rgba(255, 193, 7, 0.9);
+                border: 2px solid #ffc107;
+                transform: scale(1.02);
+            }
+            50% {
+                box-shadow: 0 0 15px 3px rgba(255, 193, 7, 0.6);
+                border: 2px solid #ffc107;
+                transform: scale(1.01);
+            }
+            100% {
+                box-shadow: none;
+                border: 1px solid rgba(0, 0, 0, 0.125);
+                transform: scale(1);
+            }
+        }
+
+        .highlight-new-order .card {
+            animation: cardPulseGlow 12s ease-in-out;
+        }
     </style>
 @endpush
 
@@ -215,14 +237,14 @@
             if (fallbackActive) {
                 fallbackTimeout = setTimeout(function () {
                     syncKitchenOrders();
-                }, 15000);
+                }, 40000);
             }
         }
 
         function startFallbackMode() {
             if (fallbackActive) return;
             fallbackActive = true;
-            console.warn("Fallback mode activated. Starting 15s sequential kitchen sync...");
+            console.warn("Fallback mode activated. Starting 40s sequential kitchen sync...");
             syncKitchenOrders(); // Execute immediately
         }
 
@@ -231,6 +253,20 @@
             fallbackActive = false;
             clearFallbackTimer();
             console.log("Pusher reconnected. Fallback mode stopped.");
+        }
+
+        function applyCardHighlight($element) {
+            $element.addClass('highlight-new-order');
+            setTimeout(function () {
+                $element.removeClass('highlight-new-order');
+            }, 12000);
+        }
+
+        function playNotificationSound() {
+            notificationSound.currentTime = 0;
+            notificationSound.play().catch(function (error) {
+                console.log('Sound blocked:', error);
+            });
         }
 
         function fetchAndUpsertKitchenCard(orderId) {
@@ -250,15 +286,18 @@
                     }
 
                     if ($existingCard.length) {
-                        // Card already exists in DOM: update HTML, DO NOT play sound
-                        $existingCard.replaceWith(response.html);
+                        // Card already exists in DOM: update HTML, move to top, apply highlight, and play sound
+                        const $newCard = $(response.html);
+                        $existingCard.replaceWith($newCard);
+                        $('#orders .row').prepend($newCard);
+                        applyCardHighlight($newCard);
+                        playNotificationSound();
                     } else {
-                        // Card was genuinely missing from DOM: prepend card and play sound ONLY if missing
-                        $('#orders .row').prepend(response.html);
-                        notificationSound.currentTime = 0;
-                        notificationSound.play().catch(function (error) {
-                            console.log('Sound blocked:', error);
-                        });
+                        // Card was genuinely missing: prepend card to top, apply highlight, and play sound
+                        const $newCard = $(response.html);
+                        $('#orders .row').prepend($newCard);
+                        applyCardHighlight($newCard);
+                        playNotificationSound();
                     }
                     updateTimers();
                 },
@@ -305,7 +344,7 @@
                     });
 
                     // 2. Reconcile server orders against DOM cards using pre-rendered card HTML
-                    let hasGenuinelyNewOrder = false;
+                    let hasOrderChangedOrNew = false;
 
                     serverOrders.forEach(function (order) {
                         const orderSelector = '#order_' + order.id;
@@ -313,24 +352,27 @@
 
                         if (!$existingCard.length) {
                             // Genuinely missing order: prepend rendered html card from response payload
-                            $('#orders .row').prepend(order.html);
-                            hasGenuinelyNewOrder = true;
+                            const $newCard = $(order.html);
+                            $('#orders .row').prepend($newCard);
+                            applyCardHighlight($newCard);
+                            hasOrderChangedOrNew = true;
                         } else {
                             // Check if status changed
                             const currentKitchenStatus = $existingCard.attr('data-kitchen-status');
                             const currentOrderStatus = $existingCard.attr('data-order-status');
 
                             if (order.kitchen_status !== currentKitchenStatus || order.order_status !== currentOrderStatus) {
-                                $existingCard.replaceWith(order.html);
+                                const $newCard = $(order.html);
+                                $existingCard.replaceWith($newCard);
+                                $('#orders .row').prepend($newCard);
+                                applyCardHighlight($newCard);
+                                hasOrderChangedOrNew = true;
                             }
                         }
                     });
 
-                    if (hasGenuinelyNewOrder) {
-                        notificationSound.currentTime = 0;
-                        notificationSound.play().catch(function (error) {
-                            console.log('Sound blocked:', error);
-                        });
+                    if (hasOrderChangedOrNew) {
+                        playNotificationSound();
                     }
 
                     updateTimers();

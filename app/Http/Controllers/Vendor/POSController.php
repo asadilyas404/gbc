@@ -1586,7 +1586,8 @@ class POSController extends Controller
             }
 
             try {
-                event(new myevent('unpaid', $order->restaurant_id, $order->id));
+                $eventType = isset($editing_order_id) ? 'updated' : 'created';
+                event(new myevent($order->payment_status, $order->restaurant_id, $order->id, null, $order->order_status, $order->payment_status, $order->order_type, $eventType));
             } catch (\Exception $e) {
                 info('Pusher Event Error:' . $e->getMessage());
             }

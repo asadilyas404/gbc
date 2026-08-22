@@ -55,7 +55,7 @@ class OrderController extends Controller
                 ->whereColumn('tbl_soft_branch.branch_id', 'orders.restaurant_id')
                 ->whereColumn('tbl_soft_branch.orders_date', 'orders.order_date');
         })
-        ->Notpos()
+        // ->Notpos()
         // ->NotDigitalOrder()
         ->hasSubscriptionToday()
         ->where('restaurant_id',\App\CentralLogics\Helpers::get_restaurant_id())
@@ -64,7 +64,7 @@ class OrderController extends Controller
 
         // Calculate order statistics
         $statisticsQuery = Order::query()
-        ->Notpos()
+        // ->Notpos()
         ->hasSubscriptionToday()
         ->where(
             'restaurant_id',
@@ -108,7 +108,7 @@ class OrderController extends Controller
             ->where('order_status', 'canceled')
             ->where('payment_status', 'paid')
             ->sum('order_amount');
-        
+
         $unpaidAmount = (clone $statisticsQuery)
             ->where('payment_status', 'unpaid')
             ->where('order_status', '!=', 'canceled')
@@ -1432,7 +1432,7 @@ class OrderController extends Controller
             Toastr::error('No internet connection. Please check your connection and try again.');
             return back();
         }
-        
+
         SyncOrdersJob::dispatchSync();
         Toastr::success('Orders Sync completed!');
         return back();
@@ -1466,29 +1466,34 @@ class OrderController extends Controller
     public function kitchen_card(Request $request, $order_id)
     {
         session_write_close();
-        $order = Order::with([
-            'details',
-            'restaurant',
-            'restaurant.translations',
-            'details.food',
-            'takenBy',
-            'pos_details',
-            'partner',
-            'customer'
-        ])->where('id', $order_id)->orWhere('order_serial', $order_id)->first();
+        try {
+            $order = Order::with([
+                'details',
+                'restaurant',
+                'restaurant.translations',
+                'details.food',
+                'takenBy',
+                'pos_details',
+                'partner',
+                'customer'
+            ])->where('id', $order_id)->orWhere('order_serial', $order_id)->first();
 
-        if (!$order) {
-            return response()->json(['success' => false, 'message' => 'Order not found', 'html' => ''], 404);
+            if (!$order) {
+                return response()->json(['success' => false, 'message' => 'Order not found', 'html' => ''], 404);
+            }
+
+            $timer = "";
+            if (isset($order->created_at) && !empty($order->created_at)) {
+                $timer = date('H:i:s', strtotime($order->created_at));
+            }
+            $order->setAttribute('kitchen_time', $timer);
+
+            $printableContent = view('vendor-views.kitchen.partials._card', compact('order'))->render();
+            return response()->json(['success' => true, 'html' => $printableContent]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('[KitchenCard Error]: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json(['success' => false, 'message' => $e->getMessage(), 'html' => ''], 500);
         }
-
-        $timer = "";
-        if (isset($order->created_at) && !empty($order->created_at)) {
-            $timer = date('H:i:s', strtotime($order->created_at));
-        }
-        $order->setAttribute('kitchen_time', $timer);
-
-        $printableContent = view('vendor-views.kitchen.partials._card', compact('order'))->render();
-        return response()->json(['success' => true, 'html' => $printableContent]);
     }
 
     public function filterStatusQuery($query, $status, $data = 0)
@@ -1554,15 +1559,8 @@ class OrderController extends Controller
                 }
             });
         })
-        ->when($status == 'all', function($q) use($data){
-            return $q->where(function($q1) use($data) {
-                $q1->whereNotIn('order_status',(config('order_confirmation_model') == 'restaurant'|| $data)?['failed', 'refund_requested', 'refunded']:['pending','failed', 'refund_requested', 'refunded'])
-                ->orWhere(function($q2){
-                    return $q2->where('order_status','pending')->where('order_type', 'take_away');
-                })->orWhere(function($q3){
-                    return $q3->where('order_status','pending')->whereNotNull('subscription_id');
-                });
-            });
+        ->when($status == 'all', function($q){
+            return $q->whereNotIn('order_status', ['failed', 'canceled']);
         })
         ->when($status == 'draft', function($q){
            return $q->where('payment_status', 'unpaid')
@@ -1576,41 +1574,55 @@ class OrderController extends Controller
     public function order_card(Request $request, $order_id)
     {
         session_write_close();
-        $status = $request->get('status');
-        $order = Order::with([
-            'details',
-            'restaurant',
-            'restaurant.translations',
-            'details.food',
-            'takenBy',
-            'pos_details',
-            'partner',
-            'customer'
-        ])->where('id', $order_id)->orWhere('order_serial', $order_id)->first();
+        try {
+            $status = $request->get('status');
+            $order = Order::with([
+                'details',
+                'restaurant',
+                'restaurant.translations',
+                'details.food',
+                'takenBy',
+                'pos_details',
+                'partner',
+                'customer'
+            ])->where('id', $order_id)->orWhere('order_serial', $order_id)->first();
 
-        if (!$order) {
-            return response()->json(['success' => false, 'message' => 'Order not found', 'html' => ''], 404);
-        }
-
-        $matchesStatus = true;
-        if (!empty($status) && $status != 'all') {
-            $data = 0;
-            $restaurant = Helpers::get_restaurant_data();
-            if ($restaurant && (($restaurant->restaurant_model == 'subscription' && optional($restaurant->restaurant_sub)->self_delivery == 1) || ($restaurant->restaurant_model == 'commission' && $restaurant->self_delivery_system == 1))) {
-                $data = 1;
+            if (!$order) {
+                return response()->json(['success' => false, 'message' => 'Order not found', 'html' => ''], 404);
             }
 
-            $checkQuery = Order::where('id', $order->id);
-            $checkQuery = $this->filterStatusQuery($checkQuery, $status, $data);
-            $matchesStatus = $checkQuery->exists();
-        }
+            $matchesStatus = true;
+            if (!empty($status) && $status != 'all') {
+                $data = 0;
+                $restaurant = Helpers::get_restaurant_data();
+                if ($restaurant && (($restaurant->restaurant_model == 'subscription' && optional($restaurant->restaurant_sub)->self_delivery == 1) || ($restaurant->restaurant_model == 'commission' && $restaurant->self_delivery_system == 1))) {
+                    $data = 1;
+                }
 
-        $printableContent = view('vendor-views.order.partials._card', compact('order'))->render();
-        return response()->json([
-            'success' => true,
-            'matches_status' => $matchesStatus,
-            'html' => $printableContent
-        ]);
+                $checkQuery = Order::where('id', $order->id);
+                $checkQuery = $this->filterStatusQuery($checkQuery, $status, $data);
+                $matchesStatus = $checkQuery->exists();
+            }
+
+            if ($status == 'draft') {
+                $printableContent = view('vendor-views.order.partials._card', compact('order'))->render();
+            } else {
+                $printableContent = view('vendor-views.order.partials._row', compact('order'))->render();
+            }
+
+            return response()->json([
+                'success' => true,
+                'matches_status' => $matchesStatus,
+                'html' => $printableContent
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('[OrderCard Error]: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'html' => ''
+            ], 500);
+        }
     }
 
     public function realtime_sync(Request $request)
@@ -1646,7 +1658,12 @@ class OrderController extends Controller
 
         $formattedOrders = [];
         foreach ($orders as $order) {
-            $cardHtml = view('vendor-views.order.partials._card', compact('order'))->render();
+            if ($status == 'draft') {
+                $cardHtml = view('vendor-views.order.partials._card', compact('order'))->render();
+            } else {
+                $cardHtml = view('vendor-views.order.partials._row', compact('order'))->render();
+            }
+
             $formattedOrders[] = [
                 'id'             => $order->id,
                 'order_status'   => $order->order_status,

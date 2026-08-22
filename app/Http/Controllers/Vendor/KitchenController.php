@@ -97,12 +97,6 @@ class KitchenController extends Controller
                     $idSuffix = '4';
                 }
 
-                // KitchenOrderStatusLog::create([
-                //     "status"   => $request->type,
-                //     "order_id" => $order->id,
-                //     "id"       => $order->id . $idSuffix,
-                // ]);
-
                 $order->kitchen_status = $request->type;
                 $order->order_status   = $request->type;
                 $order->is_pushed      = 'N';
@@ -121,14 +115,6 @@ class KitchenController extends Controller
                         POSOrderReady::dispatch($phone, $order->id, 'ready')->onConnection('database')->onQueue('whatsapp');
                     }
                 }
-
-                // Updating the food items' kitchen status
-                // foreach ($order->details as $detail) {
-                //     // Update detail cooking_status
-                //     $detail->kitchen_status = $request->type;
-                //     $detail->preparing_by = Auth::guard('vendor')->id() ?? Auth::guard('vendor_employee')->id();
-                //     $detail->save();
-                // }
             }
         }
 

@@ -46,6 +46,47 @@
             font-size: 0.95rem;
         }
 
+        @keyframes cardPulseGlow {
+            0% {
+                box-shadow: 0 0 20px 5px rgba(255, 193, 7, 0.9);
+                border: 2px solid #ffc107;
+                transform: scale(1.02);
+            }
+            50% {
+                box-shadow: 0 0 15px 3px rgba(255, 193, 7, 0.6);
+                border: 2px solid #ffc107;
+                transform: scale(1.01);
+            }
+            100% {
+                box-shadow: none;
+                border: 1px solid rgba(0, 0, 0, 0.125);
+                transform: scale(1);
+            }
+        }
+
+        .highlight-new-order .card, .order-card.highlight-new-order {
+            animation: cardPulseGlow 12s ease-in-out;
+        }
+
+        @keyframes rowPulseGlow {
+            0% {
+                background-color: #fff3cd !important;
+                box-shadow: inset 0 0 12px rgba(255, 193, 7, 0.8);
+            }
+            50% {
+                background-color: #ffe69c !important;
+                box-shadow: inset 0 0 8px rgba(255, 193, 7, 0.5);
+            }
+            100% {
+                background-color: transparent !important;
+                box-shadow: none;
+            }
+        }
+
+        .highlight-new-row {
+            animation: rowPulseGlow 12s ease-in-out;
+        }
+
         /* Minimal Statistics Cards */
         .minimal-stats {
             margin-bottom: 1rem;
@@ -567,172 +608,7 @@
                         <tbody id="set-rows">
 
                             @foreach ($orders as $key => $order)
-                                <tr class="status-{{ $order['order_status'] }} class-all">
-                                    <td class="">
-                                        {{ $key + $orders->firstItem() }}
-                                    </td>
-                                    <td class="table-column-pl-0">
-                                        <a href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"
-                                            class="text-hover">{{ $order['order_serial'] }}</a>
-                                    </td>
-                                    <td>
-                                        <span class="d-block">
-                                            {{ Carbon\Carbon::parse($order['created_at'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
-                                        </span>
-                                        <span class="d-block text-uppercase">
-                                            {{ Carbon\Carbon::parse($order['created_at'])->locale(app()->getLocale())->translatedFormat(config('timeformat')) }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <span class="d-block">
-                                            @if(!empty($order['order_date']))
-                                                {{ Carbon\Carbon::parse($order['order_date'])->locale(app()->getLocale())->translatedFormat('d M Y') }}
-                                            @else
-                                                -
-                                            @endif
-                                        </span>
-                                    </td>
-                                    <td>
-                                        @if ($order->is_guest)
-                                            <?php
-                                            $customer_details = json_decode($order['delivery_address'], true);
-                                            ?>
-                                            <strong>{{ $customer_details['contact_person_name'] }}</strong>
-                                            <div>{{ $customer_details['contact_person_number'] }}</div>
-                                        @elseif($order->customer)
-                                            <a class="text-body text-capitalize"
-                                                href="{{ route('vendor.order.details', ['id' => $order['id']]) }}">
-                                                <span class="d-block font-semibold">
-                                                    {{ $order->customer['customer_name'] }}
-                                                </span>
-                                                <span class="d-block">
-                                                    {{ $order->customer['customer_mobile_no'] }}
-                                                </span>
-                                            </a>
-                                        @else
-                                            @if (
-                                                $order->pos_details &&
-                                                    ($order->pos_details->customer_name || $order->pos_details->car_number || $order->pos_details->phone))
-                                                @if ($order->pos_details->customer_name)
-                                                    <div>Name: {{ $order->pos_details->customer_name }}</div>
-                                                @endif
-                                                @if ($order->pos_details->car_number)
-                                                    <div>Car: {{ $order->pos_details->car_number }}</div>
-                                                @endif
-                                                @if ($order->pos_details->phone)
-                                                    <div>Phone: {{ $order->pos_details->phone }}</div>
-                                                @endif
-                                            @else
-                                                <label
-                                                    class="badge badge-danger">{{ translate('messages.invalid_customer_data') }}</label>
-                                            @endif
-                                        @endif
-                                    </td>
-                                    <td>
-
-
-                                        <div class="text-right mw-85px">
-                                            <div>
-                                                {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}
-                                            </div>
-                                            @if ($order->payment_status == 'paid')
-                                                <strong class="text-success">
-                                                    {{ translate('messages.paid') }}
-                                                </strong>
-                                            @elseif($order->payment_status == 'partially_paid')
-                                                <strong class="text-success">
-                                                    {{ translate('messages.partially_paid') }}
-                                                </strong>
-                                            @else
-                                                <strong class="text-danger">
-                                                    {{ translate('messages.unpaid') }}
-                                                </strong>
-                                            @endif
-                                        </div>
-
-                                    </td>
-                                    <td class="text-capitalize text-center">
-                                        @if (isset($order->subscription) && $order->subscription->status != 'canceled')
-                                            @php
-                                                $order->order_status = $order->subscription_log
-                                                    ? $order->subscription_log->order_status
-                                                    : $order->order_status;
-                                            @endphp
-                                        @endif
-                                        @if ($order['order_status'] == 'canceled')
-                                            <span class="badge badge-soft-warning mb-1">
-                                                {{ translate('messages.canceled') }}
-                                            </span>
-                                            {{-- @elseif($order['order_status'] == 'confirmed')
-                                        <span class="badge badge-soft-info mb-1">
-                                            {{ translate('messages.confirmed') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'processing')
-                                        <span class="badge badge-soft-warning mb-1">
-                                            {{ translate('messages.processing') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'picked_up')
-                                        <span class="badge badge-soft-warning mb-1">
-                                            {{ translate('messages.out_for_delivery') }}
-                                        </span>
-                                    @elseif($order['order_status'] == 'delivered')
-                                        <span class="badge badge-soft-success mb-1">
-                                            {{ translate('messages.delivered') }}
-                                        </span> --}}
-                                        @else
-                                            <span class="badge badge-soft-info mb-1">
-                                                {{ translate(str_replace('_', ' ', $order['order_status'])) }}
-                                            </span>
-                                        @endif
-
-
-                                        <div class="text-capitalze opacity-7">
-                                            @if ($order['order_type'] == 'take_away')
-                                                <span>
-                                                    {{ translate('messages.take_away') }}
-                                                </span>
-                                            @elseif ($order['order_type'] == 'dine_in')
-                                                <span>
-                                                    {{ translate('messages.dine_in') }}
-                                                </span>
-                                            @else
-                                                <span>
-                                                    {{ translate('messages.delivery') }}
-                                                </span>
-                                            @endif
-                                        </div>
-                                    </td>
-                                      <td class="">
-                                        {{ $order['partner_name'] ?? '-' }}
-                                    </td>
-                                    <td>
-                                        <div class="btn--container justify-content-center">
-                                            <a class="btn action-btn btn--warning btn-outline-warning"
-                                                href="{{ route('vendor.order.details', ['id' => $order['id']]) }}"><i
-                                                    class="tio-visible-outlined"></i></a>
-                                            
-                                                <a class="btn action-btn btn--warning btn-outline-warning"
-                                                    href="{{ route('vendor.pos.load-draft', ['order_id' => $order->id]) }}"
-                                                    title="{{ translate('Load Unpaid to POS') }}">
-                                                    <i class="tio-refresh"></i>
-                                                </a>
-                                            
-                                            <a class="btn action-btn btn--primary btn-outline-primary" target="_blank"
-                                                href="{{ route('vendor.order.generate-invoice', [$order['id']]) }}"><i
-                                                    class="tio-print"></i></a>
-                                            <a class="btn action-btn btn--primary btn-outline-primary" target="_blank"
-                                                title="Order Receipt"
-                                                href="{{ route('vendor.order.generate-order-receipt', [$order['id']]) }}"><i
-                                                    class="tio-document"></i></a>
-
-                                            {{-- <a type="button" class="btn action-btn btn--primary btn-outline-primary print-order-btn"
-                                                data-order-id="{{ $order['id'] }}"
-                                                title="{{ translate('Direct Print') }}">
-                                                <i class="tio-print"></i>
-                                            </a> --}}
-                                        </div>
-                                    </td>
-                                </tr>
+                                @include('vendor-views.order.partials._row', ['order' => $order, 'key' => $key + $orders->firstItem()])
                             @endforeach
                         </tbody>
                     </table>
@@ -863,14 +739,14 @@
                 if (orderFallbackActive) {
                     orderFallbackTimeout = setTimeout(function () {
                         syncOrderList();
-                    }, 15000);
+                    }, 40000);
                 }
             }
 
             function startOrderFallbackPolling() {
                 if (orderFallbackActive) return;
                 orderFallbackActive = true;
-                console.warn("Order list fallback mode activated. Starting 15s sequential sync...");
+                console.warn("Order list fallback mode activated. Starting 40s sequential sync...");
                 syncOrderList();
             }
 
@@ -881,26 +757,52 @@
                 console.log("Pusher reconnected. Stopped order list fallback polling.");
             }
 
+            function applyHighlight($element) {
+                if ($element.is('tr')) {
+                    $element.addClass('highlight-new-row');
+                    setTimeout(function () { $element.removeClass('highlight-new-row'); }, 12000);
+                } else {
+                    $element.addClass('highlight-new-order');
+                    setTimeout(function () { $element.removeClass('highlight-new-order'); }, 12000);
+                }
+            }
+
             function upsertOrderCard(orderId) {
                 return $.ajax({
                     url: '/restaurant-panel/order/order-card/' + orderId + '?status=' + encodeURIComponent(currentStatusFilter),
                     type: 'GET',
                     timeout: 15000,
                     success: function (response) {
-                        const orderSelector = `#order-card-${orderId}`;
-                        const $existingCard = $(orderSelector);
-
                         if (response.matches_status === false) {
-                            if ($existingCard.length) {
-                                $existingCard.fadeOut(300, function () { $(this).remove(); });
-                            }
+                            $(`#order-row-${orderId}, #order-card-${orderId}, [data-order-id="${orderId}"]`).fadeOut(300, function () { $(this).remove(); });
                             return;
                         }
 
-                        if ($existingCard.length) {
-                            $existingCard.replaceWith(response.html);
-                        } else {
-                            $('#orders-container').prepend(response.html);
+                        const $existingRow = $(`#order-row-${orderId}, [data-order-id="${orderId}"]`);
+                        const $existingCard = $(`#order-card-${orderId}`);
+
+                        if ($existingRow.length) {
+                            const $newRow = $(response.html);
+                            $existingRow.replaceWith($newRow);
+                            if ($('#set-rows').length) $('#set-rows').prepend($newRow);
+                            applyHighlight($newRow);
+                        } else if ($existingCard.length) {
+                            const $newCard = $(response.html);
+                            $existingCard.replaceWith($newCard);
+                            if ($('#orders-container').length) $('#orders-container').prepend($newCard);
+                            applyHighlight($newCard);
+                        } else if ($('#set-rows').length) {
+                            const $newRow = $(response.html);
+                            $('#set-rows').prepend($newRow);
+                            applyHighlight($newRow);
+                            notificationSound.currentTime = 0;
+                            notificationSound.play().catch(function (error) {
+                                console.log('Sound blocked:', error);
+                            });
+                        } else if ($('#orders-container').length) {
+                            const $newCard = $(response.html);
+                            $('#orders-container').prepend($newCard);
+                            applyHighlight($newCard);
                             notificationSound.currentTime = 0;
                             notificationSound.play().catch(function (error) {
                                 console.log('Sound blocked:', error);
@@ -910,10 +812,7 @@
                     error: function (xhr) {
                         console.log('Could not load order HTML:', xhr.responseText);
                         if (xhr.status === 404) {
-                            const orderSelector = `#order-card-${orderId}`;
-                            if ($(orderSelector).length) {
-                                $(orderSelector).fadeOut(300, function () { $(this).remove(); });
-                            }
+                            $(`#order-row-${orderId}, #order-card-${orderId}, [data-order-id="${orderId}"]`).fadeOut(300, function () { $(this).remove(); });
                         }
                     }
                 });
@@ -939,34 +838,33 @@
                             serverOrderMap[order.id] = order;
                         });
 
-                        // 1. Remove DOM cards that no longer exist or match status filter
+                        // 1. Remove DOM items that no longer exist or match status filter
                         $('[data-order-id]').each(function () {
                             const domOrderId = $(this).attr('data-order-id');
                             if (!serverOrderMap[domOrderId]) {
-                                $(`#order-card-${domOrderId}`).fadeOut(300, function () {
+                                $(`#order-row-${domOrderId}, #order-card-${domOrderId}, [data-order-id="${domOrderId}"]`).fadeOut(300, function () {
                                     $(this).remove();
                                 });
                             }
                         });
 
-                        // 2. Reconcile server orders against DOM cards using pre-rendered card HTML
+                        // 2. Reconcile server orders against DOM using pre-rendered HTML
                         let hasGenuinelyNewOrder = false;
 
                         serverOrders.forEach(function (order) {
-                            const orderSelector = `#order-card-${order.id}`;
-                            const $existingCard = $(orderSelector);
+                            const $existingItem = $(`#order-row-${order.id}, #order-card-${order.id}, [data-order-id="${order.id}"]`);
 
-                            if (!$existingCard.length) {
-                                // Genuinely missing order: prepend rendered html card from response payload
-                                $('#orders-container').prepend(order.html);
+                            if (!$existingItem.length) {
+                                // Genuinely missing order: upsert order card / row
+                                upsertOrderCard(order.id);
                                 hasGenuinelyNewOrder = true;
                             } else {
                                 // Check if status changed
-                                const currentOrderStatus = $existingCard.attr('data-order-status');
-                                const currentPaymentStatus = $existingCard.attr('data-payment-status');
+                                const currentOrderStatus = $existingItem.attr('data-order-status');
+                                const currentPaymentStatus = $existingItem.attr('data-payment-status');
 
                                 if (order.order_status !== currentOrderStatus || order.payment_status !== currentPaymentStatus) {
-                                    $existingCard.replaceWith(order.html);
+                                    upsertOrderCard(order.id);
                                 }
                             }
                         });
@@ -993,10 +891,16 @@
             // Real-time Pusher Event Listener
             var channel = pusher.subscribe('my-channel');
             channel.bind('my-event', function(data) {
-                if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
+                console.log('[DEBUG] Order list my-event received:', data);
+                if (data.branch_id && window.currentBranchId && parseInt(data.branch_id) !== parseInt(window.currentBranchId)) {
+                    console.log('[DEBUG] Order list branch_id mismatch (' + data.branch_id + ' != ' + window.currentBranchId + '). Skipping.');
                     return;
                 }
-                upsertOrderCard(data.order_id);
+                if (data.order_id) {
+                    upsertOrderCard(data.order_id);
+                } else {
+                    syncOrderList();
+                }
             });
 
             // Pusher Connection State Listener

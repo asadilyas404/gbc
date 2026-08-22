@@ -390,10 +390,14 @@ class POSController extends Controller
         $product = Food::select(['id', 'price', 'partner_price', 'variations', 'discount', 'discount_type'])
         ->findOrFail($request->id);
 
-        if($request->filled('partner_id')){
+        if ($request->filled('partner_id')) {
             $partner_price = collect(json_decode($product->partner_price));
-            $price = optional( $partner_price->where('partner_id',$request->partner_id)->first())->price;
-        }else{
+            $matched = $partner_price->first(function ($item) use ($request) {
+                $itemId = is_object($item) ? ($item->partner_id ?? null) : ($item['partner_id'] ?? null);
+                return (string) $itemId === (string) $request->partner_id;
+            });
+            $price = is_object($matched) ? ($matched->price ?? null) : ($matched['price'] ?? null);
+        } else {
             $price = $product->price;
         }
 

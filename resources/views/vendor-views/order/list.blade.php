@@ -9,7 +9,7 @@
 
     <!-- QZ Tray Script -->
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
- 
+
 
     <style>
         .col-auto {
@@ -313,7 +313,7 @@
                             <span> / </span>
                             <p class="my-1"><strong>Pending Orders Sync:</strong> {{ $pendingSync ?? 0 }}</p>
                             <span> / </span>
-                            <p class="my-1 @if(strtotime($lastSyncRunAt) < strtotime("-5 minutes")) text-danger @endif"><strong>Last Sync Run:</strong> 
+                            <p class="my-1 @if(strtotime($lastSyncRunAt) < strtotime("-5 minutes")) text-danger @endif"><strong>Last Sync Run:</strong>
                                 {{ $lastSyncRunAt ? date('d M Y, h:i A', strtotime($lastSyncRunAt)) : '-' }}
                             </p>
                         </div>
@@ -685,7 +685,7 @@
                     </table>
                 </div>
                 <div class="modal-footer justify-content-center">
-                    <button type="button" class="btn btn--primary" id="quickViewProceedBtn" data-order-id=""
+                    <button type="button" class="btn btn--primary" id="quickViewProceedBtn"
                         data-dismiss="modal" data-toggle="modal" data-target="#orderFinalModal">
                         {{ translate('Proceed') }}
                     </button>
@@ -774,11 +774,11 @@
                     timeout: 15000,
                     success: function (response) {
                         if (response.matches_status === false) {
-                            $(`#order-row-${orderId}, #order-card-${orderId}, [data-order-id="${orderId}"]`).fadeOut(300, function () { $(this).remove(); });
+                            $(`#order-row-${orderId}, #order-card-${orderId}`).fadeOut(300, function () { $(this).remove(); });
                             return;
                         }
 
-                        const $existingRow = $(`#order-row-${orderId}, [data-order-id="${orderId}"]`);
+                        const $existingRow = $(`#order-row-${orderId}`);
                         const $existingCard = $(`#order-card-${orderId}`);
 
                         if ($existingRow.length) {
@@ -812,7 +812,7 @@
                     error: function (xhr) {
                         console.log('Could not load order HTML:', xhr.responseText);
                         if (xhr.status === 404) {
-                            $(`#order-row-${orderId}, #order-card-${orderId}, [data-order-id="${orderId}"]`).fadeOut(300, function () { $(this).remove(); });
+                            $(`#order-row-${orderId}, #order-card-${orderId}`).fadeOut(300, function () { $(this).remove(); });
                         }
                     }
                 });
@@ -839,10 +839,10 @@
                         });
 
                         // 1. Remove DOM items that no longer exist or match status filter
-                        $('[data-order-id]').each(function () {
+                        $('#set-rows > tr[data-order-id], #orders-container > div[data-order-id]').each(function () {
                             const domOrderId = $(this).attr('data-order-id');
-                            if (!serverOrderMap[domOrderId]) {
-                                $(`#order-row-${domOrderId}, #order-card-${domOrderId}, [data-order-id="${domOrderId}"]`).fadeOut(300, function () {
+                            if (domOrderId && !serverOrderMap[domOrderId]) {
+                                $(`#order-row-${domOrderId}, #order-card-${domOrderId}`).fadeOut(300, function () {
                                     $(this).remove();
                                 });
                             }
@@ -852,7 +852,7 @@
                         let hasGenuinelyNewOrder = false;
 
                         serverOrders.forEach(function (order) {
-                            const $existingItem = $(`#order-row-${order.id}, #order-card-${order.id}, [data-order-id="${order.id}"]`);
+                            const $existingItem = $(`#order-row-${order.id}, #order-card-${order.id}`);
 
                             if (!$existingItem.length) {
                                 // Genuinely missing order: upsert order card / row
@@ -1441,7 +1441,7 @@
                     orderId);
 
                 if (p_Id) {
-                    url = url + '/' + p_Id; 
+                    url = url + '/' + p_Id;
                 }
 
                 $('#quickViewModal').modal('show');
@@ -1495,7 +1495,7 @@
                         $('#bank_account').val(data.bank_account ?? '');
                         $('#partner_id').val(data.partner_id ?? '');
                         $('#invoice_amount_input').val(data.total_amount_formatted ?? '');
-                        
+
                         if (data.partner_id){
                             $('#payment_type_credit').prop('checked', true);
                             $('.payment_type').prop('disabled', true);
@@ -1510,7 +1510,7 @@
                             if($('input[name="select_payment_type"]:checked').length > 0){
                                 $('input[name="select_payment_type"]').prop('checked', false);
                                 $('#cash_paid, #card_paid').prop('readOnly', true).val('').trigger('input');
-                            }  
+                            }
                         }
 
                         updateCalculations();

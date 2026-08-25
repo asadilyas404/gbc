@@ -50,7 +50,7 @@
                             Order Ready
                         </button>
                     </div>
-                @else
+                @elseif ($order->kitchen_status == 'pending' || empty($order->kitchen_status))
                     <div class="text-right">
                         <button class="btn btn-success btn-sm btn-style startCooking"
                             data-id="{{ $order->id }}">Start Cooking</button>

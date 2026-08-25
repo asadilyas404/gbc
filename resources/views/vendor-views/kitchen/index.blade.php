@@ -154,7 +154,7 @@
                         let cookingList = data.cooking;
                         let readyList = data.ready;
                         if (orders) {
-                            if(type == 'ready' || type == 'completed'){
+                            if(type == 'ready' || type == 'completed' || type == 'handover'){
                                 $("#order_" + id).fadeOut(300, function () {
                                     $(this).remove();
                                 });

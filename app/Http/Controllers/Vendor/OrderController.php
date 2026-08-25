@@ -204,11 +204,12 @@ class OrderController extends Controller
 
         foreach ($order->details as $detail) {
             if (isset($detail->food_id)) {
-                $foodData = json_decode($detail->food_details, true);
-                $food = \App\Models\Food::find($foodData['id']);
-                $image = $food->image_full_url ?? asset('public/assets/admin/img/100x100/food-default-image.png');
-                $name = Str::limit($foodData['name'], 25, '...');
-                $nameAr = Str::limit($food->getTranslationValue('name', 'ar'), 25, '...');
+                $foodData = json_decode($detail->food_details, true) ?? [];
+                $foodId = $foodData['id'] ?? $detail->food_id;
+                $food = $foodId ? \App\Models\Food::find($foodId) : null;
+                $image = ($food && isset($food->image_full_url)) ? $food->image_full_url : asset('public/assets/admin/img/100x100/food-default-image.png');
+                $name = Str::limit($foodData['name'] ?? ($food->name ?? ''), 25, '...');
+                $nameAr = Str::limit($food ? $food->getTranslationValue('name', 'ar') : '', 25, '...');
                 $discoPrice = $detail['price'] - $detail['discount_on_food'];
                 $price = \App\CentralLogics\Helpers::format_currency($discoPrice) ;
                 $qty = $detail['quantity'];
@@ -1482,6 +1483,28 @@ class OrderController extends Controller
                 return response()->json(['success' => false, 'message' => 'Order not found', 'html' => ''], 404);
             }
 
+            $branchId = Helpers::get_restaurant_id();
+            $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+            $orderDate = $branch ? $branch->orders_date : null;
+
+            $activeKitchenStatuses = [
+                Helpers::kitchenStatus('pending')['key'],
+                Helpers::kitchenStatus('cooking')['key'],
+            ];
+
+            $matchesStatus = in_array($order->kitchen_status, $activeKitchenStatuses)
+                && ($order->restaurant_id == $branchId)
+                && ($orderDate ? $order->order_date == $orderDate : true);
+
+            if (!$matchesStatus) {
+                return response()->json([
+                    'success' => true,
+                    'matches_status' => false,
+                    'message' => 'Order is not active in kitchen',
+                    'html' => ''
+                ]);
+            }
+
             $timer = "";
             if (isset($order->created_at) && !empty($order->created_at)) {
                 $timer = date('H:i:s', strtotime($order->created_at));
@@ -1489,7 +1512,11 @@ class OrderController extends Controller
             $order->setAttribute('kitchen_time', $timer);
 
             $printableContent = view('vendor-views.kitchen.partials._card', compact('order'))->render();
-            return response()->json(['success' => true, 'html' => $printableContent]);
+            return response()->json([
+                'success' => true,
+                'matches_status' => true,
+                'html' => $printableContent
+            ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('[KitchenCard Error]: ' . $e->getMessage() . ' at ' . $e->getFile() . ':' . $e->getLine());
             return response()->json(['success' => false, 'message' => $e->getMessage(), 'html' => ''], 500);

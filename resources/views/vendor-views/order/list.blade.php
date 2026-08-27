@@ -695,6 +695,8 @@
     </div>
 
     @include('vendor-views.pos.orderFinalModal')
+
+    @include('vendor-views.partials._order-sound-manager')
 @endsection
 
 @push('script_2')
@@ -711,17 +713,37 @@
             const pusherKey = '{{ env('PUSHER_APP_KEY', 'app-key') }}';
             const pusherPort = parseInt('{{ env('PUSHER_PORT', 6001) }}') || 6001;
 
-            var pusher = new Pusher(pusherKey, {
-                cluster: 'mt1',
-                wsHost: localWsHost,
-                wsPort: pusherPort,
-                forceTLS: false,
-                disableStats: true,
-                enabledTransports: ['ws']
-            });
+            console.log('[DEBUG] Initializing Pusher client with key:', pusherKey, 'host:', localWsHost, 'port:', pusherPort);
+            console.log('[DEBUG] Expected WebSocket URL: ws://' + localWsHost + ':' + pusherPort + '/app/' + pusherKey);
 
-            const notificationSound = new Audio('/sounds/notification.wav');
-            notificationSound.preload = 'auto';
+            try {
+                var pusher = new Pusher(pusherKey, {
+                    cluster: 'mt1',
+                    wsHost: localWsHost,
+                    wsPort: pusherPort,
+                    forceTLS: false,
+                    disableStats: true,
+                    enabledTransports: ['ws']
+                });
+
+                console.log('[DEBUG] Pusher object created. Current state:', pusher.connection.state);
+
+                // Bind state_change immediately to catch ALL transitions
+                pusher.connection.bind('state_change', function(s) {
+                    console.log('[DEBUG] Pusher STATE:', s.previous, '=>', s.current);
+                });
+
+                pusher.connection.bind('error', function(err) {
+                    console.error('[DEBUG] Pusher connection ERROR:', err);
+                });
+
+                pusher.connection.bind('connected', function() {
+                    console.log('[DEBUG] Pusher CONNECTED! Socket ID:', pusher.connection.socket_id);
+                });
+
+            } catch (e) {
+                console.error('[DEBUG] Pusher CONSTRUCTOR threw an error:', e);
+            }
 
             let orderFallbackActive = false;
             let isSyncingOrderList = false;
@@ -786,27 +808,23 @@
                             $existingRow.replaceWith($newRow);
                             if ($('#set-rows').length) $('#set-rows').prepend($newRow);
                             applyHighlight($newRow);
+                            playNotificationSound();
                         } else if ($existingCard.length) {
                             const $newCard = $(response.html);
                             $existingCard.replaceWith($newCard);
                             if ($('#orders-container').length) $('#orders-container').prepend($newCard);
                             applyHighlight($newCard);
+                            playNotificationSound();
                         } else if ($('#set-rows').length) {
                             const $newRow = $(response.html);
                             $('#set-rows').prepend($newRow);
                             applyHighlight($newRow);
-                            notificationSound.currentTime = 0;
-                            notificationSound.play().catch(function (error) {
-                                console.log('Sound blocked:', error);
-                            });
+                            playNotificationSound();
                         } else if ($('#orders-container').length) {
                             const $newCard = $(response.html);
                             $('#orders-container').prepend($newCard);
                             applyHighlight($newCard);
-                            notificationSound.currentTime = 0;
-                            notificationSound.play().catch(function (error) {
-                                console.log('Sound blocked:', error);
-                            });
+                            playNotificationSound();
                         }
                     },
                     error: function (xhr) {
@@ -870,10 +888,7 @@
                         });
 
                         if (hasGenuinelyNewOrder) {
-                            notificationSound.currentTime = 0;
-                            notificationSound.play().catch(function (error) {
-                                console.log('Sound blocked:', error);
-                            });
+                            playNotificationSound();
                         }
                     },
                     error: function (xhr, status, error) {
@@ -1591,33 +1606,6 @@
 
                 return false;
             }
-
-            Swal.fire({
-                title: 'Welcome to the Pending Orders Page',
-                text: 'Here you will find all pending orders that are waiting to be reviewed and processed.',
-                type: 'info',
-                confirmButtonText: 'View Pending Orders'
-            }).then(function (result) {
-                if (result.value) {
-                    const sound = document.getElementById('new-order-sound');
-
-                    if (!sound) {
-                        console.error('Notification sound element not found.');
-                        return;
-                    }
-
-                    sound.play()
-                        .then(function () {
-                            sound.pause();
-                            sound.currentTime = 0;
-
-                            window.kitchenAudioEnabled = true;
-                        })
-                        .catch(function (error) {
-                            console.error('Unable to activate notification sound:', error);
-                        });
-                }
-            });
 
             // Print Order Functionality
             // $(document).on('click', '.print-order-btn', function() {

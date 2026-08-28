@@ -1,4 +1,4 @@
-<tr class="status-{{ $order['order_status'] }} class-all" id="order-row-{{ $order['id'] }}" data-order-id="{{ $order['id'] }}" data-order-status="{{ $order['order_status'] }}" data-payment-status="{{ $order['payment_status'] }}">
+<tr class="status-{{ $order['order_status'] }} class-all @if ($order['order_status'] === 'cooking') order-status-cooking @endif" id="order-row-{{ $order['id'] }}" data-order-id="{{ $order['id'] }}" data-order-status="{{ $order['order_status'] }}" data-payment-status="{{ $order['payment_status'] }}">
     <td class="">
         {{ $key ?? 1 }}
     </td>

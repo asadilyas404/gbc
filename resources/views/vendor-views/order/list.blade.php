@@ -696,7 +696,7 @@
 
     @include('vendor-views.pos.orderFinalModal')
 
-    @include('vendor-views.partials._order-sound-manager')
+    @include('vendor-views.partials._order-sound-manager', ['soundMode' => 'once'])
 @endsection
 
 @push('script_2')
@@ -797,6 +797,9 @@
                     success: function (response) {
                         if (response.matches_status === false) {
                             $(`#order-row-${orderId}, #order-card-${orderId}`).fadeOut(300, function () { $(this).remove(); });
+                            if (typeof stopOrderAlert === 'function') {
+                                stopOrderAlert(orderId);
+                            }
                             return;
                         }
 
@@ -804,33 +807,42 @@
                         const $existingCard = $(`#order-card-${orderId}`);
 
                         if ($existingRow.length) {
+                            // Row already exists: replace in place (DO NOT move to top)
                             const $newRow = $(response.html);
                             $existingRow.replaceWith($newRow);
-                            if ($('#set-rows').length) $('#set-rows').prepend($newRow);
-                            applyHighlight($newRow);
-                            playNotificationSound();
+                            if (typeof markOrderAsUpdated === 'function') {
+                                markOrderAsUpdated(orderId);
+                            }
                         } else if ($existingCard.length) {
+                            // Card already exists: replace in place (DO NOT move to top)
                             const $newCard = $(response.html);
                             $existingCard.replaceWith($newCard);
-                            if ($('#orders-container').length) $('#orders-container').prepend($newCard);
-                            applyHighlight($newCard);
-                            playNotificationSound();
+                            if (typeof markOrderAsUpdated === 'function') {
+                                markOrderAsUpdated(orderId);
+                            }
                         } else if ($('#set-rows').length) {
+                            // Genuinely missing row: prepend to top and trigger NEW alert
                             const $newRow = $(response.html);
                             $('#set-rows').prepend($newRow);
-                            applyHighlight($newRow);
-                            playNotificationSound();
+                            if (typeof markOrderAsNew === 'function') {
+                                markOrderAsNew(orderId);
+                            }
                         } else if ($('#orders-container').length) {
+                            // Genuinely missing card: prepend to top and trigger NEW alert
                             const $newCard = $(response.html);
                             $('#orders-container').prepend($newCard);
-                            applyHighlight($newCard);
-                            playNotificationSound();
+                            if (typeof markOrderAsNew === 'function') {
+                                markOrderAsNew(orderId);
+                            }
                         }
                     },
                     error: function (xhr) {
                         console.log('Could not load order HTML:', xhr.responseText);
                         if (xhr.status === 404) {
                             $(`#order-row-${orderId}, #order-card-${orderId}`).fadeOut(300, function () { $(this).remove(); });
+                            if (typeof stopOrderAlert === 'function') {
+                                stopOrderAlert(orderId);
+                            }
                         }
                     }
                 });
@@ -863,19 +875,19 @@
                                 $(`#order-row-${domOrderId}, #order-card-${domOrderId}`).fadeOut(300, function () {
                                     $(this).remove();
                                 });
+                                if (typeof stopOrderAlert === 'function') {
+                                    stopOrderAlert(domOrderId);
+                                }
                             }
                         });
 
                         // 2. Reconcile server orders against DOM using pre-rendered HTML
-                        let hasGenuinelyNewOrder = false;
-
                         serverOrders.forEach(function (order) {
                             const $existingItem = $(`#order-row-${order.id}, #order-card-${order.id}`);
 
                             if (!$existingItem.length) {
                                 // Genuinely missing order: upsert order card / row
                                 upsertOrderCard(order.id);
-                                hasGenuinelyNewOrder = true;
                             } else {
                                 // Check if status changed
                                 const currentOrderStatus = $existingItem.attr('data-order-status');
@@ -883,13 +895,13 @@
 
                                 if (order.order_status !== currentOrderStatus || order.payment_status !== currentPaymentStatus) {
                                     upsertOrderCard(order.id);
+                                } else {
+                                    if (typeof reapplyOrderAlertState === 'function') {
+                                        reapplyOrderAlertState(order.id);
+                                    }
                                 }
                             }
                         });
-
-                        if (hasGenuinelyNewOrder) {
-                            playNotificationSound();
-                        }
                     },
                     error: function (xhr, status, error) {
                         console.warn("Order list sync request failed or timed out:", status, error);

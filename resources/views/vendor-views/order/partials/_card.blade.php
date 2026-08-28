@@ -3,7 +3,7 @@
         $authId = auth('vendor')->id() ?? auth('vendor_employee')->id();
     @endphp
     <div
-        class="card border order-card h-100 shadow-sm @if ($authId && $authId == $order->order_taken_by) bg-card-mine-order border-success @endif">
+        class="card border order-card h-100 shadow-sm @if ($order['order_status'] === 'cooking') order-status-cooking @endif @if ($authId && $authId == $order->order_taken_by) bg-card-mine-order border-success @endif">
         <div class="card-body p-3 pb-2">
             <!-- Header: Order # and Status -->
             <div class="d-flex justify-content-between align-items-center mb-2">

@@ -1,6 +1,6 @@
 @extends('layouts.vendor.app')
 
-@section('title', 'New Order List')
+@section('title', 'Kitchen Order List')
 
 @push('css_or_js')
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -17,16 +17,19 @@
             padding: 5px 12px;
         }
 
-        #cooking .item-card-body{
+        #cooking .item-card-body {
             background: #f9e2e4;
         }
-        #cooking .card-body, #cooking .card-header  {
+
+        #cooking .card-body,
+        #cooking .card-header {
             background: #f8d7da;
         }
 
         #ready .card-body {
             background: #c3e6cb;
         }
+
         .accordion-toggle {
             color: #212529;
         }
@@ -51,11 +54,13 @@
                 border: 2px solid #ffc107;
                 transform: scale(1.02);
             }
+
             50% {
                 box-shadow: 0 0 15px 3px rgba(255, 193, 7, 0.6);
                 border: 2px solid #ffc107;
                 transform: scale(1.01);
             }
+
             100% {
                 box-shadow: none;
                 border: 1px solid rgba(0, 0, 0, 0.125);
@@ -74,7 +79,7 @@
         <!-- Page Header -->
         <div class="page-header">
             <h1 class="page-header-title">
-                <i class="tio-add-circle-outlined"></i> New Order List
+                <i class="tio-add-circle-outlined"></i> Kitchen Order List
             </h1>
         </div>
 
@@ -121,7 +126,7 @@
         <!-- Will be populated dynamically -->
     </div>
 
-    @include('vendor-views.partials._order-sound-manager')
+    @include('vendor-views.partials._order-sound-manager', ['soundMode' => 'continuous'])
 @endsection
 
 @push('script')
@@ -131,12 +136,12 @@
     <script>
         var orderType = @json($data['order_type']);
         let currentRequest = null;
-    
+
         function updateAllOrders(type = null, id = null) {
             if (currentRequest !== null) {
                 currentRequest.abort();
             }
-            let url = "/restaurant-panel/kitchen/get-all-orders";   
+            let url = "/restaurant-panel/kitchen/get-all-orders";
             if (type && id) {
                 url = url + "?type=" + type + "&id=" + id;
             }
@@ -152,15 +157,15 @@
                         let cookingList = data.cooking;
                         let readyList = data.ready;
                         if (orders) {
-                            if(type == 'ready' || type == 'completed' || type == 'handover'){
-                                $("#order_" + id).fadeOut(300, function () {
+                            if (type == 'ready' || type == 'completed' || type == 'handover') {
+                                $("#order_" + id).fadeOut(300, function() {
                                     $(this).remove();
                                 });
-                            }else{
+                            } else {
                                 window.location.reload();
                             }
                         }
-                        
+
                         updateTimers();
 
                         $('.toast').toast('show');
@@ -230,7 +235,7 @@
         function scheduleNextFallbackSync() {
             clearFallbackTimer();
             if (fallbackActive) {
-                fallbackTimeout = setTimeout(function () {
+                fallbackTimeout = setTimeout(function() {
                     syncKitchenOrders();
                 }, 40000);
             }
@@ -252,7 +257,7 @@
 
         function applyCardHighlight($element) {
             $element.addClass('highlight-new-order');
-            setTimeout(function () {
+            setTimeout(function() {
                 $element.removeClass('highlight-new-order');
             }, 12000);
         }
@@ -262,39 +267,50 @@
                 url: '/restaurant-panel/order/kitchen-card/' + orderId,
                 type: 'GET',
                 timeout: 15000,
-                success: function (response) {
+                success: function(response) {
                     const orderSelector = '#order_' + orderId;
                     const $existingCard = $(orderSelector);
 
                     if (response.matches_status === false) {
                         if ($existingCard.length) {
-                            $existingCard.fadeOut(300, function () { $(this).remove(); });
+                            $existingCard.fadeOut(300, function() {
+                                $(this).remove();
+                            });
+                        }
+                        if (typeof stopOrderAlert === 'function') {
+                            stopOrderAlert(orderId);
                         }
                         return;
                     }
 
                     if ($existingCard.length) {
-                        // Card already exists in DOM: update HTML, move to top, apply highlight, and play sound
+                        // Card already exists in DOM: update HTML in place (DO NOT move to top)
                         const $newCard = $(response.html);
                         $existingCard.replaceWith($newCard);
-                        $('#orders .row').prepend($newCard);
-                        applyCardHighlight($newCard);
-                        playNotificationSound();
+                        if (typeof markOrderAsUpdated === 'function') {
+                            markOrderAsUpdated(orderId);
+                        }
                     } else {
-                        // Card was genuinely missing: prepend card to top, apply highlight, and play sound
+                        // Card was genuinely missing: prepend card to top and start NEW alert
                         const $newCard = $(response.html);
                         $('#orders .row').prepend($newCard);
-                        applyCardHighlight($newCard);
-                        playNotificationSound();
+                        if (typeof markOrderAsNew === 'function') {
+                            markOrderAsNew(orderId);
+                        }
                     }
                     updateTimers();
                 },
-                error: function (xhr) {
+                error: function(xhr) {
                     console.log('Could not load order HTML:', xhr.responseText);
                     if (xhr.status === 404) {
                         const orderSelector = '#order_' + orderId;
                         if ($(orderSelector).length) {
-                            $(orderSelector).fadeOut(300, function () { $(this).remove(); });
+                            $(orderSelector).fadeOut(300, function() {
+                                $(this).remove();
+                            });
+                        }
+                        if (typeof stopOrderAlert === 'function') {
+                            stopOrderAlert(orderId);
                         }
                     }
                 }
@@ -310,65 +326,69 @@
                 type: 'GET',
                 dataType: 'json',
                 timeout: 15000,
-                success: function (response) {
+                success: function(response) {
                     if (!response || !response.success || !Array.isArray(response.orders)) {
                         return;
                     }
 
                     const serverOrders = response.orders;
                     const serverOrderMap = {};
-                    serverOrders.forEach(function (order) {
+                    serverOrders.forEach(function(order) {
                         serverOrderMap[order.id] = order;
                     });
 
                     // 1. Remove DOM cards that no longer exist on server (completed/canceled/delivered)
-                    $('[data-order-id]').each(function () {
+                    $('[data-order-id]').each(function() {
                         const domOrderId = $(this).attr('data-order-id');
                         if (!serverOrderMap[domOrderId]) {
-                            $('#order_' + domOrderId).fadeOut(300, function () {
+                            $('#order_' + domOrderId).fadeOut(300, function() {
                                 $(this).remove();
                             });
+                            if (typeof stopOrderAlert === 'function') {
+                                stopOrderAlert(domOrderId);
+                            }
                         }
                     });
 
                     // 2. Reconcile server orders against DOM cards using pre-rendered card HTML
-                    let hasOrderChangedOrNew = false;
-
-                    serverOrders.forEach(function (order) {
+                    serverOrders.forEach(function(order) {
                         const orderSelector = '#order_' + order.id;
                         const $existingCard = $(orderSelector);
 
                         if (!$existingCard.length) {
-                            // Genuinely missing order: prepend rendered html card from response payload
+                            // Genuinely missing order: prepend rendered html card to top and start NEW alert
                             const $newCard = $(order.html);
                             $('#orders .row').prepend($newCard);
-                            applyCardHighlight($newCard);
-                            hasOrderChangedOrNew = true;
+                            if (typeof markOrderAsNew === 'function') {
+                                markOrderAsNew(order.id);
+                            }
                         } else {
                             // Check if status changed
                             const currentKitchenStatus = $existingCard.attr('data-kitchen-status');
                             const currentOrderStatus = $existingCard.attr('data-order-status');
 
                             if (order.kitchen_status !== currentKitchenStatus || order.order_status !== currentOrderStatus) {
+                                // Updated card: replace in place (DO NOT move to top)
                                 const $newCard = $(order.html);
                                 $existingCard.replaceWith($newCard);
-                                $('#orders .row').prepend($newCard);
-                                applyCardHighlight($newCard);
-                                hasOrderChangedOrNew = true;
+                                if (typeof markOrderAsUpdated === 'function') {
+                                    markOrderAsUpdated(order.id);
+                                }
+                            } else {
+                                // Re-apply active alert visuals if order is currently unacknowledged
+                                if (typeof reapplyOrderAlertState === 'function') {
+                                    reapplyOrderAlertState(order.id);
+                                }
                             }
                         }
                     });
 
-                    if (hasOrderChangedOrNew) {
-                        playNotificationSound();
-                    }
-
                     updateTimers();
                 },
-                error: function (xhr, status, error) {
+                error: function(xhr, status, error) {
                     console.warn("Kitchen sync request failed or network unavailable (" + status + "):", error);
                 },
-                complete: function () {
+                complete: function() {
                     isSyncing = false;
                     if (fallbackActive) {
                         scheduleNextFallbackSync();
@@ -379,10 +399,12 @@
 
         // Real-time Pusher Event Listener
         var channel = pusher.subscribe('my-channel');
-        channel.bind('my-event', function (data) {
+        channel.bind('my-event', function(data) {
             console.log('[DEBUG] Pusher my-event received:', data);
-            if (data.branch_id && window.currentBranchId && parseInt(data.branch_id) !== parseInt(window.currentBranchId)) {
-                console.log('[DEBUG] Event branch_id mismatch (' + data.branch_id + ' != ' + window.currentBranchId + '). Skipping.');
+            if (data.branch_id && window.currentBranchId && parseInt(data.branch_id) !== parseInt(window
+                    .currentBranchId)) {
+                console.log('[DEBUG] Event branch_id mismatch (' + data.branch_id + ' != ' + window
+                    .currentBranchId + '). Skipping.');
                 return;
             }
 
@@ -394,23 +416,24 @@
         });
 
         // Pusher Connection State Listener
-        pusher.connection.bind('state_change', function (states) {
+        pusher.connection.bind('state_change', function(states) {
             console.log('[DEBUG] Pusher connection state changed:', states.previous, '=>', states.current);
             if (states.current === 'connected') {
                 stopFallbackMode();
                 syncKitchenOrders(); // Perform ONE immediate sync on reconnection
-            } else if (states.current === 'disconnected' || states.current === 'unavailable' || states.current === 'failed') {
+            } else if (states.current === 'disconnected' || states.current === 'unavailable' || states.current ===
+                'failed') {
                 startFallbackMode();
             }
         });
 
         // Network offline / online events
-        window.addEventListener('offline', function () {
+        window.addEventListener('offline', function() {
             console.warn('Network offline event detected.');
             startFallbackMode();
         });
 
-        window.addEventListener('online', function () {
+        window.addEventListener('online', function() {
             console.log('Network online event detected.');
             if (pusher.connection.state === 'connected') {
                 stopFallbackMode();
@@ -419,13 +442,13 @@
         });
 
         // Initial check if Pusher failed to connect on page load
-        setTimeout(function () {
+        setTimeout(function() {
             if (pusher.connection.state !== 'connected' || !navigator.onLine) {
                 startFallbackMode();
             }
         }, 3000);
 
-       
+
         function funViewCard(customer, item, buttonName, btnAction) {
             let timeHtml = "";
             if (item?.kitchen_time) {
@@ -490,7 +513,7 @@
             }
         });
 
-        $(document).on('click', '.orderReady', function () {
+        $(document).on('click', '.orderReady', function() {
             const thix = $(this);
             const dataId = thix.attr('data-id');
 
@@ -568,12 +591,12 @@
         }, 900000);
 
         // Save scroll position before the page unloads
-        window.addEventListener("beforeunload", function () {
+        window.addEventListener("beforeunload", function() {
             localStorage.setItem("scrollPosition", window.scrollY);
         });
 
         // Restore scroll position on page load
-        window.addEventListener("load", function () {
+        window.addEventListener("load", function() {
             const scrollY = localStorage.getItem("scrollPosition");
             if (scrollY !== null) {
                 window.scrollTo(0, parseInt(scrollY));
@@ -620,8 +643,8 @@
         //         return;
         //     }
 
-        //     const billPrinterName = '{{ config("app.bill_printer_name", "Bill Printer") }}';
-        //     const kitchenPrinterName = '{{ config("app.kitchen_printer_name", "Kitchen Printer") }}';
+        //     const billPrinterName = '{{ config('app.bill_printer_name', 'Bill Printer') }}';
+        //     const kitchenPrinterName = '{{ config('app.kitchen_printer_name', 'Kitchen Printer') }}';
 
         //     let printersFound = 0;
 

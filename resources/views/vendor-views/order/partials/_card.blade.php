@@ -11,7 +11,7 @@
                     Order #{{ $order['order_serial'] }}
                 </div>
                 <span
-                    class="badge bg-{{ $order['order_status'] === 'canceled' ? 'danger' : 'primary' }} text-white text-capitalize">
+                    class="badge bg-{{ $order['order_status'] === 'canceled' ? 'danger' : ($order['order_status'] === 'cooking' ? 'warning' : 'primary') }} text-white text-capitalize">
                     {{ translate(str_replace('_', ' ', $order['order_status'])) }}
                 </span>
             </div>

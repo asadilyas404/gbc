@@ -586,10 +586,6 @@
 
         updateTimers();
 
-        setInterval(function() {
-            window.location.reload();
-        }, 900000);
-
         // Save scroll position before the page unloads
         window.addEventListener("beforeunload", function() {
             localStorage.setItem("scrollPosition", window.scrollY);

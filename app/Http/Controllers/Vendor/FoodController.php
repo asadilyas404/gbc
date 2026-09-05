@@ -56,6 +56,7 @@ class FoodController extends Controller
 
     public function store(Request $request)
     {
+        Helpers::validateFoodImageUpload($request);
         if (!Helpers::get_restaurant_data()->food_section) {
             return response()->json([
                 'errors' => [
@@ -577,6 +578,7 @@ class FoodController extends Controller
 
     public function update(Request $request, $id)
     {
+        Helpers::validateFoodImageUpload($request);
         if (!Helpers::get_restaurant_data()->food_section) {
             return response()->json([
                 'errors' => [

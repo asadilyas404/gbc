@@ -40,6 +40,7 @@ class FoodController extends Controller
 
     public function store(Request $request)
     {
+        Helpers::validateFoodImageUpload($request);
         $validator = Validator::make($request->all(), [
             'name.0' => 'required',
             'name.*' => 'max:191',
@@ -252,6 +253,7 @@ class FoodController extends Controller
 
     public function update(Request $request, $id)
     {
+        Helpers::validateFoodImageUpload($request);
         $validator = Validator::make($request->all(), [
             'name' => 'array',
             'name.0' => 'required',

@@ -22,6 +22,7 @@ class FoodController extends Controller
 
     public function store(Request $request)
     {
+        Helpers::validateFoodImageUpload($request);
         if(!$request?->vendor?->restaurants[0]?->food_section)
         {
             return response()->json([
@@ -300,6 +301,7 @@ class FoodController extends Controller
 
     public function update(Request $request)
     {
+        Helpers::validateFoodImageUpload($request);
         if(!$request?->vendor?->restaurants[0]?->food_section)
         {
             return response()->json([

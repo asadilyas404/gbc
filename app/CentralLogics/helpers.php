@@ -2096,17 +2096,22 @@ class Helpers
 
     public static function upload(string $dir, string $format, $image = null)
     {
+        if ($image === null) {
+            return 'def.png';
+        }
+        $disk = null;
         try {
-            if ($image != null) {
-                $imageName = \Carbon\Carbon::now()->toDateString() . "-" . uniqid() . "." . $format;
-                if (!Storage::disk(self::getDisk())->exists($dir)) {
-                    Storage::disk(self::getDisk())->makeDirectory($dir);
-                }
-                Storage::disk(self::getDisk())->putFileAs($dir, $image, $imageName);
-            } else {
-                $imageName = 'def.png';
+            $disk = static::getDisk();
+            $storage = Storage::disk($disk);
+            $imageName = \Carbon\Carbon::now()->toDateString() . "-" . uniqid() . "." . $format;
+            if (!$storage->putFileAs($dir, $image, $imageName)) {
+                throw new \RuntimeException('Storage returned false while writing the uploaded file.');
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Image storage failed', [
+                'disk' => $disk, 'directory' => $dir, 'exception' => $e,
+            ]);
+            throw new \App\Exceptions\ImageUploadException('The image could not be saved. Please try again or contact support.', 0, $e);
         }
         return $imageName;
     }
@@ -2116,14 +2121,32 @@ class Helpers
         if ($image == null) {
             return $old_image;
         }
+        // Keep the old file until the replacement has been written successfully.
+        $imageName = static::upload($dir, $format, $image);
         try {
-            if (Storage::disk(self::getDisk())->exists($dir . $old_image)) {
-                Storage::disk(self::getDisk())->delete($dir . $old_image);
+            if ($old_image && $old_image !== 'def.png' && Storage::disk(static::getDisk())->exists($dir . $old_image)) {
+                Storage::disk(static::getDisk())->delete($dir . $old_image);
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Old image cleanup failed', ['directory' => $dir, 'exception' => $e]);
         }
-        $imageName = Helpers::upload($dir, $format, $image);
         return $imageName;
+    }
+
+    public static function validateFoodImageUpload($request)
+    {
+        $image = $request->file('image');
+        if ($image instanceof \Symfony\Component\HttpFoundation\File\UploadedFile && !$image->isValid()) {
+            \Illuminate\Support\Facades\Log::warning('Food image rejected by PHP', [
+                'upload_error' => $image->getError(),
+                'upload_max_filesize' => ini_get('upload_max_filesize'),
+                'post_max_size' => ini_get('post_max_size'),
+            ]);
+            $message = in_array($image->getError(), [UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE], true)
+                ? 'The image exceeds the server upload limit. Choose an image smaller than 2 MB.'
+                : 'The image upload could not be completed. Please try again or contact support.';
+            throw new \App\Exceptions\ImageUploadException($message);
+        }
     }
 
     public static function check_and_delete(string $dir, $old_image)

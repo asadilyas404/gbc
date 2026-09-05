@@ -134,6 +134,9 @@ return [
     */
 
     'custom' => [
+        'image' => [
+            'max' => 'The image must not be larger than 2 MB.',
+        ],
         'attribute-name' => [
             'rule-name' => 'custom-message',
         ],

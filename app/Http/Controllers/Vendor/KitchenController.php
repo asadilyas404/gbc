@@ -93,6 +93,7 @@ class KitchenController extends Controller
                     $idSuffix = '2';
                 } elseif ($request->type === 'ready') {
                     $idSuffix = '3';
+                    $order->order_preperation_time = now();
                 } elseif ($request->type === 'completed') {
                     $idSuffix = '4';
                 }

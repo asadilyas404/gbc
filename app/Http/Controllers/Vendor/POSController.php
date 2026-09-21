@@ -179,8 +179,9 @@ class POSController extends Controller
         $orderPartner = $id;
         $bankaccounts = DB::table('tbl_defi_bank')->get();
 
+        $tz = config('timezone') ?: 'Asia/Muscat';
         $previousDate = $orderDate ? Carbon::parse($orderDate) : null;
-        $currentDate = Carbon::now();
+        $currentDate = Carbon::now($tz);
         $updateDate = false;
 
         if ($previousDate && $previousDate->toDateString() != $currentDate->toDateString()
@@ -1023,6 +1024,22 @@ class POSController extends Controller
         if (!$activeSession) {
             Toastr::error('No active shift session found. Please start a shift session with your ID before placing orders.');
             return back();
+        }
+
+        $editing_order_id = session('editing_order_id');
+        if (!$editing_order_id) {
+            $branchId = Helpers::get_restaurant_id();
+            $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
+            $orderDate = $branch ? $branch->orders_date : null;
+            $tz = config('timezone') ?: 'Asia/Muscat';
+            $previousDate = $orderDate ? Carbon::parse($orderDate) : null;
+            $currentDate = Carbon::now($tz);
+
+            if ($previousDate && $previousDate->toDateString() != $currentDate->toDateString()
+                && $currentDate->hour >= 8) {
+                Toastr::error('Session Date is outdated (' . ($previousDate ? $previousDate->format('d F, Y') : '') . '). Please update session date in printer settings before placing orders.');
+                return back();
+            }
         }
 
         $cart = $request->session()->get('cart');

@@ -1042,7 +1042,7 @@
                 Swal.fire({
                     type: "warning",
                     title: "Date does not matched!",
-                    text: "Session Date is {{ \Carbon\Carbon::parse($orderDate)->format('d F, Y') }}",
+                    text: "Session Date is {{ $orderDate ? \Carbon\Carbon::parse($orderDate)->format('d F, Y') : '' }}",
                     showCancelButton: true,
                     confirmButtonColor: "#3085d6",
                     cancelButtonColor: "#d33",
@@ -1616,7 +1616,7 @@
                 .trigger('change.select2');
                 localStorage.removeItem('posSelectedCustomer');
                 window.selectedCustomer = null;
-                window.updateDate = null;
+                window.updateDate = {{ $updateDate ? 'true' : 'false' }};
                 window.editingOrder = false;
                 updateCart();
                 if($('#editingOrderHeading').length){

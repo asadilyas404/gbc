@@ -27,6 +27,134 @@ Route::resource('table_employees', TableEmployeeController::class);
 
 
 
+Route::get('/test-whatsapp-requirements', function (\Illuminate\Http\Request $request) {
+    $results = [];
+
+    // 1. Check PHP Extensions & Dompdf
+    $results['php_extensions'] = [
+        'title' => '1. PHP Extensions & PDF Generator',
+        'curl_installed' => extension_loaded('curl'),
+        'dompdf_installed' => class_exists('Dompdf\Dompdf'),
+        'attachments_dir_writable' => is_writable(public_path('uploads/attachments')) || is_writable(public_path()),
+        'status' => (extension_loaded('curl') && class_exists('Dompdf\Dompdf')) ? 'PASS' : 'FAIL',
+    ];
+
+    // 2. Check Database Tables & Queue State
+    $hasLogTable = \Illuminate\Support\Facades\Schema::hasTable('order_whatsapp_msg_log');
+    $hasJobsTable = \Illuminate\Support\Facades\Schema::hasTable('jobs');
+    $hasFailedJobsTable = \Illuminate\Support\Facades\Schema::hasTable('failed_jobs');
+
+    $pendingJobsCount = $hasJobsTable ? \Illuminate\Support\Facades\DB::table('jobs')->where('queue', 'whatsapp')->count() : 0;
+    $failedJobsCount = $hasFailedJobsTable ? \Illuminate\Support\Facades\DB::table('failed_jobs')->count() : 0;
+    $totalLogs = $hasLogTable ? \Illuminate\Support\Facades\DB::table('order_whatsapp_msg_log')->count() : 0;
+    $failedLogs = $hasLogTable ? \Illuminate\Support\Facades\DB::table('order_whatsapp_msg_log')->where('message_status', 'failed')->count() : 0;
+
+    $results['database'] = [
+        'title' => '2. Database Tables & Queue Worker State',
+        'order_whatsapp_msg_log_table' => $hasLogTable ? 'EXISTS' : 'MISSING',
+        'jobs_table' => $hasJobsTable ? 'EXISTS' : 'MISSING',
+        'failed_jobs_table' => $hasFailedJobsTable ? 'EXISTS' : 'MISSING',
+        'pending_whatsapp_jobs_in_db' => $pendingJobsCount,
+        'failed_jobs_in_db' => $failedJobsCount,
+        'total_whatsapp_logs' => $totalLogs,
+        'failed_whatsapp_logs' => $failedLogs,
+        'queue_worker_status_hint' => $pendingJobsCount > 0 ? 'WARNING: There are ' . $pendingJobsCount . ' pending WhatsApp jobs in the database! Queue worker may NOT be running.' : 'OK (No stuck jobs)',
+        'status' => ($hasLogTable && $hasJobsTable) ? ($pendingJobsCount > 5 ? 'WARNING' : 'PASS') : 'FAIL',
+    ];
+
+    // 3. Environment Variables (Meta WhatsApp)
+    $mode = config('whatsapp.whatsapp_mode') ?? env('WHATSAPP_MODE');
+    $phoneNoId = config('whatsapp.whatsapp_phone_number_id');
+    $token = config('whatsapp.whatsapp_token');
+    $apiVersion = config('whatsapp.whatsapp_api_version', 'v20.0');
+
+    $metaConfigPass = !empty($mode) && !empty($phoneNoId) && !empty($token);
+
+    $results['meta_whatsapp_config'] = [
+        'title' => '3. Meta WhatsApp API Credentials (.env)',
+        'mode' => $mode ?? 'NOT SET (Must be LIVE or SANDBOX)',
+        'phone_number_id' => !empty($phoneNoId) ? 'CONFIGURED (' . substr($phoneNoId, 0, 4) . '***)' : 'MISSING',
+        'token' => !empty($token) ? 'CONFIGURED (' . substr($token, 0, 10) . '***)' : 'MISSING',
+        'api_version' => $apiVersion,
+        'status' => $metaConfigPass ? 'PASS' : 'FAIL',
+    ];
+
+    // 4. Meta WhatsApp API Connectivity Test
+    $metaApiStatus = 'NOT TESTED';
+    $metaApiDetails = null;
+    if ($metaConfigPass) {
+        try {
+            $url = "https://graph.facebook.com/{$apiVersion}/{$phoneNoId}";
+            $res = \Illuminate\Support\Facades\Http::timeout(10)->withToken($token)->get($url);
+            if ($res->successful()) {
+                $metaApiStatus = 'PASS';
+                $metaApiDetails = 'Successfully connected to Meta API. Phone ID verified.';
+            } else {
+                $metaApiStatus = 'FAIL';
+                $metaApiDetails = 'Meta API returned error ' . $res->status() . ': ' . json_encode($res->json());
+            }
+        } catch (\Throwable $e) {
+            $metaApiStatus = 'FAIL';
+            $metaApiDetails = 'Connection exception: ' . $e->getMessage();
+        }
+    }
+    $results['meta_whatsapp_api_ping'] = [
+        'title' => '4. Meta WhatsApp API Live Ping Test',
+        'status' => $metaApiStatus,
+        'details' => $metaApiDetails,
+    ];
+
+    // 5. Live Server Connectivity (for PDF upload)
+    $liveServerUrl = config('services.live_server.url');
+    $syncToken = config('services.sync_api.token');
+    $liveServerPingStatus = 'NOT TESTED';
+    $liveServerPingDetails = null;
+
+    if (!empty($liveServerUrl) && !empty($syncToken)) {
+        try {
+            $res = \Illuminate\Support\Facades\Http::timeout(10)
+                ->withToken($syncToken)
+                ->withoutVerifying()
+                ->get($liveServerUrl . '/api/health-check');
+
+            if ($res->successful() || in_array($res->status(), [200, 404, 401])) {
+                $liveServerPingStatus = 'PASS';
+                $liveServerPingDetails = 'Live server is reachable (HTTP ' . $res->status() . ').';
+            } else {
+                $liveServerPingStatus = 'WARNING';
+                $liveServerPingDetails = 'Live server responded with HTTP ' . $res->status();
+            }
+        } catch (\Throwable $e) {
+            $liveServerPingStatus = 'FAIL';
+            $liveServerPingDetails = 'Cannot connect to Live Server: ' . $e->getMessage() . '. PDF upload will fail!';
+        }
+    }
+
+    $results['live_server_sync'] = [
+        'title' => '5. Live Server Connectivity (PDF Upload Requirement)',
+        'live_server_url' => $liveServerUrl ?? 'MISSING',
+        'sync_token' => !empty($syncToken) ? 'CONFIGURED' : 'MISSING',
+        'ping_status' => $liveServerPingStatus,
+        'ping_details' => $liveServerPingDetails,
+        'status' => (!empty($liveServerUrl) && !empty($syncToken) && $liveServerPingStatus !== 'FAIL') ? 'PASS' : 'FAIL',
+    ];
+
+    // Overall summary calculation
+    $allStatuses = array_column($results, 'status');
+    $overallPass = !in_array('FAIL', $allStatuses);
+
+    $summary = [
+        'overall_result' => $overallPass ? 'ALL REQUIREMENTS FULFILLED ✅' : 'REQUIREMENTS MISSING / FAILED ❌',
+        'timestamp' => now()->toDateTimeString(),
+        'branch_id' => config('constants.branch_id') ?? env('BRANCH_ID') ?? 'Default',
+    ];
+
+    return response()->json([
+        'summary' => $summary,
+        'checks' => $results
+    ], $overallPass ? 200 : 422, [], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+});
+
 Route::get('/test-pusher', function () {
     event(new \App\Events\myevent('Hello from Laravel!'));
     return 'event sent';

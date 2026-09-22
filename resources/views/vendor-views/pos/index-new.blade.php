@@ -2502,8 +2502,6 @@
             phoneInput.addEventListener('blur', validatePhone);
 
             function validatePhone() {
-                const phoneInput = document.getElementById('phone');
-
                 let value = phoneInput.value.replace(/[^\d+]/g, '');
 
                 // Allow + only as the first character

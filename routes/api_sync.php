@@ -31,5 +31,8 @@ Route::middleware('validate.api.token')->group(function () {
     Route::post('/employees-users/update-sync-state', [\App\Http\Controllers\Api\EmployeeUserSyncController::class, 'updateSyncState']);
     Route::post('/employees-users/update-password', [\App\Http\Controllers\Api\EmployeeUserSyncController::class, 'updatePassword']);
     Route::post('/upload-order-pdf', [\App\Services\UploadPdfService::class, 'upload']);
+
+    Route::get('/whatsapp-logs/send-data', [\App\Http\Controllers\Api\WhatsappLogsSyncController::class, 'sendData']);
+    Route::post('/whatsapp-logs/update-sync-state', [\App\Http\Controllers\Api\WhatsappLogsSyncController::class, 'updateSyncState']);
 });
 

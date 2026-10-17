@@ -389,6 +389,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::post('update-disbursement', 'BusinessSettingsController@update_disbursement')->name('update-disbursement');
             Route::post('update-order', 'BusinessSettingsController@update_order')->name('update-order');
             Route::post('update-priority', 'BusinessSettingsController@update_priority')->name('update-priority');
+            Route::post('update-whatsapp', 'BusinessSettingsController@update_whatsapp')->name('update-whatsapp');
             Route::post('update-restaurant', 'BusinessSettingsController@update_restaurant')->name('update-restaurant');
             Route::get('config-setup', 'BusinessSettingsController@config_setup')->name('config-setup');
             Route::post('config-update', 'BusinessSettingsController@config_update')->name('config-update');

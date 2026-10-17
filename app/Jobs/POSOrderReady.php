@@ -56,6 +56,21 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
                 'partner',
             ])->findOrFail($this->orderId);
 
+            $order_ready_whatsapp_timeout = (int)config('whatsapp.order_ready_whatsapp_timeout', 0);
+
+            $diff = $order->order_preperation_time->diffInMinutes(now());
+
+            if($order_ready_whatsapp_timeout > 0 && $diff > $order_ready_whatsapp_timeout){
+                \Log::info('Whatsapp Message Not Sent: Order Ready Timeout Exceeded', [
+                    'phone' => $this->phone,
+                    'order_id' => $this->orderId,
+                    'state' => $this->state,
+                    'timeout' => $order_ready_whatsapp_timeout,
+                    'diff' => $diff
+                ]);
+                return;
+            }
+
             $wService = new WhatsappService();
 
             $response = $wService->sendOrderReadyMessage(

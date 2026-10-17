@@ -61,6 +61,21 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
                 return;
             }
 
+            $order_received_whatsapp_timeout = (int)config('whatsapp.order_confirmation_whatsapp_timeout', 0);
+
+            $diff = $order->created_at->diffInMinutes(now());
+
+            if($order_received_whatsapp_timeout > 0 && $diff > $order_received_whatsapp_timeout){
+                \Log::info('Whatsapp Message Not Sent: Order Confirmation Timeout Exceeded', [
+                    'phone' => $this->phone,
+                    'order_id' => $this->orderId,
+                    'state' => $this->state,
+                    'timeout' => $order_received_whatsapp_timeout,
+                    'diff' => $diff
+                ]);
+                return;
+            }
+
             $wService = new WhatsappService();
 
             $response = $wService->sendOrderConfirmationMessage(

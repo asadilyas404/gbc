@@ -33,6 +33,9 @@
             <li class="nav-item">
                 <a class="nav-link {{ Request::is('admin/business-settings/business-setup/disbursement') ?'active':'' }}" href="{{ route('admin.business-settings.business-setup',  ['tab' => 'disbursement']) }}"  aria-disabled="true">{{translate('messages.disbursement')}}</a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link {{ Request::is('admin/business-settings/business-setup/whatsapp') ?'active':'' }}" href="{{ route('admin.business-settings.business-setup',  ['tab' => 'whatsapp']) }}"  aria-disabled="true">{{translate('messages.whatsapp')}}</a>
+            </li>
         </ul>
         <!-- End Nav -->
     </div>

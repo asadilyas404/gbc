@@ -9,6 +9,8 @@ class NotificationSetting extends Model
 {
     use HasFactory;
 
+    protected $table = 'restaurant_notification_settings';
+    
     protected $guarded = ['id'];
 
 }

@@ -4894,6 +4894,7 @@ class Helpers
             $businessSetting->save();
         } else {
             $businessSetting = new BusinessSetting();
+            $businessSetting->id = BusinessSetting::max('id') + 1;
             $businessSetting->key = $key['key'];
             $businessSetting->value = $value['value'];
             $businessSetting->save();

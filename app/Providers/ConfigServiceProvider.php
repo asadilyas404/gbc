@@ -247,6 +247,73 @@ class ConfigServiceProvider extends ServiceProvider
                 Config::set('filesystems.disks.s3.endpoint', $credentials['end_point']);
             }
 
+            $enable_whatsapp = BusinessSetting::where(['key' => 'enable_whatsapp'])->first();
+            if ($enable_whatsapp) {
+                $enable_whatsapp->value == 1 ? Config::set('whatsapp.whatsapp_mode', 'LIVE') : Config::set('whatsapp.whatsapp_mode', 'OFF');
+            } else {
+                Config::set('whatsapp.whatsapp_mode', 'OFF');
+            }
+
+            $whatsapp_api_version = BusinessSetting::where(['key' => 'whatsapp_api_version'])->first();
+            if ($whatsapp_api_version) {
+                Config::set('whatsapp.whatsapp_api_version', $whatsapp_api_version->value);
+            } else {
+                Config::set('whatsapp.whatsapp_api_version', 'v20.0');
+            }
+
+            $whatsapp_phone_number_id = BusinessSetting::where(['key' => 'whatsapp_phone_number_id'])->first();
+            if ($whatsapp_phone_number_id) {
+                Config::set('whatsapp.whatsapp_phone_number_id', $whatsapp_phone_number_id->value);
+            } else {
+                Config::set('whatsapp.whatsapp_phone_number_id', NULL);
+            }
+
+            if(config('whatsapp.whatsapp_mode') == 'LIVE'){
+                $whatsapp_token = BusinessSetting::where(['key' => 'whatsapp_access_token'])->first();
+                if ($whatsapp_token) {
+                    Config::set('whatsapp.whatsapp_token', $whatsapp_token->value);
+                } else {
+                    Config::set('whatsapp.whatsapp_token', NULL);
+                }
+            } else {
+                Config::set('whatsapp.whatsapp_token', NULL);
+            }
+
+            $order_confirmation_whatsapp_timeout = BusinessSetting::where(['key' => 'order_confirmation_whatsapp_timeout'])->first();
+            if ($order_confirmation_whatsapp_timeout) {
+                Config::set('whatsapp.order_confirmation_whatsapp_timeout', $order_confirmation_whatsapp_timeout->value);
+            } else {
+                Config::set('whatsapp.order_confirmation_whatsapp_timeout', 0);
+            }
+
+            $order_ready_whatsapp_timeout = BusinessSetting::where(['key' => 'order_ready_whatsapp_timeout'])->first();
+            if ($order_ready_whatsapp_timeout) {
+                Config::set('whatsapp.order_ready_whatsapp_timeout', $order_ready_whatsapp_timeout->value);
+            } else {
+                Config::set('whatsapp.order_ready_whatsapp_timeout', 0);
+            }
+
+            $order_confirmation_whatsapp_template = BusinessSetting::where(['key' => 'order_confirmation_whatsapp_template'])->first();
+            if ($order_confirmation_whatsapp_template) {
+                Config::set('whatsapp.order_confirmation_whatsapp_template', $order_confirmation_whatsapp_template->value);
+            } else {
+                Config::set('whatsapp.order_confirmation_whatsapp_template', NULL);
+            }
+
+            $order_ready_whatsapp_template = BusinessSetting::where(['key' => 'order_ready_whatsapp_template'])->first();
+            if ($order_ready_whatsapp_template) {
+                Config::set('whatsapp.order_ready_whatsapp_template', $order_ready_whatsapp_template->value);
+            } else {
+                Config::set('whatsapp.order_ready_whatsapp_template', NULL);
+            }
+
+            $enable_whatsapp_number_popup = BusinessSetting::where(['key' => 'enable_whatsapp_number_popup'])->first();
+            if ($enable_whatsapp_number_popup) {
+                Config::set('whatsapp.enable_whatsapp_number_popup', $enable_whatsapp_number_popup->value);
+            } else {
+                Config::set('whatsapp.enable_whatsapp_number_popup', 0);
+            }
+
             if(Cache::has('maintenance')){
                 $maintenance = Cache::get('maintenance');
                     if (isset($maintenance['maintenance_duration']) && $maintenance['maintenance_duration'] != 'until_change' && isset($maintenance['start_date']) && isset($maintenance['end_date'])) {

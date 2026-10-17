@@ -17,6 +17,8 @@ class BranchRestaurantSyncController extends Controller
         'banks',
         'vendors',
         'pos_discount_types',
+        'unpaid_orders',
+        'business_settings',
     ];
 
     /**
@@ -42,7 +44,8 @@ class BranchRestaurantSyncController extends Controller
                 'banks'    => [],
                 'vendors'  => [],
                 'pos_discount_types' => [],
-                'unpaid_orders' => []
+                'unpaid_orders' => [],
+                'business_settings' => [],
             ];
 
             $branches = DB::connection('oracle')
@@ -176,6 +179,24 @@ class BranchRestaurantSyncController extends Controller
                 $data['unpaid_orders'][] = $unPaidOrder;
             }
 
+
+            $businessSettings = DB::connection('oracle')
+                ->table('business_settings')
+                ->when(!$snapshot ? ($cursorMap['business_settings'] ?? null) : null, function ($query, Carbon $cursor) {
+                    $query->where(function ($subQuery) use ($cursor) {
+                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            ->orWhereNull('updated_at');
+                    });
+                })
+                ->get();
+
+            foreach ($businessSettings as $setting) {
+                $settingRecord = $this->ensureUpdatedAt((array) $setting, 'business_settings', 'id');
+                $setting->updated_at = $settingRecord['updated_at'] ?? $setting->updated_at;
+
+                $data['business_settings'][] = $settingRecord;
+            }
+
             Log::info('Branch, restaurant and partner data retrieved for sync', [
                 'branch_id' => $branchId,
                 'branches_count' => count($data['branches']),
@@ -184,7 +205,8 @@ class BranchRestaurantSyncController extends Controller
                 'banks_count' => count($data['banks']),
                 'vendors_count' => count($data['vendors']),
                 'pos_discount_types_count' => count($data['pos_discount_types']),
-                'unpaid_orders' => count($data['unpaid_orders'])
+                'unpaid_orders' => count($data['unpaid_orders']),
+                'business_settings' => count($data['business_settings']),
             
             ]);
 
@@ -198,7 +220,8 @@ class BranchRestaurantSyncController extends Controller
                     'banks' => count($data['banks']),
                     'vendors' => count($data['vendors']),
                     'pos_discount_types' => count($data['pos_discount_types']),
-                    'unpaid_orders' => count($data['unpaid_orders'])
+                    'unpaid_orders' => count($data['unpaid_orders']),
+                    'business_settings' => count($data['business_settings'])
                 ],
                 'cursor' => array_map(function ($item) {
                     return $item ? $item->toIso8601String() : null;
@@ -235,13 +258,15 @@ class BranchRestaurantSyncController extends Controller
                 'banks_last_synced_at' => 'nullable|string',
                 'vendors_last_synced_at' => 'nullable|string',
                 'pos_discount_types_last_synced_at' => 'nullable|string',
+                'unpaid_orders_last_synced_at' => 'nullable|string',
+                'business_settings_last_synced_at' => 'nullable|string',
             ]);
 
             $branchId = (int) $validated['branch_id'];
             $timestamps = $this->parseTimestampPayload($validated);
             $this->persistBranchSyncState($branchId, $timestamps);
 
-            Log::info('Branch sync state updated for branches/restaurants/partners/banks/vendors/pos_discount_types', [
+            Log::info('Branch sync state updated for branches/restaurants/partners/banks/vendors/pos_discount_types/business_settings', [
                 'branch_id' => $branchId,
                 'payload' => array_intersect_key(
                     $validated,
@@ -308,6 +333,8 @@ class BranchRestaurantSyncController extends Controller
             'banks' => $this->extractMaxTimestamp($data['banks']),
             'vendors' => $this->extractMaxTimestamp($data['vendors']),
             'pos_discount_types' => $this->extractMaxTimestamp($data['pos_discount_types']),
+            'unpaid_orders' => $this->extractMaxTimestamp($data['unpaid_orders']),
+            'business_settings' => $this->extractMaxTimestamp($data['business_settings']),
         ];
     }
 

@@ -24,6 +24,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         'banks',
         'vendors',
         'pos_discount_types',
+        'business_settings',
     ];
 
     public function handle()
@@ -69,7 +70,8 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'banks' => count($data['banks'] ?? []),
                 'vendors' => count($data['vendors'] ?? []),
                 'pos_discount_types' => count($data['pos_discount_types'] ?? []),
-                'unpaid_orders' => count($data['unpaid_orders'] ?? [])
+                'unpaid_orders' => count($data['unpaid_orders'] ?? []),
+                'business_settings' => count($data['business_settings'] ?? []),
             ]);
 
             $syncedBranchIds = [];
@@ -80,6 +82,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             $syncPosDiscountTypeIds = [];
             $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
             $unpaidOrderIds=[];
+            $syncedBusinessSettingIds = [];
 
             foreach ($data['branches'] ?? [] as $branch) {
                 try {
@@ -277,6 +280,29 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 }
             }
 
+            foreach ($data['business_settings'] ?? [] as $setting) {
+                try {
+                    DB::connection('oracle')
+                        ->table('business_settings')
+                        ->updateOrInsert(
+                            ['id' => $setting['id']],
+                            $setting
+                        );
+
+                    $syncedBusinessSettingIds[] = $setting['id'];
+                    $latestSyncedTimestamps['business_settings'] = $this->pickLatestTimestamp(
+                        $latestSyncedTimestamps['business_settings'],
+                        $setting['updated_at'] ?? null
+                    );
+                    Log::info("Business Setting ID {$setting['id']} synced successfully.");
+
+                } catch (\Exception $e) {
+                    Log::error("Failed syncing Business Setting ID {$setting['id']}", [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+
             $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
 
             Log::info('SyncBranchesRestaurantsJob completed successfully', [
@@ -286,7 +312,8 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 'synced_banks' => count($syncBankIds),
                 'synced_vendors' => count($syncVendorIds),
                 'synced_pos_discount_types' => count($syncPosDiscountTypeIds),
-                'unpaid_orders' => count($unpaidOrderIds)
+                'unpaid_orders' => count($unpaidOrderIds),
+                'synced_business_settings' => count($syncedBusinessSettingIds)
             ]);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {

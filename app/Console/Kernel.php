@@ -2,13 +2,13 @@
 
 namespace App\Console;
 
-use Illuminate\Console\Scheduling\Schedule;
-use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
-use App\Jobs\SyncOrdersJob;
-use App\Jobs\SyncFoodJob;
-use App\Jobs\SyncEmployeesJob;
 use App\Jobs\SyncBranchesRestaurantsJob;
 use App\Jobs\SyncCustomersJob;
+use App\Jobs\SyncEmployeesJob;
+use App\Jobs\SyncFoodJob;
+use App\Jobs\SyncOrdersJob;
+use Illuminate\Console\Scheduling\Schedule;
+use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
 class Kernel extends ConsoleKernel
 {

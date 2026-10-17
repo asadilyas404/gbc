@@ -1028,7 +1028,7 @@ class POSController extends Controller
 
         $editing_order_id = session('editing_order_id');
         if (!$editing_order_id) {
-            $branchId = Helpers::get_restaurant_id();
+            $branchId = config('constants.branch_id') ?? Helpers::get_restaurant_id();
             $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
             $orderDate = $branch ? $branch->orders_date : null;
             $tz = config('timezone') ?: 'Asia/Muscat';
@@ -1125,7 +1125,7 @@ class POSController extends Controller
         }
 
 
-        $cart = $request->session()->get('cart');
+        $cart = $request->session()->get('cart') ?? collect([]);
 
         $total_addon_price = 0;
         $product_price = 0;
@@ -1257,9 +1257,14 @@ class POSController extends Controller
         }
         
         $count = 1;
+
+        if(!is_array($cart) || count($cart) < 1){
+            Toastr::error(translate('messages.there_is_no_item_in_cart_please_add_item'));
+            return back();
+        }
+
         foreach ($cart as $c) {
             if (is_array($c)) {
-
                  if($c['discount'] > ($c['price'] * $c['quantity'])){
                     Toastr::error(translate('messages.discount_cannot_exceed_product_amount'));
                     return back()->withInput();

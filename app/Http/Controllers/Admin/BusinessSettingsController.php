@@ -61,6 +61,8 @@ class BusinessSettingsController extends Controller
             return view('admin-views.business-settings.disbursement-index');
         } else if ($tab == 'priority') {
             return view('admin-views.business-settings.priority-index');
+        } else if ($tab == 'whatsapp') {
+            return view('admin-views.business-settings.whatsapp-index');
         }
     }
 
@@ -420,6 +422,48 @@ class BusinessSettingsController extends Controller
                 }
             }
         }
+
+        Toastr::success(translate('messages.successfully_updated_to_changes_restart_app'));
+        return back();
+    }
+
+    public function update_whatsapp(Request $request)
+    {
+        Helpers::businessUpdateOrInsert(['key' => 'enable_whatsapp'], [
+            'value' => $request['enable_whatsapp'] ?? 0
+        ]);
+
+        Helpers::businessUpdateOrInsert(['key' => 'whatsapp_api_version'], [
+            'value' => $request['whatsapp_api_version'] ?? ''
+        ]);
+
+        Helpers::businessUpdateOrInsert(['key' => 'whatsapp_phone_number_id'], [
+            'value' => $request['whatsapp_phone_number_id'] ?? ''
+        ]);
+
+        Helpers::businessUpdateOrInsert(['key' => 'whatsapp_access_token'], [
+            'value' => $request['whatsapp_access_token'] ?? ''
+        ]);
+
+        Helpers::businessUpdateOrInsert(['key' => 'order_confirmation_whatsapp_timeout'], [
+            'value' => $request['order_confirmation_whatsapp_timeout'] ?? 0
+        ]);
+        
+        Helpers::businessUpdateOrInsert(['key' => 'order_ready_whatsapp_timeout'], [
+            'value' => $request['order_ready_whatsapp_timeout'] ?? 0
+        ]);
+        
+        Helpers::businessUpdateOrInsert(['key' => 'order_confirmation_whatsapp_template'], [
+            'value' => $request['order_confirmation_whatsapp_template'] ?? ''
+        ]);
+
+        Helpers::businessUpdateOrInsert(['key' => 'order_ready_whatsapp_template'], [
+            'value' => $request['order_ready_whatsapp_template'] ?? ''
+        ]);
+        
+        Helpers::businessUpdateOrInsert(['key' => 'enable_whatsapp_number_popup'], [
+            'value' => $request['enable_whatsapp_number_popup'] ?? 0
+        ]);
 
         Toastr::success(translate('messages.successfully_updated_to_changes_restart_app'));
         return back();

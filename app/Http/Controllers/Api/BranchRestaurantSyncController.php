@@ -182,12 +182,12 @@ class BranchRestaurantSyncController extends Controller
 
             $businessSettings = DB::connection('oracle')
                 ->table('business_settings')
-                ->when(!$snapshot ? ($cursorMap['business_settings'] ?? null) : null, function ($query, Carbon $cursor) {
-                    $query->where(function ($subQuery) use ($cursor) {
-                        // $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
-                            // ->orWhereNull('updated_at');
-                    });
-                })
+                // ->when(!$snapshot ? ($cursorMap['business_settings'] ?? null) : null, function ($query, Carbon $cursor) {
+                //     $query->where(function ($subQuery) use ($cursor) {
+                //         // $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                //             // ->orWhereNull('updated_at');
+                //     });
+                // })
                 ->get();
 
             foreach ($businessSettings as $setting) {

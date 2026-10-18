@@ -1258,10 +1258,10 @@ class POSController extends Controller
         
         $count = 1;
 
-        if(!is_array($cart) || count($cart) < 1){
-            Toastr::error(translate('messages.there_is_no_item_in_cart_please_add_item'));
-            return back();
-        }
+        // if(!is_array($cart) || count($cart) < 1){
+        //     Toastr::error(translate('messages.there_is_no_item_in_cart_please_add_item'));
+        //     return back();
+        // }
 
         foreach ($cart as $c) {
             if (is_array($c)) {

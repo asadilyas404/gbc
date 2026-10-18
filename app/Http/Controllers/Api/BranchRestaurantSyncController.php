@@ -188,7 +188,7 @@ class BranchRestaurantSyncController extends Controller
                 //             // ->orWhereNull('updated_at');
                 //     });
                 // })
-                ->get()->toArray();
+                ->get();
 
             foreach ($businessSettings as $setting) {
                 // $settingRecord = $this->ensureUpdatedAt((array) $setting, 'business_settings', 'id');

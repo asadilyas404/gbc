@@ -285,11 +285,11 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                     DB::connection('oracle')
                         ->table('business_settings')
                         ->updateOrInsert(
-                            ['id' => $setting['id']],
+                            ['id' => $setting->id],
                             $setting
                         );
 
-                    $syncedBusinessSettingIds[] = $setting['id'];
+                    $syncedBusinessSettingIds[] = $setting->id;
                     $latestSyncedTimestamps['business_settings'] = $this->pickLatestTimestamp(
                         $latestSyncedTimestamps['business_settings'],
                         $setting['updated_at'] ?? null

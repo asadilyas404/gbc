@@ -191,10 +191,10 @@ class BranchRestaurantSyncController extends Controller
                 ->get();
 
             foreach ($businessSettings as $setting) {
-                $settingRecord = $this->ensureUpdatedAt((array) $setting, 'business_settings', 'id');
-                $setting->updated_at = $settingRecord['updated_at'] ?? $setting->updated_at;
+                // $settingRecord = $this->ensureUpdatedAt((array) $setting, 'business_settings', 'id');
+                // $setting->updated_at = $settingRecord['updated_at'] ?? $setting->updated_at;
 
-                $data['business_settings'][] = $settingRecord;
+                $data['business_settings'][] = $setting;
             }
 
             Log::info('Branch, restaurant and partner data retrieved for sync', [

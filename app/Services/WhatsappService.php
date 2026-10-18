@@ -190,7 +190,7 @@ class WhatsappService
             $parameters[] = $this->textParam('order_number_ar',$orderSerial ?? '-');
             $parameters[] = $this->textParam('order_number_en',$orderSerial ?? '-');
             $parameters[] = $this->textParam('branch_name_ar',config('constants.invoice_branch_name') ?? '-');
-            $parameters[] = $this->textParam('branch_name_en',$order->restaurant->name ?? '-');
+            $parameters[] = $this->textParam('branch_name_en',$order->restaurant->branch->branch_name ?? '-');
             $parameters[] = $this->textParam('branch_phone_ar',$order->restaurant->phone ?? '-');
             $parameters[] = $this->textParam('branch_phone_en',$order->restaurant->phone ?? '-');
 

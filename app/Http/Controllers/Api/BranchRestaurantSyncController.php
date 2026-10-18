@@ -184,8 +184,8 @@ class BranchRestaurantSyncController extends Controller
                 ->table('business_settings')
                 ->when(!$snapshot ? ($cursorMap['business_settings'] ?? null) : null, function ($query, Carbon $cursor) {
                     $query->where(function ($subQuery) use ($cursor) {
-                        $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
-                            ->orWhereNull('updated_at');
+                        // $subQuery->where('updated_at', '>', $cursor->toDateTimeString())
+                            // ->orWhereNull('updated_at');
                     });
                 })
                 ->get();

@@ -343,8 +343,8 @@ class BranchRestaurantSyncController extends Controller
         $max = null;
 
         foreach ($items as $item) {
-            $source = $key ? ($item[$key] ?? []) : $item;
-            $value = $source['updated_at'] ?? null;
+            $source = $key ? data_get($item, $key, []) : $item;
+            $value = data_get($source, 'updated_at');
             $timestamp = $this->parseTimestamp($value);
 
             if (!$timestamp) {
@@ -452,4 +452,3 @@ class BranchRestaurantSyncController extends Controller
         return $record;
     }
 }
-

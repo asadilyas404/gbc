@@ -46,7 +46,9 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             $response = Http::timeout(config('services.live_server.timeout', 60))
                 ->withToken(config('services.live_server.token'))
                 ->withoutVerifying() // disables SSL certificate verification
-                ->retry(3, 1000)
+                ->retry(3, 1000, function ($exception) {
+                    return $exception instanceof \Illuminate\Http\Client\ConnectionException;
+                })
                 ->get(config('services.live_server.url') . '/branches-restaurants/get-data', [
                     'branch_id' => $branchId,
                     'snapshot' => false,
@@ -61,7 +63,29 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             }
 
             $result = $response->json();
-            $data = $result['data'] ?? [];
+            if (
+                !is_array($result)
+                || ($result['success'] ?? false) !== true
+                || !is_array($result['data'] ?? null)
+            ) {
+                Log::error('Invalid branch/restaurant data response from live server', [
+                    'status' => $response->status(),
+                    'response' => $response->body(),
+                ]);
+                return;
+            }
+
+            $data = $result['data'];
+            foreach (array_merge(self::SYNC_ENTITY_TYPES, ['unpaid_orders']) as $entity) {
+                if (!array_key_exists($entity, $data) || !is_array($data[$entity])) {
+                    Log::error('Invalid entity payload in branch/restaurant response from live server', [
+                        'entity' => $entity,
+                        'status' => $response->status(),
+                        'response' => $response->body(),
+                    ]);
+                    return;
+                }
+            }
             
             Log::info('Received branch/restaurant data from live server', [
                 'branches' => count($data['branches'] ?? []),
@@ -274,18 +298,14 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                     Log::info("POS Unpaid Order ID {$unPaidOrder['id']} synced successfully.");
 
                 } catch (\Exception $e) {
-                    Log::error("Failed syncing POS Unpaid ID {$posDiscountType['id']}", [
+                    Log::error('Failed syncing POS Unpaid Order', [
+                        'order_id' => $unPaidOrder['id'] ?? null,
                         'error' => $e->getMessage()
                     ]);
                 }
             }
 
-            \Log::info("Business Setting", $data['business_settings'] ?? []);
-
             foreach ($data['business_settings'] ?? [] as $setting) {
-
-                
-
                 try {
                     DB::connection('oracle')
                         ->table('business_settings')
@@ -302,7 +322,8 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                     Log::info("Business Setting ID {$setting['id']} synced successfully.");
 
                 } catch (\Exception $e) {
-                    Log::error("Failed syncing Business Setting ID {$setting['id']}", [
+                    Log::error('Failed syncing Business Setting', [
+                        'setting_id' => $setting['id'] ?? null,
                         'error' => $e->getMessage()
                     ]);
                 }
@@ -324,6 +345,12 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             Log::error('Connection error while syncing branches/restaurants/banks', [
                 'error' => $e->getMessage()
+            ]);
+        } catch (\Illuminate\Http\Client\RequestException $e) {
+            Log::error('Live server rejected branch/restaurant sync data request', [
+                'status' => $e->response->status(),
+                'response' => substr($e->response->body(), 0, 2000),
+                'error' => $e->getMessage(),
             ]);
         } catch (\Exception $e) {
             Log::error('SyncBranchesRestaurantsJob failed', [

@@ -322,6 +322,7 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             ]);
         } catch (\Exception $e) {
             Log::error('SyncBranchesRestaurantsJob failed', [
+                'line'  => $e->getLine(),
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);

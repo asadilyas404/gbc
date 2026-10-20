@@ -281,6 +281,9 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
             }
 
             foreach ($data['business_settings'] ?? [] as $setting) {
+
+                \Log::info("Business Setting", $setting);
+
                 try {
                     DB::connection('oracle')
                         ->table('business_settings')

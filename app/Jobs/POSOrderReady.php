@@ -6,6 +6,7 @@ use App\Models\Log;
 use App\Models\Order;
 use App\Models\OrderWhatsappMsgLog;
 use App\Services\WhatsappService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -56,19 +57,28 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
                 'partner',
             ])->findOrFail($this->orderId);
 
-            $order_ready_whatsapp_timeout = (int)config('whatsapp.order_ready_whatsapp_timeout', 0);
+            if ($this->state === 'ready') {
+                if (empty($order->order_preperation_time)) {
+                    \Log::warning('WhatsApp order-ready message skipped: preparation time is missing', [
+                        'order_id' => $this->orderId,
+                        'phone' => $this->phone,
+                    ]);
+                    return;
+                }
 
-            $diff = $order->order_preperation_time->diffInMinutes(now());
+                $order_ready_whatsapp_timeout = (int) config('whatsapp.order_ready_whatsapp_timeout', 0);
+                $diff = Carbon::parse($order->order_preperation_time)->diffInMinutes(now());
 
-            if($order_ready_whatsapp_timeout > 0 && $diff > $order_ready_whatsapp_timeout){
-                \Log::info('Whatsapp Message Not Sent: Order Ready Timeout Exceeded', [
-                    'phone' => $this->phone,
-                    'order_id' => $this->orderId,
-                    'state' => $this->state,
-                    'timeout' => $order_ready_whatsapp_timeout,
-                    'diff' => $diff
-                ]);
-                return;
+                if ($order_ready_whatsapp_timeout > 0 && $diff > $order_ready_whatsapp_timeout) {
+                    \Log::info('Whatsapp Message Not Sent: Order Ready Timeout Exceeded', [
+                        'phone' => $this->phone,
+                        'order_id' => $this->orderId,
+                        'state' => $this->state,
+                        'timeout' => $order_ready_whatsapp_timeout,
+                        'diff' => $diff
+                    ]);
+                    return;
+                }
             }
 
             $wService = new WhatsappService();

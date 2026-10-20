@@ -6,6 +6,7 @@ use App\Models\Log;
 use App\Models\Order;
 use App\Models\OrderWhatsappMsgLog;
 use App\Services\WhatsappService;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -61,19 +62,20 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
                 return;
             }
 
-            $order_received_whatsapp_timeout = (int)config('whatsapp.order_confirmation_whatsapp_timeout', 0);
+            if ($this->state === 'new') {
+                $order_received_whatsapp_timeout = (int) config('whatsapp.order_confirmation_whatsapp_timeout', 0);
+                $diff = Carbon::parse($order->created_at)->diffInMinutes(now());
 
-            $diff = $order->created_at->diffInMinutes(now());
-
-            if($order_received_whatsapp_timeout > 0 && $diff > $order_received_whatsapp_timeout){
-                \Log::info('Whatsapp Message Not Sent: Order Confirmation Timeout Exceeded', [
-                    'phone' => $this->phone,
-                    'order_id' => $this->orderId,
-                    'state' => $this->state,
-                    'timeout' => $order_received_whatsapp_timeout,
-                    'diff' => $diff
-                ]);
-                return;
+                if ($order_received_whatsapp_timeout > 0 && $diff > $order_received_whatsapp_timeout) {
+                    \Log::info('Whatsapp Message Not Sent: Order Confirmation Timeout Exceeded', [
+                        'phone' => $this->phone,
+                        'order_id' => $this->orderId,
+                        'state' => $this->state,
+                        'timeout' => $order_received_whatsapp_timeout,
+                        'diff' => $diff
+                    ]);
+                    return;
+                }
             }
 
             $wService = new WhatsappService();

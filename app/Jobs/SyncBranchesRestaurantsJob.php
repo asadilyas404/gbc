@@ -280,9 +280,11 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                 }
             }
 
+            \Log::info("Business Setting", $data['business_settings'] ?? []);
+
             foreach ($data['business_settings'] ?? [] as $setting) {
 
-                \Log::info("Business Setting", $setting);
+                
 
                 try {
                     DB::connection('oracle')

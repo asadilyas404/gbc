@@ -1376,6 +1376,10 @@ class POSController extends Controller
         }
 
         $allCanceled = collect($order_details)->every(fn($od) => $od['is_deleted'] === 'Y');
+
+        if($allCanceled){
+            $order->order_status = 'canceled';
+        }
         
         $order->discount_on_product_by = 'vendor';
         $restaurant_discount = Helpers::get_restaurant_discount($restaurant);

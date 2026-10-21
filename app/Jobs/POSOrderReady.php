@@ -95,6 +95,7 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
                 'message_status' => 'success',
                 'message_type' => 'order_ready',
                 'order_amount' => $order->order_amount,
+                'order_date' => $order->order_date,
                 'branch_id' => config('constants.branch_id'),
                 'phone' => $this->phone
             ]);
@@ -121,6 +122,7 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
                 'message_status' => 'failed',
                 'message_type' => 'order_ready',
                 'order_amount' => $order->order_amount,
+                'order_date' => $order->order_date,
                 'branch_id' => config('constants.branch_id'),
                 'message_exception' => $e->getMessage(),
                 'phone' => $this->phone
@@ -158,6 +160,7 @@ class POSOrderReady implements ShouldQueue, ShouldBeUnique
             'message_status' => 'failed',
             'message_type' => 'order_ready',
             'order_amount' => $order->order_amount,
+            'order_date' => $order->order_date,
             'branch_id' => config('constants.branch_id'),
             'message_exception' => $e->getMessage(),
                 'phone' => $this->phone

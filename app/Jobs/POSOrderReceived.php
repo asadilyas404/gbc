@@ -35,7 +35,7 @@ class POSOrderReceived implements ShouldQueue, ShouldBeUnique
 
     public function backoff(): array
     {
-        return [30, 120, 300];
+        return [30, 120];
     }
 
     public function __construct(string $phone, int $orderId, string $state = 'new')

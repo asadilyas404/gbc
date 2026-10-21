@@ -33,6 +33,6 @@ Route::middleware('validate.api.token')->group(function () {
     Route::post('/upload-order-pdf', [\App\Services\UploadPdfService::class, 'upload']);
 
     Route::get('/whatsapp-logs/send-data', [\App\Http\Controllers\Api\WhatsappLogsSyncController::class, 'sendData']);
+    Route::post('/whatsapp-logs/sync-bulk', [\App\Http\Controllers\Api\WhatsappLogsSyncController::class, 'syncBulk']);
     Route::post('/whatsapp-logs/update-sync-state', [\App\Http\Controllers\Api\WhatsappLogsSyncController::class, 'updateSyncState']);
 });
-

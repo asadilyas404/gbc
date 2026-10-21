@@ -2,9 +2,7 @@
 
 namespace App\Jobs;
 
-use App\Models\OrderWhatsappMsgLog;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
@@ -32,106 +30,123 @@ class SyncWhatsappLogJob implements ShouldQueue
             $branchId = config('constants.branch_id');
 
             if (empty($branchId)) {
-                Log::warning('SyncBusinessSettingsJob halted: branch/restaurant context missing');
+                Log::warning('SyncWhatsappLogJob halted: branch/restaurant context missing');
                 return;
             }
 
-            $response = Http::timeout(config('services.live_server.timeout', 60))
-                ->withoutVerifying() // disables SSL certificate verification
-                ->withToken(config('services.live_server.token'))
-                ->retry(3, 1000)
-                ->get(config('services.live_server.url') . '/business-settings-and-whatsapp-logs/get-data', [
-                    'branch_id' => $branchId,
-                ]);
-
-            if (!$response->successful()) {
-                Log::error('Failed to get business settings and whatsapp logs from live server', [
-                    'status' => $response->status(),
-                    'response' => $response->body()
-                ]);
-                return;
-            }
-
-            $result = $response->json();
-            $data = $result['data'] ?? [];
-
-            Log::info('Received business settings and whatsapp logs from live server', [
-                'business_settings' => count($data['business_settings'] ?? []),
-                'whatsapp_logs' => count($data['whatsapp_logs'] ?? []),
-            ]);
-
-            $syncedBusinessSettingIds = [];
-            $syncedWhatsappLogIds = [];
-            $latestSyncedTimestamps = array_fill_keys(self::SYNC_ENTITY_TYPES, null);
-
-            foreach ($data['business_settings'] ?? [] as $setting) {
-                try {
-                    DB::connection('oracle')
-                        ->table('business_settings')
-                        ->updateOrInsert(
-                            ['id' => $setting['id']],
-                            $setting
-                        );
-
-                    $syncedBusinessSettingIds[] = $setting['id'];
-                    $latestSyncedTimestamps['business_settings'] = $this->pickLatestTimestamp(
-                        $latestSyncedTimestamps['business_settings'],
-                        $setting['updated_at'] ?? null
-                    );
-
-                } catch (\Exception $e) {
-                    Log::error("Failed syncing business setting ID {$setting['id']}", [
-                        'error' => $e->getMessage()
-                    ]);
-                }
-            }
-
-            
-
-            $this->sendSyncStateUpdate((int) $branchId, $latestSyncedTimestamps);
-
-            Log::info('SyncBusinessSettingsJob completed successfully', [
-                'synced_business_settings' => count($syncedBusinessSettingIds),
-                'synced_whatsapp_logs' => count($syncedWhatsappLogIds)
-            ]);
+            // Push locally generated message logs before pulling shared settings and logs.
+            $this->syncWhatsappMessageLogs((int) $branchId);
 
         } catch (\Illuminate\Http\Client\ConnectionException $e) {
             Log::error('Connection error while syncing business settings/whatsapp logs', [
                 'error' => $e->getMessage()
             ]);
         } catch (\Exception $e) {
-            Log::error('SyncBusinessSettingsJob failed', [
+            Log::error('SyncWhatsappLogJob failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
         }
     }
 
-    private function copyImageFromStorage($filename, $folder = 'images/')
+    private function syncWhatsappMessageLogs(int $branchId): void
     {
-        $imageSourceBase = config('constants.image_source_base');
-        $imageSourceBase = rtrim($imageSourceBase, '/') . '/';
-        $relativePath = $folder . $filename;
-
-        $sourceUrl = $imageSourceBase . $relativePath;
-        $destinationPath = public_path($relativePath);
+        $table = 'order_whatsapp_msg_log';
 
         try {
-            if (!file_exists(dirname($destinationPath))) {
-                mkdir(dirname($destinationPath), 0755, true);
+            $hasPushedColumn = DB::connection('oracle')
+                ->getSchemaBuilder()
+                ->hasColumn($table, 'is_pushed');
+
+            $logsQuery = DB::connection('oracle')
+                ->table($table)
+                ->where('branch_id', $branchId);
+
+            if ($hasPushedColumn) {
+                $logsQuery->where(function ($query) {
+                    $query->where('is_pushed', '!=', 'Y')
+                        ->orWhereNull('is_pushed');
+                });
             }
 
-            $imageData = @file_get_contents($sourceUrl);
-            if ($imageData === false) {
-                Log::warning("Image not found or failed to fetch: {$sourceUrl}");
-                return;
-            }
-
-            file_put_contents($destinationPath, $imageData);
-            Log::info("Image copied to: " . $destinationPath);
-
+            $logs = $logsQuery->orderBy('id')->get();
         } catch (\Exception $e) {
-            Log::error("Image copy failed for {$relativePath}: " . $e->getMessage());
+            Log::error('Failed to load WhatsApp message logs for sync', [
+                'branch_id' => $branchId,
+                'error' => $e->getMessage(),
+            ]);
+            return;
+        }
+
+        if ($logs->isEmpty()) {
+            Log::info('No WhatsApp message logs to sync', ['branch_id' => $branchId]);
+            return;
+        }
+
+        $chunks = $logs->chunk(50);
+
+        foreach ($chunks as $index => $chunk) {
+            // Avoid sending the local delivery marker to the live database.
+            $logRecords = $chunk->map(function ($log) use ($hasPushedColumn) {
+                $record = (array) $log;
+                if ($hasPushedColumn) {
+                    unset($record['is_pushed']);
+                }
+
+                return $record;
+            })->values()->all();
+            $logIds = $chunk->pluck('id')->all();
+
+            try {
+                $response = Http::timeout(config('services.live_server.timeout', 60))
+                    ->withToken(config('services.live_server.token'))
+                    ->withoutVerifying()
+                    ->retry(3, 1000)
+                    ->post(config('services.live_server.url') . '/whatsapp-logs/sync-bulk', [
+                        'logs' => $logRecords,
+                    ]);
+
+                $responseData = $response->json();
+                $batchSynced = $response->successful()
+                    && is_array($responseData)
+                    && ($responseData['success'] ?? false) === true
+                    && ($responseData['failed'] ?? 0) == 0
+                    && ($responseData['synced'] ?? 0) === count($logRecords);
+
+                if (!$batchSynced) {
+                    Log::error('Failed syncing WhatsApp message logs chunk', [
+                        'chunk' => $index + 1,
+                        'status' => $response->status(),
+                        'response' => $response->body(),
+                        'logs_count' => count($logIds),
+                    ]);
+                    continue;
+                }
+
+                if ($hasPushedColumn) {
+                    DB::connection('oracle')
+                        ->table($table)
+                        ->whereIn('id', $logIds)
+                        ->update(['is_pushed' => 'Y']);
+                }
+
+                Log::info('WhatsApp message logs chunk synced successfully', [
+                    'chunk' => $index + 1,
+                    'logs_count' => count($logIds),
+                    'log_ids' => $logIds,
+                ]);
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                Log::error('Connection error syncing WhatsApp message logs chunk', [
+                    'chunk' => $index + 1,
+                    'error' => $e->getMessage(),
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Unexpected error syncing WhatsApp message logs chunk', [
+                    'chunk' => $index + 1,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+            }
         }
     }
 

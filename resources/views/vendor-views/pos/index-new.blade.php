@@ -2517,9 +2517,9 @@
                     return true;
                 }
 
-                const omanMobileRegex = /^(?:(?:\+?968)?[79]\d{7}|00[1-9]\d{7,14})$/;
+                var omanMobileRegex = /^(?:(?:\+?968)?[79]\d{7}|00[1-9]\d{7,14})$/;
 
-                const validFeedback = phoneInput
+                var validFeedback = phoneInput
                 .closest('.form-group')
                 ?.querySelector('.valid-feedback');
 

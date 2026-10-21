@@ -16,7 +16,7 @@ class WhatsappLogsSyncController extends Controller
     ];
 
     /**
-     * @return \Illuminate\Http\JsonResponse
+     * Return records changed since the branch's saved sync cursors.
      */
     public function sendData(Request $request)
     {
@@ -26,9 +26,10 @@ class WhatsappLogsSyncController extends Controller
             ]);
 
             $branchId = (int) $validated['branch_id'];
-            $cursorMap = $this->resolveLastSyncedMap($branchId);
+            $cursorMap = $this->fetchBranchSyncState($branchId);
 
             $data = [
+                'business_settings' => [],
                 'whatsapp_logs' => [],
             ];
 
@@ -53,6 +54,12 @@ class WhatsappLogsSyncController extends Controller
                 })
                 ->orderBy('updated_at')
                 ->get();
+
+            $data['business_settings'] = $businessSettings
+                ->map(function ($setting) {
+                    return (array) $setting;
+                })
+                ->all();
 
             foreach ($whatsappLogs as $log) {
                 $logRecord = $this->ensureUpdatedAt((array) $log, 'whatsapp_logs', 'id');
@@ -79,28 +86,73 @@ class WhatsappLogsSyncController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
-            Log::error('Failed to get employee/user data for sync', [
+            Log::error('Failed to get business settings and WhatsApp logs for sync', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve employee/user data',
+                'message' => 'Failed to retrieve business settings and WhatsApp logs',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
 
     /**
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * Idempotently upsert a batch of local order WhatsApp message logs.
+     */
+    public function syncBulk(Request $request)
+    {
+        $validated = $request->validate([
+            'logs' => 'required|array',
+            'logs.*' => 'required|array',
+            'logs.*.id' => 'required',
+        ]);
+
+        $syncedIds = [];
+        $failedCount = 0;
+
+        foreach ($validated['logs'] as $log) {
+            try {
+                DB::connection('oracle')
+                    ->table('order_whatsapp_msg_log')
+                    ->updateOrInsert(
+                        ['id' => $log['id']],
+                        $log
+                    );
+
+                $syncedIds[] = $log['id'];
+            } catch (\Exception $e) {
+                $failedCount++;
+                Log::error('Failed syncing WhatsApp message log', [
+                    'log_id' => $log['id'],
+                    'error' => $e->getMessage(),
+                ]);
+            }
+        }
+
+        return response()->json([
+            'success' => $failedCount === 0,
+            'message' => $failedCount === 0
+                ? 'WhatsApp message logs synced successfully'
+                : 'Some WhatsApp message logs failed to sync',
+            'total' => count($validated['logs']),
+            'synced' => count($syncedIds),
+            'failed' => $failedCount,
+            'log_ids' => $syncedIds,
+        ], $failedCount === 0 ? 200 : 207);
+    }
+
+    /**
+     * Save the latest pull cursors for the given branch.
      */
     public function updateSyncState(Request $request)
     {
         try {
             $validated = $request->validate([
                 'branch_id' => 'required|integer',
+                'business_settings_last_synced_at' => 'nullable|string',
                 'whatsapp_logs_last_synced_at' => 'nullable|string',
             ]);
 
@@ -108,7 +160,7 @@ class WhatsappLogsSyncController extends Controller
             $timestamps = $this->parseTimestampPayload($validated);
             $this->persistBranchSyncState($branchId, $timestamps);
 
-            Log::info('Branch sync state updated (employees/users)', [
+            Log::info('Branch sync state updated (business settings/WhatsApp logs)', [
                 'branch_id' => $branchId,
                 'payload' => array_intersect_key(
                     $validated,
@@ -124,7 +176,7 @@ class WhatsappLogsSyncController extends Controller
             ], 200);
 
         } catch (\Exception $e) {
-            Log::error('Failed to update branch sync state (employees/users)', [
+            Log::error('Failed to update branch sync state (business settings/WhatsApp logs)', [
                 'error' => $e->getMessage()
             ]);
 
@@ -134,18 +186,6 @@ class WhatsappLogsSyncController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
-    }
-
-    private function resolveLastSyncedMap(int $branchId): array
-    {
-        $rows = $this->fetchBranchSyncState($branchId);
-
-        $map = [];
-        foreach (self::SYNC_ENTITY_TYPES as $entity) {
-            $map[$entity] = $rows[$entity] ?? null;
-        }
-
-        return $map;
     }
 
     private function fetchBranchSyncState(int $branchId): array
@@ -169,9 +209,8 @@ class WhatsappLogsSyncController extends Controller
     private function collectLatestTimestamps(array $data): array
     {
         return [
-            'employee_roles' => $this->extractMaxTimestamp($data['employee_roles']),
-            'employees' => $this->extractMaxTimestamp($data['employees']),
-            'users' => $this->extractMaxTimestamp($data['users']),
+            'business_settings' => $this->extractMaxTimestamp($data['business_settings']),
+            'whatsapp_logs' => $this->extractMaxTimestamp($data['whatsapp_logs']),
         ];
     }
 
@@ -204,7 +243,7 @@ class WhatsappLogsSyncController extends Controller
         try {
             return Carbon::parse($value);
         } catch (\Exception $e) {
-            Log::warning('Invalid timestamp received during employee sync', [
+            Log::warning('Invalid timestamp received during WhatsApp log sync', [
                 'value' => $value,
                 'error' => $e->getMessage(),
             ]);
@@ -288,4 +327,3 @@ class WhatsappLogsSyncController extends Controller
         return $record;
     }
 }
-

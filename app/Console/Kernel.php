@@ -7,6 +7,7 @@ use App\Jobs\SyncCustomersJob;
 use App\Jobs\SyncEmployeesJob;
 use App\Jobs\SyncFoodJob;
 use App\Jobs\SyncOrdersJob;
+use App\Jobs\SyncWhatsappLogJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -30,10 +31,12 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->job(new SyncOrdersJob)->everyMinute()->withoutOverlapping();
+        $schedule->job(new SyncWhatsappLogJob)->everyMinute()->withoutOverlapping();
         $schedule->job(new SyncBranchesRestaurantsJob)->everyTwoHours();
         $schedule->job(new SyncEmployeesJob)->everyFourHours();
         $schedule->job(new SyncFoodJob)->hourly();
         $schedule->job(new SyncCustomersJob)->everyFourHours();
+        $schedule->job(new SyncWhatsappLogJob)->everyFiveMinutes()->withoutOverlapping();
     }
 
     /**

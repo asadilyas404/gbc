@@ -31,12 +31,14 @@
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/emojionearea.min.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/theme.minc619.css?v=1.0') }}">
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/style.css') }}">
+    <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/internet-connection-alert.css') }}">
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/intltelinput/css/intlTelInput.css')}}">
     @stack('css_or_js')
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/toastr.css') }}">
 </head>
 
 <body class="footer-offset">
+    @include('layouts.partials.internet-connection-alert')
 
     @if(env('APP_MODE')=='demo')
     <div id="direction-toggle" class="direction-toggle">
@@ -817,6 +819,7 @@
 
 
     </script>
+    <script src="{{ dynamicAsset('public/assets/admin/js/internet-connection-alert.js') }}"></script>
 
 </body>
 

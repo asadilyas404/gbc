@@ -1,6 +1,9 @@
 <?php
 
 return array (
+  'No_internet_connection' => 'ইন্টারনেট সংযোগ নেই। কিছু বৈশিষ্ট্য কাজ নাও করতে পারে।',
+  'Mute_sound' => 'শব্দ বন্ধ করুন',
+  'Unmute_sound' => 'শব্দ চালু করুন',
   'account_transaction' => 'একাউন্ট ট্রানজেকশন',
   'Cash_Collection_Transaction' => 'ক্যাশ কালেকশন ট্রানজেকশন',
   'type' => 'প্রকার',

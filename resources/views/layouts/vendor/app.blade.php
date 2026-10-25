@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/theme.minc619.css?v=1.0') }}">
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/style.css') }}">
+    <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/internet-connection-alert.css') }}">
     <link  rel="stylesheet" href="{{dynamicAsset('/public/assets/admin/plugins/lightbox/css/lightbox.css')}}">
     <!-- Provider Panel Update CSS -->
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/css/vendor.css')}}">
@@ -46,6 +47,7 @@
 </head>
 
 <body class="footer-offset">
+    @include('layouts.partials.internet-connection-alert')
 
     @if (env('APP_MODE')=='demo')
     <div class="direction-toggle">
@@ -899,6 +901,7 @@ if (window.gbcLocalChannel) {
     };
 }
 </script>
+<script src="{{ dynamicAsset('public/assets/admin/js/internet-connection-alert.js') }}"></script>
 
 
 </body>

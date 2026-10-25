@@ -1,4 +1,7 @@
 <?php return array (
+  'No_internet_connection' => 'No internet connection. Some features may not work.',
+  'Mute_sound' => 'Mute sound',
+  'Unmute_sound' => 'Unmute sound',
   'account_transaction' => 'Account transaction',
   'Cash_Collection_Transaction' => 'Cash Collection Transaction',
   'type' => 'Type',

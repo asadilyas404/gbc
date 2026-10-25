@@ -1,0 +1,41 @@
+.internet-connection-alert {
+    align-items: center;
+    background: #b42318;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    color: #fff;
+    display: flex;
+    font-size: 14px;
+    gap: 16px;
+    justify-content: center;
+    left: 0;
+    padding: 10px 16px;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 1100;
+}
+
+.internet-connection-alert[hidden] {
+    display: none !important;
+}
+
+.internet-connection-alert button {
+    background: transparent;
+    border: 1px solid currentColor;
+    border-radius: 4px;
+    color: inherit;
+    cursor: pointer;
+    font: inherit;
+    padding: 4px 10px;
+}
+
+.internet-connection-alert button:focus-visible {
+    outline: 2px solid #fff;
+    outline-offset: 2px;
+}
+
+@media (max-width: 991.98px) {
+    .internet-connection-alert {
+        display: none;
+    }
+}

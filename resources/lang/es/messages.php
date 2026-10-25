@@ -1,4 +1,7 @@
 <?php return array (
+  'No_internet_connection' => 'No hay conexión a Internet. Es posible que algunas funciones no estén disponibles.',
+  'Mute_sound' => 'Silenciar sonido',
+  'Unmute_sound' => 'Activar sonido',
   'account_transaction' => 'Transacción de cuenta',
   'Cash_Collection_Transaction' => 'Transacción de cobro en efectivo',
   'type' => 'Tipo',

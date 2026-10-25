@@ -1,4 +1,7 @@
 <?php return array (
+  'No_internet_connection' => 'لا يوجد اتصال بالإنترنت. قد لا تعمل بعض الميزات.',
+  'Mute_sound' => 'كتم الصوت',
+  'Unmute_sound' => 'إلغاء كتم الصوت',
   'account_transaction' => 'معاملة الحساب',
   'Cash_Collection_Transaction' => 'معاملة جمع النقد',
   'type' => 'يكتب',

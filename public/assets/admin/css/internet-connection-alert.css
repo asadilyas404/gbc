@@ -13,6 +13,13 @@
     right: 0;
     top: 0;
     z-index: 1100;
+    animation: internet-connection-alert-blink 1s steps(2, start) infinite;
+}
+
+@keyframes internet-connection-alert-blink {
+    to {
+        background: #7f1d1d;
+    }
 }
 
 .internet-connection-alert[hidden] {
@@ -37,5 +44,11 @@
 @media (max-width: 991.98px) {
     .internet-connection-alert {
         display: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .internet-connection-alert {
+        animation: none;
     }
 }

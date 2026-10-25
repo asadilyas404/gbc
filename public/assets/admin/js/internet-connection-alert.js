@@ -11,7 +11,7 @@
     let connected = null;
     let muted = false;
     let audioContext = null;
-    let soundPlayedForOutage = false;
+    let soundInterval = null;
     let checkInProgress = false;
 
     try {
@@ -26,7 +26,7 @@
     }
 
     function playSound() {
-        if (muted || !desktopMedia.matches || connected !== false || soundPlayedForOutage
+        if (muted || !desktopMedia.matches || connected !== false
             || !audioContext || audioContext.state !== 'running') {
             return;
         }
@@ -36,13 +36,29 @@
         const now = audioContext.currentTime;
 
         oscillator.frequency.setValueAtTime(880, now);
-        gain.gain.setValueAtTime(0.18, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(0.2, now + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
         oscillator.connect(gain);
         gain.connect(audioContext.destination);
         oscillator.start(now);
-        oscillator.stop(now + 0.35);
-        soundPlayedForOutage = true;
+        oscillator.stop(now + 0.5);
+    }
+
+    function startSoundNotification() {
+        if (muted || !desktopMedia.matches || connected !== false || soundInterval) {
+            return;
+        }
+
+        playSound();
+        soundInterval = window.setInterval(playSound, 5000);
+    }
+
+    function stopSoundNotification() {
+        if (soundInterval) {
+            window.clearInterval(soundInterval);
+            soundInterval = null;
+        }
     }
 
     function setConnected(isConnected) {
@@ -51,28 +67,38 @@
         }
 
         connected = isConnected;
-        soundPlayedForOutage = false;
         alertBox.hidden = isConnected || !desktopMedia.matches;
 
-        if (!isConnected) {
-            playSound();
+        if (isConnected) {
+            stopSoundNotification();
+        } else {
+            startSoundNotification();
         }
     }
 
     function enableSoundAfterUserGesture() {
-        if (audioContext) {
-            return;
-        }
-
-        if (!window.AudioContext) {
+        const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+        if (!audioContext && !AudioContextConstructor) {
             console.warn('Audio notifications are not supported in this browser.');
             return;
         }
 
-        audioContext = new window.AudioContext();
-        audioContext.resume().then(playSound).catch((error) => {
+        try {
+            audioContext = audioContext || new AudioContextConstructor();
+            audioContext.resume().then(() => {
+                if (connected === false) {
+                    if (soundInterval) {
+                        playSound();
+                    } else {
+                        startSoundNotification();
+                    }
+                }
+            }).catch((error) => {
+                console.warn('Could not enable the internet alert sound.', error);
+            });
+        } catch (error) {
             console.warn('Could not enable the internet alert sound.', error);
-        });
+        }
     }
 
     async function checkInternetConnection() {
@@ -108,8 +134,10 @@
         alertBox.hidden = connected !== false || !desktopMedia.matches;
 
         if (desktopMedia.matches) {
-            playSound();
+            startSoundNotification();
             checkInternetConnection();
+        } else {
+            stopSoundNotification();
         }
     }
 
@@ -123,8 +151,10 @@
             console.warn('Could not save the internet alert sound preference.', error);
         }
 
-        if (!muted) {
-            playSound();
+        if (muted) {
+            stopSoundNotification();
+        } else {
+            enableSoundAfterUserGesture();
         }
     });
 
@@ -141,5 +171,5 @@
 
     updateMuteButton();
     updateDesktopVisibility();
-    window.setInterval(checkInternetConnection, 30000);
+    window.setInterval(checkInternetConnection, 15000);
 })();

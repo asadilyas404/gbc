@@ -119,7 +119,7 @@ class WhatsappService
                 'template' => [
                     'name' => $templateName,
                     'language' => [
-                        'code' => 'ar',
+                        'code' => 'en',
                     ],
                     'components' => $components,
                 ],

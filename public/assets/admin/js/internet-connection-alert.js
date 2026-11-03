@@ -7,18 +7,11 @@
     }
 
     const desktopMedia = window.matchMedia('(min-width: 992px)');
-    const muteStorageKey = 'gbc-internet-alert-muted';
     let connected = null;
     let muted = false;
     let audioContext = null;
     let soundInterval = null;
     let checkInProgress = false;
-
-    try {
-        muted = window.localStorage.getItem(muteStorageKey) === 'true';
-    } catch (error) {
-        console.warn('Could not load the internet alert sound preference.', error);
-    }
 
     function updateMuteButton() {
         muteButton.textContent = muted ? alertBox.dataset.unmuteLabel : alertBox.dataset.muteLabel;
@@ -72,6 +65,8 @@
         if (isConnected) {
             stopSoundNotification();
         } else {
+            muted = false;
+            updateMuteButton();
             startSoundNotification();
         }
     }
@@ -144,12 +139,6 @@
     muteButton.addEventListener('click', () => {
         muted = !muted;
         updateMuteButton();
-
-        try {
-            window.localStorage.setItem(muteStorageKey, muted ? 'true' : 'false');
-        } catch (error) {
-            console.warn('Could not save the internet alert sound preference.', error);
-        }
 
         if (muted) {
             stopSoundNotification();

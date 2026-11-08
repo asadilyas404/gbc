@@ -7,12 +7,6 @@
     <source src="{{ asset('sounds/notification.wav') }}" type="audio/wav">
 </audio>
 
-{{-- Non-intrusive 30-day sound enable bar --}}
-<div id="sound-enable-bar"
-    style="position:fixed;top:0;left:0;right:0;z-index:9999;background:linear-gradient(135deg,#ff9800,#f57c00);color:#fff;text-align:center;padding:12px 20px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.25);display:none;">
-    🔔 Click here to enable order notification sounds
-</div>
-
 <style>
     /* Continuous pulse animation for alerting cards */
     @keyframes orderUpdatedPulse {
@@ -222,23 +216,11 @@
     }
 
     function showSoundBar() {
-        const bar = document.getElementById('sound-enable-bar');
-        if (bar && bar.style.display !== 'block') {
-            bar.style.display = 'block';
-            bar.style.opacity = '1';
-            console.log('[AUDIO] Enable sound bar shown');
-        }
+        window.soundInteractionAlert.requireInteraction('order-notifications', unlockAudio);
     }
 
     function hideSoundBar() {
-        const bar = document.getElementById('sound-enable-bar');
-        if (bar && bar.style.display !== 'none') {
-            bar.style.transition = 'opacity 0.4s ease';
-            bar.style.opacity = '0';
-            setTimeout(function() {
-                bar.style.display = 'none';
-            }, 400);
-        }
+        window.soundInteractionAlert.clear('order-notifications');
     }
 
     // 4. Native Capture-Phase User Gesture Audio Unlock Handler

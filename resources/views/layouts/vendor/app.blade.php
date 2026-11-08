@@ -44,6 +44,13 @@
 
     <script src="{{dynamicAsset('public/assets/admin/vendor/hs-navbar-vertical-aside/hs-navbar-vertical-aside-mini-cache.js')}}"></script>
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/css/toastr.css')}}">
+
+    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.13/dist/turbo.es2017-umd.js"></script>
+    <script>
+        // Only links explicitly marked data-turbo="true" use Turbo.
+        Turbo.session.drive = false;
+    </script>
+    <script src="{{ dynamicAsset('public/assets/admin/js/turbo-internal-links.js') }}" defer></script>
 </head>
 
 <body class="footer-offset">
@@ -456,11 +463,12 @@
     let audio = document.getElementById("myAudio");
 
     function playAudio() {
-        audio.play();
+        window.soundInteractionAlert.play(document.getElementById('myAudio')).catch(() => {});
     }
 
     function pauseAudio() {
         audio.pause();
+        window.soundInteractionAlert.clear(audio);
     }
 
 
@@ -901,7 +909,7 @@ if (window.gbcLocalChannel) {
     };
 }
 </script>
-<script src="{{ dynamicAsset('public/assets/admin/js/internet-connection-alert.js') }}"></script>
+<script src="{{ dynamicAsset('public/assets/admin/js/internet-connection-alert.js') }}" data-turbo-eval="false"></script>
 
 
 </body>

@@ -18,9 +18,25 @@
         muteButton.setAttribute('aria-pressed', muted ? 'true' : 'false');
     }
 
+    function updateSoundInteractionAlert() {
+        const needsInteraction = connected === false && !muted && desktopMedia.matches
+            && (window.AudioContext || window.webkitAudioContext)
+            && (!audioContext || audioContext.state !== 'running');
+
+        if (needsInteraction) {
+            window.soundInteractionAlert.requireInteraction('internet-connection', enableSoundAfterUserGesture);
+        } else {
+            window.soundInteractionAlert.clear('internet-connection');
+        }
+    }
+
     function playSound() {
-        if (muted || !desktopMedia.matches || connected !== false
-            || !audioContext || audioContext.state !== 'running') {
+        updateSoundInteractionAlert();
+        if (muted || !desktopMedia.matches || connected !== false) {
+            return;
+        }
+
+        if (!audioContext || audioContext.state !== 'running') {
             return;
         }
 
@@ -48,6 +64,7 @@
     }
 
     function stopSoundNotification() {
+        window.soundInteractionAlert.clear('internet-connection');
         if (soundInterval) {
             window.clearInterval(soundInterval);
             soundInterval = null;
@@ -79,8 +96,14 @@
         }
 
         try {
-            audioContext = audioContext || new AudioContextConstructor();
-            audioContext.resume().then(() => {
+            if (!audioContext) {
+                audioContext = new AudioContextConstructor();
+                audioContext.addEventListener('statechange', updateSoundInteractionAlert);
+            }
+            // A blocked resume can remain pending, so show the message before waiting.
+            updateSoundInteractionAlert();
+            return audioContext.resume().then(() => {
+                updateSoundInteractionAlert();
                 if (connected === false) {
                     if (soundInterval) {
                         playSound();
@@ -89,9 +112,11 @@
                     }
                 }
             }).catch((error) => {
+                updateSoundInteractionAlert();
                 console.warn('Could not enable the internet alert sound.', error);
             });
         } catch (error) {
+            updateSoundInteractionAlert();
             console.warn('Could not enable the internet alert sound.', error);
         }
     }
@@ -154,9 +179,11 @@
     window.addEventListener('resize', updateDesktopVisibility);
     document.addEventListener('visibilitychange', () => {
         if (!document.hidden) {
+            updateSoundInteractionAlert();
             checkInternetConnection();
         }
     });
+    document.addEventListener('turbo:load', updateSoundInteractionAlert);
 
     updateMuteButton();
     updateDesktopVisibility();

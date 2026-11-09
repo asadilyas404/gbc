@@ -704,10 +704,12 @@
 
 
     <script>
+(() => {
         "use strict";
+        const page = PanelPage.create('orders');
         const currentStatusFilter = '{{ $st }}';
 
-        $(document).on('ready', function() {
+        page.ready(function() {
             Pusher.logToConsole = true;
             const localWsHost = window.location.hostname;
             const pusherKey = '{{ env('PUSHER_APP_KEY', 'app-key') }}';
@@ -726,6 +728,7 @@
                     enabledTransports: ['ws']
                 });
 
+                page.cleanup(() => pusher.disconnect());
                 console.log('[DEBUG] Pusher object created. Current state:', pusher.connection.state);
 
                 // Bind state_change immediately to catch ALL transitions
@@ -745,6 +748,7 @@
                 console.error('[DEBUG] Pusher CONSTRUCTOR threw an error:', e);
             }
 
+            page.cleanup(() => { orderFallbackActive = false; clearOrderFallbackTimer(); });
             let orderFallbackActive = false;
             let isSyncingOrderList = false;
             let orderFallbackTimeout = null;
@@ -759,7 +763,7 @@
             function scheduleNextOrderFallbackSync() {
                 clearOrderFallbackTimer();
                 if (orderFallbackActive) {
-                    orderFallbackTimeout = setTimeout(function () {
+                    orderFallbackTimeout = page.setTimeout(function () {
                         syncOrderList();
                     }, 40000);
                 }
@@ -782,10 +786,10 @@
             function applyHighlight($element) {
                 if ($element.is('tr')) {
                     $element.addClass('highlight-new-row');
-                    setTimeout(function () { $element.removeClass('highlight-new-row'); }, 12000);
+                    page.setTimeout(function () { $element.removeClass('highlight-new-row'); }, 12000);
                 } else {
                     $element.addClass('highlight-new-order');
-                    setTimeout(function () { $element.removeClass('highlight-new-order'); }, 12000);
+                    page.setTimeout(function () { $element.removeClass('highlight-new-order'); }, 12000);
                 }
             }
 
@@ -942,12 +946,12 @@
             });
 
             // Network offline / online events
-            window.addEventListener('offline', function () {
+            page.listen(window, 'offline', function () {
                 console.warn('Order list network offline event detected.');
                 startOrderFallbackPolling();
             });
 
-            window.addEventListener('online', function () {
+            page.listen(window, 'online', function () {
                 console.log('Order list network online event detected.');
                 if (pusher.connection.state === 'connected') {
                     stopOrderFallbackPolling();
@@ -956,7 +960,7 @@
             });
 
             // Safety check if Pusher fails to connect on initial page load
-            setTimeout(function () {
+            page.setTimeout(function () {
                 if (pusher.connection.state !== 'connected' || !navigator.onLine) {
                     startOrderFallbackPolling();
                 }
@@ -1129,8 +1133,7 @@
                 });
             }
 
-            const phoneInput = document.getElementById('phone');
-            $(document).on('submit', 'form#order_place', function (e) {
+            page.on('submit', 'form#order_place', function (e) {
                 const form = this;
                 const $form = $(form);
 
@@ -1270,7 +1273,7 @@
                 if (
                     formHasPhoneInput &&
                     phoneInput.value.trim() !== '' &&
-                    !validatePhone()
+                    !validatePhone(phoneInput)
                 ) {
                     e.preventDefault();
                     e.stopImmediatePropagation();
@@ -1347,12 +1350,12 @@
             });
 
             // Trigger calculations if the modal inputs are dynamically added
-            $(document).on('input', '#cash_paid, #card_paid', function() {
+            page.on('input', '#cash_paid, #card_paid', function() {
                 updateCalculations();
             });
 
             $('#cash_paid, #card_paid').prop('readOnly', true);
-            $(document).on('change', 'input[name="select_payment_type"]', function() {
+            page.on('change', 'input[name="select_payment_type"]', function() {
                 var value = $(this).val();
                 if(value == 'cash_payment'){
                     $('#cash_paid').prop('readOnly', false).val('').trigger('input');
@@ -1392,11 +1395,11 @@
 
             let activeInput = null;
 
-            $(document).on('focus', '#orderFinalModal input', function() {
+            page.on('focus', '#orderFinalModal input', function() {
                 activeInput = $(this);
             });
 
-            $(document).on('click', '.keypad-btn', function() {
+            page.on('click', '.keypad-btn', function() {
                 const value = $(this).data('value');
                 if (activeInput) {
                     let currentVal = activeInput.val();
@@ -1420,7 +1423,7 @@
             });
 
             // Clear the input field
-            $(document).on('click', '.keypad-clear', function() {
+            page.on('click', '.keypad-clear', function() {
                 if (activeInput) {
                     activeInput.val('');
                     activeInput.trigger('input');
@@ -1454,7 +1457,7 @@
 
 
 
-            $(document).on('click', '.quick-view-btn', function() {
+            page.on('click', '.quick-view-btn', function() {
                 const orderId = $(this).data('order-id');
                 const p_Id = $(this).data('order-p-id');
                 const orderNumber = $(this).data('order-number');
@@ -1568,10 +1571,11 @@
                 $('#invoice_amount span').text('0.0');
             });
 
-            phoneInput.addEventListener('keyup', validatePhone);
-            phoneInput.addEventListener('blur', validatePhone);
+            page.on('keyup blur', '#orderFinalModal #phone', function() {
+                validatePhone(this);
+            });
 
-            function validatePhone() {
+            function validatePhone(phoneInput) {
                 let value = phoneInput.value.replace(/[^\d+]/g, '');
 
                 // Allow + only as the first character
@@ -1762,12 +1766,12 @@
 
         ///////////
         // Save scroll position before leaving or reloading
-        window.addEventListener('beforeunload', function () {
+        page.listen(window, 'beforeunload', function () {
             localStorage.setItem('scrollPosition', window.scrollY);
         });
 
         // Restore scroll position when page loads
-        window.addEventListener('load', function () {
+        page.ready(function () {
             const scrollPosition = localStorage.getItem('scrollPosition');
             if (scrollPosition) {
                 window.scrollTo(0, parseInt(scrollPosition));
@@ -1775,7 +1779,9 @@
                 localStorage.removeItem('scrollPosition');
             }
         });
-    </script>
+
+})();
+</script>
 
 
 @endpush

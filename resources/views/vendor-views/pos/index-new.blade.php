@@ -42,7 +42,7 @@
         .order_partner {
             min-width: 92px;
         }
-        
+
         .order_partner .partner-name{
             color: #333;
         }
@@ -53,7 +53,7 @@
         .order_partner:hover .partner-name{
             color: #fff;
         }
-        
+
         .category-item.selected, .order_partner.selected, .order_partner:hover   {
             padding: 5px;
             border-radius: 10px;
@@ -68,7 +68,7 @@
 
         .partner-name{
             text-align: center;
-            
+
         }
 
         .category-icon{
@@ -380,7 +380,7 @@
                             </span>
                         </div>
                     </div>
-                    
+
                     <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
                         title="{{ translate('messages.dashboard') }}">
                         {{ translate('messages.dashboard') }}
@@ -393,7 +393,7 @@
                                 <span>
                                     {{ translate('Billing Section') }}
                                 </span>
-                                
+
                             </h5>
                             <p class="text-muted mb-0">
                                 {{\App\CentralLogics\Helpers::get_branch_name()}}
@@ -449,18 +449,18 @@
                                             </span>
                                             <span>{{ translate('Delivery_Information') }}</span>
                                         </h5>
-                                    
+
                                         <span class="delivery--edit-icon text-primary" id="delivery_address" data-toggle="modal"
                                         data-target="#paymentModal"><i class="tio-edit"></i></span>
                                     @endif
-                                    
+
                                 </div>
                                 <div class="pos--delivery-options-info d-flex flex-wrap" id="del-add">
                                     @include('vendor-views.pos._address')
                                 </div>
                             </div>
                         @endif
-                    </div>  
+                    </div>
                     <!-- <input type="hidden" name="partner_id" value="{{ $orderPartner }}" > -->
 
                     <div class='w-100' id="cart">
@@ -602,9 +602,9 @@
                                 </div>
                                 <div class="col-12 col-lg-6">
                                     <div class="form-group">
-                                        <label for="phone" class="input-label">{{ translate('phone') }}<span
+                                        <label for="new_customer_phone" class="input-label">{{ translate('phone') }}<span
                                                 class="input-label-secondary text-danger">*</span></label>
-                                        <input id="phone" type="tel" name="phone" class="form-control"
+                                        <input id="new_customer_phone" type="tel" name="phone" class="form-control"
                                             value="{{ old('phone') }}" placeholder="{{ translate('phone') }}" required>
                                     </div>
                                 </div>
@@ -641,9 +641,15 @@
     <script src="{{ dynamicAsset('public/assets/admin/js/view-pages/pos.js') }}"></script>
     <script src="{{ dynamicAsset('public/assets/restaurant_panel/qz-tray.js') }}"></script>
     <script>
+(() => {
+        "use strict";
+        const page = PanelPage.create('pos');
+        page.expose({initMap, handleLocationError, getVariantPrice, sendAddToCartRequest, updateCart, parseCustomerData, storeCustomerDetails, getCurrentCustomerData, fillModalWithCustomerData, fillDeliveryAddressModal, clearModalFields, tryFillModalWithRetries});
         "use strict";
         let itemQty = 0;
+        let activeInput = null;
         const channel = new BroadcastChannel("erp_tab_channel");
+        page.cleanup(() => channel.close());
         let currentUrl = window.location.pathname;
 
         // Extract numeric ID (if exists)
@@ -668,13 +674,13 @@
             }
         };
 
-        setTimeout(() => {
+        page.setTimeout(() => {
             if (!isDuplicate) {
                 channel.postMessage({ type: "REGISTER_URL", url: baseUrl, id: currentId });
             }
         }, 500);
 
-        window.addEventListener("beforeunload", () => {
+        page.listen(window, "beforeunload", () => {
             channel.postMessage({ type: "UNREGISTER_URL", url: baseUrl, id: currentId });
         });
 
@@ -978,14 +984,14 @@
         }
 
 
-        $(document).on('click', '.order_partner', function() {
+        page.on('click', '.order_partner', function() {
             $('#loading').show();
             var selectedId = $(this).data('value'); // capture before AJAX
 
             $.post('{{ route('vendor.pos.emptyCart') }}', {
                 _token: '{{ csrf_token() }}'
             }).done(function() {
-                window.location.href = '/restaurant-panel/pos/new/' + selectedId;
+                Turbo.visit('/restaurant-panel/pos/new/' + selectedId);
                 // Clear the customer from local storage
                 localStorage.removeItem('posSelectedCustomer');
                 $('#customer').val(null).trigger('change');
@@ -1001,14 +1007,14 @@
             }
         })
 
-        $(document).on('ready', function() {
+        page.ready(function() {
             @if ($order)
                 $('#print-invoice').modal('show');
             @endif
-            
+
         });
 
-        $(document).on('click', '#orderFinalModal_btn', function(e) {
+        page.on('click', '#orderFinalModal_btn', function(e) {
 
             @if (!empty($orderPartner))
                 $('#payment_type_credit').prop('checked', true);
@@ -1034,7 +1040,7 @@
                 $('.payment_type').prop('disabled', false);
                 $('#unpaidOrderBtn').prop('disabled', false);
             @endif   
-            
+
 
 
             if(window.updateDate && !window.editingOrder){
@@ -1064,9 +1070,9 @@
                     }
                 });
             }else{
-                setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
+                page.setTimeout(() => { if (typeof window.fillOrderModal === 'function') window.fillOrderModal(); }, 500);
                 $('#orderFinalModal').modal('show');
-            }            
+            }
         });
 
 
@@ -1079,7 +1085,7 @@
         });
 
 
-        $(document).on('click', '.quick-View', function() {
+        page.on('click', '.quick-View', function() {
             itemQty = 0;
             $.get({
                 url: '{{ route("vendor.pos.quick-view") }}',
@@ -1102,7 +1108,7 @@
             });
         });
 
-        $(document).on('click', '.quick-View-Cart-Item', function() {
+        page.on('click', '.quick-View-Cart-Item', function() {
             itemQty = $(this).data('item-qty');
             $.get({
                 url: '{{ route("vendor.pos.quick-view-cart-item") }}',
@@ -1173,7 +1179,7 @@
             var discountType = $('#product_discount_type').val();
 
             var formData = $('#add-to-cart-form').serializeArray();
-            
+
             var variationAddonData = {};
             formData.forEach(function(item) {
                 if (item.name.startsWith('variation_addon_')) {
@@ -1353,7 +1359,7 @@
         }
 
         let isProcessing = false;
-        $(document).on('click', '.add-To-Cart', function() {
+        page.on('click', '.add-To-Cart', function() {
             if (isProcessing) return;
             isProcessing = true;
             const button = $(this);
@@ -1477,7 +1483,7 @@
             }
         });
 
-        $(document).on('click', '.remove-From-Cart', function() {
+        page.on('click', '.remove-From-Cart', function() {
             let key = $(this).data('product-id');
             if(window.editingOrder){
                 Swal.fire({
@@ -1605,7 +1611,7 @@
             }
         });
 
-        $(document).on('click', '.empty-Cart', function() {
+        page.on('click', '.empty-Cart', function() {
             $.post('{{ route('vendor.pos.emptyCart') }}', {
                 _token: '{{ csrf_token() }}'
             }, function() {
@@ -1672,7 +1678,7 @@
         }
 
 
-        $(document).on('click', '.delivery-Address-Store', function() {
+        page.on('click', '.delivery-Address-Store', function() {
             const button = $(this);
 
             if (button.prop('disabled')) {
@@ -1724,7 +1730,7 @@
             });
         });
 
-        $(document).on('click', '.payable-Amount', function() {
+        page.on('click', '.payable-Amount', function() {
             const button = $(this);
 
             if (button.prop('disabled')) {
@@ -1766,7 +1772,7 @@
             });
         });
 
-        $(document).on('change', '[name="quantity"]', function(event) {
+        page.on('change', '[name="quantity"]', function(event) {
             // getVariantPrice();
             calculateTotal();
             if ($('#option_ids').val() == '') {
@@ -1774,7 +1780,7 @@
             }
         });
 
-        $(document).on('change', '.update-Quantity', function(event) {
+        page.on('change', '.update-Quantity', function(event) {
             let element = $(event.target);
             let minValue = parseInt(element.attr('min'));
             let maxValue = parseInt(element.attr('max'));
@@ -1850,10 +1856,10 @@
         });
 
         @if(isset($draftCustomer) && $draftCustomer)
-            $(document).ready(function() {
-                let customerId = '{{ $draftCustomer->customer_id }}';
-                let customerName = '{{ $draftCustomer->customer_name }}';
-                let customerPhone = '{{ $draftCustomer->customer_mobile_no }}';
+            page.ready(function() {
+                let customerId = @json($draftCustomer->customer_id);
+                let customerName = @json($draftCustomer->customer_name);
+                let customerPhone = @json($draftCustomer->customer_mobile_no);
                 let customerText = customerName + ' (' + customerPhone + ')';
 
                 const $customer = $('#customer');
@@ -1877,7 +1883,7 @@
                 console.log('Draft order customer auto-filled: ' + customerText);
             });
         @else
-            $(document).ready(function() {
+            page.ready(function() {
                 // restoreCustomerFromStorage();
             });
         @endif
@@ -1940,7 +1946,7 @@
 
                         const { timestamp, ...customerInfo } = customerData;
 
-                        setTimeout(function() {
+                        page.setTimeout(function() {
                             if ($('#customer').length && typeof $('#customer').select2 === 'function') {
 
                                 const $customer = $('#customer');
@@ -1978,14 +1984,14 @@
             let data = e.params.data;
             storeCustomerDetails(data.id, data.text);
             if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
-                setTimeout(() => fillDeliveryAddressModal(), 100);
+                page.setTimeout(() => fillDeliveryAddressModal(), 100);
             }
         });
 
         $('#customer').on('select2:clear', function(e) {
             storeCustomerDetails(null, null);
             if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
-                setTimeout(() => fillDeliveryAddressModal(), 100);
+                page.setTimeout(() => fillDeliveryAddressModal(), 100);
             }
         });
 
@@ -1994,7 +2000,7 @@
             let customerText = $(this).find('option:selected').text();
             storeCustomerDetails(customerId, customerText);
             if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
-                setTimeout(() => fillDeliveryAddressModal(), 100);
+                page.setTimeout(() => fillDeliveryAddressModal(), 100);
             }
         });
 
@@ -2080,27 +2086,27 @@
                 }
 
                 if (attempts < maxRetries) {
-                    setTimeout(attemptFill, delay);
+                    page.setTimeout(attemptFill, delay);
                 }
             }
 
             attemptFill();
         }
 
-        $(document).on('shown.bs.modal', '#orderFinalModal', function() {
-            setTimeout(() => tryFillModalWithRetries(10, 100), 300);
+        page.on('shown.bs.modal', '#orderFinalModal', function() {
+            page.setTimeout(() => tryFillModalWithRetries(10, 100), 300);
         });
 
-        $(document).on('hidden.bs.modal', '#orderFinalModal', function() {
+        page.on('hidden.bs.modal', '#orderFinalModal', function() {
             activeInput = null;
         });
 
-        $(document).on('shown.bs.modal', '#paymentModal, #delivery-address', function() {
-            setTimeout(() => fillDeliveryAddressModal(), 300);
+        page.on('shown.bs.modal', '#paymentModal, #delivery-address', function() {
+            page.setTimeout(() => fillDeliveryAddressModal(), 300);
         });
 
-        $(document).on('DOMNodeInserted', '#orderFinalModal', function() {
-            setTimeout(() => tryFillModalWithRetries(5, 100), 100);
+        page.on('DOMNodeInserted', '#orderFinalModal', function() {
+            page.setTimeout(() => tryFillModalWithRetries(5, 100), 100);
         });
 
         if (typeof MutationObserver !== 'undefined') {
@@ -2116,23 +2122,25 @@
                         );
 
                         if (hasModalContent) {
-                            setTimeout(() => tryFillModalWithRetries(5, 100), 200);
+                            page.setTimeout(() => tryFillModalWithRetries(5, 100), 200);
                         }
                     }
                 });
             });
 
+            page.cleanup(() => observer.disconnect());
             observer.observe(document.body, {
                 childList: true,
                 subtree: true
             });
         }
 
+        page.cleanup(() => { delete window.fillOrderModal; });
         window.fillOrderModal = function() {
             tryFillModalWithRetries(10, 100);
         };
 
-        $(document).on('click', '#submit_new_customer', function(e) {
+        page.on('click', '#submit_new_customer', function(e) {
             e.preventDefault();
 
             const button = $(this);
@@ -2215,14 +2223,14 @@
         });
 
 
-        $(document).on('change', '#discount_input_type', function() {
+        page.on('change', '#discount_input_type', function() {
             let discountInput = $('#discount_input');
             let discountInputType = $(this);
             let maxLimit = (discountInputType.val() === 'percent') ? 100 : 1000000000;
             discountInput.attr('max', maxLimit);
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
+        page.ready(function() {
             let selectElement = document.querySelector('.discount-type');
             selectElement.addEventListener('change', function() {
                 document.getElementById('discount_input').max = (this.value === 'percent' ? 100 :
@@ -2261,15 +2269,15 @@
             this.scrollLeft += e.deltaY;
         });
 
-        $(document).ready(function(e) {
+        page.ready(function(e) {
             // Track clicked submit button per form
-            $(document).on('click', 'form button[type="submit"]', function () {
+            page.on('click', 'form button[type="submit"]', function () {
                 const $form = $(this).closest('form');
                 $form.find('button[type="submit"]').removeClass('clicked');
                 $(this).addClass('clicked');
             });
 
-            $(document).on(
+            page.on(
                 'click',
                 'form#order_place button[type="submit"]',
                 function () {
@@ -2283,8 +2291,7 @@
                 }
             );
 
-            const phoneInput = document.getElementById('phone');
-            $(document).on('submit', 'form#order_place', function (e) {
+            page.on('submit', 'form#order_place', function (e) {
                 const form = this;
                 const $form = $(form);
 
@@ -2424,7 +2431,7 @@
                 if (
                     formHasPhoneInput &&
                     phoneInput.value.trim() !== '' &&
-                    !validatePhone()
+                    !validatePhone(phoneInput)
                 ) {
                     e.preventDefault();
                     e.stopImmediatePropagation();
@@ -2498,10 +2505,11 @@
                 */
             });
 
-            phoneInput.addEventListener('keyup', validatePhone);
-            phoneInput.addEventListener('blur', validatePhone);
+            page.on('keyup blur', '#orderFinalModal #phone', function() {
+                validatePhone(this);
+            });
 
-            function validatePhone() {
+            function validatePhone(phoneInput) {
                 let value = phoneInput.value.replace(/[^\d+]/g, '');
 
                 // Allow + only as the first character
@@ -2570,9 +2578,9 @@
                         console.error('Error:', xhr.responseText);
                     }
                 });
-            }   
+            }
 
-            $(document).on('click', '.category-item', function(e) {
+            page.on('click', '.category-item', function(e) {
                 e.preventDefault();
 
                 const categoryId = $(this).data('category');
@@ -2582,7 +2590,7 @@
                 fetchData(categoryId, '', $('#search-keyword').val(), "{{ $orderPartner }}");
             });
 
-            $(document).on('click', '.subcategory-item', function(e) {
+            page.on('click', '.subcategory-item', function(e) {
                 e.preventDefault();
 
                 const subcategoryId = $(this).data('subcategory');
@@ -2593,7 +2601,7 @@
                 fetchData(categoryId, subcategoryId, $('#search-keyword').val(), "{{ $orderPartner }}");
             });
 
-            $(document).on('keypress', '#search-keyword', function(e) {
+            page.on('keypress', '#search-keyword', function(e) {
                 if (e.which === 13) { // Enter key
                     e.preventDefault();
                     const keyword = $(this).val();
@@ -2626,7 +2634,7 @@
                     bankAccountSelect.prop('required', false).prop('disabled', true);
                     return;
                 }
-                
+
                 if (cardPaid > 0) {
                     bankAccountSelect.prop('required', true).prop('disabled', false);
                 } else {
@@ -2670,12 +2678,12 @@
                 attachEventListeners();
             });
 
-            $(document).on('input', '#cash_paid, #card_paid', function() {
+            page.on('input', '#cash_paid, #card_paid', function() {
                 updateCalculations();
             });
 
             $('#cash_paid, #card_paid').prop('readOnly', true);
-            $(document).on('change', 'input[name="select_payment_type"]', function() {
+            page.on('change', 'input[name="select_payment_type"]', function() {
                 var value = $(this).val();
                 if(value == 'cash_payment'){
                     $('#cash_paid').prop('readOnly', false).val('').trigger('input');
@@ -2713,13 +2721,11 @@
 
             // Numeric Keypad working
 
-            let activeInput = null;
-
-            $(document).on('focus', '#orderFinalModal input, #cash_paid, #card_paid', function() {
+            page.on('focus', '#orderFinalModal input, #cash_paid, #card_paid', function() {
                 activeInput = $(this);
             });
 
-            $(document).on('click', '.keypad-btn', function(e) {
+            page.on('click', '.keypad-btn', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -2745,7 +2751,7 @@
                 }
             });
 
-            $(document).on('click', '.keypad-clear', function(e) {
+            page.on('click', '.keypad-clear', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
 
@@ -2755,7 +2761,7 @@
                 }
             });
 
-            $(document).on('blur', '#cash_paid, #card_paid', function() {
+            page.on('blur', '#cash_paid, #card_paid', function() {
                 const currentVal = this.value;
 
                 if (!isValidNumber(currentVal)) {
@@ -2907,7 +2913,7 @@
         //     });
         // }
 
-        
+
         if (typeof Pusher !== 'undefined') {
             Pusher.logToConsole = true;
             const localWsHost = window.location.hostname;
@@ -2922,6 +2928,7 @@
                 disableStats: true,
                 enabledTransports: ['ws']
             });
+            page.cleanup(() => posPusher.disconnect());
             var posChannel = posPusher.subscribe('my-channel');
             posChannel.bind('my-event', function(data) {
                 if (data.branch_id && window.currentBranchId && data.branch_id != window.currentBranchId) {
@@ -2930,5 +2937,7 @@
                 console.log('[DEBUG] POS real-time order update event:', data);
             });
         }
-    </script>
+
+})();
+</script>
 @endpush

@@ -3,7 +3,7 @@
 @endphp
 
 {{-- Audio Element & 30-Day Notification Sound Manager Partial with Deterministic Per-Order Alerts --}}
-<audio id="new-order-sound" preload="auto">
+<audio id="new-order-sound" preload="auto" data-turbo-permanent>
     <source src="{{ asset('sounds/notification.wav') }}" type="audio/wav">
 </audio>
 
@@ -106,6 +106,9 @@
 </style>
 
 <script>
+(() => {
+        const page = PanelPage.create('orderSound');
+        page.expose({markOrderAsNew, markOrderAsUpdated, startOrderAlert, stopOrderAlert, acknowledgeOrderUpdate, stopAllOrderAlerts, reapplyOrderAlertState, reapplyAllActiveAlerts, playNotificationSound});
     // ===== 30-Day Order Notification Sound & Alert Manager =====
     const ORDER_ALERT_SOUND_MODE = '{{ $soundMode }}'; // 'continuous' for Kitchen, 'once' for Order List
     const SOUND_PREF_KEY = 'restaurantOrderSoundPermission';
@@ -230,10 +233,10 @@
         document.removeEventListener('touchstart', unlockAudio, true);
         document.removeEventListener('click', unlockAudio, true);
 
-        document.addEventListener('pointerdown', unlockAudio, true);
-        document.addEventListener('keydown', unlockAudio, true);
-        document.addEventListener('touchstart', unlockAudio, true);
-        document.addEventListener('click', unlockAudio, true);
+        page.listen(document, 'pointerdown', unlockAudio, true);
+        page.listen(document, 'keydown', unlockAudio, true);
+        page.listen(document, 'touchstart', unlockAudio, true);
+        page.listen(document, 'click', unlockAudio, true);
     }
 
     function removeUnlockListeners() {
@@ -536,7 +539,7 @@
     function ensureAlertSchedulerRunning() {
         if (ORDER_ALERT_SOUND_MODE !== 'continuous') return;
         if (!orderAlertSchedulerTimer && activeOrderAlerts.size > 0) {
-            orderAlertSchedulerTimer = setInterval(processAlertCycle, BEEP_CYCLE_INTERVAL);
+            orderAlertSchedulerTimer = page.setInterval(processAlertCycle, BEEP_CYCLE_INTERVAL);
         }
     }
 
@@ -682,7 +685,7 @@
     }
 
     // 9. Deterministic Native Capture-Phase Click Detection
-    document.addEventListener(
+    page.listen(document,
         'click',
         function (event) {
             const card = event.target.closest(
@@ -712,22 +715,13 @@
         true // Native capture phase: intercepts click BEFORE inner buttons can stop propagation
     );
 
-    // 10. Single-Execution Guard: Initialize immediately when page/DOM loads
-    if (!window.orderSoundManagerInitialized) {
-        window.orderSoundManagerInitialized = true;
+    // Initialize once for this body, including a return visit through Turbo.
+    page.cleanup(stopAlertScheduler);
+    page.cleanup(hideSoundBar);
+    page.ready(function() {
+        initAudioOnPageLoad();
+        loadActiveAlertsFromStorage();
+    });
 
-        function runAudioInitWhenReady() {
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', function() {
-                    initAudioOnPageLoad();
-                    loadActiveAlertsFromStorage();
-                });
-            } else {
-                initAudioOnPageLoad();
-                loadActiveAlertsFromStorage();
-            }
-        }
-
-        runAudioInitWhenReady();
-    }
+})();
 </script>

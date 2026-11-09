@@ -189,7 +189,9 @@ if (isset($cart['paid'])) {
             @endif
 
             <script>
-                document.addEventListener('DOMContentLoaded', function() {
+(() => {
+const page = PanelPage.create('cartFocus');
+                page.ready(function() {
                     let focusRetryCount = 0;
                     const maxRetries = 10;
 
@@ -202,38 +204,38 @@ if (isset($cart['paid'])) {
                                 input.focus();
                                 input.select();
 
-                                setTimeout(function() {
+                                page.setTimeout(function() {
                                     if (document.activeElement !== input) {
                                         attemptFocus(attempts + 1);
                                     }
                                 }, 50);
                             }
 
-                            setTimeout(function() {
+                            page.setTimeout(function() {
                                 attemptFocus();
                             }, 100);
                         }
                     }
 
-                    document.addEventListener('click', function(e) {
+                    page.listen(document, 'click', function(e) {
                         if (e.target.closest('button[data-target="#add-delivery-fee"]')) {
-                            setTimeout(function() {
+                            page.setTimeout(function() {
                                 autoFocusInput('delivery_fee_input');
                             }, 400);
                         }
                         else if (e.target.closest('button[data-target="#add-discount"]')) {
-                            setTimeout(function() {
+                            page.setTimeout(function() {
                                 autoFocusInput('discount_input');
                             }, 400);
                         }
                         else if (e.target.closest('button[data-target="#add-tax"]')) {
-                            setTimeout(function() {
+                            page.setTimeout(function() {
                                 autoFocusInput('tax');
                             }, 400);
                         }
                     });
 
-                    document.addEventListener('shown.bs.modal', function(e) {
+                    page.listen(document, 'shown.bs.modal', function(e) {
                         const modalId = e.target.id;
                         let inputId = '';
 
@@ -246,14 +248,16 @@ if (isset($cart['paid'])) {
                         }
 
                         if (inputId) {
-                            setTimeout(function() {
+                            page.setTimeout(function() {
                                 autoFocusInput(inputId);
                             }, 200);
                         }
                     });
 
                 });
-            </script>
+
+})();
+</script>
 
 
             <dd class="col-12">
@@ -411,7 +415,7 @@ if (isset($cart['paid'])) {
                                     type="tel"
                                     name="phone"
                                     class="form-control"
-                                    value=""
+                                    value="{{ old('phone', $draftDetails->phone ?? '') }}"
                                     placeholder="{{ translate('Phone') }}"
                                     maxlength="14"
                                     autocomplete="tel"
@@ -440,7 +444,7 @@ if (isset($cart['paid'])) {
                                             {{ translate('Cash') }}
                                         </span>
                                     </label>
-                                </div>        
+                                </div>
                                 <div class="col-md-4 mb-1">
                                     <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment"
@@ -449,7 +453,7 @@ if (isset($cart['paid'])) {
                                             {{ translate('Card') }}
                                         </span>
                                     </label>
-                                </div>        
+                                </div>
                                 <div class="col-md-4 mb-1">
                                     <label for="payment_type_both" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_both" class="payment_type" name="select_payment_type" value="both_payment" >
@@ -457,7 +461,7 @@ if (isset($cart['paid'])) {
                                             {{ translate('Cash & Card') }}
                                         </span>
                                     </label>
-                                </div> 
+                                </div>
                                 <div class="col-md-4 mb-1" id="payment_type_credit_wrapper">
                                     <label for="payment_type_credit" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_credit" class="payment_type" name="select_payment_type" value="credit_payment" >
@@ -514,7 +518,7 @@ if (isset($cart['paid'])) {
                                            {{ translate('Take Away') }} <br /> {{ translate('سفري') }} 
                                         </span>
                                     </label>
-                                </div> 
+                                </div>
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
                                         <input type="radio" id="delivery_type_dine_in" name="delivery_type" value="dine_in">
@@ -522,7 +526,7 @@ if (isset($cart['paid'])) {
                                             {{ translate('Dine In') }} <br /> {{ translate('تناول في المطعم') }}
                                         </span>
                                     </label>
-                                </div>     
+                                </div>
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
                                         <input type="radio" id="delivery_type_delivery" name="delivery_type" value="delivery">

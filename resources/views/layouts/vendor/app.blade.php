@@ -45,12 +45,11 @@
     <script src="{{dynamicAsset('public/assets/admin/vendor/hs-navbar-vertical-aside/hs-navbar-vertical-aside-mini-cache.js')}}"></script>
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/css/toastr.css')}}">
 
+    <script src="{{ dynamicAsset('public/assets/admin/js/panel-page.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.13/dist/turbo.es2017-umd.js"></script>
-    <script>
-        // Only links explicitly marked data-turbo="true" use Turbo.
-        Turbo.session.drive = false;
-    </script>
+    <script>Turbo.session.drive = false;</script>
     <script src="{{ dynamicAsset('public/assets/admin/js/turbo-internal-links.js') }}" defer></script>
+    <meta name="turbo-cache-control" content="no-cache">
 </head>
 
 <body class="footer-offset">
@@ -240,7 +239,7 @@
     </div>
 
 <script src="{{dynamicAsset('public/assets/admin/js/custom.js')}}"></script>
-<script src="{{dynamicAsset('public/assets/admin/js/jquery.min.js')}}"></script>
+<script src="{{dynamicAsset('public/assets/admin/js/jquery.min.js')}}" data-turbo-eval="false"></script>
 
     <script>
         "use strict";
@@ -249,19 +248,19 @@
         $('#pre--loader').removeClass("pre--loader");;
     }
 </script>
-<script src="{{dynamicAsset('public/assets/admin/js/firebase.min.js')}}"></script>
+<script src="{{dynamicAsset('public/assets/admin/js/firebase.min.js')}}" data-turbo-eval="false"></script>
 
 <!-- JS Implementing Plugins -->
 
 @stack('script')
-<script src="{{dynamicAsset('public/assets/admin/js/vendor.min.js')}}"></script>
-<script src="{{dynamicAsset('public/assets/admin/js/theme.min.js')}}"></script>
-<script src="{{dynamicAsset('public/assets/admin/js/sweet_alert.js')}}"></script>
-<script src="{{dynamicAsset('public/assets/admin/js/toastr.js')}}"></script>
-<script src="{{dynamicAsset('public/assets/admin/js/owl.min.js')}}"></script>
-<script src="{{ dynamicAsset('/public/assets/admin/plugins/lightbox/js/lightbox.min.js')}}"></script>
+<script src="{{dynamicAsset('public/assets/admin/js/vendor.min.js')}}" data-turbo-eval="false"></script>
+<script src="{{dynamicAsset('public/assets/admin/js/theme.min.js')}}" data-turbo-eval="false"></script>
+<script src="{{dynamicAsset('public/assets/admin/js/sweet_alert.js')}}" data-turbo-eval="false"></script>
+<script src="{{dynamicAsset('public/assets/admin/js/toastr.js')}}" data-turbo-eval="false"></script>
+<script src="{{dynamicAsset('public/assets/admin/js/owl.min.js')}}" data-turbo-eval="false"></script>
+<script src="{{ dynamicAsset('/public/assets/admin/plugins/lightbox/js/lightbox.min.js')}}" data-turbo-eval="false"></script>
 
-<script src="{{dynamicAsset('public/assets/admin/intltelinput/js/intlTelInput.min.js')}}"></script>
+<script src="{{dynamicAsset('public/assets/admin/intltelinput/js/intlTelInput.min.js')}}" data-turbo-eval="false"></script>
 
 {!! Toastr::message() !!}
 
@@ -312,7 +311,7 @@
             $('.slide-counter').html(+item+"/"+items)
         }
     });
-    $(document).on('ready', function(){
+    $(document).ready(function(){
         $(".direction-toggle").on("click", function () {
             if($('html').hasClass('active')){
                 $('html').removeClass('active')
@@ -350,7 +349,7 @@
             }
         });
 
-    $(document).on('ready', function () {
+    $(document).ready(function () {
         if (window.localStorage.getItem('hs-builder-popover') === null) {
             $('#builderPopover').popover('show')
                 .on('shown.bs.popover', function () {
@@ -454,12 +453,15 @@
 
 @stack('script_2')
     <script src="{{dynamicAsset('public/assets/admin/js/view-pages/common.js')}}"></script>
-<audio id="myAudio">
+<audio id="myAudio" data-turbo-permanent>
     <source src="{{dynamicAsset('public/assets/admin/sound/notification.mp3')}}" type="audio/mpeg">
 </audio>
 
 <script>
     "use strict";
+(() => {
+    const page = PanelPage.create('vendorLayout');
+    page.expose({playAudio, pauseAudio, route_alert, startFCM, subscribeTokenToBackend, getUrlParameter, converationList, conversationView});
     let audio = document.getElementById("myAudio");
 
     function playAudio() {
@@ -490,7 +492,7 @@
         })
     }
 
-    $(document).on('click', '.form-alert', function (){
+    page.on('click', '.form-alert', function (){
         let id = $(this).data('id')
         let message = $(this).data('message')
         Swal.fire({
@@ -521,7 +523,7 @@
         appId: "{{isset($fcm_credentials['appId']) ? $fcm_credentials['appId'] : ''}}",
         measurementId: "{{isset($fcm_credentials['measurementId']) ? $fcm_credentials['measurementId'] : ''}}"
     };
-    firebase.initializeApp(firebaseConfig);
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const messaging = firebase.messaging();
 
         function startFCM() {
@@ -632,7 +634,7 @@
     @php($order_notification_type = \App\Models\BusinessSetting::where('key', 'order_notification_type')->first())
     @php($order_notification_type = $order_notification_type ? $order_notification_type->value : 'firebase')
     var order_type = 'all';
-    messaging.onMessage(function (payload) {
+    page.cleanup(messaging.onMessage(function (payload) {
         console.log(payload.data);
 
         if(payload.data.order_id && payload.data.type === 'new_order'){
@@ -660,9 +662,9 @@
                 converationList();
             }
         }
-    });
+    }));
     @if(\App\CentralLogics\Helpers::employee_module_permission_check('order') && $order_notification_type == 'manual')
-        setInterval(function () {
+        page.setInterval(function () {
             $.get({
                 url: '{{route('vendor.get-restaurant-data')}}',
                 dataType: 'json',
@@ -684,10 +686,10 @@
         }, 10000);
         @endif
 
-        $(document).on('click', '.check-order', function () {
+        page.on('click', '.check-order', function () {
             location.href = '{{url('/')}}/restaurant-panel/order/list/all';
         });
-        $(document).on('click', '.check-message', function () {
+        page.on('click', '.check-message', function () {
             var tab = getUrlParameter('tab');
             location.href = '{{ route('vendor.message.list') }}'+ '?tab=' + tab;
         });
@@ -699,7 +701,7 @@
         conversationView();
     }
 
-    $(document).on('click', '.call-demo', function () {
+    page.on('click', '.call-demo', function () {
             @if(env('APP_MODE') =='demo')
             toastr.info('{{ translate('Update option is disabled for demo!') }}', {
                 CloseButton: true,
@@ -755,11 +757,16 @@
             return filteredString ? filteredString.join('') : '';
             }
 
-            $(document).on('keyup', 'input[type="tel"]', function () {
+            page.on('keyup', 'input[type="tel"]', function () {
                 $(this).val(keepNumbersAndPlus($(this).val()));
                 });
+
+})();
 </script>
 <script>
+(() => {
+const page = PanelPage.create('vendorUpdates');
+page.expose({posCheckForUpdates, escapeHtml});
 async function posCheckForUpdates() {
   try {
     const res = await fetch("{{ route('vendor.update.check') }}", {
@@ -876,14 +883,16 @@ function escapeHtml(str) {
 // posCheckForUpdates();
 // setInterval(posCheckForUpdates, 1 * 60 * 1000);
 
-$(document).on('wheel', 'input[type=number]', function () {
+page.on('wheel', 'input[type=number]', function () {
     $(this).blur();
 });
 
-$(document).on('keydown', 'input[type=number]', function (e) {
+page.on('keydown', 'input[type=number]', function (e) {
     if (e.which === 38 || e.which === 40) {
         e.preventDefault();
     }
+});
+if (window.gbcLocalChannel) window.gbcLocalChannel.close();
 window.gbcLocalChannel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('gbc_local_events') : null;
 
 window.notifyLocalOrderChange = function(data) {
@@ -896,6 +905,7 @@ window.notifyLocalOrderChange = function(data) {
     }
 };
 
+page.cleanup(() => { if (window.gbcLocalChannel) window.gbcLocalChannel.close(); });
 if (window.gbcLocalChannel) {
     window.gbcLocalChannel.onmessage = function(event) {
         if (event.data && (event.data.action === 'order_updated' || event.data.type === 'order_updated')) {
@@ -908,6 +918,8 @@ if (window.gbcLocalChannel) {
         }
     };
 }
+
+})();
 </script>
 <script src="{{ dynamicAsset('public/assets/admin/js/internet-connection-alert.js') }}" data-turbo-eval="false"></script>
 

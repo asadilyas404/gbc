@@ -1,4 +1,6 @@
 (() => {
+    if (window.turboInternalLinksInitialized) return;
+    window.turboInternalLinksInitialized = true;
     function markInternalNavigationLinks(root) {
         const links = [];
 
@@ -11,7 +13,8 @@
         }
 
         links.forEach((link) => {
-            if (link.hasAttribute('data-turbo')
+            if (link.closest('[data-turbo="false"]')
+                || link.hasAttribute('data-turbo')
                 || link.hasAttribute('download')
                 || link.hasAttribute('target')
                 || link.hasAttribute('onclick')
@@ -24,12 +27,13 @@
 
             try {
                 const href = link.getAttribute('href').trim();
-                if (!href) {
+                if (!href || href.startsWith('#')) {
                     return;
                 }
 
                 const url = new URL(href, window.location.href);
-                if (url.origin === window.location.origin && url.hash === '') {
+                if (['http:', 'https:'].includes(url.protocol)
+                    && url.origin === window.location.origin && url.hash === '') {
                     link.setAttribute('data-turbo', 'true');
                 }
             } catch (error) {

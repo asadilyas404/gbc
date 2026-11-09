@@ -1,6 +1,10 @@
+(() => {
+"use strict";
+const page = PanelPage.create('common');
+page.expose({readURL});
 "use strict";
 
-document.addEventListener("DOMContentLoaded", function () {
+page.ready(function () {
     let checkboxes = document.querySelectorAll(".dynamic-checkbox");
     checkboxes.forEach(function (checkbox) {
         checkbox.addEventListener("click", function (event) {
@@ -43,7 +47,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+page.ready(function () {
     let checkboxes = document.querySelectorAll(".dynamic-checkbox-toggle");
     checkboxes.forEach(function (checkbox) {
         checkbox.addEventListener("click", function (event) {
@@ -75,7 +79,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+page.ready(function () {
     let imageData = document.querySelectorAll(".remove-image");
     imageData.forEach(function (image) {
         image.addEventListener("click", function (event) {
@@ -94,7 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+page.ready(function () {
     const langLinks = document.querySelectorAll(".lang_link");
 
     langLinks.forEach(function (langLink) {
@@ -122,7 +126,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-$(document).ready(function () {
+page.ready(function () {
     var $imageBox = undefined;
     $("#image-input, #image-input2, .image-input").on("change", function (e) {
         if (e.target.files[0]) {
@@ -215,7 +219,7 @@ $("[data-slide]").on("click", function () {
     $(`.tab--content .item`).removeClass("show");
     $(`.tab--content .item:nth-child(${serial})`).addClass("show");
 });
-$(document).ready(function () {
+page.ready(function () {
     $(".add-required-attribute").on("click", function () {
         let status = $(this).attr("id");
         let name = $(this).data("textarea-name");
@@ -227,10 +231,10 @@ $(document).ready(function () {
     });
 });
 
-$(document).on("click", ".location-reload", function () {
+page.on("click", ".location-reload", function () {
     location.reload();
 });
-$(document).on("click", ".redirect-url", function () {
+page.on("click", ".redirect-url", function () {
     location.href = $(this).data("url");
 });
 function readURL(input, viewer = "viewer") {
@@ -244,7 +248,7 @@ function readURL(input, viewer = "viewer") {
         reader.readAsDataURL(input.files[0]);
     }
 }
-$(document).ready(function () {
+page.ready(function () {
     "use strict";
     $(
         ".upload-img-3, .upload-img-4, .upload-img-2, .upload-img-5, .upload-img-1, .upload-img"
@@ -274,7 +278,7 @@ $(document).ready(function () {
         readURL(this);
     });
 });
-$(document).on("ready", function () {
+page.ready(function () {
     $(".js-toggle-password").each(function () {
         new HSTogglePassword(this).init();
     });
@@ -312,7 +316,7 @@ $(".set-filter").on("change", function () {
     nurl.searchParams.set(filter_by, id);
     location.href = nurl;
 });
-$(document).ready(function () {
+page.ready(function () {
     $(".onerror-image").on("error", function () {
         let img = $(this).data("onerror-image");
         $(this).attr("src", img);
@@ -326,7 +330,7 @@ $(document).ready(function () {
     });
 });
 
-$(document).on("click", ".confirm-Status-Toggle", function () {
+page.on("click", ".confirm-Status-Toggle", function () {
     let Status_toggle = $("#toggle-status-ok-button").attr("toggle-ok-button");
     if ($("#" + Status_toggle).is(":checked")) {
         $("#" + Status_toggle)
@@ -339,7 +343,7 @@ $(document).on("click", ".confirm-Status-Toggle", function () {
     }
     $("#" + Status_toggle + "_form").submit();
 });
-$(document).on("click", ".confirm-Toggle", function () {
+page.on("click", ".confirm-Toggle", function () {
     let toggle_id = $("#toggle-ok-button").attr("toggle-ok-button");
     if ($("#" + toggle_id).is(":checked")) {
         $("#" + toggle_id).prop("checked", false);
@@ -589,7 +593,7 @@ document.querySelectorAll('[name="search"]').forEach(function (element) {
     });
 });
 
-$(document).on("click", ".print-Div", function () {
+page.on("click", ".print-Div", function () {
     if ($("html").attr("dir") === "rtl") {
         $("html").attr("dir", "ltr");
         let printContents = document.getElementById("printableArea").innerHTML;
@@ -610,7 +614,7 @@ $(document).on("click", ".print-Div", function () {
     }
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+page.ready(function () {
     let modalData = document.querySelectorAll(".new-dynamic-submit-model");
     modalData.forEach(function (data) {
         data.addEventListener("click", function (event) {
@@ -666,16 +670,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-$(document).on("click", ".confirm-model", function () {
+page.on("click", ".confirm-model", function () {
     let Status_toggle = $("#new-dynamic-ok-button").attr("toggle-ok-button");
     $("#" + Status_toggle + "_form").submit();
 });
-$(document).on("keyup", "#get-text-note", function () {
+page.on("keyup", "#get-text-note", function () {
     let text_data = $("#get-text-note").attr("get-text-note-id");
     $("#" + text_data + "_note").val($(this).val());
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+page.ready(function () {
     const activeLink = document.querySelector(".nav-link.active");
 
     if (activeLink) {
@@ -687,7 +691,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 });
 
-document.addEventListener("DOMContentLoaded", function () {
+page.ready(function () {
     $(function () {
         $(".date-range-picker").daterangepicker({
             // "timePicker": true,
@@ -743,7 +747,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-$(document).on("ready", function () {
+page.ready(function () {
 
     $.fn.select2DynamicDisplay = function () {
         const limit = 5;
@@ -820,7 +824,7 @@ $(document).on("ready", function () {
                 let timeout;
                 return function (...args) {
                     clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(this, args), wait);
+                    timeout = page.setTimeout(() => func.apply(this, args), wait);
                 };
             }
 
@@ -880,15 +884,15 @@ $(document).on("ready", function () {
             // Initial display update
             updateDisplay($this);
 
-            $(window).on("resize", function () {
+            page.listen(window, "resize", function () {
                 updateDisplay($this);
             });
-            $(window).on("load", function () {
+            page.ready(function () {
                 updateDisplay($this);
             });
 
             // Handle the click event for the remove icon
-            $(document).on(
+            page.on(
                 "click",
                 ".select2-selection__rendered .close-icon",
                 function (e) {
@@ -912,3 +916,5 @@ $(document).on("ready", function () {
 
 });
 
+
+})();

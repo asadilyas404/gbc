@@ -135,6 +135,9 @@
 @push('script_2')
     <script>
         var orderType = @json($data['order_type']);
+(() => {
+const page = PanelPage.create('kitchen');
+page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
         let currentRequest = null;
 
         function updateAllOrders(type = null, id = null) {
@@ -221,6 +224,7 @@
             console.error('[DEBUG] Pusher CONSTRUCTOR threw an error:', e);
         }
 
+        page.cleanup(() => { fallbackActive = false; clearFallbackTimer(); if (pusher) pusher.disconnect(); if (currentRequest) currentRequest.abort(); });
         let fallbackActive = false;
         let isSyncing = false;
         let fallbackTimeout = null;
@@ -235,7 +239,7 @@
         function scheduleNextFallbackSync() {
             clearFallbackTimer();
             if (fallbackActive) {
-                fallbackTimeout = setTimeout(function() {
+                fallbackTimeout = page.setTimeout(function() {
                     syncKitchenOrders();
                 }, 40000);
             }
@@ -257,7 +261,7 @@
 
         function applyCardHighlight($element) {
             $element.addClass('highlight-new-order');
-            setTimeout(function() {
+            page.setTimeout(function() {
                 $element.removeClass('highlight-new-order');
             }, 12000);
         }
@@ -428,12 +432,12 @@
         });
 
         // Network offline / online events
-        window.addEventListener('offline', function() {
+        page.listen(window, 'offline', function() {
             console.warn('Network offline event detected.');
             startFallbackMode();
         });
 
-        window.addEventListener('online', function() {
+        page.listen(window, 'online', function() {
             console.log('Network online event detected.');
             if (pusher.connection.state === 'connected') {
                 stopFallbackMode();
@@ -442,7 +446,7 @@
         });
 
         // Initial check if Pusher failed to connect on page load
-        setTimeout(function() {
+        page.setTimeout(function() {
             if (pusher.connection.state !== 'connected' || !navigator.onLine) {
                 startFallbackMode();
             }
@@ -503,7 +507,7 @@
                     </div>`;
         }
 
-        $(document).on('click', '.startCooking', function() {
+        page.on('click', '.startCooking', function() {
             const thix = $(this);
             const data_id = thix.attr('data-id');
             thix.prop('disabled', true);
@@ -513,7 +517,7 @@
             }
         });
 
-        $(document).on('click', '.orderReady', function() {
+        page.on('click', '.orderReady', function() {
             const thix = $(this);
             const dataId = thix.attr('data-id');
 
@@ -536,7 +540,7 @@
             });
         });
 
-        $(document).on('click', '.orderCompleted', function() {
+        page.on('click', '.orderCompleted', function() {
             const thix = $(this);
             const data_id = thix.attr('data-id');
             thix.prop('disabled', true);
@@ -580,19 +584,19 @@
                 }
 
                 update(); // Initial update
-                setInterval(update, 1000); // Update every second
+                page.setInterval(update, 1000); // Update every second
             });
         }
 
         updateTimers();
 
         // Save scroll position before the page unloads
-        window.addEventListener("beforeunload", function() {
+        page.listen(window, "beforeunload", function() {
             localStorage.setItem("scrollPosition", window.scrollY);
         });
 
         // Restore scroll position on page load
-        window.addEventListener("load", function() {
+        page.ready(function() {
             const scrollY = localStorage.getItem("scrollPosition");
             if (scrollY !== null) {
                 window.scrollTo(0, parseInt(scrollY));
@@ -738,5 +742,7 @@
         // } else {
         //     console.log('QZ Tray not available');
         // }
-    </script>
+
+})();
+</script>
 @endpush

@@ -505,7 +505,27 @@
 @push('script_2')
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/tags-input.min.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_product_edit_blade_php_0");
+__panel.globals({
+"updatestockCount": {get: () => updatestockCount, set: value => { updatestockCount = value; }},
+"getRestaurantData": {get: () => getRestaurantData, set: value => { getRestaurantData = value; }},
+"getRequest": {get: () => getRequest, set: value => { getRequest = value; }},
+"readURL": {get: () => readURL, set: value => { readURL = value; }},
+"show_min_max": {get: () => show_min_max, set: value => { show_min_max = value; }},
+"hide_min_max": {get: () => hide_min_max, set: value => { hide_min_max = value; }},
+"count": {get: () => count, set: value => { count = value; }},
+"new_option_name": {get: () => new_option_name, set: value => { new_option_name = value; }},
+"removeOption": {get: () => removeOption, set: value => { removeOption = value; }},
+"deleteRow": {get: () => deleteRow, set: value => { deleteRow = value; }},
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }},
+"removedVariationIDs": {get: () => removedVariationIDs, set: value => { removedVariationIDs = value; }},
+"removedVariationOptionIDs": {get: () => removedVariationOptionIDs, set: value => { removedVariationOptionIDs = value; }}
+});
+
+
 
 
 
@@ -545,23 +565,23 @@
             getRequest(route, id);
         });
         function getRestaurantData(route, restaurant_id, id) {
-            $.get({
+            __panel.request($.get({
                 url: route + restaurant_id,
                 dataType: 'json',
                 success: function(data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
+            }));
         }
 
         function getRequest(route, id) {
-            $.get({
+            __panel.request($.get({
                 url: route,
                 dataType: 'json',
                 success: function(data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
+            }));
         }
 
         function readURL(input) {
@@ -581,8 +601,8 @@
             $('#image-viewer-section').show(1000)
         });
 
-        $(document).ready(function() {
-            setTimeout(function() {
+        __panel.ready(function() {
+            __panel.setTimeout(function() {
                 let category = $("#category-id").val();
                 let sub_category = '{{ count($product_category) >= 2 ? $product_category[1]->id : '' }}';
                 let sub_sub_category = '{{ count($product_category) >= 3 ? $product_category[2]->id : '' }}';
@@ -600,7 +620,7 @@
             @endif
         });
 
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
             $('.js-select2-custom').each(function() {
                 var select2 = $.HSCore.components.HSSelect2.init($(this));
             });
@@ -621,7 +641,7 @@
                     };
                 },
                 __port: function(params, success, failure) {
-                    var $request = $.ajax(params);
+                    var $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -645,12 +665,12 @@
             $('#min_max1_'+data).attr("required","false");
             $('#min_max2_'+data).attr("required","false");
         }
-        $(document).on('change', '.show_min_max', function () {
+        __panel.onTarget(document, 'change', '.show_min_max', function () {
             let data = $(this).data('count');
             show_min_max(data);
         });
 
-        $(document).on('change', '.hide_min_max', function () {
+        __panel.onTarget(document, 'change', '.hide_min_max', function () {
             let data = $(this).data('count');
             hide_min_max(data);
         });
@@ -658,7 +678,7 @@
 
         var count= {{isset($product->variations)?count(json_decode($product->variations,true)):0}};
 
-        $(document).ready(function(){
+        __panel.ready(function(){
             $("#add_new_option_button").click(function(e) {
                 $('#empty-variation').hide();
                 count++;
@@ -854,7 +874,7 @@
             updatestockCount();
 
         }
-        $(document).on('click', '.delete_input_button', function () {
+        __panel.onTarget(document, 'click', '.delete_input_button', function () {
             let e = $(this);
             removeOption(e);
             updatestockCount();
@@ -863,25 +883,25 @@
         let removedVariationIDs = [];
         let removedVariationOptionIDs = [];
 
-        $(document).on('click', '.remove_variation', function () {
+        __panel.onTarget(document, 'click', '.remove_variation', function () {
             removedVariationIDs.push($(this).data('id'));
             $('#removedVariationIDs').val(removedVariationIDs.join(','));
         });
-        $(document).on('click', '.remove_variation_option', function () {
+        __panel.onTarget(document, 'click', '.remove_variation_option', function () {
             removedVariationOptionIDs.push($(this).data('id'));
             $('#removedVariationOptionIDs').val(removedVariationOptionIDs.join(','));
         });
 
 
-        $(document).on('click', '.deleteRow', function () {
+        __panel.onTarget(document, 'click', '.deleteRow', function () {
             let e = $(this);
             deleteRow(e);
         });
-        $(document).on('click', '.add_new_row_button', function () {
+        __panel.onTarget(document, 'click', '.add_new_row_button', function () {
             let data = $(this).data('count');
             add_new_row_button(data);
         });
-        $(document).on('keyup', '.new_option_name', function () {
+        __panel.onTarget(document, 'keyup', '.new_option_name', function () {
             let data = $(this).data('count');
             let value = $(this).val();
             new_option_name(value, data);
@@ -895,7 +915,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('admin.food.update', [$product['id']]) }}',
                 data: $('#product_form').serialize(),
                 data: formData,
@@ -920,18 +940,20 @@
                             ProgressBar: true
                         });
                         // location.reload(true);
-                        setTimeout(function() {
+                        __panel.setTimeout(function() {
                             location.href =
                                 '{{ \Request::server('HTTP_REFERER') ?? route('admin.food.list') }}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
 
 
         $('#reset_btn').click(function(){
             location.reload(true);
         })
-    </script>
+
+})();
+</script>
 @endpush

@@ -253,8 +253,13 @@
     <script src="{{dynamicAsset('public/assets/admin')}}/js/hs.chartjs-matrix.js"></script>
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/customer-wallet-report.js"></script>
     <script>
-        "use strict";
-        $(document).on('ready', function () {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_customer_wallet_report_blade_php_0");
+
+
+        __panel.onTarget(document, 'ready', function () {
             $('.js-data-example-ajax').select2({
                 ajax: {
                     url: '{{route('admin.customer.select-list')}}',
@@ -271,7 +276,7 @@
                         };
                     },
                     __port: function (params, success, failure) {
-                        let $request = $.ajax(params);
+                        let $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -281,5 +286,7 @@
                 }
             });
         });
-    </script>
+
+})();
+</script>
 @endpush

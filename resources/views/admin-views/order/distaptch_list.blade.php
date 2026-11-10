@@ -488,7 +488,15 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_order_distaptch_list_blade_php_0");
+__panel.globals({
+"filter_zone_orders": {get: () => filter_zone_orders, set: value => { filter_zone_orders = value; }}
+});
+
+
         <?php
             $filter_count=0;
             if(isset($zone_ids) && count($zone_ids) > 0) $filter_count += 1;
@@ -511,7 +519,7 @@
         function filter_zone_orders(id) {
             location.href = '{{url('/')}}/admin/order/zone-filter/' + id;
         }
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF SELECT2
             // =======================================================
             $('.js-select2-custom').each(function () {
@@ -547,7 +555,7 @@
                         };
                     },
                     __port: function (params, success, failure) {
-                        let $request = $.ajax(params);
+                        let $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -608,7 +616,7 @@
 
                 if (oldValue == "") return;
 
-                setTimeout(function () {
+                __panel.setTimeout(function () {
                     let newValue = $input.val();
 
                     if (newValue == "") {
@@ -670,7 +678,9 @@
         $('.filter-show').on('click', function(){
             $('#datatableFilterSidebar,.hs-unfold-overlay').show(500);
         });
-    </script>
+
+})();
+</script>
 
 
 @endpush

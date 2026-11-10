@@ -319,7 +319,17 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin/js/spartan-multi-image-picker.js')}}"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_delivery_man_edit_blade_php_0");
+__panel.globals({
+"elementCustomUploadInputFileByID": {get: () => elementCustomUploadInputFileByID, set: value => { elementCustomUploadInputFileByID = value; }},
+"addMoreImage": {get: () => addMoreImage, set: value => { addMoreImage = value; }},
+"uploadColorImage": {get: () => uploadColorImage, set: value => { uploadColorImage = value; }}
+});
+
+
              $('#exampleInputPassword ,#exampleRepeatPassword').on('keyup', function() {
                 let pass = $("#exampleInputPassword").val();
                 let passRepeat = $("#exampleRepeatPassword").val();
@@ -424,5 +434,7 @@
             $('#viewer').attr('src','{{dynamicStorage('storage/app/public/delivery-man')}}/{{$delivery_man['image']}}');
         })
 
-    </script>
+
+})();
+</script>
 @endpush

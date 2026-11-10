@@ -1392,13 +1392,17 @@
 
 @push('script_2')
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_business_settings_priority_index_blade_php_0");
+
     $(".collapse-div-toggler").on('change', function() {
         $(this).closest('.sorting-card').find('.inner-collapse-div').slideToggle();
         $(this).closest('.sorting-card').siblings().find('.inner-collapse-div').slideUp();
         $(this).closest('.sorting-card').siblings().find('.toggle-switch-input').prop('checked', false);
     });
 
-    $(window).on('load', function(){
+    __panel.onTarget(window, 'load', function(){
         $('.collapse-div-toggler').each(function(){
             if($(this).prop('checked') == true){
                 $(this).closest('.sorting-card').find('.inner-collapse-div').show();
@@ -1417,5 +1421,7 @@
         });
     })
 
+
+})();
 </script>
 @endpush

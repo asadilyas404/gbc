@@ -442,7 +442,19 @@
 @push('script_2')
 
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_delivery_man_index_blade_php_0");
+__panel.globals({
+"elementCustomUploadInputFileByID": {get: () => elementCustomUploadInputFileByID, set: value => { elementCustomUploadInputFileByID = value; }},
+"elementCustomUploadInputFileByID2": {get: () => elementCustomUploadInputFileByID2, set: value => { elementCustomUploadInputFileByID2 = value; }},
+"addMoreImage": {get: () => addMoreImage, set: value => { addMoreImage = value; }},
+"addMoreImage2": {get: () => addMoreImage2, set: value => { addMoreImage2 = value; }},
+"uploadColorImage": {get: () => uploadColorImage, set: value => { uploadColorImage = value; }}
+});
+
+
         let elementCustomUploadInputFileByID = $('.custom-upload-input-file');
         let elementCustomUploadInputFileByID2 = $('.custom-upload-input-file2');
 
@@ -631,5 +643,7 @@
             $('#viewer').attr('src','{{dynamicAsset('public/assets/admin/img/900x400/img1.jpg')}}');
             $('#coba').attr('src','{{dynamicAsset('public/assets/admin/img/900x400/img1.jpg')}}');
         })
-    </script>
+
+})();
+</script>
 @endpush

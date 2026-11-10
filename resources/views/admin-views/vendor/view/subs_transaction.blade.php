@@ -217,9 +217,14 @@
 @push('script_2')
 <script type="text/javascript" src="{{dynamicAsset('/public/assets/landing/owl/dist/owl.carousel.min.js')}}"></script>
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_vendor_view_subs_transaction_blade_php_0");
 
-    $(document).on('ready', function () {
+
+
+    __panel.onTarget(document, 'ready', function () {
 
 
 
@@ -274,7 +279,7 @@
 
         if (oldValue == "") return;
 
-        setTimeout(function () {
+        __panel.setTimeout(function () {
             let newValue = $input.val();
 
             if (newValue == "") {
@@ -308,6 +313,8 @@
         datatable.columns(6).visible(e.target.checked)
     })
     });
+
+})();
 </script>
 @endpush
 

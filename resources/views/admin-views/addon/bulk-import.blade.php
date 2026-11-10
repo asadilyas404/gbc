@@ -162,12 +162,20 @@
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_addon_bulk_import_blade_php_0");
+__panel.globals({
+"myFunction": {get: () => myFunction, set: value => { myFunction = value; }}
+});
+
+
         $('#reset_btn').click(function(){
             $('#bulk__import').val(null);
         })
 
-        $(document).on("click", ".submit_btn", function(e){
+        __panel.onTarget(document, "click", ".submit_btn", function(e){
             e.preventDefault();
                 let data = $(this).val();
                 myFunction(data)
@@ -199,10 +207,12 @@
             $(this).parent().addClass('active');
         });
 
-        $(document).on("click", ".update_or_import", function(e){
+        __panel.onTarget(document, "click", ".update_or_import", function(e){
             e.preventDefault();
             let upload_type = $('input[name="upload_type"]:checked').val();
             myFunction(upload_type)
         });
-    </script>
+
+})();
+</script>
 @endpush

@@ -540,7 +540,24 @@
             src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&callback=initMap&v=3.45.8">
     </script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_order_subscription_view_blade_php_0");
+__panel.globals({
+"map": {get: () => map, set: value => { map = value; }},
+"myLatlng": {get: () => myLatlng, set: value => { myLatlng = value; }},
+"dmbounds": {get: () => dmbounds, set: value => { dmbounds = value; }},
+"locationbounds": {get: () => locationbounds, set: value => { locationbounds = value; }},
+"dmMarkers": {get: () => dmMarkers, set: value => { dmMarkers = value; }},
+"myOptions": {get: () => myOptions, set: value => { myOptions = value; }},
+"initializegLocationMap": {get: () => initializegLocationMap, set: value => { initializegLocationMap = value; }},
+"initMap": {get: () => initMap, set: value => { initMap = value; }},
+"update_subscription_status": {get: () => update_subscription_status, set: value => { update_subscription_status = value; }},
+"close_popup": {get: () => close_popup, set: value => { close_popup = value; }}
+});
+
+
 
             $('#shipping-address-modal').on('shown.bs.modal', function() {
                 initMap();
@@ -738,7 +755,7 @@
                     map.fitBounds(bounds);
                 });
                 @if ($order->restaurant)
-                    $.get({
+                    __panel.request($.get({
                         url: '{{ url('/') }}/admin/zone/get-coordinates/{{ $order->restaurant->zone_id }}',
                         dataType: 'json',
                         success: function(data) {
@@ -774,13 +791,13 @@
                                 infoWindow.open(map);
                             });
                         },
-                    });
+                    }));
                 @endif
 
             }
         initMap();
 
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -907,12 +924,14 @@
          }
         });
         @if (isset($subscription_pause_log_overlap))
-        setTimeout(close_popup, 5000);
+        __panel.setTimeout(close_popup, 5000);
         @endif
         function close_popup() {
             $('#subscription_pause_log_overlap').addClass('d-none');
         }
 
 
-    </script>
+
+})();
+</script>
 @endpush

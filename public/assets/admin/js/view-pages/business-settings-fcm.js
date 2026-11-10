@@ -1,4 +1,12 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_business_settings_fcm_js");
+__panel.globals({
+"checkedFunc": {get: () => checkedFunc, set: value => { checkedFunc = value; }}
+});
+
 $('[data-slide]').on('click', function(){
     let serial = $(this).data('slide')
     $(`.tab--content .item`).removeClass('show')
@@ -16,3 +24,5 @@ function checkedFunc() {
 }
 checkedFunc()
 $('.switch--custom-label .toggle-switch-input').on('click', checkedFunc)
+
+})();

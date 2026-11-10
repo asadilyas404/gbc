@@ -98,7 +98,15 @@
 
 
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_business_settings_social_media_blade_php_0");
+__panel.globals({
+"fetch_social_media": {get: () => fetch_social_media, set: value => { fetch_social_media = value; }}
+});
+
+
         fetch_social_media();
 
         function fetch_social_media() {
@@ -107,7 +115,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.ajax({
+            __panel.request($.ajax({
                 url: "{{route('admin.business-settings.social-media.fetch')}}",
                 method: 'GET',
                 success: function (data) {
@@ -145,7 +153,7 @@
                         $('tbody').html(html);
                     }
                 }
-            });
+            }));
         }
 
         $('#add').on('click', function () {
@@ -164,7 +172,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.ajax({
+            __panel.request($.ajax({
                 url: "{{route('admin.business-settings.social-media.store')}}",
                 method: 'POST',
                 data: {
@@ -181,7 +189,7 @@
                     $('#link').val('');
                     fetch_social_media();
                 }
-            });
+            }));
         });
         $('#update').on('click', function () {
             $('#update').attr("disabled", true);
@@ -194,7 +202,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.ajax({
+            __panel.request($.ajax({
                 url: "{{url('admin/business-settings/social-media')}}/"+id,
                 method: 'PUT',
                 data: {
@@ -212,10 +220,10 @@
                     fetch_social_media();
 
                 }
-            });
+            }));
             $('#save').hide();
         });
-        $(document).on('click', '.delete', function () {
+        __panel.onTarget(document, 'click', '.delete', function () {
             var id = $(this).attr("id");
             if (confirm("{{translate('messages.Are you sure delete this social media')}}?")) {
                 $.ajaxSetup({
@@ -223,7 +231,7 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
-                $.ajax({
+                __panel.request($.ajax({
                     url: "{{url('admin/business-settings/social-media/destroy')}}/"+id,
                     method: 'POST',
                     data: {id: id},
@@ -231,10 +239,10 @@
                         fetch_social_media();
                         toastr.success('{{translate('messages.Social media deleted Successfully')}}.');
                     }
-                });
+                }));
             }
         });
-        $(document).on('click', '.edit', function () {
+        __panel.onTarget(document, 'click', '.edit', function () {
             $('#update').show();
             $('#add').hide();
             var id = $(this).attr("id");
@@ -243,7 +251,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.ajax({
+            __panel.request($.ajax({
                 url: "{{url('admin/business-settings/social-media')}}/"+id,
                 method: 'GET',
                 success: function (data) {
@@ -253,10 +261,10 @@
                     $('#link').val(data.link);
                     fetch_social_media()
                 }
-            });
+            }));
         });
 
-        $(document).on('change', '.status', function () {
+        __panel.onTarget(document, 'change', '.status', function () {
             var id = $(this).attr("id");
             if ($(this).prop("checked") == true) {
                 var status = 1;
@@ -269,7 +277,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.ajax({
+            __panel.request($.ajax({
                 url: "{{route('admin.business-settings.social-media.status-update')}}",
                 method: 'get',
                 data: {
@@ -279,8 +287,10 @@
                 success: function () {
                     toastr.success('{{translate('messages.status_updated')}}');
                 }
-            });
+            }));
         });
 
-    </script>
+
+})();
+</script>
             @endpush

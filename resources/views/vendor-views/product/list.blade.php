@@ -498,8 +498,12 @@
 
 @push('script_2')
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_vendor_views_product_list_blade_php_0");
+
         "use script";
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
 
             $('#search-form').on('submit', function(e) {
                 e.preventDefault();
@@ -509,7 +513,7 @@
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
-                $.post({
+                __panel.request($.post({
                     url: '{{ route('vendor.food.search') }}',
                     data: formData,
                     cache: false,
@@ -525,7 +529,7 @@
                     complete: function() {
                         $('#loading').hide();
                     },
-                });
+                }));
             });
 
             // INITIALIZATION OF DATATABLES
@@ -553,7 +557,7 @@
 
                 if (oldValue == "") return;
 
-                setTimeout(function() {
+                __panel.setTimeout(function() {
                     let newValue = $input.val();
 
                     if (newValue == "") {
@@ -607,7 +611,7 @@
                     };
                 },
                 __port: function(params, success, failure) {
-                    let $request = $.ajax(params);
+                    let $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -616,5 +620,7 @@
                 }
             }
         });
-    </script>
+
+})();
+</script>
 @endpush

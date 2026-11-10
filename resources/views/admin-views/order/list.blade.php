@@ -547,8 +547,13 @@
 
 @push('script_2')
     <script>
-        "use strict";
-        $(document).on('ready', function () {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_order_list_blade_php_0");
+
+
+        __panel.onTarget(document, 'ready', function () {
             @if($filter_count>0)
             $('#filter_count').html({{$filter_count}});
             @endif
@@ -587,7 +592,7 @@
                         };
                     },
                     __port: function (params, success, failure) {
-                        let $request = $.ajax(params);
+                        let $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -650,7 +655,7 @@
 
                 if (oldValue == "") return;
 
-                setTimeout(function () {
+                __panel.setTimeout(function () {
                     let newValue = $input.val();
 
                     if (newValue == "") {
@@ -719,7 +724,9 @@
         $('.filter-show').on('click', function(){
             $('#datatableFilterSidebar,.hs-unfold-overlay').show(500);
         });
-    </script>
+
+})();
+</script>
 
 
 @endpush

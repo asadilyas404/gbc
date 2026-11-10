@@ -2022,6 +2022,26 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
     </script>
     <script src="{{ dynamicAsset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_order_order_view_blade_php_0");
+__panel.globals({
+"quick_view_cart_item": {get: () => quick_view_cart_item, set: value => { quick_view_cart_item = value; }},
+"cartQuantityInitialize": {get: () => cartQuantityInitialize, set: value => { cartQuantityInitialize = value; }},
+"getVariantPrice": {get: () => getVariantPrice, set: value => { getVariantPrice = value; }},
+"addDeliveryMan": {get: () => addDeliveryMan, set: value => { addDeliveryMan = value; }},
+"last_location_view": {get: () => last_location_view, set: value => { last_location_view = value; }},
+"deliveryMan": {get: () => deliveryMan, set: value => { deliveryMan = value; }},
+"map": {get: () => map, set: value => { map = value; }},
+"myLatlng": {get: () => myLatlng, set: value => { myLatlng = value; }},
+"dmbounds": {get: () => dmbounds, set: value => { dmbounds = value; }},
+"locationbounds": {get: () => locationbounds, set: value => { locationbounds = value; }},
+"dmMarkers": {get: () => dmMarkers, set: value => { dmMarkers = value; }},
+"myOptions": {get: () => myOptions, set: value => { myOptions = value; }},
+"initializeGMap": {get: () => initializeGMap, set: value => { initializeGMap = value; }},
+"initMap": {get: () => initMap, set: value => { initMap = value; }}
+});
+
         $('#search-form').on('submit', function(e) {
             e.preventDefault();
             let keyword = $('#datatableSearch').val();
@@ -2037,7 +2057,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
             location.href = nurl;
         })
 
-        $(document).on('click', '.addon-quantity-input-toggle', function (event) {
+        __panel.onTarget(document, 'click', '.addon-quantity-input-toggle', function (event) {
             let cb = $(event.target);
             if (cb.is(":checked")) {
                 cb.siblings('.addon-quantity-input').css({
@@ -2056,7 +2076,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
         })
 
         function quick_view_cart_item(key) {
-            $.get({
+            __panel.request($.get({
                 url: '{{ route('admin.order.quick-view-cart-item') }}',
                 dataType: 'json',
                 data: {
@@ -2073,12 +2093,12 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 complete: function() {
                     $('#loading').hide();
                 },
-            });
+            }));
         }
 
-        $(document).on('click', '.quick-View', function () {
+        __panel.onTarget(document, 'click', '.quick-View', function () {
             let product_id = $(this).data('id');
-            $.get({
+            __panel.request($.get({
                 url: '{{ route('admin.order.quick-view') }}',
                 dataType: 'json',
                 data: {
@@ -2096,7 +2116,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 complete: function() {
                     $('#loading').hide();
                 },
-            });
+            }));
         })
 
         function cartQuantityInitialize() {
@@ -2190,7 +2210,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                     }
                 });
-                $.ajax({
+                __panel.request($.ajax({
                     type: "POST",
                     url: '{{ route('admin.pos.o') }}',
                     data: $('#add-to-cart-form').serializeArray(),
@@ -2222,11 +2242,11 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                         }
 
                     }
-                });
+                }));
             }
         }
 
-        $(document).on('click', '.decrease-button', function () {
+        __panel.onTarget(document, 'click', '.decrease-button', function () {
             let addonId = $(this).data('id');
             let addon_quantity_input = $('input[name="addon-quantity' + addonId + '"]');
             let currentValue = parseInt(addon_quantity_input.val(), 10);
@@ -2236,7 +2256,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
             }
         });
 
-        $(document).on('click', '.increase-button', function () {
+        __panel.onTarget(document, 'click', '.increase-button', function () {
             let addonId = $(this).data('id');
             let addon_quantity_input = $('input[name="addon-quantity' + addonId + '"]');
             let currentValue = parseInt(addon_quantity_input.val(), 10);
@@ -2244,21 +2264,21 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
             getVariantPrice();
         });
 
-        $(document).on('change', '[name="quantity"]', function (event) {
+        __panel.onTarget(document, 'change', '[name="quantity"]', function (event) {
             getVariantPrice();
             if($('#option_ids').val() == ''){
                 $(this).attr('max', $(this).data('maximum_cart_quantity'));
             }
         });
 
-        $(document).on('click', '.add-To-Cart', function () {
+        __panel.onTarget(document, 'click', '.add-To-Cart', function () {
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                 }
             });
             let form_id = 'add-to-cart-form';
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('admin.order.add-to-cart') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function() {
@@ -2308,9 +2328,9 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 complete: function() {
                     $('#loading').hide();
                 }
-            });
+            }));
         })
-        $(document).on('click', '.removeFromCart', function () {
+        __panel.onTarget(document, 'click', '.removeFromCart', function () {
             let key = $(this).data('key');
             Swal.fire({
                 title: '{{ translate('messages.are_you_sure?') }}',
@@ -2324,7 +2344,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 reverseButtons: true
             }).then((result) => {
                 if (result.value) {
-                    $.post('{{ route('admin.order.remove-from-cart') }}', {
+                    __panel.request($.post('{{ route('admin.order.remove-from-cart') }}', {
                         _token: '{{ csrf_token() }}',
                         key: key,
                         order_id: '{{ $order->id }}'
@@ -2344,7 +2364,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                             location.reload();
                         }
 
-                    });
+                    }));
                 }
             })
 
@@ -2425,7 +2445,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
 
         })
         function addDeliveryMan(id) {
-            $.ajax({
+            __panel.request($.ajax({
                 type: "GET",
                 url: '{{ url('/') }}/admin/order/add-delivery-man/{{ $order['id'] }}/' + id,
                 success: function(data) {
@@ -2443,7 +2463,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                         ProgressBar: true
                     });
                 }
-            });
+            }));
         }
 
         function last_location_view() {
@@ -2688,7 +2708,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 map.fitBounds(bounds);
             });
             @if ($order->restaurant)
-                $.get({
+                __panel.request($.get({
                     url: '{{ url('/') }}/admin/zone/get-coordinates/{{ $order->restaurant->zone_id }}',
                     dataType: 'json',
                     success: function(data) {
@@ -2724,13 +2744,13 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                             infoWindow.open(map);
                         });
                     },
-                });
+                }));
             @endif
 
         }
         initMap();
 
-        $(document).ready(function() {
+        __panel.ready(function() {
 
             // Re-init map before show modal
             $('#myModal').on('shown.bs.modal', function(event) {
@@ -2831,7 +2851,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 map.panTo(dmMarkers[id].getPosition());
                 map.setZoom(13);
                 dmMarkers[id].setAnimation(google.maps.Animation.BOUNCE);
-                window.setTimeout(() => {
+                __panel.setTimeout(() => {
                     dmMarkers[id].setAnimation(null);
                 }, 3);
             });
@@ -2844,7 +2864,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 map.panTo(dmMarkers[id].getPosition());
                 map.setZoom(13);
                 dmMarkers[id].setAnimation(google.maps.Animation.BOUNCE);
-                window.setTimeout(() => {
+                __panel.setTimeout(() => {
                     dmMarkers[id].setAnimation(null);
                 }, 3);
 
@@ -2852,7 +2872,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
 
         })
 
-        $(function() {
+        __panel.ready(function() {
             $("#coba").spartanMultiImagePicker({
                 fieldName: 'order_proof[]',
                 maxCount: 6-{{ ($order->order_proof && is_array($order->order_proof))?count(json_decode($order->order_proof)):0 }},
@@ -2888,6 +2908,8 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 }
             });
         });
-    </script>
+
+})();
+</script>
 
 @endpush

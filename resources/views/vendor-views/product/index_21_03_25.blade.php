@@ -444,7 +444,16 @@
     <script src="{{dynamicAsset('public/assets/admin')}}/js/tags-input.min.js"></script>
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/vendor/product-index.js"></script>
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_product_index_21_03_25_blade_php_0");
+__panel.globals({
+"updatestockCount": {get: () => updatestockCount, set: value => { updatestockCount = value; }},
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }}
+});
+
+
     $('#stock_type').on('change', function () {
                 if($(this).val() == 'unlimited') {
                     $('.stock_disable').prop('readonly', true).prop('required', false).attr('placeholder', '{{ translate('Unlimited') }}').val('');
@@ -466,7 +475,7 @@
                     $('.hide_this').removeClass('d-none');
                 }
         }
-    $(document).ready(function() {
+    __panel.ready(function() {
             $("#add_new_option_button").click(function(e) {
                 $('#empty-variation').hide();
                 count++;
@@ -632,7 +641,7 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        $.post({
+        __panel.request($.post({
             url: '{{route('vendor.food.store')}}',
             data: $('#food_form').serialize(),
             data: formData,
@@ -656,12 +665,12 @@
                         CloseButton: true,
                         ProgressBar: true
                     });
-                    setTimeout(function () {
+                    __panel.setTimeout(function () {
                         location.href = '{{route('vendor.food.list')}}';
                     }, 2000);
                 }
             }
-        });
+        }));
     });
 
 
@@ -675,6 +684,8 @@
             $('#stock_type').val('unlimited').trigger('change');
             updatestockCount();
         })
+
+})();
 </script>
 @endpush
 

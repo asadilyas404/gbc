@@ -242,7 +242,15 @@
 @push('script_2')
     <script src="{{dynamicAsset('/public/assets/admin/js/view-pages/apex-charts.js')}}"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_report_earning_report_blade_php_0");
+__panel.globals({
+"loadchart": {get: () => loadchart, set: value => { loadchart = value; }}
+});
+
+
         loadchart();
         function loadchart(){
             const id = "#order-report"
@@ -253,11 +261,25 @@
             newdonutChart(id, value, label, legendPosition)
         }
 
-    </script>
+
+})();
+</script>
 
 
 
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_report_earning_report_blade_php_1");
+__panel.globals({
+"updatingChart": {get: () => updatingChart, set: value => { updatingChart = value; }},
+"getRequest": {get: () => getRequest, set: value => { getRequest = value; }},
+"ctx": {get: () => ctx, set: value => { ctx = value; }},
+"data": {get: () => data, set: value => { data = value; }},
+"options": {get: () => options, set: value => { options = value; }},
+"myLineChart": {get: () => myLineChart, set: value => { myLineChart = value; }}
+});
+
         // INITIALIZATION OF CHARTJS
         // =======================================================
         Chart.plugins.unregister(ChartDataLabels);
@@ -268,7 +290,7 @@
 
         let updatingChart = $.HSCore.components.HSChartJS.init($('#updatingData'));
 
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
 
             $('.js-data-example-ajax').select2({
                 ajax: {
@@ -289,7 +311,7 @@
                         };
                     },
                     __port: function(params, success, failure) {
-                        let $request = $.ajax(params);
+                        let $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -316,13 +338,13 @@
         })
 
         function getRequest(route, id) {
-            $.get({
+            __panel.request($.get({
                 url: route,
                 dataType: 'json',
                 success: function(data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
+            }));
         }
 
         let ctx = document.getElementById('chart1').getContext("2d");
@@ -437,11 +459,13 @@
             },
         };
 
-        let myLineChart = new Chart(ctx, {
+        let myLineChart = __panel.resource(new Chart(ctx, {
             type: 'bar',
             data: data,
             options: options
-        });
+        }), "destroy");
 
-    </script>
+
+})();
+</script>
 @endpush

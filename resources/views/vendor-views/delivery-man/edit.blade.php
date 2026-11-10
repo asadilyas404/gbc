@@ -200,13 +200,18 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin/js/spartan-multi-image-picker.js')}}"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_delivery_man_edit_blade_php_0");
+
+
         $("#customFileEg1").change(function () {
             readURL(this);
         });
 
 
-        $(function () {
+        __panel.ready(function () {
             $("#coba").spartanMultiImagePicker({
                 fieldName: 'identity_image[]',
                 maxCount: 5,
@@ -249,7 +254,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('vendor.delivery-man.update',[$delivery_man['id']])}}',
                 // data: $('#food_form').serialize(),
                 data: formData,
@@ -269,12 +274,14 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function () {
+                        __panel.setTimeout(function () {
                             location.href = '{{route('vendor.delivery-man.list')}}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
-    </script>
+
+})();
+</script>
 @endpush

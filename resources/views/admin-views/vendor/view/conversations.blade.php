@@ -92,7 +92,19 @@
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_vendor_view_conversations_blade_php_0");
+__panel.globals({
+"viewConvs": {get: () => viewConvs, set: value => { viewConvs = value; }},
+"page": {get: () => page, set: value => { page = value; }},
+"user_id": {get: () => user_id, set: value => { user_id = value; }},
+"loadMoreData": {get: () => loadMoreData, set: value => { loadMoreData = value; }},
+"fetch_data": {get: () => fetch_data, set: value => { fetch_data = value; }}
+});
+
+
     $('.view-dm-conv').on('click', function (){
         let url = $(this).data('url');
         let id_to_active = $(this).data('active-id');
@@ -105,13 +117,13 @@
         $('.customer-list').removeClass('conv-active');
         $('#' + id_to_active).addClass('conv-active');
         let new_url= "{{route('admin.restaurant.view', ['restaurant'=>$restaurant->id, 'tab'=> 'conversations'])}}" + '?conversation=' + conv_id+ '&user=' + sender_id;
-            $.get({
+            __panel.request($.get({
                 url: url,
                 success: function(data) {
                     window.history.pushState('', 'New Page Title', new_url);
                     $('#vendor-view-conversation').html(data.view);
                 }
-            });
+            }));
     }
 
     let page = 1;
@@ -125,14 +137,14 @@
     });
 
     function loadMoreData(page) {
-        $.ajax({
+        __panel.request($.ajax({
                 url: "{{ route('admin.restaurant.message-list') }}" + '?page=' + page,
                 type: "get",
                 data:{"user_id":user_id},
                 beforeSend: function() {
 
                 }
-            })
+            }))
             .done(function(data) {
                 if (data.html == " ") {
                     return;
@@ -145,7 +157,7 @@
     };
 
     function fetch_data(page, query) {
-            $.ajax({
+            __panel.request($.ajax({
                 url: "{{ route('admin.restaurant.message-list') }}" + '?page=' + page + "&key=" + query,
                 type: "get",
                 data:{"user_id":user_id},
@@ -153,12 +165,14 @@
                     $('#vendor-conversation-list').empty();
                     $("#vendor-conversation-list").append(data.html);
                 }
-            })
+            }))
         };
 
-        $(document).on('keyup', '#serach', function() {
+        __panel.onTarget(document, 'keyup', '#serach', function() {
             let query = $('#serach').val();
             fetch_data(page, query);
         });
+
+})();
 </script>
 @endpush

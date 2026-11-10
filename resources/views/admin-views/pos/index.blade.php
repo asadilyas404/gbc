@@ -328,15 +328,28 @@
     </script>
     <script src="{{dynamicAsset('public/assets/admin/js/view-pages/pos.js')}}"></script>
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_pos_index_blade_php_0");
+__panel.globals({
+"extra_charge": {get: () => extra_charge, set: value => { extra_charge = value; }},
+"initMap": {get: () => initMap, set: value => { initMap = value; }},
+"handleLocationError": {get: () => handleLocationError, set: value => { handleLocationError = value; }},
+"getVariantPrice": {get: () => getVariantPrice, set: value => { getVariantPrice = value; }},
+"payableAmount": {get: () => payableAmount, set: value => { payableAmount = value; }},
+"updateCart": {get: () => updateCart, set: value => { updateCart = value; }}
+});
 
-        "use strict";
+
+
 
 
         $( "#customer" ).change(function() {
             if($(this).val())
             {
                 $('#customer_id').val($(this).val());
-                $.get({
+                __panel.request($.get({
                 url: '{{ route('admin.pos.getUserData') }}',
                 dataType: 'json',
                 data: {
@@ -355,14 +368,14 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
             }
         });
 
 
 
 
-        $(document).on('click', '.delivery_address_btn', function (event) {
+        __panel.onTarget(document, 'click', '.delivery_address_btn', function (event) {
             event.preventDefault();
             if($(this).data('restaurant_id') == ''  ){
                 toastr.error('{{ translate('messages.Select_a_Restaurant_First') }}', {
@@ -373,7 +386,7 @@
                 $('#paymentModal').modal('show');
             }
         });
-        $(document).on('submit', '#product_form', function (event) {
+        __panel.onTarget(document, 'submit', '#product_form', function (event) {
             event.preventDefault();
             console.log(document.getElementById('phone').value.length);
             if(document.getElementById('phone').value.length <= 4){
@@ -386,7 +399,7 @@
                     document.getElementById('product_form').submit();
                 }
         });
-        $(document).on('click', '.place-order-submit', function (event) {
+        __panel.onTarget(document, 'click', '.place-order-submit', function (event) {
             event.preventDefault();
             let customer_id = document.getElementById('customer');
             if (customer_id.value) {
@@ -529,7 +542,7 @@
                 map.fitBounds(bounds);
             });
             @if ($restaurant_data)
-            $.get({
+            __panel.request($.get({
                 url: '{{ url('/') }}/admin/zone/get-coordinates/{{ $restaurant_data->zone_id }}',
                 dataType: 'json',
                 success: function (data) {
@@ -620,7 +633,7 @@
                                             }
                                             ?>
 
-                                        $.get({
+                                        __panel.request($.get({
                                             url: '{{ route('admin.pos.extra_charge') }}',
                                             dataType: 'json',
                                             data: {
@@ -645,7 +658,7 @@
                                                 document.getElementById('delivery_fee').value = delivery_charge;
                                                 $('#delivery_fee').siblings('strong').html(delivery_charge + ' ({{ Helpers::currency_symbol() }})');
                                             }
-                                        });
+                                        }));
 
                                     });
 
@@ -654,7 +667,7 @@
                         });
                     });
                 },
-            });
+            }));
             @endif
         }
         initMap();
@@ -668,7 +681,7 @@
             infoWindow.open(map);
         }
 
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             @if ($order)
             $('#print-invoice').modal('show');
             @endif
@@ -687,8 +700,8 @@
         });
 
 
-        $(document).on('click', '.quick-View', function () {
-            $.get({
+        __panel.onTarget(document, 'click', '.quick-View', function () {
+            __panel.request($.get({
                 url: '{{ route('admin.pos.quick-view') }}',
                 dataType: 'json',
                 data: {
@@ -704,11 +717,11 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
 
-        $(document).on('click', '.quick-View-Cart-Item', function () {
-            $.get({
+        __panel.onTarget(document, 'click', '.quick-View-Cart-Item', function () {
+            __panel.request($.get({
                 url: '{{ route('admin.pos.quick-view-cart-item') }}',
                 dataType: 'json',
                 data: {
@@ -726,7 +739,7 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
 
 
@@ -739,7 +752,7 @@
                         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                     }
                 });
-                $.ajax({
+                __panel.request($.ajax({
                     type: "POST",
                     url: '{{ route('admin.pos.variant_price') }}',
                     data: $('#add-to-cart-form').serializeArray(),
@@ -771,18 +784,18 @@
 
                         }
                     }
-                });
+                }));
             }
         }
 
-        $(document).on('click', '.add-To-Cart', function () {
+        __panel.onTarget(document, 'click', '.add-To-Cart', function () {
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                 }
             });
             let form_id = 'add-to-cart-form';
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('admin.pos.add-to-cart') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function () {
@@ -846,9 +859,9 @@
                 complete: function () {
                     $('#loading').hide();
                 }
-            });
+            }));
         });
-        $(document).on('click', '.delivery-Address-Store', function (event) {
+        __panel.onTarget(document, 'click', '.delivery-Address-Store', function (event) {
             if(document.getElementById('contact_person_name').value == ''){
                     toastr.error('{{ translate('messages.contact_person_name_is_missing') }}', {
                     CloseButton: true,
@@ -887,7 +900,7 @@
                     });
                     let form_id = 'delivery_address_store';
 
-                    $.post({
+                    __panel.request($.post({
                         url: '{{ route('admin.pos.add-delivery-address') }}',
                         data: $('#' + form_id).serializeArray(),
                         beforeSend: function () {
@@ -911,7 +924,7 @@
                             $('#loading').hide();
                             $('#paymentModal').modal('hide');
                         }
-                    });
+                    }));
                 }
         });
 
@@ -921,7 +934,7 @@
                     'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('admin.pos.paid') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function () {
@@ -935,12 +948,12 @@
                     $('#loading').hide();
                     $('#insertPayableAmount').modal('hide');
                 }
-            });
+            }));
         }
 
-        $(document).on('click', '.remove-From-Cart', function () {
+        __panel.onTarget(document, 'click', '.remove-From-Cart', function () {
             let key = $(this).data('product-id');
-            $.post('{{ route('admin.pos.remove-from-cart') }}', {
+            __panel.request($.post('{{ route('admin.pos.remove-from-cart') }}', {
                 _token: '{{ csrf_token() }}',
                 key: key
             }, function (data) {
@@ -960,10 +973,10 @@
                     });
                 }
 
-            });
+            }));
         });
 
-        $(document).on('click', '.empty-Cart', function (event) {
+        __panel.onTarget(document, 'click', '.empty-Cart', function (event) {
             if(document.getElementById('cart_food_id').value == '' ){
                 event.preventDefault();
                     toastr.error("{{ translate('messages.your_cart_is_empty') }}", {
@@ -972,7 +985,7 @@
                 });
             } else{
 
-                $.post('{{ route('admin.pos.emptyCart') }}', {
+                __panel.request($.post('{{ route('admin.pos.emptyCart') }}', {
                     _token: '{{ csrf_token() }}'
                 }, function () {
                     $('#del-add').empty();
@@ -981,26 +994,26 @@
                         CloseButton: true,
                         ProgressBar: true
                     });
-                });
+                }));
             }
         });
 
         function updateCart() {
-            $.post('<?php echo e(route('admin.pos.cart_items')); ?>?restaurant_id={{ request('restaurant_id') }}', {
+            __panel.request($.post('<?php echo e(route('admin.pos.cart_items')); ?>?restaurant_id={{ request('restaurant_id') }}', {
                 _token: '<?php echo e(csrf_token()); ?>'
             }, function (data) {
                 $('#cart').empty().html(data);
-            });
+            }));
         }
 
-        $(document).on('change', '[name="quantity"]', function (event) {
+        __panel.onTarget(document, 'change', '[name="quantity"]', function (event) {
             getVariantPrice();
             if($('#option_ids').val() == ''){
                 $(this).attr('max', $(this).data('maximum_cart_quantity'));
             }
         });
 
-        $(document).on('change', '.update-Quantity', function (event) {
+        __panel.onTarget(document, 'change', '.update-Quantity', function (event) {
 
             let element = $(event.target);
             let minValue = parseInt(element.attr('min'));
@@ -1013,7 +1026,7 @@
 
             let oldvalue = element.data('value');
             if (valueCurrent >= minValue && maxValue >= valueCurrent) {
-                $.post('{{ route('admin.pos.updateQuantity') }}', {
+                __panel.request($.post('{{ route('admin.pos.updateQuantity') }}', {
                     _token: '{{ csrf_token() }}',
                     key: key,
                     option_ids: option_ids,
@@ -1031,7 +1044,7 @@
                     else{
                         updateCart();
                     }
-                });
+                }));
             } else {
                 element.val(oldvalue);
                 Swal.fire({
@@ -1057,7 +1070,7 @@
                 }
             }
         });
-        $(document).on('change', '#customer', function (event) {
+        __panel.onTarget(document, 'change', '#customer', function (event) {
             var selectedOption = $(this).find('option:selected');
             var selectedText = selectedOption.text().trim();
             var parts = selectedText.split("(");
@@ -1081,7 +1094,7 @@
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
+                    let $request = __panel.request($.ajax(params));
                     $request.then(success);
                     $request.fail(failure);
                     return $request;
@@ -1100,7 +1113,9 @@
             });
         });
 
-    </script>
+
+})();
+</script>
 
 @endpush
 

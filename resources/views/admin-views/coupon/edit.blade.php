@@ -213,9 +213,14 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/coupon-edit.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_coupon_edit_blade_php_0");
 
-        $(document).on('ready', function () {
+
+
+        __panel.onTarget(document, 'ready', function () {
             $('#date_from').attr('max','{{date("Y-m-d",strtotime($coupon["expire_date"]))}}');
             $('#date_to').attr('min','{{date("Y-m-d",strtotime($coupon["start_date"]))}}');
             $('.js-data-example-ajax').select2({
@@ -233,7 +238,7 @@
                     };
                 },
                 __port: function (params, success, failure) {
-                    var $request = $.ajax(params);
+                    var $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -250,5 +255,7 @@
         });
 
 
-    </script>
+
+})();
+</script>
 @endpush

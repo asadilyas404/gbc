@@ -134,7 +134,15 @@
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_addon_edit_blade_php_0");
+__panel.globals({
+"stock_type": {get: () => stock_type, set: value => { stock_type = value; }}
+});
+
+
     $('#stock_type').on('change', function () {
         stock_type($(this).val());
         });
@@ -165,7 +173,7 @@
                 };
             },
             __port: function (params, success, failure) {
-                let $request = $.ajax(params);
+                let $request = __panel.request($.ajax(params));
 
                 $request.then(success);
                 $request.fail(failure);
@@ -181,5 +189,7 @@
             stock_type('{{$addon->stock_type}}');
 
         })
+
+})();
 </script>
 @endpush

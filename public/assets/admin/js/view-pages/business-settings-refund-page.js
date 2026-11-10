@@ -1,6 +1,11 @@
 
-
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_business_settings_refund_page_js");
+
+
+
 $('.edit-reason').on('click',function (){
     $(".add_active").addClass('active');
     $(".update-lang_form").addClass('d-none');
@@ -35,3 +40,5 @@ $(".lang_link1").click(function(e) {
         $(".default-form1").removeClass('d-none');
     }
 })
+
+})();

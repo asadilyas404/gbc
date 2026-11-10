@@ -1828,8 +1828,16 @@ $order = \App\Models\Order::Notpos()
 
 @push('script_2')
 <script>
-    "use strict";
-    $(window).on('load', function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_layouts_admin_partials__sidebar_blade_php_0");
+__panel.globals({
+"$navItems": {get: () => $navItems, set: value => { $navItems = value; }}
+});
+
+
+    __panel.onTarget(window, 'load', function() {
         if ($(".navbar-vertical-content li.active").length) {
             $('.navbar-vertical-content').animate({
                 scrollTop: $(".navbar-vertical-content li.active").offset().top - 150
@@ -1848,5 +1856,7 @@ $order = \App\Models\Order::Notpos()
             return !~text.indexOf(val) && !$list.text().toLowerCase().includes(val);
         }).hide();
     });
+
+})();
 </script>
 @endpush

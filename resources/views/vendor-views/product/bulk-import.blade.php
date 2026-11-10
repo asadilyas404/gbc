@@ -128,11 +128,28 @@
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_product_bulk_import_blade_php_0");
+__panel.globals({
+"count": {get: () => count, set: value => { count = value; }},
+"countRow": {get: () => countRow, set: value => { countRow = value; }},
+"element": {get: () => element, set: value => { element = value; }},
+"show_min_max": {get: () => show_min_max, set: value => { show_min_max = value; }},
+"hide_min_max": {get: () => hide_min_max, set: value => { hide_min_max = value; }},
+"new_option_name": {get: () => new_option_name, set: value => { new_option_name = value; }},
+"removeOption": {get: () => removeOption, set: value => { removeOption = value; }},
+"deleteRow": {get: () => deleteRow, set: value => { deleteRow = value; }},
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }},
+"myFunction": {get: () => myFunction, set: value => { myFunction = value; }}
+});
+
+
     let count = 0;
     let countRow = 0;
     let element = 0;
-    $(document).ready(function() {
+    __panel.ready(function() {
         $("#add_new_option_button").click(function(e) {
             count++;
             let add_option_view = `
@@ -254,12 +271,12 @@
         $('#min_max2_' + data).attr("required", "false");
     }
 
-    $(document).on('change', '.show_min_max', function () {
+    __panel.onTarget(document, 'change', '.show_min_max', function () {
         let data = $(this).data('count');
         show_min_max(data);
     });
 
-    $(document).on('change', '.hide_min_max', function () {
+    __panel.onTarget(document, 'change', '.hide_min_max', function () {
         let data = $(this).data('count');
         hide_min_max(data);
     });
@@ -282,11 +299,11 @@
     }
 
 
-    $(document).on('click', '.delete_input_button', function () {
+    __panel.onTarget(document, 'click', '.delete_input_button', function () {
         let e = $(this);
         removeOption(e);
     });
-    $(document).on('click', '.deleteRow', function () {
+    __panel.onTarget(document, 'click', '.deleteRow', function () {
         let e = $(this);
         deleteRow(e);
     });
@@ -320,12 +337,12 @@
 
     }
 
-    $(document).on('click', '.add_new_row_button', function () {
+    __panel.onTarget(document, 'click', '.add_new_row_button', function () {
         let data = $(this).data('count');
         add_new_row_button(data);
     });
 
-    $(document).on('keyup', '.new_option_name', function () {
+    __panel.onTarget(document, 'keyup', '.new_option_name', function () {
         let data = $(this).data('count');
         let value = $(this).val();
         new_option_name(value, data);
@@ -339,7 +356,7 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        $.post({
+        __panel.request($.post({
             url: '{{ route('vendor.food.food-variation-generate') }}',
             data: $('#item_form').serialize(),
             data: formData,
@@ -362,11 +379,11 @@
                     $('#food_variation_outpot').val(data.variation)
                 }
             }
-        });
+        }));
     });
 
 
-    $(document).on("click", ".submit_btn", function(e){
+    __panel.onTarget(document, "click", ".submit_btn", function(e){
         e.preventDefault();
             let data = $(this).val();
             myFunction(data)
@@ -391,5 +408,7 @@
             }
         })
     }
+
+})();
 </script>
 @endpush

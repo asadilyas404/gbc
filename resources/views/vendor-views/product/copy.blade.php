@@ -540,7 +540,18 @@
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/tags-input.min.js"></script>
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/view-pages/vendor/product-index.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_product_copy_blade_php_0");
+__panel.globals({
+"updatestockCount": {get: () => updatestockCount, set: value => { updatestockCount = value; }},
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }},
+"removedVariationIDs": {get: () => removedVariationIDs, set: value => { removedVariationIDs = value; }},
+"removedVariationOptionIDs": {get: () => removedVariationOptionIDs, set: value => { removedVariationOptionIDs = value; }}
+});
+
+
         count = {{ isset($product->variations) ? count(json_decode($product->variations, true)) : 0 }};
 
 
@@ -570,9 +581,9 @@
             }
         }
 
-        $(document).ready(function() {
+        __panel.ready(function() {
             // Move up with slide animation
-            $(document).on('click', '.move-up', function (e) {
+            __panel.onTarget(document, 'click', '.move-up', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option-item');
@@ -587,7 +598,7 @@
                 }
             });
 
-            $(document).on('click', '.move-option-up', function (e) {
+            __panel.onTarget(document, 'click', '.move-option-up', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option_price_item');
@@ -603,7 +614,7 @@
             });
 
             // Move down with slide animation
-            $(document).on('click', '.move-down', function (e) {
+            __panel.onTarget(document, 'click', '.move-down', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option-item');
@@ -618,7 +629,7 @@
                 }
             });
 
-            $(document).on('click', '.move-option-down', function (e) {
+            __panel.onTarget(document, 'click', '.move-option-down', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option_price_item');
@@ -864,8 +875,8 @@
         }
 
 
-        $(document).ready(function() {
-            setTimeout(function() {
+        __panel.ready(function() {
+            __panel.setTimeout(function() {
                 let category = $("#category-id").val();
                 let sub_category = '{{ count($product_category) >= 2 ? $product_category[1]->id : '' }}';
                 let sub_sub_category =
@@ -884,7 +895,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('vendor.food.store') }}',
                 data: formData,
                 cache: false,
@@ -907,12 +918,12 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function() {
+                        __panel.setTimeout(function() {
                             location.href = '{{ route('vendor.food.list') }}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
         $('#reset_btn').click(function() {
             location.reload(true);
@@ -921,11 +932,11 @@
         let removedVariationIDs = [];
         let removedVariationOptionIDs = [];
 
-        $(document).on('click', '.remove_variation', function() {
+        __panel.onTarget(document, 'click', '.remove_variation', function() {
             removedVariationIDs.push($(this).data('id'));
             $('#removedVariationIDs').val(removedVariationIDs.join(','));
         });
-        $(document).on('click', '.remove_variation_option', function() {
+        __panel.onTarget(document, 'click', '.remove_variation_option', function() {
             Swal.fire({
                 title: 'Are you sure?',
                 text: "This option will be deleted permanently!",
@@ -941,5 +952,7 @@
                 }
             });
         });
-    </script>
+
+})();
+</script>
 @endpush

@@ -254,9 +254,18 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/product-import.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_product_bulk_import_blade_php_0");
+__panel.globals({
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }},
+"myFunction": {get: () => myFunction, set: value => { myFunction = value; }}
+});
 
-        $(document).ready(function() {
+
+
+        __panel.ready(function() {
             $(".copy_button").click(function() {
                 var textareaValue = $("#food_variation_outpot").val();
                 copyToClipboard(textareaValue);
@@ -403,7 +412,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('admin.food.food-variation-generate') }}',
                 data: $('#item_form').serialize(),
                 data: formData,
@@ -427,7 +436,7 @@
                         $('#modal_body').val(data.variation)
                     }
                 }
-            });
+            }));
         });
 
         $('[name="upload_type"]').on('change', function() {
@@ -435,7 +444,7 @@
             $(this).parent().addClass('active');
         });
 
-        $(document).on("click", ".update_or_import", function(e){
+        __panel.onTarget(document, "click", ".update_or_import", function(e){
             e.preventDefault();
             let upload_type = $('input[name="upload_type"]:checked').val();
             myFunction(upload_type)
@@ -463,7 +472,7 @@
             $('#upload_excel').val('');
             $('.filename').text('{{translate('Must_be_Excel_files_using_our_Excel_template_above')}}');
         })
-        $(document).on('change', '.select_options', function () {
+        __panel.onTarget(document, 'change', '.select_options', function () {
             if($(this).val() == 'single'){
                 hide_min_max($(this).data('count'));
             }
@@ -472,5 +481,7 @@
             }
         });
 
-    </script>
+
+})();
+</script>
 @endpush

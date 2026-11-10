@@ -1,4 +1,13 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_basic_campaign_index_js");
+__panel.globals({
+"readURL": {get: () => readURL, set: value => { readURL = value; }},
+"show_item": {get: () => show_item, set: value => { show_item = value; }}
+});
+
 function readURL(input) {
     if (input.files && input.files[0]) {
         let reader = new FileReader();
@@ -33,8 +42,10 @@ $("#date_from").on("change", function () {
 $("#date_to").on("change", function () {
     $('#date_from').attr('max',$(this).val());
 });
-$(document).ready(function(){
+__panel.ready(function(){
     $('#date_from').attr('min',(new Date()).toISOString().split('T')[0]);
     $('#date_to').attr('min',(new Date()).toISOString().split('T')[0]);
 });
 
+
+})();

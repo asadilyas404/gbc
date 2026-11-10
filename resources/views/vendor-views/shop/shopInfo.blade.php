@@ -115,7 +115,15 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_shop_shopInfo_blade_php_0");
+__panel.globals({
+"updateStatus": {get: () => updateStatus, set: value => { updateStatus = value; }}
+});
+
+
         $('.update-status').on('click', function (){
             let route = $(this).data('url');
             let code = $(this).data('code');
@@ -123,7 +131,7 @@
         })
 
         function updateStatus(route, code) {
-            $.get({
+            __panel.request($.get({
                 url: route,
                 data: {
                     code: code,
@@ -137,8 +145,10 @@
                         toastr.success('{{translate('messages.Restaurant settings updated!')}}');
                     }
                 }
-            });
+            }));
         }
-    </script>
+
+})();
+</script>
     <!-- Page level plugins -->
 @endpush

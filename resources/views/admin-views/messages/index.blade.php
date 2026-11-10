@@ -59,13 +59,24 @@
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_messages_index_blade_php_0");
+__panel.globals({
+"viewAdminConvs": {get: () => viewAdminConvs, set: value => { viewAdminConvs = value; }},
+"page": {get: () => page, set: value => { page = value; }},
+"loadMoreData": {get: () => loadMoreData, set: value => { loadMoreData = value; }},
+"fetch_data": {get: () => fetch_data, set: value => { fetch_data = value; }}
+});
+
+
     function viewAdminConvs(url, id_to_active, conv_id, sender_id) {
         var tab = getUrlParameter('tab');
         $('.customer-list').removeClass('conv-active');
             $('#' + id_to_active).addClass('conv-active');
             let new_url= "{{ route('admin.message.list') }}" + '?tab=' + tab+ '&conversation=' + conv_id+ '&user=' + sender_id;
-            $.get({
+            __panel.request($.get({
                 url: url,
                 success: function(data) {
                     window.history.pushState('', 'New Page Title', new_url);
@@ -73,7 +84,7 @@
                     conversationList();
                     // $(".conv-reply-form").removeClass('collapse');
                 }
-            });
+            }));
 
         }
         let page = 1;
@@ -87,13 +98,13 @@
 
         function loadMoreData(page) {
             var tab = getUrlParameter('tab');
-            $.ajax({
+            __panel.request($.ajax({
                     url: "{{ route('admin.message.list') }}" + '?tab=' + tab+ '&page=' + page,
                     type: "get",
                     beforeSend: function() {
 
                     }
-                })
+                }))
                 .done(function(data) {
                     if (data.html == " ") {
                         return;
@@ -107,16 +118,16 @@
 
         function fetch_data(page, query) {
             var tab = getUrlParameter('tab');
-            $.ajax({
+            __panel.request($.ajax({
                 url: "{{ route('admin.message.list') }}"+ '?tab=' + tab + '&page=' + page + "&key=" + query,
                 success: function(data) {
                     $('#conversation-list').empty();
                     $("#conversation-list").append(data.html);
                 }
-            })
+            }))
         }
 
-        $(document).on('keyup', '#serach', function() {
+        __panel.onTarget(document, 'keyup', '#serach', function() {
             let query = $('#serach').val();
             fetch_data(page, query);
         });
@@ -127,5 +138,7 @@
                 fetch_data(page, query);
             }
         });
-    </script>
+
+})();
+</script>
 @endpush

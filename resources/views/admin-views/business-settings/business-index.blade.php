@@ -1536,10 +1536,19 @@
 src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&v=3.45.8">
 </script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_business_settings_business_index_blade_php_0");
+__panel.globals({
+"readURL": {get: () => readURL, set: value => { readURL = value; }},
+"initAutocomplete": {get: () => initAutocomplete, set: value => { initAutocomplete = value; }}
+});
 
 
-        $(document).on('click', '.demo_check', function (event) {
+
+
+        __panel.onTarget(document, 'click', '.demo_check', function (event) {
             toastr.warning('{{ translate('Sorry! You can not enable maintenance mode in demo!') }}', {
                 CloseButton: true,
                 ProgressBar: true
@@ -1548,12 +1557,12 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
         });
 
 
-        $(document).on('click', '.maintenance-mode', function (event) {
+        __panel.onTarget(document, 'click', '.maintenance-mode', function (event) {
             event.preventDefault();
             $('#maintenance-mode-modal').modal('show');
 
         });
-        $(document).on('click', '.turn_off_maintenance_mode', function (event) {
+        __panel.onTarget(document, 'click', '.turn_off_maintenance_mode', function (event) {
             event.preventDefault();
             $('#maintenance-off-mode-modal').modal('show');
         });
@@ -1676,7 +1685,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
             });
         }
 
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
             initAutocomplete();
             @php($country = \App\Models\BusinessSetting::where('key', 'country')->first())
 
@@ -1686,10 +1695,10 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
 
         });
 
-        $(document).on("keydown", "input", function(e) {
+        __panel.onTarget(document, "keydown", "input", function(e) {
             if (e.which === 13) e.preventDefault();
         });
-        $(document).ready(function() {
+        __panel.ready(function() {
             let selectedCurrency = "{{ $currency_code ? $currency_code->value : 'USD' }}";
             let currencyConfirmed = false;
             let updatingCurrency = false;
@@ -1705,7 +1714,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
             });
 
             function check_currency(currency) {
-                $.ajax({
+                __panel.request($.ajax({
                     headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') },
                     url: "{{route('admin.system_currency')}}",
                     method: 'GET',
@@ -1717,7 +1726,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                             update_currency(currency);
                         }
                     }
-                });
+                }));
             }
 
             function update_currency(currency) {
@@ -1732,7 +1741,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
 
 
 
-        $(document).ready(function() {
+        __panel.ready(function() {
 
             $('#advanceFeatureToggle').click(function (event) {
                 event.preventDefault();
@@ -1761,7 +1770,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
                 }
             }).trigger('change');;
 
-            $(document).ready(function () {
+            __panel.ready(function () {
                 var startDate = $('#startDate');
                 var endDate = $('#endDate');
                 var dateError = $('#dateError');
@@ -1835,5 +1844,7 @@ src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting:
 
 
 
-    </script>
+
+})();
+</script>
 @endpush

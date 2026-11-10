@@ -209,7 +209,12 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_report_subscription_report_blade_php_0");
+
+
         $('.js-data-example-ajax').select2({
             ajax: {
                 url: '{{ url('/') }}/admin/restaurant/get-restaurants',
@@ -229,7 +234,7 @@
                     };
                 },
                 __port: function(params, success, failure) {
-                    let $request = $.ajax(params);
+                    let $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -252,5 +257,7 @@
             }
         })
 
-    </script>
+
+})();
+</script>
 @endpush

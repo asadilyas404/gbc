@@ -130,7 +130,12 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_view_blade_php_0");
+
+
         $('.status-change-alert').on('click', function (event){
             let url = $(this).data('url');
             let message = $(this).data('message');
@@ -151,7 +156,7 @@
                 }
             })
         })
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -191,5 +196,7 @@
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
             });
         });
-    </script>
+
+})();
+</script>
 @endpush

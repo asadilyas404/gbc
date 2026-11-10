@@ -478,9 +478,20 @@
         src="https://maps.googleapis.com/maps/api/js?key={{\App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value}}&callback=initMap&v=3.45.8">
 </script>
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_vendor_view_index_blade_php_0");
+__panel.globals({
+"myLatLng": {get: () => myLatLng},
+"map": {get: () => map, set: value => { map = value; }},
+"initMap": {get: () => initMap, set: value => { initMap = value; }},
+"request_alert": {get: () => request_alert, set: value => { request_alert = value; }}
+});
+
+
     // Call the dataTables jQuery plugin
-        $(document).ready(function () {
+        __panel.ready(function () {
             $('#dataTable').DataTable();
         });
 
@@ -499,7 +510,7 @@
             });
         }
 
-    $(document).on('ready', function () {
+    __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -563,5 +574,7 @@
                 }
             })
         }
+
+})();
 </script>
 @endpush

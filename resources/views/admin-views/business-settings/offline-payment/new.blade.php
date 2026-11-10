@@ -156,8 +156,13 @@
     <script src="{{dynamicAsset('public/assets/admin/js/view-pages/offline-payment.js')}}"></script>
 
     <script>
-        "use strict";
-        jQuery(document).ready(function ($) {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_business_settings_offline_payment_new_blade_php_0");
+
+
+        __panel.ready(function ($) {
             let counter = 0;
             let counterPayment = 0;
 
@@ -267,13 +272,13 @@
                 counter = 1;
             })
 
-            $(document).on('click', '.remove-field-payment', function () {
+            __panel.onTarget(document, 'click', '.remove-field-payment', function () {
                 let fieldRowId=  $(this).data('id');
                 $( `#field-row-payment--${fieldRowId}` ).remove();
                 counterPayment--;
 
             });
-            $(document).on('click', '.remove-field', function () {
+            __panel.onTarget(document, 'click', '.remove-field', function () {
                 let fieldRowId=  $(this).data('id');
                 $( `#field-row-customer--${fieldRowId}` ).remove();
                 counter--;
@@ -281,7 +286,9 @@
             });
         });
 
-    </script>
+
+})();
+</script>
 
 
 @endpush

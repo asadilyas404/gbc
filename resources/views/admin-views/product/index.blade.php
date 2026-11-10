@@ -494,9 +494,20 @@
     <script src="{{ dynamicAsset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/product-index.js"></script>
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_product_index_blade_php_0");
+__panel.globals({
+"updatestockCount": {get: () => updatestockCount, set: value => { updatestockCount = value; }},
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }},
+"getRestaurantData": {get: () => getRestaurantData, set: value => { getRestaurantData = value; }},
+"getRequest": {get: () => getRequest, set: value => { getRequest = value; }}
+});
 
 
-        "use strict";
+
+
         $('#stock_type').on('change', function () {
                 if($(this).val() == 'unlimited') {
                     $('.stock_disable').prop('readonly', true).prop('required', false).attr('placeholder', '{{ translate('Unlimited') }}').val('');
@@ -536,7 +547,7 @@
 
 
             }
-    $(document).ready(function() {
+    __panel.ready(function() {
             $("#add_new_option_button").click(function(e) {
                 $('#empty-variation').hide();
                 count++;
@@ -713,13 +724,13 @@
 
         });
         function getRestaurantData(route, restaurant_id, id) {
-            $.get({
+            __panel.request($.get({
                 url: route + restaurant_id,
                 dataType: 'json',
                 success: function(data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
+            }));
         }
 
         $('.get-request').on('change', function () {
@@ -729,16 +740,16 @@
         });
 
         function getRequest(route, id) {
-            $.get({
+            __panel.request($.get({
                 url: route,
                 dataType: 'json',
                 success: function(data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
+            }));
         }
 
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
             // INITIALIZATION OF SELECT2
             // =======================================================
             $('.js-select2-custom').each(function() {
@@ -760,7 +771,7 @@
                     };
                 },
                 __port: function(params, success, failure) {
-                    let $request = $.ajax(params);
+                    let $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -778,7 +789,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('admin.food.store') }}',
                 data: $('#food_form').serialize(),
                 data: formData,
@@ -802,13 +813,13 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function() {
+                        __panel.setTimeout(function() {
                             location.href =
                                 '{{ route('admin.food.list') }}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
 
         $('#reset_btn').click(function() {
@@ -821,5 +832,7 @@
             $('#stock_type').val('unlimited').trigger('change');
             updatestockCount();
         })
-    </script>
+
+})();
+</script>
 @endpush

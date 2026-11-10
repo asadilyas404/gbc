@@ -310,7 +310,16 @@
 @push('script_2')
 
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_business_settings_mail_index_blade_php_0");
+__panel.globals({
+"disableMailConf": {get: () => disableMailConf},
+"ValidateEmail": {get: () => ValidateEmail, set: value => { ValidateEmail = value; }}
+});
+
+
 
     const disableMailConf = () => {
         if($('#mail-config-disable').is(':checked')) {
@@ -323,7 +332,7 @@
         disableMailConf()
     })
 
-    $(document).on('click', '.show-Tab', function () {
+    __panel.onTarget(document, 'click', '.show-Tab', function () {
         $("#mail-config").removeClass("in active");
         $("#test-mail").addClass("fade in active");
         $('.nav--tabs').find('a').removeClass('active')
@@ -338,7 +347,7 @@
             return false;
         }
     }
-    $(document).on('click', '.send-mail', function () {
+    __panel.onTarget(document, 'click', '.send-mail', function () {
             @if(env('APP_MODE') =='demo')
             toastr.info('{{ translate('Update option is disabled for demo!') }}', {
                 CloseButton: true,
@@ -360,7 +369,7 @@
                             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                         }
                     });
-                    $.ajax({
+                    __panel.request($.ajax({
                         url: "{{route('admin.business-settings.mail.send')}}",
                         method: 'GET',
                         data: {
@@ -383,7 +392,7 @@
                             $('#loading').hide();
 
                         }
-                    });
+                    }));
                 }
             })
         } else {
@@ -399,7 +408,7 @@
                 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
             }
         });
-        $.ajax({
+        __panel.request($.ajax({
             url: "{{ route('admin.business-settings.mail-config') }}",
             method: 'POST',
             data: $('#mail-config-form').serialize(),
@@ -413,7 +422,9 @@
             complete: function() {
                 $('#loading').hide();
             }
-        });
+        }));
     })
+
+})();
 </script>
 @endpush

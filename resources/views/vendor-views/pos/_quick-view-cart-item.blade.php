@@ -374,7 +374,22 @@
     </div>
 </div>
 <script type="text/javascript">
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_pos__quick_view_cart_item_blade_php_0");
+__panel.globals({
+"finalTotal": {get: () => finalTotal, set: value => { finalTotal = value; }},
+"actualPrice": {get: () => actualPrice, set: value => { actualPrice = value; }},
+"initializeVariationAddonControls": {get: () => initializeVariationAddonControls, set: value => { initializeVariationAddonControls = value; }},
+"getCheckedInputs": {get: () => getCheckedInputs, set: value => { getCheckedInputs = value; }},
+"inputElements": {get: () => inputElements, set: value => { inputElements = value; }},
+"getCheckedPrice": {get: () => getCheckedPrice, set: value => { getCheckedPrice = value; }},
+"applyPOSDiscount": {get: () => applyPOSDiscount, set: value => { applyPOSDiscount = value; }},
+"calculateTotal": {get: () => calculateTotal, set: value => { calculateTotal = value; }}
+});
+
+
     cartQuantityInitialize();
     // getVariantPrice();
     calculateTotal(1);
@@ -389,7 +404,7 @@
     function initializeVariationAddonControls() {
         // Handle variation addon checkbox changes
         $(document).off('change.variationAddonCart');
-        $(document).on('change.variationAddonCart', 'input[name^="variation_addon_id"]', function() {
+        __panel.onTarget(document, 'change.variationAddonCart', 'input[name^="variation_addon_id"]', function() {
             var checkbox = $(this);
             var quantityContainer = checkbox.siblings('label').next('.variation-addon-quantity');
 
@@ -404,7 +419,7 @@
 
         // Handle variation addon quantity controls
         $(document).off('click.variationAddonCart');
-        $(document).on('click.variationAddonCart', '.variation-decrease-btn', function(e) {
+        __panel.onTarget(document, 'click.variationAddonCart', '.variation-decrease-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
             var input = $(this).siblings('input[type="number"]');
@@ -416,7 +431,7 @@
             }
         });
 
-        $(document).on('click.variationAddonCart', '.variation-increase-btn', function(e) {
+        __panel.onTarget(document, 'click.variationAddonCart', '.variation-increase-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
             var input = $(this).siblings('input[type="number"]');
@@ -428,7 +443,7 @@
 
         // Handle variation addon quantity input changes
         $(document).off('change.variationAddonCart');
-        $(document).on('change.variationAddonCart', 'input[name^="variation_addon_quantity"]', function() {
+        __panel.onTarget(document, 'change.variationAddonCart', 'input[name^="variation_addon_quantity"]', function() {
             // getVariantPrice();
             calculateTotal();
         });
@@ -449,12 +464,12 @@
     });
 
     // Initialize when document is ready
-    $(document).ready(function() {
+    __panel.ready(function() {
         initializeVariationAddonControls();
     });
 
     // Debug: Log form data before updating cart item
-    $(document).on('click', '.add-To-Cart', function(e) {
+    __panel.onTarget(document, 'click', '.add-To-Cart', function(e) {
 
         // Check the Calculation
         var isEditing = "{{ session()->has('is_editing_order') }}";
@@ -687,7 +702,7 @@
             };
 
             // IMPORTANT: capture baseline after render tick (for dynamic content)
-            setTimeout(captureBaseline, 0);
+            __panel.setTimeout(captureBaseline, 0);
 
             // Track changes (ignore discount)
             form.addEventListener('input', (e) => {
@@ -708,7 +723,7 @@
             if (
                 btn.matches('.btn-number, .variation-increase-btn, .variation-decrease-btn, .increase-button, .decrease-button')
             ) {
-                setTimeout(recalcDirty, 0);
+                __panel.setTimeout(recalcDirty, 0);
             }
             }, true);
 
@@ -717,8 +732,8 @@
 
             // When modal is reopened and the same form is reused, reset baseline
             // (works for Bootstrap; harmless otherwise)
-            document.addEventListener('shown.bs.modal', () => {
-            if (document.contains(form)) setTimeout(captureBaseline, 0);
+            __panel.listen(document, 'shown.bs.modal', () => {
+            if (document.contains(form)) __panel.setTimeout(captureBaseline, 0);
             });
         }
 
@@ -731,10 +746,12 @@
         tryBind();
 
         // 2) bind when injected later (AJAX modal)
-        const obs = new MutationObserver(() => tryBind());
+        const obs = __panel.resource(new MutationObserver(() => tryBind()), "disconnect");
         obs.observe(document.documentElement, { childList: true, subtree: true });
         })();
 
+
+})();
 </script>
 
 <style>

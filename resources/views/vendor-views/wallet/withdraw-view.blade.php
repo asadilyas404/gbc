@@ -136,9 +136,15 @@
     <script src="{{dynamicAsset('public/assets')}}/vendor/datatables/dataTables.bootstrap4.min.js"></script>
 
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_vendor_views_wallet_withdraw_view_blade_php_0");
+
         // Call the dataTables jQuery plugin
-        $(document).ready(function () {
+        __panel.ready(function () {
             $('#dataTable').DataTable();
         });
-    </script>
+
+})();
+</script>
 @endpush

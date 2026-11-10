@@ -174,7 +174,15 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/deliveryman-earning-provide.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_deliveryman_earning_provide_index_blade_php_0");
+__panel.globals({
+"getAccountData": {get: () => getAccountData, set: value => { getAccountData = value; }}
+});
+
+
     $('#deliveryman').select2({
         ajax: {
             url: '{{url('/')}}/admin/delivery-man/get-deliverymen',
@@ -191,7 +199,7 @@
                 };
             },
             __port: function (params, success, failure) {
-                let $request = $.ajax(params);
+                let $request = __panel.request($.ajax(params));
 
                 $request.then(success);
                 $request.fail(failure);
@@ -203,13 +211,13 @@
 
     function getAccountData(route, data_id, type)
     {
-        $.get({
+        __panel.request($.get({
                 url: route+data_id,
                 dataType: 'json',
                 success: function (data) {
                     $('#account_info').html('({{translate('messages.payable_amount')}}: '+data.payable_amount+')');
                 },
-            });
+            }));
     }
 
     $('#add_transaction').on('submit', function (e) {
@@ -220,7 +228,7 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        $.post({
+        __panel.request($.post({
             url: '{{route('admin.provide-deliveryman-earnings.store')}}',
             data: formData,
             cache: false,
@@ -239,12 +247,14 @@
                         CloseButton: true,
                         ProgressBar: true
                     });
-                    setTimeout(function () {
+                    __panel.setTimeout(function () {
                         location.href = '{{route('admin.provide-deliveryman-earnings.index')}}';
                     }, 2000);
                 }
             }
-        });
+        }));
     });
+
+})();
 </script>
 @endpush

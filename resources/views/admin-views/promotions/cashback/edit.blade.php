@@ -195,11 +195,19 @@
 
 @push('script_2')
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_promotions_cashback_edit_blade_php_0");
+__panel.globals({
+"reset_select": {get: () => reset_select, set: value => { reset_select = value; }}
+});
 
 
-        "use strict";
+
+
         $('#reset_btn').click(function(){
-            setTimeout(reset_select, 100);
+            __panel.setTimeout(reset_select, 100);
         })
         function reset_select(){
             $('#select_customer').trigger('change');
@@ -218,7 +226,7 @@
                         $('#Cash_back_amount').attr('max',100);
                     }
         }
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             $('#date_from').attr('min',(new Date()).toISOString().split('T')[0]);
             $('#date_from').attr('max','{{date("Y-m-d",strtotime($cashback["end_date"]))}}');
             $('#date_to').attr('min','{{date("Y-m-d",strtotime($cashback["start_date"]))}}');
@@ -226,7 +234,7 @@
 
 
 
-        $(document).ready(function() {
+        __panel.ready(function() {
 
                 $('#cashback_type').on('change', function() {
 
@@ -272,5 +280,7 @@
 
 
 
-    </script>
+
+})();
+</script>
 @endpush

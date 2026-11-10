@@ -194,9 +194,14 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_shift_session_index_blade_php_0");
 
-        $(document).on('ready', function () {
+
+
+        __panel.onTarget(document, 'ready', function () {
             // Initialize Select2
             $('.js-select2-custom').each(function () {
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
@@ -247,7 +252,7 @@
                     return false;
                 }
 
-                $.ajax({
+                __panel.request($.ajax({
                     url: "{{ route('vendor.shift-session.check-unpaid-orders') }}",
                     type: "GET",
                     dataType: "json",
@@ -285,8 +290,10 @@
                         submitButton.prop('disabled', false);
                         toastr.error('Could not check unpaid orders. Please try again.');
                     }
-                });
+                }));
             });
         });
-    </script>
+
+})();
+</script>
 @endpush

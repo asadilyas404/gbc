@@ -315,14 +315,23 @@
 <script href="{{ dynamicAsset('public/assets/admin/vendor/swiper/swiper-bundle.min.js')}}"></script>
 
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_system_addon_index_blade_php_1");
+__panel.globals({
+"readUrl": {get: () => readUrl, set: value => { readUrl = value; }},
+"swiper": {get: () => swiper, set: value => { swiper = value; }}
+});
+
+
     $("img.svg").each(function () {
     let $img = jQuery(this);
     let imgID = $img.attr("id");
     let imgClass = $img.attr("class");
     let imgURL = $img.attr("src");
 
-        jQuery.get(
+        __panel.request(jQuery.get(
           imgURL,
           function (data) {
             // Get the SVG tag, ignore the rest
@@ -356,7 +365,7 @@
             $img.replaceWith($svg);
           },
           "xml"
-        );
+        ));
       });
         $('.read-file').on('change', function () {
             readUrl(this);
@@ -383,7 +392,7 @@
             });
 
             let formData = new FormData(document.getElementById('theme_form'));
-            $.ajax({
+            __panel.request($.ajax({
                 type: 'POST',
                 url: "{{route('admin.business-settings.system-addon.upload')}}",
                 data: formData,
@@ -425,7 +434,7 @@
                 complete: function () {
                     $('#upload_theme').removeAttr('disabled');
                 },
-            });
+            }));
         })
 
     $('.publish-addon').on('click', function () {
@@ -435,7 +444,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                     url: '{{route('admin.business-settings.system-addon.publish')}}',
                     data: {
                         'path': path
@@ -458,13 +467,13 @@
                                     CloseButton: true,
                                     ProgressBar: true
                                 });
-                                setTimeout(function () {
+                                __panel.setTimeout(function () {
                                     location.reload()
                                 }, 2000);
                             }
                         }
                     }
-                });
+                }));
             })
 
     $('.theme-delete').on('click', function () {
@@ -474,7 +483,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.business-settings.system-addon.delete')}}',
                 data: {
                     path
@@ -484,7 +493,7 @@
                 },
                 success: function (data) {
                     if (data.status === 'success') {
-                        setTimeout(function () {
+                        __panel.setTimeout(function () {
                             location.reload()
                         }, 2000);
 
@@ -502,7 +511,7 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         })
 
         let swiper = new Swiper(".mySwiper", {
@@ -511,5 +520,7 @@
                 dynamicBullets: true,
             },
         });
-    </script>
+
+})();
+</script>
 @endpush

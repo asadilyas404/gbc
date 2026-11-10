@@ -274,7 +274,11 @@
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/hs.chartjs-matrix.js"></script>
 
     <script>
-        $(document).on('ready', function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_report_expense_report_blade_php_0");
+
+        __panel.onTarget(document, 'ready', function() {
             $('.js-data-example-ajax').select2({
                 ajax: {
                     url: '{{ url('/') }}/admin/restaurant/get-restaurants',
@@ -295,7 +299,7 @@
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = $.ajax(params);
+                        var $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -328,7 +332,7 @@
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = $.ajax(params);
+                        var $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -338,9 +342,15 @@
                 }
             });
         });
-    </script>
+
+})();
+</script>
 
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_report_expense_report_blade_php_1");
+
         $('#from_date,#to_date').change(function() {
             let fr = $('#from_date').val();
             let to = $('#to_date').val();
@@ -357,6 +367,8 @@
 
         })
 
-    </script>
+
+})();
+</script>
 @endpush
 

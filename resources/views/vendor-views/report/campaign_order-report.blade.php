@@ -391,8 +391,13 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/vendor/report.js"></script>
     <script>
-        "use strict";
-        $(document).on('ready', function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_report_campaign_order_report_blade_php_0");
+
+
+        __panel.onTarget(document, 'ready', function() {
 
             $('.js-data-example-ajax-2').select2({
                 ajax: {
@@ -416,7 +421,7 @@
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = $.ajax(params);
+                        var $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -426,6 +431,8 @@
                 }
             });
         });
-    </script>
+
+})();
+</script>
 @endpush
 

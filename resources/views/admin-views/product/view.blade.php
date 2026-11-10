@@ -576,7 +576,12 @@ $reviewsInfo = $product->rating()->first();
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_product_view_blade_php_0");
+
+
     $(".status_form_alert").on("click", function (e) {
         const id = $(this).data('id');
         const message = $(this).data('message');
@@ -597,5 +602,7 @@ $reviewsInfo = $product->rating()->first();
             }
         })
     })
+
+})();
 </script>
 @endpush

@@ -40,7 +40,11 @@
            window.currentBranchId = {{ \App\CentralLogics\Helpers::get_restaurant_id() ?? 0 }};
        </script>
 
-    @stack('css_or_js')
+    @php
+        $panelHeadAssets = $__env->yieldPushContent('css_or_js');
+        preg_match_all('/<script\b[^>]*>[\s\S]*?<\/script>/i', $panelHeadAssets, $panelHeadScripts);
+    @endphp
+    {!! preg_replace('/<script\b[^>]*>[\s\S]*?<\/script>/i', '', $panelHeadAssets) !!}
 
     <script src="{{dynamicAsset('public/assets/admin/vendor/hs-navbar-vertical-aside/hs-navbar-vertical-aside-mini-cache.js')}}"></script>
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/css/toastr.css')}}">
@@ -48,12 +52,16 @@
     <script src="{{ dynamicAsset('public/assets/admin/js/panel-page.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.13/dist/turbo.es2017-umd.js"></script>
     <script>Turbo.session.drive = false;</script>
+    <script src="{{ dynamicAsset('public/assets/admin/js/panel-navigation.js') }}"></script>
     <script src="{{ dynamicAsset('public/assets/admin/js/turbo-internal-links.js') }}" defer></script>
     <meta name="turbo-cache-control" content="no-cache">
 </head>
 
 <body class="footer-offset">
     @include('layouts.partials.internet-connection-alert')
+    @foreach ($panelHeadScripts[0] as $panelHeadScript)
+        {!! $panelHeadScript !!}
+    @endforeach
 
     @if (env('APP_MODE')=='demo')
     <div class="direction-toggle">
@@ -242,11 +250,21 @@
 <script src="{{dynamicAsset('public/assets/admin/js/jquery.min.js')}}" data-turbo-eval="false"></script>
 
     <script>
-        "use strict";
-    setTimeout(hide_loader, 1000);
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_layouts_vendor_app_blade_php_0");
+__panel.globals({
+"hide_loader": {get: () => hide_loader, set: value => { hide_loader = value; }}
+});
+
+
+    __panel.setTimeout(hide_loader, 1000);
         function hide_loader(){
         $('#pre--loader').removeClass("pre--loader");;
     }
+
+})();
 </script>
 <script src="{{dynamicAsset('public/assets/admin/js/firebase.min.js')}}" data-turbo-eval="false"></script>
 
@@ -266,29 +284,41 @@
 
 @if ($errors->any())
     <script>
-            "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_layouts_vendor_app_blade_php_1");
+
+
         @foreach($errors->all() as $error)
         toastr.error('{{translate($error)}}', Error, {
             CloseButton: true,
             ProgressBar: true
         });
         @endforeach
-    </script>
+
+})();
+</script>
 @endif
 
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_layouts_vendor_app_blade_php_2");
+
+
 
     $('.blinkings').on('mouseover', ()=> $('.blinkings').removeClass('active'))
     $('.blinkings').addClass('open-shadow')
-    setTimeout(() => {
+    __panel.setTimeout(() => {
         $('.blinkings').removeClass('active')
     }, 10000);
-    setTimeout(() => {
+    __panel.setTimeout(() => {
         $('.blinkings').removeClass('open-shadow')
     }, 5000);
 
-    $(function(){
+    __panel.ready(function(){
         var owl = $('.single-item-slider');
         owl.owlCarousel({
             autoplay: false,
@@ -311,7 +341,7 @@
             $('.slide-counter').html(+item+"/"+items)
         }
     });
-    $(document).ready(function(){
+    __panel.ready(function(){
         $(".direction-toggle").on("click", function () {
             if($('html').hasClass('active')){
                 $('html').removeClass('active')
@@ -335,7 +365,7 @@
                 $("html").attr('dir', 'rtl');
                 $(".direction-toggle").find('span').text('Toggle LTR')
             }
-            $.get({
+            __panel.request($.get({
                     url: '{{ route('vendor.business-settings.site_direction_vendor') }}',
                     dataType: 'json',
                     data: {
@@ -345,18 +375,18 @@
                         alert(ok);
                     },
 
-                });
+                }));
             }
         });
 
-    $(document).ready(function () {
+    __panel.ready(function () {
         if (window.localStorage.getItem('hs-builder-popover') === null) {
             $('#builderPopover').popover('show')
                 .on('shown.bs.popover', function () {
                     $('.popover').last().addClass('popover-dark')
                 });
 
-            $(document).on('click', '#closeBuilderPopover', function () {
+            __panel.onTarget(document, 'click', '#closeBuilderPopover', function () {
                 window.localStorage.setItem('hs-builder-popover', true);
                 $('#builderPopover').popover('dispose');
             });
@@ -406,6 +436,7 @@
         // INITIALIZATION OF SELECT2
         // =======================================================
         $('.js-select2-custom').each(function () {
+            if ($(this).data('select2')) return;
             var select2 = $.HSCore.components.HSSelect2.init($(this));
         });
 
@@ -449,6 +480,8 @@
             var clipboard = $.HSCore.components.HSClipboard.init(this);
         });
     });
+
+})();
 </script>
 
 @stack('script_2')
@@ -713,7 +746,7 @@
 
     if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) document.write('<script src="{{dynamicAsset('public/assets/admin')}}/vendor/babel-polyfill/polyfill.min.js"><\/script>');
 
-    $(window).on('load', ()=> $('.pre--loader').fadeOut(600))
+    page.ready(() => $('.pre--loader').fadeOut(600));
 
     $('.log-out').on('click',function (){
         Swal.fire({
@@ -736,7 +769,7 @@
 
     const inputs = document.querySelectorAll('input[type="tel"]');
             inputs.forEach(input => {
-                window.intlTelInput(input, {
+                const telephone = window.intlTelInput(input, {
                     initialCountry: "{{$countryCode}}",
                     utilsScript: "{{ dynamicAsset('public/assets/admin/intltelinput/js/utils.js') }}",
                     autoInsertDialCode: true,
@@ -748,6 +781,7 @@
                     onlyCountries: ["{{$countryCode}}"],
                     @endif
                 });
+                page.cleanup(() => telephone.destroy());
             });
 
 

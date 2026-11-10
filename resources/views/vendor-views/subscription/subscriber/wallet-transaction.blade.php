@@ -185,6 +185,10 @@ active
 
 @push('script_2')
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_vendor_views_subscription_subscriber_wallet_transaction_blade_php_0");
+
     $("#date_from").on("change", function () {
         $('#date_to').attr('min',$(this).val());
     });
@@ -194,7 +198,7 @@ active
     });
 
 
-        $(document).on('change','.filter', function () {
+        __panel.onTarget(document, 'change','.filter', function () {
             if($(this).val() == 'custom'){
                 $('#date_from').removeAttr('readonly').attr('name', 'start_date').attr('required', true);
                 $('#date_to').removeAttr('readonly').attr('name', 'end_date').attr('required', true);
@@ -204,12 +208,14 @@ active
                 $('#date_to').attr('readonly',true).removeAttr('name', 'end_date').removeAttr('required');
             }
         });
-        $(document).ready(function() {
+        __panel.ready(function() {
             $('.printButton').click(function() {
                 window.open($(this).data('url'), '_blank');
             });
         });
 
+
+})();
 </script>
 @endpush
 

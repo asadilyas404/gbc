@@ -298,9 +298,14 @@
 @endsection
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_business_settings_social_login_view_blade_php_0");
 
-        $(document).on('click', '.copy-to-clipboard', function () {
+
+
+        __panel.onTarget(document, 'click', '.copy-to-clipboard', function () {
             let id = $(this).data('id');
             let textToCopy = $(id).text();
 
@@ -314,5 +319,7 @@
                 });
         });
 
-    </script>
+
+})();
+</script>
 @endpush

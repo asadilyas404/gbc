@@ -145,7 +145,14 @@
 
 @push('script_2')
     <script>
-        $(document).on('ready', function () {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_delivery_man_reviews_list_blade_php_0");
+__panel.globals({
+"status_form_alert": {get: () => status_form_alert, set: value => { status_form_alert = value; }}
+});
+
+        __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -170,5 +177,7 @@
                 }
             })
         }
-    </script>
+
+})();
+</script>
 @endpush

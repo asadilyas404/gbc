@@ -195,7 +195,12 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_wallet_bonus_edit_blade_php_0");
+
+
         $("#date_from").on("change", function () {
             $('#date_to').attr('min',$(this).val());
         });
@@ -203,7 +208,7 @@
         $("#date_to").on("change", function () {
             $('#date_from').attr('max',$(this).val());
         });
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             $('#bonus_type').on('change', function() {
                 if($('#bonus_type').val() == 'amount')
                 {
@@ -234,5 +239,7 @@
             location.reload(true);
         })
 
-    </script>
+
+})();
+</script>
 @endpush

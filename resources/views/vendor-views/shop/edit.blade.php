@@ -177,7 +177,12 @@
 @push('script_2')
 
    <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_shop_edit_blade_php_0");
+
+
 
         $("#coverImageUpload").change(function () {
             readURL(this, 'coverImageViewer');
@@ -185,5 +190,7 @@
         $("#customFileUpload").change(function () {
             readURL(this, 'viewer');
         });
-   </script>
+
+})();
+</script>
 @endpush

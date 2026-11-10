@@ -563,7 +563,11 @@ active
     <script type="text/javascript" src="{{dynamicAsset('public/assets/admin/js/daterangepicker.min.js')}}"></script>
 
     <script>
-        $(function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_details_blade_php_0");
+
+        __panel.ready(function() {
             $('input[name="dates"]').daterangepicker({
                 startDate: moment('{{ $advertisement->start_date }}').startOf('hour'),
                 endDate: moment('{{ $advertisement->end_date }}').startOf('hour'),
@@ -594,6 +598,8 @@ active
 
             $('#imagemodal_cover').modal('show');
         })
-    </script>
+
+})();
+</script>
 
 @endpush

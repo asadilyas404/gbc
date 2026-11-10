@@ -467,6 +467,19 @@ active
 
 @push('script_2')
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_subscription_subscriber_vendor_subscription_blade_php_0");
+__panel.globals({
+"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }},
+"shift_to_commission": {get: () => shift_to_commission, set: value => { shift_to_commission = value; }},
+"package_pay": {get: () => package_pay, set: value => { package_pay = value; }},
+"url": {get: () => url, set: value => { url = value; }},
+"searchParams": {get: () => searchParams, set: value => { searchParams = value; }},
+"newUrl": {get: () => newUrl, set: value => { newUrl = value; }}
+});
+
         $('.plan-slider').owlCarousel({
             loop: false,
             margin: 0,
@@ -498,7 +511,7 @@ active
             }
         })
 
-        "use strict";
+
             $('.status_change_alert').on('click', function (event) {
 
             let url = $(this).data('url');
@@ -525,7 +538,7 @@ active
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    $.post({
+                    __panel.request($.post({
                         url: url,
                         data: {
                             id: '{{ $restaurant->id }}',
@@ -541,7 +554,7 @@ active
                             $('#loading').hide();
                             location.reload();
                         }
-                    });
+                    }));
                 }
             })
         }
@@ -572,7 +585,7 @@ active
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    $.post({
+                    __panel.request($.post({
                         url: url,
                         data: {
                             id: '{{ $restaurant->id }}',
@@ -587,26 +600,26 @@ active
                             $('#loading').hide();
                             location.reload();
                         }
-                    });
+                    }));
                 }
             })
         }
 
-        $(document).on('click', '.package_detail', function () {
+        __panel.onTarget(document, 'click', '.package_detail', function () {
             var url = $(this).attr('data-url');
             package_pay(url);
         });
-        $(document).on('click', '#continue_btn', function () {
+        __panel.onTarget(document, 'click', '#continue_btn', function () {
             $('#subscription-renew-modal').modal('show')
         });
 
-        $(document).on('click', '#back_to_planes', function () {
+        __panel.onTarget(document, 'click', '#back_to_planes', function () {
             $('#plan-modal').modal('show')
         });
 
 
         function package_pay(url){
-            $.ajax({
+            __panel.request($.ajax({
                 url: url,
                 method: 'get',
                 beforeSend: function() {
@@ -626,7 +639,7 @@ active
                         $('#loading').hide();
                     },
 
-            });
+            }));
         }
 
         @if (request()->renew_now == true)
@@ -654,6 +667,8 @@ active
             window.history.replaceState(null, '', newUrl);
         @endif
 
-    </script>
+
+})();
+</script>
 @endpush
 

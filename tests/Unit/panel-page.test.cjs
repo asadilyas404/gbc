@@ -26,7 +26,7 @@ function setup(readyState = 'complete') {
         setInterval(fn) { intervals.set(++nextId, fn); return nextId; },
         clearInterval(id) { intervals.delete(id); },
     };
-    vm.runInNewContext(source, {window, document, console});
+    vm.runInNewContext(source, {window, document, console, Event});
     const flush = () => { for (const [id, fn] of timers) { timers.delete(id); fn(); } };
     return {window, document, handlers, timers, intervals, flush, create: window.PanelPage.create};
 }
@@ -109,4 +109,39 @@ test('page cleanup leaves the persistent audio permission and audio context inta
     env.document.dispatchEvent(new Event('turbo:before-render'));
     assert.equal(env.window.notificationAudio, audio);
     assert.equal(env.window.audioContext, context);
+});
+
+test('ready callbacks wait until all scripts in a Turbo render have loaded', () => {
+    const env = setup();
+    env.window.PanelPage.startRender();
+    let ready = false;
+    env.create('settings').ready(() => { ready = true; });
+    env.flush();
+    assert.equal(ready, false);
+    env.window.PanelPage.finishRender();
+    assert.equal(ready, true);
+});
+
+test('page globals support inline handlers, live state and reverse restoration', () => {
+    const env = setup();
+    env.window.shared = 'original';
+    let firstValue = 1;
+    env.create('first').globals({shared: {get: () => firstValue, set: value => { firstValue = value; }}});
+    env.window.shared = 2;
+    assert.equal(firstValue, 2);
+    env.create('second').globals({shared: {get: () => 3}});
+    assert.equal(env.window.shared, 3);
+    env.document.dispatchEvent(new Event('turbo:before-render'));
+    assert.equal(env.window.shared, 'original');
+});
+
+test('resources and unfinished requests are stopped when their page leaves', () => {
+    const env = setup();
+    let disconnected = 0, aborted = 0;
+    const page = env.create('settings');
+    page.resource({disconnect() { disconnected++; }}, 'disconnect');
+    page.request({abort() { aborted++; }});
+    env.document.dispatchEvent(new Event('turbo:before-render'));
+    assert.equal(disconnected, 1);
+    assert.equal(aborted, 1);
 });

@@ -255,9 +255,18 @@
 @push('script_2')
 <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/banner-index.js"></script>
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
+const __panel = PanelPage.create("resources_views_admin_views_banner_index_blade_php_0");
+__panel.globals({
+"zone_id": {get: () => zone_id, set: value => { zone_id = value; }},
+"banner_type_change": {get: () => banner_type_change, set: value => { banner_type_change = value; }}
+});
+
+
 let zone_id ={{ auth('admin')->user()->zone_id ? auth('admin')->user()->zone_id : '[]' }} ;
-$(document).on('ready', function () {
+__panel.onTarget(document, 'ready', function () {
         let select_control = $('#banner_type, #restaurant_wise select, #item_wise select');
         $('#zone').on('change', function(){
             if($(this).val())
@@ -297,7 +306,7 @@ $(document).on('ready', function () {
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
+                    let $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -331,7 +340,7 @@ $(document).on('ready', function () {
 
                 if (oldValue == "") return;
 
-                setTimeout(function(){
+                __panel.setTimeout(function(){
                     let newValue = $input.val();
 
                     if (newValue == ""){
@@ -360,13 +369,13 @@ $(document).on('ready', function () {
                 let route ='{{url('/')}}/admin/food/get-foods?zone_id='+zone_id;
                 let id ='choice_item';
 
-            $.get({
+            __panel.request($.get({
                 url: route,
                 dataType: 'json',
                 success: function (data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
+            }));
 
 
             }
@@ -389,7 +398,7 @@ $(document).on('ready', function () {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.banner.store')}}',
                 data: formData,
                 cache: false,
@@ -408,12 +417,12 @@ $(document).on('ready', function () {
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function () {
+                        __panel.setTimeout(function () {
                             location.href = '{{route('admin.banner.add-new')}}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
 
         $('#search-form').on('submit', function (e) {
@@ -424,7 +433,7 @@ $(document).on('ready', function () {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.banner.search')}}',
                 data: formData,
                 cache: false,
@@ -441,7 +450,7 @@ $(document).on('ready', function () {
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
 
         $('#reset_btn').click(function(){
@@ -449,5 +458,7 @@ $(document).on('ready', function () {
             $('#choice_item').val(null).trigger('change');
             $('#viewer').attr('src','{{dynamicAsset('public/assets/admin/img/900x400/img1.jpg')}}');
         })
-    </script>
+
+})();
+</script>
 @endpush

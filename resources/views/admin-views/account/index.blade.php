@@ -293,7 +293,15 @@
 @push('script_2')
 <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/account-index.js"></script>
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_account_index_blade_php_0");
+__panel.globals({
+"getAccountData": {get: () => getAccountData, set: value => { getAccountData = value; }}
+});
+
+
     $('.withdraw-info-hide, .withdraw-info-sidebar-overlay').on('click', function () {
         $('.withdraw-info-sidebar, .withdraw-info-sidebar-overlay').removeClass('show');
     });
@@ -326,7 +334,7 @@
                 };
             },
             __port: function (params, success, failure) {
-                let $request = $.ajax(params);
+                let $request = __panel.request($.ajax(params));
 
                 $request.then(success);
                 $request.fail(failure);
@@ -351,7 +359,7 @@
                 };
             },
             __port: function (params, success, failure) {
-                let $request = $.ajax(params);
+                let $request = __panel.request($.ajax(params));
 
                 $request.then(success);
                 $request.fail(failure);
@@ -370,13 +378,13 @@
 
     function getAccountData(route, data_id, type)
     {
-        $.get({
+        __panel.request($.get({
                 url: route+data_id,
                 dataType: 'json',
                 success: function (data) {
                     $('#account_info').html('({{translate('messages.cash_in_hand')}}: '+data.cash_in_hand+' {{translate('messages.earning_balance')}}: '+data.earning_balance+')');
                 },
-            });
+            }));
     }
 
     $('#add_transaction').on('submit', function (e) {
@@ -387,7 +395,7 @@
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        $.post({
+        __panel.request($.post({
             url: '{{route('admin.account-transaction.store')}}',
             data: formData,
             cache: false,
@@ -406,12 +414,14 @@
                         CloseButton: true,
                         ProgressBar: true
                     });
-                    setTimeout(function () {
+                    __panel.setTimeout(function () {
                         location.href = '{{route('admin.account-transaction.index')}}';
                     }, 2000);
                 }
             }
-        });
+        }));
     });
+
+})();
 </script>
 @endpush

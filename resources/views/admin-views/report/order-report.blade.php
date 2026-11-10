@@ -501,7 +501,11 @@
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/hs.chartjs-matrix.js"></script>
 
     <script>
-        $(document).on('ready', function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_report_order_report_blade_php_0");
+
+        __panel.onTarget(document, 'ready', function() {
 
             $('.js-data-example-ajax').select2({
                 ajax: {
@@ -522,7 +526,7 @@
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = $.ajax(params);
+                        var $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -554,7 +558,7 @@
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = $.ajax(params);
+                        var $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -564,9 +568,15 @@
                 }
             });
         });
-    </script>
+
+})();
+</script>
 
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_report_order_report_blade_php_1");
+
         $('#from_date,#to_date').change(function() {
             let fr = $('#from_date').val();
             let to = $('#to_date').val();
@@ -583,9 +593,15 @@
 
         })
 
-    </script>
+
+})();
+</script>
 
     {{-- <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_report_order_report_blade_php_2");
+
             $('#search-form').on('submit', function (e) {
             e.preventDefault();
             var formData = new FormData(this);
@@ -594,7 +610,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.report.search_order_report')}}',
                 data: formData,
                 cache: false,
@@ -611,8 +627,10 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
-    </script> --}}
+
+})();
+</script> --}}
 @endpush
 

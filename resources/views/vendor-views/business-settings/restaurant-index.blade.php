@@ -794,9 +794,17 @@
 <script src="{{ dynamicAsset('public/assets/admin') }}/js/tags-input.min.js"></script>
 <script src="{{ dynamicAsset('public/assets/admin') }}/js/fm.tagator.jquery.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_business_settings_restaurant_index_blade_php_0");
+__panel.globals({
+"call_limite_exceted": {get: () => call_limite_exceted, set: value => { call_limite_exceted = value; }}
+});
 
-        $(document).on('click', '.disabled_warning', function (event) {
+
+
+        __panel.onTarget(document, 'click', '.disabled_warning', function (event) {
             toastr.info('{{translate('messages.extra_packaging_charge_is_disable')}}', {
                                 CloseButton: true,
                                 ProgressBar: true
@@ -811,7 +819,7 @@
                             });
     }
 
-        $(document).on('click', '.restaurant-open-status', function (event) {
+        __panel.onTarget(document, 'click', '.restaurant-open-status', function (event) {
             Swal.fire({
                 title: '{{ !$restaurant->active ? translate('messages.Want_to_make_your_restaurant_available_for_all') :  translate('messages.Want_to_close_your_restaurant_temporarily')}} ?',
                 text: '{{!$restaurant->active ? translate('messages.If_yes_this_restaurant_will_be_available_for_customers_in_app_and_web') : translate('messages.If_yes_this_restaurant_will_be_unavailable_for_customers_in_apps_and_web') }}',
@@ -824,7 +832,7 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.value) {
-                    $.get({
+                    __panel.request($.get({
                         url: '{{route('vendor.business-settings.update-active-status')}}',
                         contentType: false,
                         processData: false,
@@ -838,14 +846,14 @@
                             $('#loading').hide();
                             location.reload();
                         },
-                    });
+                    }));
                 } else {
                     event.checked = !event.checked;
                 }
             })
         });
 
-        $(document).on('click', '.delete-schedule', function () {
+        __panel.onTarget(document, 'click', '.delete-schedule', function () {
             let route=  $(this).data('url');
             Swal.fire({
                 title: '{{translate('messages.Want_to_delete_this_day’s_schedule')}}',
@@ -859,7 +867,7 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.value) {
-                    $.get({
+                    __panel.request($.get({
                         url: route,
                         beforeSend: function () {
                             $('#loading').show();
@@ -889,7 +897,7 @@
                         complete: function () {
                             $('#loading').hide();
                         },
-                    });
+                    }));
                 }
             })
         });
@@ -898,7 +906,7 @@
             readURL(this);
         });
 
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF SELECT2
             // =======================================================
             $('.js-select2-custom').each(function () {
@@ -931,7 +939,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('vendor.business-settings.add-schedule')}}',
                 data: formData,
                 cache: false,
@@ -966,7 +974,9 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
-    </script>
+
+})();
+</script>
 @endpush

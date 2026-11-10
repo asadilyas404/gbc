@@ -1,4 +1,12 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_subscription_create_edit_js");
+__panel.globals({
+"reset": {get: () => reset, set: value => { reset = value; }}
+});
+
     $('#select-all').on('change', function(){
         if($(this).is(':checked')){
             $('.package-available-feature').prop('checked', true);
@@ -33,15 +41,17 @@
 
 
 
-    $(document).on("click", "#reset_btn", function () {
-    setTimeout(reset, 10);
+    __panel.onTarget(document, "click", "#reset_btn", function () {
+    __panel.setTimeout(reset, 10);
     });
 
     function reset(){
     $('.limit-input').trigger('change');
     }
 
-$(document).on("click", ".btn--reset", function () {
+__panel.onTarget(document, "click", ".btn--reset", function () {
     $('.custom-limit-box').hide();
     $('.max_required').removeAttr('required');
 });
+
+})();

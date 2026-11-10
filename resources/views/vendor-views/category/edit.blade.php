@@ -120,7 +120,15 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/category-index.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_category_edit_blade_php_0");
+__panel.globals({
+"readURL": {get: () => readURL, set: value => { readURL = value; }}
+});
+
+
         $('#reset_btn').click(function(){
             {{--$('input[name="name[]"]').val("{{$lang==$default_lang?$category['name']:($translate[$lang]['name']??'')}}");--}}
             {{--$('#viewer').attr('src', "{{dynamicStorage('storage/app/public/category')}}/{{$category['image']}}");--}}
@@ -142,5 +150,7 @@
         $("#customFileEg1").change(function () {
             readURL(this);
         });
-    </script>
+
+})();
+</script>
 @endpush

@@ -357,7 +357,11 @@ active
 
 @push('script_2')
 <script>
-    $(document).ready(function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_list_blade_php_0");
+
+    __panel.ready(function() {
 
 
     $('.update-priority').on('change', function() {
@@ -386,5 +390,7 @@ active
 
 });
 
+
+})();
 </script>
 @endpush

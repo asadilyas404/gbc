@@ -1,5 +1,13 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
-$(document).on('ready', function () {
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_sub_category_index_js");
+__panel.globals({
+"forms": {get: () => forms, set: value => { forms = value; }}
+});
+
+__panel.onTarget(document, 'ready', function () {
     // INITIALIZATION OF DATATABLES
     // =======================================================
     // INITIALIZATION OF SELECT2
@@ -22,3 +30,5 @@ forms.forEach(function(form) {
         form.submit();
     });
 });
+
+})();

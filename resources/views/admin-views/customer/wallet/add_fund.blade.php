@@ -62,8 +62,12 @@
 
 @push('script_2')
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_customer_wallet_add_fund_blade_php_0");
+
         // "use strict";
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -114,7 +118,7 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    $.post({
+                    __panel.request($.post({
                         url: '{{route('admin.customer.wallet.add-fund')}}',
                         data: formData,
                         cache: false,
@@ -138,7 +142,7 @@
                                 });
                             }
                         }
-                    });
+                    }));
                 }
             })
         })
@@ -158,7 +162,7 @@
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
+                    let $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -171,5 +175,7 @@
         $('#reset').click(function(){
             $('#customer').val(null).trigger('change');
         })
-    </script>
+
+})();
+</script>
 @endpush

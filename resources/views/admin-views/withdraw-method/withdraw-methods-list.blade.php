@@ -148,8 +148,13 @@
 
 @push('script_2')
   <script>
-      "use strict";
-      $(document).on('change', '.default-method', function () {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_withdraw_method_withdraw_methods_list_blade_php_0");
+
+
+      __panel.onTarget(document, 'change', '.default-method', function () {
           let id = $(this).attr("id");
           let status = $(this).prop("checked") === true ? 1:0;
 
@@ -159,7 +164,7 @@
 
               }
           });
-          $.ajax({
+          __panel.request($.ajax({
               url: "{{route('admin.business-settings.withdraw-method.default-status-update')}}",
               method: 'POST',
               data: {
@@ -169,28 +174,28 @@
               success: function (data) {
                   if(data.success == true) {
                       toastr.success('{{ translate('messages.Default_Method_updated_successfully')}}');
-                      setTimeout(function(){
+                      __panel.setTimeout(function(){
                           location.reload();
                       }, 1000);
                   }
                   else if(data.success == false) {
                       toastr.error('{{ translate('messages.Default_Method_updated_failed.')}}');
-                      setTimeout(function(){
+                      __panel.setTimeout(function(){
                           location.reload();
                       }, 1000);
                   }
               }
-          });
+          }));
       });
 
-      $(document).on('click', '.featured-status', function() {
+      __panel.onTarget(document, 'click', '.featured-status', function() {
           let id = $(this).data('id');
           $.ajaxSetup({
               headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
               }
           });
-          $.ajax({
+          __panel.request($.ajax({
               url: "{{route('admin.business-settings.withdraw-method.status-update')}}",
               method: 'POST',
               data: {
@@ -199,7 +204,9 @@
               success: function (data) {
                   toastr.success('{{ translate('messages.status_updated_successfully')}}');
               }
-          });
+          }));
       })
-  </script>
+
+})();
+</script>
 @endpush

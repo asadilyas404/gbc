@@ -179,17 +179,26 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_withdraw_method_withdraw_methods_edit_blade_php_0");
+__panel.globals({
+"counter": {get: () => counter, set: value => { counter = value; }},
+"count": {get: () => count, set: value => { count = value; }}
+});
+
+
         let counter=0;
 
-        $(document).on('click', '.remove_field', function() {
+        __panel.onTarget(document, 'click', '.remove_field', function() {
             let fieldRowId = $(this).data('id');
             $(`#field-row--${fieldRowId}`).remove();
             counter--;
         });
 
         let count= {{isset($withdrawal_method->method_fields)?count($withdrawal_method->method_fields):0}};
-        jQuery(document).ready(function ($) {
+        __panel.ready(function ($) {
             counter = count + 1;
 
             $('#add-more-field').on('click', function (event) {
@@ -265,5 +274,7 @@
                 counter = 1;
             })
         });
-    </script>
+
+})();
+</script>
 @endpush

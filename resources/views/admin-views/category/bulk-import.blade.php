@@ -172,14 +172,22 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/category-import-export.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_category_bulk_import_blade_php_0");
+__panel.globals({
+"myFunction": {get: () => myFunction, set: value => { myFunction = value; }}
+});
+
+
 
         $('[name="upload_type"]').on('change', function() {
             $('[name="upload_type"]').parent().removeClass('active');
             $(this).parent().addClass('active');
         });
 
-        $(document).on("click", ".update_or_import", function(e){
+        __panel.onTarget(document, "click", ".update_or_import", function(e){
             e.preventDefault();
             let upload_type = $('input[name="upload_type"]:checked').val();
             myFunction(upload_type)
@@ -206,5 +214,7 @@
             $('#upload_excel').val('');
             $('.filename').text('{{translate('Must_be_Excel_files_using_our_Excel_template_above')}}');
         })
-    </script>
+
+})();
+</script>
 @endpush

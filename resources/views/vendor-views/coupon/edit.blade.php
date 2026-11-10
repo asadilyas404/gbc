@@ -170,7 +170,12 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_coupon_edit_blade_php_0");
+
+
         $("#date_from").on("change", function () {
             $('#date_to').attr('min',$(this).val());
         });
@@ -178,7 +183,7 @@
         $("#date_to").on("change", function () {
             $('#date_from').attr('max',$(this).val());
         });
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             $('#date_from').attr('max','{{date("Y-m-d",strtotime($coupon["expire_date"]))}}');
             $('#date_to').attr('min','{{date("Y-m-d",strtotime($coupon["start_date"]))}}');
 
@@ -190,7 +195,7 @@
         });
 
 
-        $(document).on('change', '.coupon_type_change', function () {
+        __panel.onTarget(document, 'change', '.coupon_type_change', function () {
             let coupon_type = $(this).val();
             if(coupon_type=='free_delivery')
             {
@@ -209,7 +214,7 @@
             }
         });
 
-        $(document).on('change', '#discount_type', function () {
+        __panel.onTarget(document, 'change', '#discount_type', function () {
             let discount_type = $(this).val();
             if(discount_type == 'amount')
             {
@@ -220,5 +225,7 @@
             }
         });
 
-    </script>
+
+})();
+</script>
 @endpush

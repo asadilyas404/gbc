@@ -467,6 +467,10 @@
 
 @push('script_2')
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_google_console_blade_php_0");
+
     $(".collapse-div-toggler").on('change', function() {
         if ($(this).is(':checked')) {
             $(this).closest('.sorting-card').find('.inner-collapse-div').slideDown();
@@ -474,5 +478,7 @@
             $(this).closest('.sorting-card').find('.inner-collapse-div').slideUp();
         }
     });
+
+})();
 </script>
 @endpush

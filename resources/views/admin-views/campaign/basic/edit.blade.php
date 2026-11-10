@@ -159,8 +159,13 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/basic-campaign-edit.js"></script>
     <script>
-        "use strict";
-        $(document).ready(function(){
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_edit_blade_php_0");
+
+
+        __panel.ready(function(){
             $('#date_from').attr('min',(new Date()).toISOString().split('T')[0]);
             $('#date_to').attr('min','{{$campaign->start_date->format("Y-m-d")}}');
         });
@@ -173,7 +178,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.campaign.update-basic',[$campaign['id']])}}',
                 data: formData,
                 cache: false,
@@ -192,17 +197,19 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function () {
+                        __panel.setTimeout(function () {
                             location.href = '{{route('admin.campaign.list', 'basic')}}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
 
             $('#reset_btn').click(function(){
                 $('#viewer').attr('src','{{dynamicStorage('storage/app/public/campaign')}}/{{$campaign->image}}');
             })
 
-        </script>
+
+})();
+</script>
 @endpush

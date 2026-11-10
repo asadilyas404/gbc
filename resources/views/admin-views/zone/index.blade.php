@@ -345,7 +345,23 @@
 @push('script_2')
 <script src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=drawing,places&v=3.45.8"></script>
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_zone_index_blade_php_0");
+__panel.globals({
+"status_form_alert": {get: () => status_form_alert, set: value => { status_form_alert = value; }},
+"auto_grow": {get: () => auto_grow, set: value => { auto_grow = value; }},
+"map": {get: () => map, set: value => { map = value; }},
+"drawingManager": {get: () => drawingManager, set: value => { drawingManager = value; }},
+"lastpolygon": {get: () => lastpolygon, set: value => { lastpolygon = value; }},
+"polygons": {get: () => polygons, set: value => { polygons = value; }},
+"resetMap": {get: () => resetMap, set: value => { resetMap = value; }},
+"initialize": {get: () => initialize, set: value => { initialize = value; }},
+"set_all_zones": {get: () => set_all_zones, set: value => { set_all_zones = value; }}
+});
+
+
 
     $('.hide-data').click(function(){
         $(".hide_data").removeClass('active');
@@ -378,7 +394,7 @@
     }
 
 
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -560,12 +576,12 @@
             });
         }
 
-        google.maps.event.addDomListener(window, 'load', initialize);
+        __panel.ready(initialize);
 
 
         function set_all_zones()
         {
-            $.get({
+            __panel.request($.get({
                 url: '{{route('admin.zone.zoneCoordinates')}}',
                 dataType: 'json',
                 success: function (data) {
@@ -585,9 +601,9 @@
                     }
 
                 },
-            });
+            }));
         }
-        $(document).on('ready', function(){
+        __panel.onTarget(document, 'ready', function(){
             set_all_zones();
         });
 
@@ -600,7 +616,7 @@
 
 
 
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
 
             $("#maximum_shipping_charge_status").on('change', function() {
                 if ($("#maximum_shipping_charge_status").is(':checked')) {
@@ -632,7 +648,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.zone.store')}}',
                 data: formData,
                 cache: false,
@@ -667,7 +683,9 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
+
+})();
 </script>
 @endpush

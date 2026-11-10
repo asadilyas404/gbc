@@ -85,6 +85,13 @@
 
 @push('script_2')
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_vendor_views_delivery_man_view_transaction_blade_php_0");
+__panel.globals({
+"request_alert": {get: () => request_alert, set: value => { request_alert = value; }}
+});
+
     function request_alert(url, message) {
         Swal.fire({
             title: '{{ translate('Are_you_sure?') }}',
@@ -102,5 +109,7 @@
             }
         })
     }
+
+})();
 </script>
 @endpush

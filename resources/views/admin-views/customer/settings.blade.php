@@ -191,8 +191,16 @@
 @endsection
 @push('script_2')
     <script>
-        "use strict";
-        $(document).on('ready', function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_customer_settings_blade_php_0");
+__panel.globals({
+"section_visibility": {get: () => section_visibility, set: value => { section_visibility = value; }}
+});
+
+
+        __panel.onTarget(document, 'ready', function() {
             @if (isset($data['wallet_status']) && $data['wallet_status'] != 1)
                 $('.wallet-section').hide();
             @endif
@@ -259,7 +267,7 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    $.post({
+                    __panel.request($.post({
                         url: '{{ route('admin.customer.wallet.add-fund') }}',
                         data: formData,
                         cache: false,
@@ -281,9 +289,11 @@
                                     });
                             }
                         }
-                    });
+                    }));
                 }
             })
         })
-    </script>
+
+})();
+</script>
 @endpush

@@ -1,5 +1,10 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
-$(document).ready(function() {
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_cashback_index_js");
+
+__panel.ready(function() {
     check_function();
     $('#cashback_type').on('change', function() {
         if($('#cashback_type').val() == 'amount')
@@ -31,7 +36,7 @@ $(document).ready(function() {
         let select2 = $.HSCore.components.HSSelect2.init($(this));
     });
     $('#reset_btn').click(function(){
-        setTimeout(reset_select, 100);
+        __panel.setTimeout(reset_select, 100);
     })
     function reset_select(){
         $('#date_from').val('');
@@ -70,3 +75,5 @@ $('#reset_btn').click(function(){
     $('#select_customer').val(null).trigger('change');
 
 })
+
+})();

@@ -287,7 +287,15 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_customer_list_blade_php_0");
+__panel.globals({
+"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }}
+});
+
+
         $('.status_change_alert').on('click', function(event) {
             let url = $(this).data('url');
             let message = $(this).data('message');
@@ -312,7 +320,7 @@
                 }
             })
         }
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
             // INITIALIZATION OF NAV SCROLLER
             // =======================================================
             $('.js-nav-scroller').each(function() {
@@ -380,7 +388,7 @@
 
                 if (oldValue == "") return;
 
-                setTimeout(function() {
+                __panel.setTimeout(function() {
                     let newValue = $input.val();
 
                     if (newValue == "") {
@@ -416,5 +424,7 @@
                 let tagify = $.HSCore.components.HSTagify.init($(this));
             });
         });
-    </script>
+
+})();
+</script>
 @endpush

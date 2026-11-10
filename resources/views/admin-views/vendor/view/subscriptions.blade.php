@@ -467,6 +467,15 @@
 
 @push('script_2')
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_vendor_view_subscriptions_blade_php_0");
+__panel.globals({
+"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }},
+"shift_to_commission": {get: () => shift_to_commission, set: value => { shift_to_commission = value; }}
+});
+
         $('.plan-slider').owlCarousel({
             loop: false,
             margin: 0,
@@ -498,7 +507,7 @@
             }
         })
 
-        "use strict";
+
             $('.status_change_alert').on('click', function (event) {
             let url = $(this).data('url');
             let message = $(this).data('message');
@@ -524,7 +533,7 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    $.post({
+                    __panel.request($.post({
                         url: url,
                         data: {
                             id: '{{ $restaurant->id }}',
@@ -540,7 +549,7 @@
                             $('#loading').hide();
                             location.reload();
                         }
-                    });
+                    }));
                 }
             })
         }
@@ -570,7 +579,7 @@
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    $.post({
+                    __panel.request($.post({
                         url: url,
                         data: {
                             id: '{{ $restaurant->id }}',
@@ -585,14 +594,14 @@
                             $('#loading').hide();
                             location.reload();
                         }
-                    });
+                    }));
                 }
             })
         }
 
-        $(document).on('click', '.package_detail', function () {
+        __panel.onTarget(document, 'click', '.package_detail', function () {
             var url = $(this).attr('data-url');
-            $.ajax({
+            __panel.request($.ajax({
                 url: url,
                 method: 'get',
                 beforeSend: function() {
@@ -612,13 +621,13 @@
                         $('#loading').hide();
                     },
 
-            });
+            }));
         });
-        $(document).on('click', '#continue_btn', function () {
+        __panel.onTarget(document, 'click', '#continue_btn', function () {
             $('#subscription-renew-modal').modal('show')
         });
 
-        $(document).on('click', '#back_to_planes', function () {
+        __panel.onTarget(document, 'click', '#back_to_planes', function () {
             $('#plan-modal').modal('show')
         });
 
@@ -630,5 +639,7 @@
                     $('#comission').val('0');
                 }
             });
-    </script>
+
+})();
+</script>
 @endpush

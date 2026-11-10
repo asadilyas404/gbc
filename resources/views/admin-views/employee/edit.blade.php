@@ -212,7 +212,15 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_employee_edit_blade_php_0");
+__panel.globals({
+"readURL": {get: () => readURL, set: value => { readURL = value; }}
+});
+
+
 
         function readURL(input) {
             if (input.files && input.files[0]) {
@@ -242,5 +250,7 @@
         $('#reset_btn').click(function(){
             location.reload(true);
         })
-    </script>
+
+})();
+</script>
 @endpush

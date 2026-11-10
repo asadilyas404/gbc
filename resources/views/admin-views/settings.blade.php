@@ -260,7 +260,15 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_settings_blade_php_0");
+__panel.globals({
+"readURL": {get: () => readURL, set: value => { readURL = value; }}
+});
+
+
         function readURL(input) {
             if (input.files && input.files[0]) {
                 let reader = new FileReader();
@@ -292,5 +300,7 @@
                 scrollTop: $("#passwordDiv").offset().top - 100
             }, 600);
         });
-    </script>
+
+})();
+</script>
 @endpush

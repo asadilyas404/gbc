@@ -789,7 +789,15 @@
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_delivery_man_view_info_blade_php_0");
+__panel.globals({
+"request_alert": {get: () => request_alert, set: value => { request_alert = value; }}
+});
+
+
     $('.request-alert').on('click',function (){
         let url = $(this).data('url');
         let message = $(this).data('message');
@@ -812,5 +820,7 @@
             }
         })
     }
+
+})();
 </script>
 @endpush

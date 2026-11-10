@@ -41,7 +41,11 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_layouts_vendor_partials__footer_blade_php_0");
+
+__panel.listen(document, 'DOMContentLoaded', function () {
     const lifetimeMinutes = parseInt(
         document.querySelector('meta[name="session-lifetime-minutes"]')?.content
     ) || 60;
@@ -85,7 +89,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // });
 
     // React when another tab updates lastActivity
-    window.addEventListener('storage', (e) => {
+    __panel.listen(window, 'storage', (e) => {
         if (e.key === STORAGE_KEY) {
             warningShown = false;
         }
@@ -95,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
         timerDisplay.textContent = formatTime(lifetimeMs);
     }
 
-    const intervalId = setInterval(() => {
+    const intervalId = __panel.setInterval(() => {
         const lastActivity = parseInt(localStorage.getItem(STORAGE_KEY) || Date.now());
         const elapsedSinceActivity = Date.now() - lastActivity;
         const remainingMs = lifetimeMs - elapsedSinceActivity;
@@ -119,11 +123,11 @@ document.addEventListener('DOMContentLoaded', function () {
                 allowEscapeKey: false
             }).then((result) => {
                 if (result.value) {
-                    $.ajax({
+                    __panel.request($.ajax({
                         type: 'POST',
                         url: keepAliveUrl,
                         headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
-                    }).always(() => {
+                    })).always(() => {
                         touchActivity(); // reset across tabs
                     });
                 }
@@ -150,8 +154,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 1000);
 
     // jQuery part
-    $(function () {
-        $(document).ajaxError(function (event, xhr) {
+    __panel.ready(function () {
+        __panel.onTarget(document, "ajaxError", function (event, xhr) {
             if (xhr.status === 419 && !sessionExpiredShown) {
                 sessionExpiredShown = true;
                 Swal.fire({
@@ -168,10 +172,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        $(document).ajaxSuccess(function () {
+        __panel.onTarget(document, "ajaxSuccess", function () {
             touchActivity();
         });
     });
 });
+
+})();
 </script>
 

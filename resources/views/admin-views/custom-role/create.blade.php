@@ -414,7 +414,12 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_custom_role_create_blade_php_0");
+
+
         $('#search-form').on('submit', function (e) {
             e.preventDefault();
             let formData = new FormData(this);
@@ -423,7 +428,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.custom-role.search')}}',
                 data: formData,
                 cache: false,
@@ -440,9 +445,9 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
-        $(document).ready(function() {
+        __panel.ready(function() {
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
         });
 
@@ -465,6 +470,8 @@
                 $(this).attr('checked', false)
             }
         })
-    </script>
+
+})();
+</script>
 
 @endpush

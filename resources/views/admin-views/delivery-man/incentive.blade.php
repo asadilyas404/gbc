@@ -132,7 +132,15 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_delivery_man_incentive_blade_php_0");
+__panel.globals({
+"reject_request": {get: () => reject_request, set: value => { reject_request = value; }}
+});
+
+
         $('.on_reject_alert').on('click',function ()
         {
             toastr.error("{{translate('messages.only_the_pending_request_can_be_rejected')}}", {
@@ -176,5 +184,7 @@
                 }
             })
         }
-    </script>
+
+})();
+</script>
 @endpush

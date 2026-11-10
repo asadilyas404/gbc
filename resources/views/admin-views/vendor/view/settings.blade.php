@@ -678,8 +678,13 @@
 
 @push('script_2')
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
-        $(document).ready(function () {
+const __panel = PanelPage.create("resources_views_admin_views_vendor_view_settings_blade_php_0");
+
+
+        __panel.ready(function () {
             $('#dataTable').DataTable();
 
             $('#exampleModal').on('show.bs.modal', function (event) {
@@ -692,7 +697,7 @@
             })
         });
 
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             $("#comission_status").on('change', function () {
                 if ($("#comission_status").is(':checked')) {
                     $('#comission').removeAttr('readonly');
@@ -704,7 +709,7 @@
         });
 
 
-        $(document).on('click', '.delete-schedule', function () {
+        __panel.onTarget(document, 'click', '.delete-schedule', function () {
             let route = $(this).data('url');
             Swal.fire({
                 title: '{{translate('messages.Want_to_delete_this_schedule_?')}}',
@@ -718,7 +723,7 @@
                 reverseButtons: true
             }).then((result) => {
                 if (result.value) {
-                    $.get({
+                    __panel.request($.get({
                         url: route,
                         beforeSend: function () {
                             $('#loading').show();
@@ -748,7 +753,7 @@
                         complete: function () {
                             $('#loading').hide();
                         },
-                    });
+                    }));
                 }
             })
         });
@@ -761,7 +766,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.restaurant.add-schedule')}}',
                 data: formData,
                 cache: false,
@@ -796,7 +801,9 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
-    </script>
+
+})();
+</script>
 @endpush

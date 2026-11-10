@@ -40,6 +40,13 @@
 @endforeach
 <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/common.js"></script>
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_delivery_man_partials__conversation_list_blade_php_0");
+__panel.globals({
+"viewConvs": {get: () => viewConvs, set: value => { viewConvs = value; }}
+});
+
         $('.view-conv').on('click', function (){
         let url = $(this).data('url');
         let id_to_active = $(this).data('active-id');
@@ -52,12 +59,14 @@
         $('.customer-list').removeClass('conv-active');
         $('#' + id_to_active).addClass('conv-active');
         let new_url= "{{route('admin.delivery-man.preview', ['id'=>$dm->id, 'tab'=> 'conversation'])}}" + '?conversation=' + conv_id+ '&user=' + sender_id;
-            $.get({
+            __panel.request($.get({
                 url: url,
                 success: function(data) {
                     window.history.pushState('', 'New Page Title', new_url);
                     $('#dm-view-conversation').html(data.view);
                 }
-            });
+            }));
     }
+
+})();
 </script>

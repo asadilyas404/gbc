@@ -413,20 +413,42 @@
 @push('script_2')
 <script src="{{dynamicAsset('public/assets/admin')}}/js/tags-input.min.js"></script>
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_campaign_item_edit_blade_php_0");
+__panel.globals({
+"restaurant_id": {get: () => restaurant_id, set: value => { restaurant_id = value; }},
+"element": {get: () => element, set: value => { element = value; }},
+"countRow": {get: () => countRow, set: value => { countRow = value; }},
+"show_min_max": {get: () => show_min_max, set: value => { show_min_max = value; }},
+"hide_min_max": {get: () => hide_min_max, set: value => { hide_min_max = value; }},
+"count": {get: () => count, set: value => { count = value; }},
+"new_option_name": {get: () => new_option_name, set: value => { new_option_name = value; }},
+"removeOption": {get: () => removeOption, set: value => { removeOption = value; }},
+"deleteRow": {get: () => deleteRow, set: value => { deleteRow = value; }},
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }},
+"getRestaurantData": {get: () => getRestaurantData, set: value => { getRestaurantData = value; }},
+"getRequest": {get: () => getRequest, set: value => { getRequest = value; }},
+"readURL": {get: () => readURL, set: value => { readURL = value; }},
+"add_more_customer_choice_option": {get: () => add_more_customer_choice_option, set: value => { add_more_customer_choice_option = value; }},
+"combination_update": {get: () => combination_update, set: value => { combination_update = value; }}
+});
+
+
     var restaurant_id = "{{$campaign['restaurant_id']}}";
     let element = "";
     let countRow = 0;
-    $(document).ready(function(){
+    __panel.ready(function(){
         $('#date_from').attr('min',(new Date()).toISOString().split('T')[0]);
         $('#date_to').attr('min','{{$campaign->start_date->format("Y-m-d")}}');
     });
-    $(document).on('change', '.show_min_max', function () {
+    __panel.onTarget(document, 'change', '.show_min_max', function () {
         let data = $(this).data('count');
         show_min_max(data);
     });
 
-    $(document).on('change', '.hide_min_max', function () {
+    __panel.onTarget(document, 'change', '.hide_min_max', function () {
         let data = $(this).data('count');
         hide_min_max(data);
     });
@@ -450,7 +472,7 @@
 
     let count= {{isset($campaign->variations)?count(json_decode($campaign->variations,true)):0}};
 
-    $(document).ready(function(){
+    __panel.ready(function(){
         console.log(count);
 
         $("#add_new_option_button").click(function(e) {
@@ -561,18 +583,18 @@
         element.parents('.add_new_view_row_class').remove();
     }
 
-    $(document).on('click', '.delete_input_button', function () {
+    __panel.onTarget(document, 'click', '.delete_input_button', function () {
         let e = $(this);
         removeOption(e);
     });
 
 
-    $(document).on('click', '.deleteRow', function () {
+    __panel.onTarget(document, 'click', '.deleteRow', function () {
         let e = $(this);
         deleteRow(e);
     });
 
-    $(document).on('keyup', '.new_option_name', function () {
+    __panel.onTarget(document, 'keyup', '.new_option_name', function () {
         let data = $(this).data('count');
         let value = $(this).val();
         new_option_name(value, data);
@@ -609,7 +631,7 @@
         $('#option_price_view_' + data).append(add_new_row_view);
 
     }
-    $(document).on('click', '.add_new_row_button', function () {
+    __panel.onTarget(document, 'click', '.add_new_row_button', function () {
         let data = $(this).data('count');
         add_new_row_button(data);
     });
@@ -619,14 +641,14 @@
             getRestaurantData(route, id);
         })
         function getRestaurantData(route, id) {
-            $.get({
+            __panel.request($.get({
                 url: route,
                 dataType: 'json',
                 success: function (data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
-            $.get({
+            }));
+            __panel.request($.get({
                 url:'{{url('/')}}/api/v1/restaurants/details/'+restaurant_id,
                 dataType: 'json',
                 success: function(data) {
@@ -641,7 +663,7 @@
                         $('#available_time_ends').val(closeing_time);
                     }
                 },
-            });
+            }));
         }
         $('.get-request').on('change',function (){
             let route = $(this).data('url')+$(this).val;
@@ -649,13 +671,13 @@
             getRequest(route, id);
         })
         function getRequest(route, id) {
-            $.get({
+            __panel.request($.get({
                 url: route,
                 dataType: 'json',
                 success: function (data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
+            }));
         }
 
         function readURL(input) {
@@ -675,8 +697,8 @@
             $('#viewer').show(1000)
         });
 
-        $(document).ready(function () {
-            setTimeout(function () {
+        __panel.ready(function () {
+            __panel.setTimeout(function () {
                 let category = $("#category-id").val();
                 let sub_category = '{{count($product_category)>=2?$product_category[1]->id:''}}';
                 getRequest('{{url('/')}}/admin/food/get-categories?parent_id=' + category + '&&sub_category=' + sub_category, 'sub-categories');
@@ -709,7 +731,7 @@
                 }
             });
 
-            $.ajax({
+            __panel.request($.ajax({
                 type: "POST",
                 url: '{{route('admin.food.variant-combination')}}',
                 data: $('#campaign_form').serialize(),
@@ -722,7 +744,7 @@
                         $('#quantity').show();
                     }
                 }
-            });
+            }));
         }
 
         $("#date_from").on("change", function () {
@@ -733,7 +755,7 @@
             $('#date_from').attr('max',$(this).val());
         });
 
-        $(document).ready(function(){
+        __panel.ready(function(){
             $('#date_to').attr('min',('{{$campaign->start_date->format('Y-m-d')}}'));
             $('.js-select2-custom').each(function () {
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
@@ -767,7 +789,7 @@
                         };
                     },
                     __port: function (params, success, failure) {
-                        let $request = $.ajax(params);
+                        let $request = __panel.request($.ajax(params));
 
                         $request.then(success);
                         $request.fail(failure);
@@ -785,7 +807,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.campaign.update-item', [$campaign->id])}}',
                 data: formData,
                 cache: false,
@@ -804,12 +826,12 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function () {
+                        __panel.setTimeout(function () {
                             location.href = '{{route('admin.campaign.list', 'item')}}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
 
         $('.get-request').on('change', function () {
@@ -820,18 +842,20 @@
 
 
         function getRequest(route, id) {
-            $.get({
+            __panel.request($.get({
                 url: route,
                 dataType: 'json',
                 success: function(data) {
                     $('#' + id).empty().append(data.options);
                 },
-            });
+            }));
         }
 
         $('#reset_btn').click(function(){
             location.reload(true);
         })
 
-    </script>
+
+})();
+</script>
 @endpush

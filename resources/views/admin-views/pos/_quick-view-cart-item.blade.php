@@ -229,7 +229,16 @@
     </div>
 </div>
 <script type="text/javascript">
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_pos__quick_view_cart_item_blade_php_0");
+__panel.globals({
+"getCheckedInputs": {get: () => getCheckedInputs, set: value => { getCheckedInputs = value; }},
+"inputElements": {get: () => inputElements, set: value => { inputElements = value; }}
+});
+
+
     cartQuantityInitialize();
     getVariantPrice();
     $('#add-to-cart-form input').on('change', function () {
@@ -249,5 +258,7 @@
     inputElements.forEach(function(element) {
         element.addEventListener('change', getCheckedInputs);
     });
+
+})();
 </script>
 

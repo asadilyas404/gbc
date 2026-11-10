@@ -156,7 +156,24 @@
 @push('script_2')
 <script src="https://maps.googleapis.com/maps/api/js?v=3.45.8&key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=drawing,places"></script>
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_zone_edit_blade_php_0");
+__panel.globals({
+"auto_grow": {get: () => auto_grow, set: value => { auto_grow = value; }},
+"map": {get: () => map, set: value => { map = value; }},
+"lat_longs": {get: () => lat_longs, set: value => { lat_longs = value; }},
+"drawingManager": {get: () => drawingManager, set: value => { drawingManager = value; }},
+"lastpolygon": {get: () => lastpolygon, set: value => { lastpolygon = value; }},
+"bounds": {get: () => bounds, set: value => { bounds = value; }},
+"polygons": {get: () => polygons, set: value => { polygons = value; }},
+"resetMap": {get: () => resetMap, set: value => { resetMap = value; }},
+"initialize": {get: () => initialize, set: value => { initialize = value; }},
+"set_all_zones": {get: () => set_all_zones, set: value => { set_all_zones = value; }}
+});
+
+
     auto_grow();
     function auto_grow() {
         let element = document.getElementById("coordinates");
@@ -325,11 +342,11 @@
                 map.fitBounds(bounds);
             });
     }
-    google.maps.event.addDomListener(window, 'load', initialize);
+    __panel.ready(initialize);
 
     function set_all_zones()
     {
-        $.get({
+        __panel.request($.get({
             url: '{{route('admin.zone.zoneCoordinates')}}/{{$zone->id}}',
             dataType: 'json',
             success: function (data) {
@@ -349,9 +366,9 @@
                 }
 
             },
-        });
+        }));
     }
-    $(document).on('ready', function(){
+    __panel.onTarget(document, 'ready', function(){
         set_all_zones();
     });
 
@@ -359,7 +376,7 @@
     $('#reset_btn').click(function(){
         location.reload(true);
     })
-    $(document).on('ready', function() {
+    __panel.onTarget(document, 'ready', function() {
 
 $("#maximum_shipping_charge_status").on('change', function() {
     if ($("#maximum_shipping_charge_status").is(':checked')) {
@@ -378,5 +395,7 @@ $("#max_cod_order_amount_status").on('change', function() {
     }
 });
 });
+
+})();
 </script>
 @endpush

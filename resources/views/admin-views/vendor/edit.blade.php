@@ -433,8 +433,22 @@
             src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=places&v=3.45.8">
     </script>
 <script>
-    "use strict";
-    $(document).on('ready', function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_vendor_edit_blade_php_0");
+__panel.globals({
+"myLatlng": {get: () => myLatlng, set: value => { myLatlng = value; }},
+"map": {get: () => map},
+"zonePolygon": {get: () => zonePolygon, set: value => { zonePolygon = value; }},
+"infoWindow": {get: () => infoWindow, set: value => { infoWindow = value; }},
+"bounds": {get: () => bounds, set: value => { bounds = value; }},
+"initMap": {get: () => initMap, set: value => { initMap = value; }},
+"get_zone_data": {get: () => get_zone_data, set: value => { get_zone_data = value; }}
+});
+
+
+    __panel.onTarget(document, 'ready', function() {
         $('.offcanvas').on('click', function(){
             $('.offcanvas, .floating--date').removeClass('active')
         })
@@ -443,7 +457,7 @@
         })
     });
 
-    $(function() {
+    __panel.ready(function() {
         $("#coba").spartanMultiImagePicker({
             fieldName: 'identity_image[]',
             maxCount: 5,
@@ -580,7 +594,7 @@
 
 
     function get_zone_data(id){
-        $.get({
+        __panel.request($.get({
                 url: '{{ url('/') }}/admin/zone/get-coordinates/' + id,
                 dataType: 'json',
                 success: function(data) {
@@ -624,12 +638,12 @@
                         infoWindow.open(map);
                     });
                 },
-            });
+            }));
             }
 
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
             var id = $('#choice_zones').val();
-            $.get({
+            __panel.request($.get({
                 url: '{{ url('/') }}/admin/zone/get-coordinates/' + id,
                 dataType: 'json',
                 success: function(data) {
@@ -669,10 +683,10 @@
                         infoWindow.open(map);
                     });
                 },
-            });
+            }));
         });
 
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
             get_zone_data({{ $restaurant->zone_id }});
         });
 		$("#vendor_form").on('keydown', function(e){
@@ -708,5 +722,7 @@
         $("#time_view").val(min+' to '+max+' '+type);
 
     })
-    </script>
+
+})();
+</script>
 @endpush

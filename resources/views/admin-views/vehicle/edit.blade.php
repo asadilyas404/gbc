@@ -132,7 +132,12 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_vehicle_edit_blade_php_0");
+
+
         $('#vehicle-form').on('submit', function (e) {
             e.preventDefault();
             let formData = new FormData(this);
@@ -141,7 +146,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.vehicle.update',$vehicle->id)}}',
                 data: formData,
                 cache: false,
@@ -160,12 +165,12 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function () {
+                        __panel.setTimeout(function () {
                             location.href = '{{route('admin.vehicle.list')}}';
                         }, 1000);
                     }
                 }
-            });
+            }));
         });
 
 
@@ -173,5 +178,7 @@
                 $('#choice_item').val(null).trigger('change');
                 $('#viewer').attr('src','{{dynamicAsset('public/assets/admin/img/900x400/img1.jpg')}}');
             })
-        </script>
+
+})();
+</script>
 @endpush

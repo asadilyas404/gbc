@@ -514,7 +514,17 @@
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/tags-input.min.js"></script>
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/view-pages/vendor/product-index.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_product_index_blade_php_0");
+__panel.globals({
+"updatestockCount": {get: () => updatestockCount, set: value => { updatestockCount = value; }},
+"updateMoveButtons": {get: () => updateMoveButtons, set: value => { updateMoveButtons = value; }},
+"updateMoveOptionButtons": {get: () => updateMoveOptionButtons, set: value => { updateMoveOptionButtons = value; }}
+});
+
+
         $('#stock_type').on('change', function() {
             if ($(this).val() == 'unlimited') {
                 $('.stock_disable').prop('readonly', true).prop('required', false).attr('placeholder',
@@ -575,7 +585,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('vendor.food.store') }}',
                 data: $('#food_form').serialize(),
                 data: formData,
@@ -599,12 +609,12 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function() {
+                        __panel.setTimeout(function() {
                             location.href = '{{ route('vendor.food.list') }}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
 
 
@@ -619,9 +629,9 @@
             updatestockCount();
         })
 
-        $(document).ready(function(){
+        __panel.ready(function(){
             // Move up with slide animation
-            $(document).on('click', '.move-up', function (e) {
+            __panel.onTarget(document, 'click', '.move-up', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option-item');
@@ -636,7 +646,7 @@
                 }
             });
 
-            $(document).on('click', '.move-option-up', function (e) {
+            __panel.onTarget(document, 'click', '.move-option-up', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option_price_item');
@@ -652,7 +662,7 @@
             });
 
             // Move down with slide animation
-            $(document).on('click', '.move-down', function (e) {
+            __panel.onTarget(document, 'click', '.move-down', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option-item');
@@ -667,7 +677,7 @@
                 }
             });
 
-            $(document).on('click', '.move-option-down', function (e) {
+            __panel.onTarget(document, 'click', '.move-option-down', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option_price_item');
@@ -687,7 +697,9 @@
             updateMoveOptionButtons();
         });
 
-    </script>
+
+})();
+</script>
 
     @if (isset($_GET['type']) && $_GET['type'] == 'offer')
         @php
@@ -695,13 +707,22 @@
             $foods = $foods->toArray();
         @endphp
         <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_vendor_views_product_index_blade_php_1");
+__panel.globals({
+"foodList": {get: () => foodList},
+"foodListOptions": {get: () => foodListOptions, set: value => { foodListOptions = value; }},
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }}
+});
+
             const foodList = @json($foods);
             console.log(foodList);
             let foodListOptions = ``;
             Object.entries(foodList).forEach(([id, item]) => {
                 foodListOptions += `<option value="${item.id}">${item.name}</option>`;
             });
-            $(document).ready(function() {                
+            __panel.ready(function() {
                 $("#add_new_option_button").click(function(e) {
                     $('#empty-variation').hide();
                     count++;
@@ -858,7 +879,7 @@
                 $('.add_new_view_row_class:last').find('.all_food_list').change()
             }
 
-            $(document).on('change', '.all_food_list', function() {
+            __panel.onTarget(document, 'change', '.all_food_list', function() {
                 const thix = $(this);
                 const val = thix.val();
                 const add_new_view_row_class = thix.closest('.add_new_view_row_class');
@@ -867,7 +888,7 @@
                 variations.html("");
                 variation_option.html("");
                 if (val) {
-                    $.ajax({
+                    __panel.request($.ajax({
                         url: "/restaurant-panel/food/get-all-variations-by-food/" + val,
                         type: "GET",
                         dataType: "json",
@@ -892,10 +913,10 @@
                         error: function(xhr, status, error) {
                             console.error("Error:", error);
                         }
-                    });
+                    }));
                 }
             });
-            $(document).on('change', '.all_variation_list', function() {
+            __panel.onTarget(document, 'change', '.all_variation_list', function() {
                 const thix = $(this);
                 const val = thix.val();
                 const add_new_view_row_class = thix.closest('.add_new_view_row_class');
@@ -903,7 +924,7 @@
                 const variation_option = add_new_view_row_class.find('select.all_variation_option_list')
                 variation_option.html("");
                 if (food_id && val) {
-                    $.ajax({
+                    __panel.request($.ajax({
                         url: "/restaurant-panel/food/get-all-options-by-variation/" + food_id + "/" + val,
                         type: "GET",
                         dataType: "json",
@@ -926,13 +947,22 @@
                         error: function(xhr, status, error) {
                             console.error("Error:", error);
                         }
-                    });
+                    }));
                 }
             });
-        </script>
+
+})();
+</script>
     @else
         <script>
-            $(document).ready(function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_vendor_views_product_index_blade_php_2");
+__panel.globals({
+"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }}
+});
+
+            __panel.ready(function() {
                 $("#add_new_option_button").click(function(e) {
                 $('#empty-variation').hide();
                 count++;
@@ -1157,6 +1187,8 @@
                 $('.js-select2-custom').select2();
                 updateMoveOptionButtons();
             }
-        </script>
+
+})();
+</script>
     @endif
 @endpush

@@ -384,7 +384,15 @@
 
 @push('script_2')
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_subscription_index_blade_php_0");
+__panel.globals({
+"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }}
+});
+
+
         $('.status_change_alert').on('click', function(event) {
             let url = $(this).data('url');
             let message = $(this).data('message');
@@ -409,7 +417,7 @@
                 }
             })
         }
-        $(document).on('ready', function() {
+        __panel.onTarget(document, 'ready', function() {
 
             // INITIALIZATION OF DATATABLES
             // =======================================================
@@ -427,7 +435,7 @@
 
 
         "use strict";
-        $(document).on("click", ".status_change_alert", function() {
+        __panel.onTarget(document, "click", ".status_change_alert", function() {
             let url = $(this).data('url');
             let package_name = $(this).data('package_name');
             $('.show_all').removeAttr("hidden");
@@ -438,7 +446,7 @@
 
             status_change_alert(url, event)
         });
-        $(document).on("click", ".status_change_alert_reenable", function(e) {
+        __panel.onTarget(document, "click", ".status_change_alert_reenable", function(e) {
             e.preventDefault();
             let url = $(this).data('url');
             $('#status_change_now2').attr("href", url);
@@ -447,7 +455,7 @@
 
 
 
-        $(document).on("click", ".shift_package", function() {
+        __panel.onTarget(document, "click", ".shift_package", function() {
             $('#status-chage-deactive').modal('hide');
             $('#shift_package').modal('show');
         });
@@ -456,7 +464,7 @@
             e.preventDefault();
             $('#status-chage-deactive').modal('show');
         }
-        $(document).on("ready", function() {
+        __panel.onTarget(document, "ready", function() {
             $('.js-select2-custom').select2({
                 templateResult: function(option) {
                     if (option.element && (option.element).hasAttribute('hidden')) {
@@ -474,5 +482,7 @@
             nav: false,
             autoWidth: true,
         })
-    </script>
+
+})();
+</script>
 @endpush

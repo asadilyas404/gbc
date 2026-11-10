@@ -1,4 +1,12 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_offline_payment_js");
+__panel.globals({
+"openModal": {get: () => openModal, set: value => { openModal = value; }}
+});
+
 function openModal(contentArgument) {
     if (contentArgument === "bkashInfo") {
         $("#sectionViewModal #offline_payment_top_part").addClass("active");
@@ -172,7 +180,7 @@ function openModal(contentArgument) {
     // Open the modal
     $("#sectionViewModal").modal("show");
 }
-$(document).ready(function() {
+__panel.ready(function() {
     $("#bkashInfoModalButton").on('click', function() {
         let contentArgument = "bkashInfo";
         openModal(contentArgument);
@@ -189,3 +197,5 @@ $(document).ready(function() {
 
 
 
+
+})();

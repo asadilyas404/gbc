@@ -1,5 +1,13 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
-$(document).on('ready', function () {
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_business_settings_disbursement_js");
+__panel.globals({
+"copyToClipboard": {get: () => copyToClipboard, set: value => { copyToClipboard = value; }}
+});
+
+__panel.onTarget(document, 'ready', function () {
     $('input[name="disbursement_type"]').on('change', function(){
         if(this.value === 'manual'){
             $('.automated_disbursement_section').hide();
@@ -33,11 +41,11 @@ $(document).on('ready', function () {
 
 });
 
-$(document).on('click', '.restaurantDisbursementCommand', function () {
+__panel.onTarget(document, 'click', '.restaurantDisbursementCommand', function () {
     copyToClipboard('restaurantDisbursementCommand');
 });
 
-$(document).on('click', '.dmDisbursementCommand', function () {
+__panel.onTarget(document, 'click', '.dmDisbursementCommand', function () {
     copyToClipboard('dmDisbursementCommand');
 });
 
@@ -47,3 +55,5 @@ function copyToClipboard(elementId) {
     navigator.clipboard.writeText(commandElement.value);
     toastr.success('Copied to clipboard!');
 }
+
+})();

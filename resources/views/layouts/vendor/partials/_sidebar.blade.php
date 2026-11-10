@@ -529,13 +529,20 @@ use Illuminate\Support\Facades\DB;
 
 @push('script_2')
     <script>
-        "use strict";
-        $(window).on('load', function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_layouts_vendor_partials__sidebar_blade_php_0");
+
+
+        __panel.onTarget(window, 'load', function() {
             if ($(".navbar-vertical-content li.active").length) {
                 $('.navbar-vertical-content').animate({
                     scrollTop: $(".navbar-vertical-content li.active").offset().top - 150
                 }, 100);
             }
         });
-    </script>
+
+})();
+</script>
 @endpush

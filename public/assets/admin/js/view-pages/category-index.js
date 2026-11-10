@@ -1,5 +1,13 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
-$(document).on('ready', function () {
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_category_index_js");
+__panel.globals({
+"forms": {get: () => forms, set: value => { forms = value; }}
+});
+
+__panel.onTarget(document, 'ready', function () {
 
     $('.js-select2-custom').each(function () {
         let select2 = $.HSCore.components.HSSelect2.init($(this));
@@ -18,3 +26,5 @@ forms.forEach(function(form) {
         form.submit();
     });
 });
+
+})();

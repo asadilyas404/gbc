@@ -391,13 +391,18 @@
 
 @push('script_2')
     <script>
-        "use strict";
-        $(document).on("click", ".offline_payment_cancelation_note", function () {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_order_offline_verification_list_blade_php_0");
+
+
+        __panel.onTarget(document, "click", ".offline_payment_cancelation_note", function () {
             let myorderId = $(this).data('id');
              $(".modal-body #myorderId").val(myorderId);
         });
 
-        $(document).on('ready', function () {
+        __panel.onTarget(document, 'ready', function () {
             // INITIALIZATION OF SELECT2
             // =======================================================
             $('.js-select2-custom').each(function () {
@@ -465,7 +470,7 @@
 
                 if (oldValue == "") return;
 
-                setTimeout(function () {
+                __panel.setTimeout(function () {
                     let newValue = $input.val();
 
                     if (newValue == "") {
@@ -553,6 +558,8 @@
                 }
             })
         })
-    </script>
+
+})();
+</script>
 
 @endpush

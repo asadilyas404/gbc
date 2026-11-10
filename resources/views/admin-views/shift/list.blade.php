@@ -177,6 +177,13 @@
 
 @push('script')
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_shift_list_blade_php_0");
+__panel.globals({
+"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }}
+});
+
     $('.status_change_alert').on('click', function (event) {
         let url = $(this).data('url');
         let message = $(this).data('message');
@@ -208,7 +215,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('admin.shift.store')}}',
                 data: formData,
                 cache: false,
@@ -234,7 +241,7 @@
                                     CloseButton: true,
                                     ProgressBar: true
                                 });
-                                setTimeout(function() {
+                                __panel.setTimeout(function() {
                                     location.href =
                                         '{{ route('admin.shift.list') }}';
                                 },800);
@@ -251,7 +258,7 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
 
         $('#system-form-update').on('submit', function () {
@@ -261,7 +268,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{ route('admin.shift.update')}}',
                 data: formData,
                 cache: false,
@@ -285,7 +292,7 @@
                                 CloseButton: true,
                                 ProgressBar: true
                             });
-                            setTimeout(function() {
+                            __panel.setTimeout(function() {
                                 location.href =
                                     '{{ route('admin.shift.list') }}';
                             }, 800);
@@ -302,7 +309,7 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
 
         $('#reset_btn').click(function(){
@@ -360,6 +367,8 @@
             $(".default-form1").removeClass('d-none');
         }
     })
+
+})();
 </script>
 
 @endpush

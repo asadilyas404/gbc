@@ -493,7 +493,12 @@
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_business_settings_customer_index_blade_php_0");
+
+
 
     $('#new_customer_discount_amount_type').on('change', function() {
         if($('#new_customer_discount_amount_type').val() == 'amount')
@@ -512,5 +517,7 @@
         }
     });
 
+
+})();
 </script>
 @endpush

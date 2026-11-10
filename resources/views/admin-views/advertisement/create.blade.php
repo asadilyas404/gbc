@@ -347,7 +347,11 @@ active
     <script type="text/javascript" src="{{dynamicAsset('public/assets/admin/js/daterangepicker.min.js')}}"></script>
 
     <script>
-        $(function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_create_blade_php_0");
+
+        __panel.ready(function() {
             $('input[name="dates"]').daterangepicker({
                 // timePicker: true,
                 minDate: new Date(),
@@ -371,11 +375,17 @@ active
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
             });
         });
-    </script>
+
+})();
+</script>
 
 
     <!-- Video Upload Handlr -->
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_create_blade_php_1");
+
         $(".video_attachment").on("change", function (event) {
             const videoEl = $(".video > video")
             const prevVideoBox = $('.prev-video-box')
@@ -398,7 +408,7 @@ active
             })
         })
 
-        $(window).on('load', function () {
+        __panel.onTarget(window, 'load', function () {
             handleUploadBox();
 
             const videoEl = $(".video > video")
@@ -419,10 +429,19 @@ active
                 videoEl.attr('src', '');
             })
         })
-    </script>
+
+})();
+</script>
 
     <!-- Select Toggler Scripts -->
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_create_blade_php_2");
+__panel.globals({
+"handleUploadBox": {get: () => handleUploadBox}
+});
+
         const handleUploadBox = () => {
             const value = $('.promotion_type').val();
             if (value == 'video_promotion') {
@@ -433,7 +452,7 @@ active
                 $('#profile-upload-box, #profile-preview-box').show();
             }
         }
-        $(window).on('load', function () {
+        __panel.onTarget(window, 'load', function () {
             handleUploadBox()
         })
 
@@ -441,10 +460,16 @@ active
             handleUploadBox();
             $('.remove-file-button').click()
         })
-    </script>
+
+})();
+</script>
 
     <!-- Profile Promotion Image Upload Handlr -->
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_create_blade_php_3");
+
         $(".js-upload-input").on("change", function (event) {
             let file = event.target.files[0];
             const target = $(this).data('target');
@@ -460,10 +485,19 @@ active
                 file ? $(this).closest('.upload-file').find('.js-upload-input').val(file) : ''
             })
         })
-    </script>
+
+})();
+</script>
 
     <!-- Title and Description Change Handlr -->
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_create_blade_php_4");
+__panel.globals({
+"resetTextHandlr": {get: () => resetTextHandlr}
+});
+
         $('[data-preview-text]').on('input', function (event) {
             const target = $(this).data('preview-text');
             if (event.target.value) {
@@ -493,17 +527,23 @@ active
                 }
             })
         }
-        $(window).on('load', function () {
+        __panel.onTarget(window, 'load', function () {
             resetTextHandlr()
         })
 
         $('#create-add-form').on('reset', function () {
             window.location.reload()
         })
-    </script>
+
+})();
+</script>
 
     <!-- Review and Rating Handlr -->
     <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_create_blade_php_5");
+
         $('[name="review"]').on('change', function () {
             if ($(this).is(':checked')) {
                 $('.review-placeholder').hide()
@@ -530,7 +570,7 @@ active
         })
 
 
-        $(window).on('load', function () {
+        __panel.onTarget(window, 'load', function () {
             $('[name="review"]').each(function () {
                 if ($(this).is(':checked')) {
                     $('.review--text').show()
@@ -552,10 +592,19 @@ active
                 }
             })
         })
-    </script>
+
+})();
+</script>
 
 <script>
-            $(document).on('ready', function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+const __panel = PanelPage.create("resources_views_admin_views_advertisement_create_blade_php_6");
+__panel.globals({
+"check_review_and_rating": {get: () => check_review_and_rating, set: value => { check_review_and_rating = value; }}
+});
+
+            __panel.onTarget(document, 'ready', function() {
                     $('.js-data-example-ajax').select2({
                         ajax: {
                             url: '{{ url('/') }}/admin/restaurant/get-restaurants',
@@ -571,7 +620,7 @@ active
                                 };
                             },
                             __port: function(params, success, failure) {
-                                let $request = $.ajax(params);
+                                let $request = __panel.request($.ajax(params));
 
                                 $request.then(success);
                                 $request.fail(failure);
@@ -590,7 +639,7 @@ active
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    $.post({
+                    __panel.request($.post({
                         url: '{{ route('admin.advertisement.store') }}',
                         data: $('#create-add-form').serialize(),
                         data: formData,
@@ -615,22 +664,22 @@ active
                                     CloseButton: true,
                                     ProgressBar: true
                                 });
-                                setTimeout(function () {
+                                __panel.setTimeout(function () {
                                     location.href = '{{route('admin.advertisement.index')}}';
                                 }, 2000);
                             }
                         }
-                    });
+                    }));
                 });
             });
 
 
 
-            $(document).on('change', '.js-data-example-ajax', function () {
+            __panel.onTarget(document, 'change', '.js-data-example-ajax', function () {
                 var restaurant_id= $(this).val();
                 check_review_and_rating(restaurant_id)
             });
-            $(document).on('change', '#is_review_checked', function () {
+            __panel.onTarget(document, 'change', '#is_review_checked', function () {
 
                 if($(this).is(':checked') == true){
                     var restaurant_id= $('.js-data-example-ajax').val();
@@ -640,7 +689,7 @@ active
                 }
 
             });
-            $(document).on('change', '#is_rating_checked', function () {
+            __panel.onTarget(document, 'change', '#is_rating_checked', function () {
                 console.log('www1');
 
                 if($(this).is(':checked') == true){
@@ -662,7 +711,7 @@ active
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
-                $.ajax({
+                __panel.request($.ajax({
                     url: "{{route('admin.restaurant.get-restaurant-ratings')}}",
                     method: 'get',
                     data: {
@@ -678,8 +727,10 @@ active
                     },
                     complete: function () {
                     },
-                });
+                }));
             }
 
+
+})();
 </script>
 @endpush

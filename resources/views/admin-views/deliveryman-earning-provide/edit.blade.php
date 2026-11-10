@@ -86,7 +86,12 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/deliveryman-earning-provide.js"></script>
     <script>
-        "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_deliveryman_earning_provide_edit_blade_php_0");
+
+
         $('#restaurant').select2({
             ajax: {
                 url: '{{url('/')}}/admin/restaurant/get-restaurants',
@@ -102,7 +107,7 @@
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
+                    let $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -127,7 +132,7 @@
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = $.ajax(params);
+                    let $request = __panel.request($.ajax(params));
 
                     $request.then(success);
                     $request.fail(failure);
@@ -145,7 +150,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.account-transaction.update')}}',
                 data: formData,
                 cache: false,
@@ -164,12 +169,14 @@
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        setTimeout(function () {
+                        __panel.setTimeout(function () {
                             location.href = '{{route('admin.account-transaction.index')}}';
                         }, 2000);
                     }
                 }
-            });
+            }));
         });
+
+})();
 </script>
 @endpush

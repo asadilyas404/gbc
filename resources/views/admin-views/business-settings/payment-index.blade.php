@@ -328,8 +328,13 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin/js/view-pages/business-settings-payment-page.js')}}"></script>
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_business_settings_payment_index_blade_php_0");
 
-    $(document).on('click', '.open-warning-modal', function(event) {
+
+    __panel.onTarget(document, 'click', '.open-warning-modal', function(event) {
     let gateway = $(this).data('gateway');
     if ($(this).is(':checked') === false) {
         event.preventDefault();
@@ -339,7 +344,7 @@
     }
 });
 
-$(document).on('click', '#confirm-currency-change', function() {
+__panel.onTarget(document, 'click', '#confirm-currency-change', function() {
     var gatewayName = $('#gateway_name').text();
     if (gatewayName) {
         $('#span_on_' + gatewayName).removeClass('checked');
@@ -354,9 +359,11 @@ $(document).on('click', '#confirm-currency-change', function() {
     $('#payment-gateway-warning-modal').modal('hide');
 });
 
-    "use strict";
+
     @if(!isset($digital_payment) || $digital_payment['status']==0)
         $('.digital_payment_methods').hide();
     @endif
+
+})();
 </script>
 @endpush

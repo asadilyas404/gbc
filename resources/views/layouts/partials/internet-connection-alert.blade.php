@@ -24,4 +24,7 @@
     </div>
 </div>
 </div>
+<audio id="new-order-sound" preload="auto" data-turbo-permanent>
+    <source src="{{ asset('sounds/notification.wav') }}" type="audio/wav">
+</audio>
 <script src="{{ dynamicAsset('public/assets/admin/js/sound-interaction-alert.js') }}" data-turbo-eval="false"></script>

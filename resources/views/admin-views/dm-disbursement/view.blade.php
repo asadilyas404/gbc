@@ -318,8 +318,13 @@
 
 @push('script_2')
     <script>
-        "use strict";
-        $(document).ready(function() {
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_dm_disbursement_view_blade_php_0");
+
+
+        __panel.ready(function() {
             let disbursement_id = sessionStorage.getItem('disbursement_id');
             if(disbursement_id && (disbursement_id != {{$disbursement->id}})){
                 sessionStorage.removeItem('selectedValues');
@@ -403,7 +408,7 @@
             }
 
             $('#complete').on('click', function() {
-                $.get({
+                __panel.request($.get({
                     url: '{{ route('admin.dm-disbursement.status') }}',
                     dataType: 'json',
                     data: {
@@ -434,10 +439,10 @@
                     complete: function() {
                         $('#loading').hide();
                     },
-                });
+                }));
             });
             $('#cancel').on('click', function() {
-                $.get({
+                __panel.request($.get({
                     url: '{{ route('admin.dm-disbursement.status') }}',
                     dataType: 'json',
                     data: {
@@ -468,10 +473,10 @@
                     complete: function() {
                         $('#loading').hide();
                     },
-                });
+                }));
             });
             $('#pending').on('click', function() {
-                $.get({
+                __panel.request($.get({
                     url: '{{ route('admin.dm-disbursement.status') }}',
                     dataType: 'json',
                     data: {
@@ -502,7 +507,7 @@
                     complete: function() {
                         $('#loading').hide();
                     },
-                });
+                }));
             });
             $('.form-alert-cancel').on('click',function (){
                 let message = "{{ translate('Want to cancel this disbursement ?') }}"
@@ -524,5 +529,7 @@
             })
         });
 
-    </script>
+
+})();
+</script>
 @endpush

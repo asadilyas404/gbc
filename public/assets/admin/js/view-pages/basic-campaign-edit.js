@@ -1,4 +1,13 @@
+
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
 "use strict";
+const __panel = PanelPage.create("public_assets_admin_js_view_pages_basic_campaign_edit_js");
+__panel.globals({
+"readURL": {get: () => readURL, set: value => { readURL = value; }},
+"show_item": {get: () => show_item, set: value => { show_item = value; }}
+});
+
 $("#date_from").on("change", function () {
     $('#date_to').attr('min',$(this).val());
 });
@@ -31,3 +40,5 @@ function show_item(type) {
         $("#type-category").show();
     }
 }
+
+})();

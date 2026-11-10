@@ -290,7 +290,12 @@
 
 @push('script_2')
 <script>
-    "use strict";
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_vendor_views_coupon_index_blade_php_0");
+
+
     $("#date_from").on("change", function () {
         $('#date_to').attr('min',$(this).val());
     });
@@ -299,7 +304,7 @@
         $('#date_from').attr('max',$(this).val());
     });
 
-    $(document).on('ready', function () {
+    __panel.onTarget(document, 'ready', function () {
         $('#discount_type').on('change', function() {
          if($('#discount_type').val() == 'amount')
             {
@@ -380,7 +385,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('vendor.coupon.search')}}',
                 data: formData,
                 cache: false,
@@ -397,7 +402,7 @@
                 complete: function () {
                     $('#loading').hide();
                 },
-            });
+            }));
         });
 
         $('#reset_btn').click(function(){
@@ -414,5 +419,7 @@
             $('#select_customer').val(null).trigger('change');
         })
 
-    </script>
+
+})();
+</script>
 @endpush

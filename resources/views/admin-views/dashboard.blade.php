@@ -191,8 +191,20 @@
 @push('script_2')
 <script src="{{dynamicAsset('public/assets/admin/js/view-pages/apex-charts.js')}}"></script>
 <script>
+// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
+(() => {
+"use strict";
+const __panel = PanelPage.create("resources_views_admin_views_dashboard_blade_php_0");
+__panel.globals({
+"loadchart": {get: () => loadchart, set: value => { loadchart = value; }},
+"order_stats_update": {get: () => order_stats_update, set: value => { order_stats_update = value; }},
+"fetch_data_zone_wise": {get: () => fetch_data_zone_wise, set: value => { fetch_data_zone_wise = value; }},
+"user_overview_stats_update": {get: () => user_overview_stats_update, set: value => { user_overview_stats_update = value; }},
+"insert_param": {get: () => insert_param, set: value => { insert_param = value; }}
+});
 
-    "use strict";
+
+
     loadchart();
     function loadchart(){
         var id = $('#user-overview').data('id');
@@ -305,7 +317,7 @@
         var commissionchart = new ApexCharts(document.querySelector("#updatingData"), options);
         commissionchart.render();
     }
-    $(document).on('change', '.order-stats-update', function () {
+    __panel.onTarget(document, 'change', '.order-stats-update', function () {
         let type = $(this).val();
             order_stats_update(type);
         });
@@ -317,7 +329,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.dashboard-stats.order')}}',
                 data: {
                     statistics_type: type
@@ -333,7 +345,7 @@
                 complete: function () {
                     $('#loading').hide()
                 }
-            });
+            }));
         }
 
         $('.fetch-data-zone-wise').on('change',function (){
@@ -347,7 +359,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.dashboard-stats.zone')}}',
                 data: {
                     zone_id: zone_id
@@ -372,7 +384,7 @@
                 complete: function () {
                     $('#loading').hide()
                 }
-            });
+            }));
         }
 
         $('.user-overview-stats-update').on('change',function (){
@@ -386,7 +398,7 @@
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            $.post({
+            __panel.request($.post({
                 url: '{{route('admin.dashboard-stats.user-overview')}}',
                 data: {
                     user_overview: type
@@ -402,7 +414,7 @@
                 complete: function () {
                     $('#loading').hide()
                 }
-            });
+            }));
         }
 
         function insert_param(key, value) {
@@ -427,5 +439,7 @@
             // change url page with new params
             window.history.pushState('page2', 'Title', '{{url()->current()}}?' + params);
         }
-    </script>
+
+})();
+</script>
 @endpush

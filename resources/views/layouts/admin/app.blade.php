@@ -35,12 +35,6 @@
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/intltelinput/css/intlTelInput.css')}}">
     @stack('css_or_js')
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/toastr.css') }}">
-
-    <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.13/dist/turbo.es2017-umd.js"></script>
-    <script>
-        Turbo.session.drive = false;
-    </script>
-    <script src="{{ dynamicAsset('public/assets/admin/js/turbo-internal-links.js') }}" defer></script>
 </head>
 
 <body class="footer-offset">
@@ -474,12 +468,11 @@
         var audio = document.getElementById("myAudio");
 
         function playAudio() {
-            window.soundInteractionAlert.play(document.getElementById('myAudio')).catch(() => {});
+            audio.play();
         }
 
         function pauseAudio() {
             audio.pause();
-            window.soundInteractionAlert.clear(audio);
         }
 
         $('.route-alert').on('click',function () {
@@ -826,7 +819,7 @@
 
 
     </script>
-    <script src="{{ dynamicAsset('public/assets/admin/js/internet-connection-alert.js') }}" data-turbo-eval="false"></script>
+    <script src="{{ dynamicAsset('public/assets/admin/js/internet-connection-alert.js') }}"></script>
 
 </body>
 

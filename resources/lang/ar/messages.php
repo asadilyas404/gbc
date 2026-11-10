@@ -1,7 +1,6 @@
 <?php return array (
   'No_internet_connection' => 'لا يوجد اتصال بالإنترنت. قد لا تعمل بعض الميزات.',
   'Mute_sound' => 'كتم الصوت',
-  'Interact_to_enable_notification_sounds' => 'يرجى التفاعل مع المتصفح (انقر في أي مكان أو اضغط على أحد المفاتيح) لتفعيل أصوات الإشعارات.',
   'Unmute_sound' => 'إلغاء كتم الصوت',
   'account_transaction' => 'معاملة الحساب',
   'Cash_Collection_Transaction' => 'معاملة جمع النقد',

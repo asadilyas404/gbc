@@ -1379,7 +1379,6 @@ class POSController extends Controller
 
         if($allCanceled){
             $order->order_status = 'canceled';
-            $order->payment_status = 'paid';
         }
         
         $order->discount_on_product_by = 'vendor';

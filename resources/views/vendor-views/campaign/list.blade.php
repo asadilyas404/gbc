@@ -186,13 +186,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_campaign_list_blade_php_0");
-
-
-        __panel.onTarget(document, 'ready', function() {
+        "use strict";
+        $(document).on('ready', function() {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -232,7 +227,5 @@ const __panel = PanelPage.create("resources_views_vendor_views_campaign_list_bla
             });
         });
 
-
-})();
-</script>
+    </script>
 @endpush

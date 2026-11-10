@@ -93,13 +93,8 @@
 @push('script_2')
 <script src="{{dynamicAsset('public/assets/admin/ckeditor/ckeditor.js')}}"></script>
 <script type="text/javascript">
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_cancellation_policy_blade_php_0");
-
-
-    __panel.ready(function () {
+    "use strict";
+    $(document).ready(function () {
                 $('body').on('change','#data_status', function(){
                 let status ;
                 if(this.checked){
@@ -108,7 +103,7 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
                 status = 0;
                 }
             let url= '{{ url('admin/business-settings/pages/cancellation-policy') }}/'+status;
-            __panel.request($.ajax({
+            $.ajax({
                 url: url,
                 method: 'get',
                 success: function() {
@@ -117,12 +112,10 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
                     ProgressBar: true
                     });
                 }
-            }));
+            });
 
             });
         });
-
-})();
 </script>
 
 @endpush

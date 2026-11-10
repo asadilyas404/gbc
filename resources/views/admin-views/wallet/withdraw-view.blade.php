@@ -179,12 +179,8 @@
 
 
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_wallet_withdraw_view_blade_php_0");
 
-
-__panel.ready(function() {
+$(document).ready(function() {
     $("#withdraw_status_form").on("submit", function(event) {
         $('#set_disable').attr('disabled', true);
 
@@ -192,8 +188,6 @@ __panel.ready(function() {
 });
 
 
-
-})();
 </script>
 
 @endpush

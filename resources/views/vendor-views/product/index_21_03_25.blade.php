@@ -444,16 +444,7 @@
     <script src="{{dynamicAsset('public/assets/admin')}}/js/tags-input.min.js"></script>
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/vendor/product-index.js"></script>
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_product_index_21_03_25_blade_php_0");
-__panel.globals({
-"updatestockCount": {get: () => updatestockCount, set: value => { updatestockCount = value; }},
-"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }}
-});
-
-
+    "use strict";
     $('#stock_type').on('change', function () {
                 if($(this).val() == 'unlimited') {
                     $('.stock_disable').prop('readonly', true).prop('required', false).attr('placeholder', '{{ translate('Unlimited') }}').val('');
@@ -475,7 +466,7 @@ __panel.globals({
                     $('.hide_this').removeClass('d-none');
                 }
         }
-    __panel.ready(function() {
+    $(document).ready(function() {
             $("#add_new_option_button").click(function(e) {
                 $('#empty-variation').hide();
                 count++;
@@ -641,7 +632,7 @@ __panel.globals({
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        __panel.request($.post({
+        $.post({
             url: '{{route('vendor.food.store')}}',
             data: $('#food_form').serialize(),
             data: formData,
@@ -665,12 +656,12 @@ __panel.globals({
                         CloseButton: true,
                         ProgressBar: true
                     });
-                    __panel.setTimeout(function () {
+                    setTimeout(function () {
                         location.href = '{{route('vendor.food.list')}}';
                     }, 2000);
                 }
             }
-        }));
+        });
     });
 
 
@@ -684,8 +675,6 @@ __panel.globals({
             $('#stock_type').val('unlimited').trigger('change');
             updatestockCount();
         })
-
-})();
 </script>
 @endpush
 

@@ -1,10 +1,5 @@
-
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_deliveryman_earning_provide_js");
-
-__panel.onTarget(document, 'ready', function () {
+$(document).on('ready', function () {
     // INITIALIZATION OF SELECT2
     // =======================================================
     $('.js-select2-custom').each(function () {
@@ -33,5 +28,3 @@ $('.account-data').on('change', function (){
     let type = $(this).data('type');
     getAccountData(route, data_id, type);
 })
-
-})();

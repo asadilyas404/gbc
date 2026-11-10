@@ -252,15 +252,7 @@ if(isset($wallet)==false){
 @endsection
 @push('script')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_wallet_index_blade_php_0");
-__panel.globals({
-"showMyModal": {get: () => showMyModal, set: value => { showMyModal = value; }}
-});
-
-
+    "use strict";
     $('#withdraw_method').on('change', function () {
         let method_id = this.value;
 
@@ -270,7 +262,7 @@ __panel.globals({
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        __panel.request($.ajax({
+        $.ajax({
             url: "{{route('vendor.wallet.method-list')}}" + "?method_id=" + method_id,
             data: {},
             processData: false,
@@ -292,7 +284,7 @@ __panel.globals({
             error: function () {
 
             }
-        }));
+        });
     });
 
     $('.payment-warning').on('click',function (event ){
@@ -317,13 +309,11 @@ __panel.globals({
     });
 })
 
-__panel.ready(function() {
+$(document).ready(function() {
     $("#withdraw_form").on("submit", function(event) {
         $('#set_disable').attr('disabled', true);
 
     });
 });
-
-})();
 </script>
 @endpush

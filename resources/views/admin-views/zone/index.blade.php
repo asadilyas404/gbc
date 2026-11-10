@@ -345,23 +345,7 @@
 @push('script_2')
 <script src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=drawing,places&v=3.45.8"></script>
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_zone_index_blade_php_0");
-__panel.globals({
-"status_form_alert": {get: () => status_form_alert, set: value => { status_form_alert = value; }},
-"auto_grow": {get: () => auto_grow, set: value => { auto_grow = value; }},
-"map": {get: () => map, set: value => { map = value; }},
-"drawingManager": {get: () => drawingManager, set: value => { drawingManager = value; }},
-"lastpolygon": {get: () => lastpolygon, set: value => { lastpolygon = value; }},
-"polygons": {get: () => polygons, set: value => { polygons = value; }},
-"resetMap": {get: () => resetMap, set: value => { resetMap = value; }},
-"initialize": {get: () => initialize, set: value => { initialize = value; }},
-"set_all_zones": {get: () => set_all_zones, set: value => { set_all_zones = value; }}
-});
-
-
+    "use strict";
 
     $('.hide-data').click(function(){
         $(".hide_data").removeClass('active');
@@ -394,7 +378,7 @@ __panel.globals({
     }
 
 
-        __panel.onTarget(document, 'ready', function () {
+        $(document).on('ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -576,12 +560,12 @@ __panel.globals({
             });
         }
 
-        __panel.ready(initialize);
+        google.maps.event.addDomListener(window, 'load', initialize);
 
 
         function set_all_zones()
         {
-            __panel.request($.get({
+            $.get({
                 url: '{{route('admin.zone.zoneCoordinates')}}',
                 dataType: 'json',
                 success: function (data) {
@@ -601,9 +585,9 @@ __panel.globals({
                     }
 
                 },
-            }));
+            });
         }
-        __panel.onTarget(document, 'ready', function(){
+        $(document).on('ready', function(){
             set_all_zones();
         });
 
@@ -616,7 +600,7 @@ __panel.globals({
 
 
 
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
 
             $("#maximum_shipping_charge_status").on('change', function() {
                 if ($("#maximum_shipping_charge_status").is(':checked')) {
@@ -648,7 +632,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.zone.store')}}',
                 data: formData,
                 cache: false,
@@ -683,9 +667,7 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
-
-})();
 </script>
 @endpush

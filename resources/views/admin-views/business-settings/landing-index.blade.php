@@ -284,13 +284,8 @@ $config = \App\CentralLogics\Helpers::get_business_settings('landing_page');
 <script src="{{dynamicAsset('public/assets/admin/js/view-pages/business-settings-landing-page.js')}}"></script>
 
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
+
 "use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_landing_index_blade_php_1");
-
-
-
 
 $('.zip-upload').on('click', function(){
             $.ajaxSetup({
@@ -300,7 +295,7 @@ $('.zip-upload').on('click', function(){
             });
 
             var formData = new FormData(document.getElementById('theme_form'));
-            __panel.request($.ajax({
+            $.ajax({
                 type: 'POST',
                 url: "{{route('admin.business-settings.business-setup.update-landing-setup')}}",
                 data: formData,
@@ -342,7 +337,7 @@ $('.zip-upload').on('click', function(){
                 complete: function () {
                     $('#update_setting').removeAttr('disabled');
                 },
-            }));
+            });
         });
 
         $('.landing-page').on('click', function(event) {
@@ -362,7 +357,7 @@ $('.zip-upload').on('click', function(){
                     reverseButtons: true
                 }).then((result) => {
                     if (result.value) {
-                        __panel.request($.get({
+                        $.get({
                             url: '{{ route('admin.landing-page') }}',
                             contentType: false,
                             processData: false,
@@ -376,7 +371,7 @@ $('.zip-upload').on('click', function(){
                             complete: function() {
                                 $('#loading').hide();
                             },
-                        }));
+                        });
                     }
                 })
             @endif
@@ -392,7 +387,5 @@ $('.zip-upload').on('click', function(){
         $(`#{{ $landing_integration_type }}`).addClass('active')
     })
 
-
-})();
 </script>
 @endpush

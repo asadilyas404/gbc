@@ -2,7 +2,6 @@
     if (window.soundInteractionAlert) return;
 
     const blockedSounds = new Map();
-    const allowedSounds = new WeakSet();
     let checkedBody = null;
     let capabilityCheck = 0;
 
@@ -30,11 +29,9 @@
             result = Promise.reject(error);
         }
         return Promise.resolve(result).then(() => {
-            allowedSounds.add(audio);
             clear(audio);
         }).catch((error) => {
             if (error && error.name === 'NotAllowedError') {
-                allowedSounds.delete(audio);
                 requireInteraction(audio, () => {
                     if (audio.isConnected) return play(audio);
                     clear(audio);
@@ -60,10 +57,9 @@
         checkedBody = document.body;
 
         // Order list and kitchen pages already test their own notification audio.
-        if (document.getElementById('order-sound-manager')) return;
+        if (document.getElementById('new-order-sound')) return;
         const notification = document.getElementById('myAudio');
         if (!notification) return;
-        if (allowedSounds.has(notification)) return;
 
         // Use a separate element so the check cannot stop a real notification.
         const probe = notification.cloneNode(true);
@@ -82,10 +78,7 @@
             return Promise.resolve(result).then(() => {
                 probe.pause();
                 probe.currentTime = 0;
-                if (check === capabilityCheck) {
-                    allowedSounds.add(notification);
-                    clear('page-sound-permission');
-                }
+                if (check === capabilityCheck) clear('page-sound-permission');
             }).catch((error) => {
                 if (check === capabilityCheck && error && error.name === 'NotAllowedError') {
                     requireInteraction('page-sound-permission', tryPlayback);

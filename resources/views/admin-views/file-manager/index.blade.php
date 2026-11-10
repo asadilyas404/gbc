@@ -186,16 +186,7 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/file-manager.js"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_file_manager_index_blade_php_0");
-__panel.globals({
-"copy_test": {get: () => copy_test, set: value => { copy_test = value; }},
-"form_submit_warrning": {get: () => form_submit_warrning, set: value => { form_submit_warrning = value; }}
-});
-
-
+        "use strict";
 
         function copy_test(copyText) {
             navigator.clipboard.writeText(copyText);
@@ -226,7 +217,5 @@ __panel.globals({
             })
         };
 
-
-})();
-</script>
+    </script>
 @endpush

@@ -134,9 +134,9 @@
 
 @push('script_2')
     <script>
+        var orderType = @json($data['order_type']);
 (() => {
 const page = PanelPage.create('kitchen');
-        const orderType = @json($data['order_type']);
 page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
         let currentRequest = null;
 

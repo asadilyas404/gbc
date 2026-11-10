@@ -275,15 +275,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_addon_index_blade_php_0");
-__panel.globals({
-"stock_type": {get: () => stock_type, set: value => { stock_type = value; }}
-});
-
-
+        "use strict";
         $('#stock_type').on('change', function () {
             stock_type($(this).val());
         });
@@ -300,7 +292,7 @@ __panel.globals({
     }
 
 
-        __panel.onTarget(document, 'ready', function () {
+        $(document).on('ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#datatable'), {
@@ -326,7 +318,7 @@ __panel.globals({
 
           if (oldValue == "") return;
 
-          __panel.setTimeout(function(){
+          setTimeout(function(){
             let newValue = $input.val();
 
             if (newValue == ""){
@@ -381,7 +373,7 @@ __panel.globals({
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = __panel.request($.ajax(params));
+                    let $request = $.ajax(params);
 
                     $request.then(success);
                     $request.fail(failure);
@@ -406,7 +398,7 @@ __panel.globals({
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = __panel.request($.ajax(params));
+                    let $request = $.ajax(params);
 
                     $request.then(success);
                     $request.fail(failure);
@@ -422,7 +414,5 @@ __panel.globals({
             $('#stock_type').val('unlimited').trigger('change');
             stock_type('unlimited');
         })
-
-})();
-</script>
+    </script>
 @endpush

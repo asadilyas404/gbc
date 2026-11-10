@@ -1,15 +1,6 @@
 
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
+
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_email_templates_js");
-__panel.globals({
-"editor": {get: () => editor, set: value => { editor = value; }},
-"read_URL": {get: () => read_URL, set: value => { read_URL = value; }}
-});
-
-
-
 
 let editor = CKEDITOR.replace('ckeditor');
 
@@ -81,5 +72,3 @@ document.getElementById('mail-route-selector').addEventListener('change', functi
     let value = this.value;
     location.href = baseUrl + '/admin/business-settings/email-setup/' + value + '/' + (value === 'admin' ? 'forgot-password' : 'registration');
 });
-
-})();

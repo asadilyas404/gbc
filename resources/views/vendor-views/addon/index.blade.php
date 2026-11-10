@@ -216,15 +216,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_addon_index_blade_php_0");
-__panel.globals({
-"stock_type": {get: () => stock_type, set: value => { stock_type = value; }}
-});
-
-
+        "use strict";
         $('#stock_type').on('change', function() {
             stock_type($(this).val());
         });
@@ -241,7 +233,7 @@ __panel.globals({
                 $('.hide_this').removeClass('d-none');
             }
         }
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -272,7 +264,5 @@ __panel.globals({
             $('#stock_type').val('unlimited').trigger('change');
             stock_type('unlimited');
         })
-
-})();
-</script>
+    </script>
 @endpush

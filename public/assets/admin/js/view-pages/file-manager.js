@@ -1,12 +1,4 @@
-
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_file_manager_js");
-__panel.globals({
-"readURL": {get: () => readURL, set: value => { readURL = value; }}
-});
-
 function readURL(input) {
     $('#files').html("");
     for( let i = 0; i<input.files.length; i++)
@@ -39,5 +31,3 @@ $('.copy-test').on('click', function (){
 $('.form-submit-warning').on('submit', function (){
     form_submit_warrning(e)
 })
-
-})();

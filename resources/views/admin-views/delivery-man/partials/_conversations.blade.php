@@ -176,12 +176,8 @@
 <script src="{{ dynamicAsset('public/assets/admin/js/chatting/picmo-emoji.js')}}"></script>
 <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/common.js"></script>
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_delivery_man_partials__conversations_blade_php_0");
 
-
-    __panel.ready(function () {
+    $(document).ready(function () {
         $('.scroll-down').animate({
             scrollTop: $('#scroll-here').offset().top
         },0);
@@ -196,7 +192,7 @@ const __panel = PanelPage.create("resources_views_admin_views_delivery_man_parti
     });
 
 
-    __panel.ready(function () {
+    $(document).ready(function () {
         const { createPopup } = window.picmoPopup;
         const trigger = document.getElementById("trigger");
         const inputField = document.getElementById("msgInputValue");
@@ -231,6 +227,4 @@ const __panel = PanelPage.create("resources_views_admin_views_delivery_man_parti
         });
     });
 
-
-})();
 </script>

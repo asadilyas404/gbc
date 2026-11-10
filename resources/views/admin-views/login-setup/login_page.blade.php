@@ -378,11 +378,7 @@
 
 @push('script_2')
     <script type="text/javascript">
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_login_setup_login_page_blade_php_0");
-
-        __panel.ready(function() {
+        $(document).ready(function() {
             @if (session('select-one-method'))
             $('#select-one-method-modal').modal('show');
             @endif
@@ -419,7 +415,5 @@ const __panel = PanelPage.create("resources_views_admin_views_login_setup_login_
                 }
             });
         });
-
-})();
-</script>
+    </script>
 @endpush

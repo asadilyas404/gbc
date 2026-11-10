@@ -90,14 +90,9 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_shift_session_verification_blade_php_0");
+        "use strict";
 
-
-
-        __panel.onTarget(document, 'ready', function () {
+        $(document).on('ready', function () {
             // Initialize Select2
             $('.js-select2-custom').each(function () {
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
@@ -139,7 +134,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_shift_session_ver
                 }
             });
 
-            __panel.onTarget(document, 'click', '#approve-session, #reject-session', function(e){
+            $(document).on('click', '#approve-session, #reject-session', function(e){
                 e.preventDefault();
                 
                 let button = $(this);
@@ -151,7 +146,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_shift_session_ver
                 ? '{{ route("vendor.shift-session.approve") }}'
                 : '{{ route("vendor.shift-session.reject") }}';
 
-                __panel.request($.ajax({
+                $.ajax({
                     url: url,
                     method: 'POST',
                     data: {
@@ -181,10 +176,8 @@ const __panel = PanelPage.create("resources_views_vendor_views_shift_session_ver
                             button.attr('id') === 'approve-session' ? 'Approve' : 'Reject'
                         );
                     }
-                }));
+                });
             });
         });
-
-})();
-</script>
+    </script>
 @endpush

@@ -39,22 +39,12 @@
 
     <!-- Initialize Quill editor -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_business_settings_terms_and_conditions_blade_php_0");
-__panel.globals({
-"quill": {get: () => quill, set: value => { quill = value; }}
-});
-
-
+        "use strict";
         let quill = new Quill('#editor', {
             theme: 'snow'
         });
         $("#tnc-form").on("submit",function(){
             $("#hiddenArea").val($("#editor").html());
         })
-
-})();
-</script>
+    </script>
 @endpush

@@ -37,13 +37,6 @@
 </div>
 
 {{-- <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_partials__popular_restaurants_blade_php_0");
-
-
+    "use strict";
     $('[data-toggle="tooltip"]').tooltip()
-
-})();
 </script> --}}

@@ -467,15 +467,6 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_vendor_view_subscriptions_blade_php_0");
-__panel.globals({
-"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }},
-"shift_to_commission": {get: () => shift_to_commission, set: value => { shift_to_commission = value; }}
-});
-
         $('.plan-slider').owlCarousel({
             loop: false,
             margin: 0,
@@ -507,7 +498,7 @@ __panel.globals({
             }
         })
 
-
+        "use strict";
             $('.status_change_alert').on('click', function (event) {
             let url = $(this).data('url');
             let message = $(this).data('message');
@@ -533,7 +524,7 @@ __panel.globals({
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    __panel.request($.post({
+                    $.post({
                         url: url,
                         data: {
                             id: '{{ $restaurant->id }}',
@@ -549,7 +540,7 @@ __panel.globals({
                             $('#loading').hide();
                             location.reload();
                         }
-                    }));
+                    });
                 }
             })
         }
@@ -579,7 +570,7 @@ __panel.globals({
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    __panel.request($.post({
+                    $.post({
                         url: url,
                         data: {
                             id: '{{ $restaurant->id }}',
@@ -594,14 +585,14 @@ __panel.globals({
                             $('#loading').hide();
                             location.reload();
                         }
-                    }));
+                    });
                 }
             })
         }
 
-        __panel.onTarget(document, 'click', '.package_detail', function () {
+        $(document).on('click', '.package_detail', function () {
             var url = $(this).attr('data-url');
-            __panel.request($.ajax({
+            $.ajax({
                 url: url,
                 method: 'get',
                 beforeSend: function() {
@@ -621,13 +612,13 @@ __panel.globals({
                         $('#loading').hide();
                     },
 
-            }));
+            });
         });
-        __panel.onTarget(document, 'click', '#continue_btn', function () {
+        $(document).on('click', '#continue_btn', function () {
             $('#subscription-renew-modal').modal('show')
         });
 
-        __panel.onTarget(document, 'click', '#back_to_planes', function () {
+        $(document).on('click', '#back_to_planes', function () {
             $('#plan-modal').modal('show')
         });
 
@@ -639,7 +630,5 @@ __panel.globals({
                     $('#comission').val('0');
                 }
             });
-
-})();
-</script>
+    </script>
 @endpush

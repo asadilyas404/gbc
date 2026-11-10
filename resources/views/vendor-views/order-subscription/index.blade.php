@@ -187,13 +187,6 @@
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_order_subscription_index_blade_php_0");
-__panel.globals({
-"datatable": {get: () => datatable, set: value => { datatable = value; }}
-});
-
         // INITIALIZATION OF DATATABLES
         // =======================================================
         let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'), {
@@ -219,7 +212,5 @@ __panel.globals({
             let select2 = $.HSCore.components.HSSelect2.init($(this));
         });
 
-
-})();
-</script>
+    </script>
 @endpush

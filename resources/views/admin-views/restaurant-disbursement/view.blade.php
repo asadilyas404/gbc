@@ -333,13 +333,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_restaurant_disbursement_view_blade_php_0");
-
-
-        __panel.ready(function() {
+        "use strict";
+        $(document).ready(function() {
             let disbursement_id = sessionStorage.getItem('disbursement_id');
             if(disbursement_id && (disbursement_id != {{$disbursement->id}})){
                 sessionStorage.removeItem('selectedValues');
@@ -423,7 +418,7 @@ const __panel = PanelPage.create("resources_views_admin_views_restaurant_disburs
             }
 
             $('#complete').on('click', function() {
-                __panel.request($.get({
+                $.get({
                     url: '{{ route('admin.restaurant-disbursement.status') }}',
                     dataType: 'json',
                     data: {
@@ -454,10 +449,10 @@ const __panel = PanelPage.create("resources_views_admin_views_restaurant_disburs
                     complete: function() {
                         $('#loading').hide();
                     },
-                }));
+                });
             });
             $('#cancel').on('click', function() {
-                __panel.request($.get({
+                $.get({
                     url: '{{ route('admin.restaurant-disbursement.status') }}',
                     dataType: 'json',
                     data: {
@@ -488,10 +483,10 @@ const __panel = PanelPage.create("resources_views_admin_views_restaurant_disburs
                     complete: function() {
                         $('#loading').hide();
                     },
-                }));
+                });
             });
             $('#pending').on('click', function() {
-                __panel.request($.get({
+                $.get({
                     url: '{{ route('admin.restaurant-disbursement.status') }}',
                     dataType: 'json',
                     data: {
@@ -522,7 +517,7 @@ const __panel = PanelPage.create("resources_views_admin_views_restaurant_disburs
                     complete: function() {
                         $('#loading').hide();
                     },
-                }));
+                });
             });
             $('.form-alert-cancel').on('click',function (){
                 let message = "{{ translate('Want to cancel this disbursement ?') }}"
@@ -544,7 +539,5 @@ const __panel = PanelPage.create("resources_views_admin_views_restaurant_disburs
             })
         });
 
-
-})();
-</script>
+    </script>
 @endpush

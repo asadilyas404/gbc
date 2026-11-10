@@ -335,12 +335,7 @@
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_wallet_bonus_index_blade_php_0");
-
-
+    "use strict";
     $("#date_from").on("change", function () {
         $('#date_to').attr('min',$(this).val());
     });
@@ -349,7 +344,7 @@ const __panel = PanelPage.create("resources_views_admin_views_wallet_bonus_index
         $('#date_from').attr('max',$(this).val());
     });
 
-    __panel.onTarget(document, 'ready', function () {
+    $(document).on('ready', function () {
         $('#bonus_type').on('change', function() {
          if($('#bonus_type').val() == 'amount')
             {
@@ -403,7 +398,7 @@ const __panel = PanelPage.create("resources_views_admin_views_wallet_bonus_index
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.customer.wallet.bonus.search')}}',
                 data: formData,
                 cache: false,
@@ -420,7 +415,7 @@ const __panel = PanelPage.create("resources_views_admin_views_wallet_bonus_index
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
 
         $('#reset_btn').click(function(){
@@ -429,7 +424,5 @@ const __panel = PanelPage.create("resources_views_admin_views_wallet_bonus_index
             $('#store_wise').show();
             $('#zone_wise').hide();
         })
-
-})();
-</script>
+    </script>
 @endpush

@@ -310,16 +310,7 @@
 @push('script_2')
 
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_mail_index_blade_php_0");
-__panel.globals({
-"disableMailConf": {get: () => disableMailConf},
-"ValidateEmail": {get: () => ValidateEmail, set: value => { ValidateEmail = value; }}
-});
-
-
+    "use strict";
 
     const disableMailConf = () => {
         if($('#mail-config-disable').is(':checked')) {
@@ -332,7 +323,7 @@ __panel.globals({
         disableMailConf()
     })
 
-    __panel.onTarget(document, 'click', '.show-Tab', function () {
+    $(document).on('click', '.show-Tab', function () {
         $("#mail-config").removeClass("in active");
         $("#test-mail").addClass("fade in active");
         $('.nav--tabs').find('a').removeClass('active')
@@ -347,7 +338,7 @@ __panel.globals({
             return false;
         }
     }
-    __panel.onTarget(document, 'click', '.send-mail', function () {
+    $(document).on('click', '.send-mail', function () {
             @if(env('APP_MODE') =='demo')
             toastr.info('{{ translate('Update option is disabled for demo!') }}', {
                 CloseButton: true,
@@ -369,7 +360,7 @@ __panel.globals({
                             'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                         }
                     });
-                    __panel.request($.ajax({
+                    $.ajax({
                         url: "{{route('admin.business-settings.mail.send')}}",
                         method: 'GET',
                         data: {
@@ -392,7 +383,7 @@ __panel.globals({
                             $('#loading').hide();
 
                         }
-                    }));
+                    });
                 }
             })
         } else {
@@ -408,7 +399,7 @@ __panel.globals({
                 'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
             }
         });
-        __panel.request($.ajax({
+        $.ajax({
             url: "{{ route('admin.business-settings.mail-config') }}",
             method: 'POST',
             data: $('#mail-config-form').serialize(),
@@ -422,9 +413,7 @@ __panel.globals({
             complete: function() {
                 $('#loading').hide();
             }
-        }));
+        });
     })
-
-})();
 </script>
 @endpush

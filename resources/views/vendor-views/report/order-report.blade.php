@@ -465,11 +465,7 @@
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/vendor/report.js"></script>
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_report_order_report_blade_php_0");
-
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
 
 
 
@@ -495,7 +491,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_report_order_repo
                         };
                     },
                     __port: function(params, success, failure) {
-                        let $request = __panel.request($.ajax(params));
+                        let $request = $.ajax(params);
 
                         $request.then(success);
                         $request.fail(failure);
@@ -505,8 +501,6 @@ const __panel = PanelPage.create("resources_views_vendor_views_report_order_repo
                 }
             });
         });
-
-})();
-</script>
+    </script>
 @endpush
 

@@ -313,12 +313,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_zone_settings_blade_php_0");
-
-
+        "use strict";
         $('.show-incentive').click(function() {
             $('#show_incentive').removeClass('d-none');
             $('#show_incentive_button').addClass('d-none');
@@ -331,7 +326,7 @@ const __panel = PanelPage.create("resources_views_admin_views_zone_settings_blad
         $('#reset_btn').click(function() {
             location.reload(true);
         })
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
             $("#maximum_shipping_charge_status").on('change', function() {
                 if ($("#maximum_shipping_charge_status").is(':checked')) {
                     $('#maximum_shipping_charge').removeAttr('readonly');
@@ -361,7 +356,5 @@ const __panel = PanelPage.create("resources_views_admin_views_zone_settings_blad
                 }
             });
         });
-
-})();
-</script>
+    </script>
 @endpush

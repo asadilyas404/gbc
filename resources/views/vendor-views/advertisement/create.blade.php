@@ -321,11 +321,7 @@ active
     <script type="text/javascript" src="{{dynamicAsset('public/assets/admin/js/daterangepicker.min.js')}}"></script>
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_advertisement_create_blade_php_0");
-
-        __panel.ready(function() {
+        $(function() {
             $('input[name="dates"]').daterangepicker({
                 // timePicker: true,
                 minDate: new Date(),
@@ -349,17 +345,11 @@ const __panel = PanelPage.create("resources_views_vendor_views_advertisement_cre
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
             });
         });
-
-})();
-</script>
+    </script>
 
 
     <!-- Video Upload Handlr -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_advertisement_create_blade_php_1");
-
         $(".video_attachment").on("change", function (event) {
             const videoEl = $(".video > video")
             const prevVideoBox = $('.prev-video-box')
@@ -382,7 +372,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_advertisement_cre
             })
         })
 
-        __panel.onTarget(window, 'load', function () {
+        $(window).on('load', function () {
             handleUploadBox();
 
             const videoEl = $(".video > video")
@@ -403,19 +393,10 @@ const __panel = PanelPage.create("resources_views_vendor_views_advertisement_cre
                 videoEl.attr('src', '');
             })
         })
-
-})();
-</script>
+    </script>
 
     <!-- Select Toggler Scripts -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_advertisement_create_blade_php_2");
-__panel.globals({
-"handleUploadBox": {get: () => handleUploadBox}
-});
-
         const handleUploadBox = () => {
             const value = $('.promotion_type').val();
             if (value == 'video_promotion') {
@@ -426,7 +407,7 @@ __panel.globals({
                 $('#profile-upload-box, #profile-preview-box').show();
             }
         }
-        __panel.onTarget(window, 'load', function () {
+        $(window).on('load', function () {
             handleUploadBox()
         })
 
@@ -434,16 +415,10 @@ __panel.globals({
             handleUploadBox();
             $('.remove-file-button').click()
         })
-
-})();
-</script>
+    </script>
 
     <!-- Profile Promotion Image Upload Handlr -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_advertisement_create_blade_php_3");
-
         $(".js-upload-input").on("change", function (event) {
             let file = event.target.files[0];
             const target = $(this).data('target');
@@ -459,19 +434,10 @@ const __panel = PanelPage.create("resources_views_vendor_views_advertisement_cre
                 file ? $(this).closest('.upload-file').find('.js-upload-input').val(file) : ''
             })
         })
-
-})();
-</script>
+    </script>
 
     <!-- Title and Description Change Handlr -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_advertisement_create_blade_php_4");
-__panel.globals({
-"resetTextHandlr": {get: () => resetTextHandlr}
-});
-
         $('[data-preview-text]').on('input', function (event) {
             const target = $(this).data('preview-text');
             if (event.target.value) {
@@ -501,23 +467,17 @@ __panel.globals({
                 }
             })
         }
-        __panel.onTarget(window, 'load', function () {
+        $(window).on('load', function () {
             resetTextHandlr()
         })
 
         $('#create-add-form').on('reset', function () {
             window.location.reload()
         })
-
-})();
-</script>
+    </script>
 
     <!-- Review and Rating Handlr -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_advertisement_create_blade_php_5");
-
         $('[name="review"]').on('change', function () {
             if ($(this).is(':checked')) {
                 $('.review-placeholder').hide()
@@ -544,7 +504,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_advertisement_cre
         })
 
 
-        __panel.onTarget(window, 'load', function () {
+        $(window).on('load', function () {
             $('[name="review"]').each(function () {
                 if ($(this).is(':checked')) {
                     $('.review--text').show()
@@ -566,16 +526,10 @@ const __panel = PanelPage.create("resources_views_vendor_views_advertisement_cre
                 }
             })
         })
-
-})();
-</script>
+    </script>
 
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_advertisement_create_blade_php_6");
-
-            __panel.onTarget(document, 'ready', function() {
+            $(document).on('ready', function() {
 
 
         $('#create-add-form').on('submit', function (event) {
@@ -586,7 +540,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_advertisement_cre
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{ route('vendor.advertisement.store') }}',
                 data: $('#create-add-form').serialize(),
                 data: formData,
@@ -610,19 +564,17 @@ const __panel = PanelPage.create("resources_views_vendor_views_advertisement_cre
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        __panel.setTimeout(function () {
+                        setTimeout(function () {
                             location.href = '{{ route('vendor.advertisement.index') }}?type=pending&new_ad=1';
                         }, 2000);
                     }
                 }
-            }));
+            });
         });
 
 
 
             });
 
-
-})();
 </script>
 @endpush

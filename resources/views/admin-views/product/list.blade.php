@@ -500,13 +500,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_product_list_blade_php_0");
-
-
-        __panel.onTarget(document, 'ready', function() {
+        "use strict";
+        $(document).on('ready', function() {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#datatable'), {
@@ -532,7 +527,7 @@ const __panel = PanelPage.create("resources_views_admin_views_product_list_blade
 
                 if (oldValue == "") return;
 
-                __panel.setTimeout(function() {
+                setTimeout(function() {
                     let newValue = $input.val();
 
                     if (newValue == "") {
@@ -590,7 +585,7 @@ const __panel = PanelPage.create("resources_views_admin_views_product_list_blade
                     };
                 },
                 __port: function(params, success, failure) {
-                    let $request = __panel.request($.ajax(params));
+                    let $request = $.ajax(params);
 
                     $request.then(success);
                     $request.fail(failure);
@@ -616,7 +611,7 @@ const __panel = PanelPage.create("resources_views_admin_views_product_list_blade
                     };
                 },
                 __port: function(params, success, failure) {
-                    let $request = __panel.request($.ajax(params));
+                    let $request = $.ajax(params);
 
                     $request.then(success);
                     $request.fail(failure);
@@ -627,7 +622,5 @@ const __panel = PanelPage.create("resources_views_admin_views_product_list_blade
         });
 
 
-
-})();
-</script>
+    </script>
 @endpush

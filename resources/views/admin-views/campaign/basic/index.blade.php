@@ -158,12 +158,7 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/basic-campaign-index.js"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_index_blade_php_0");
-
-
+        "use strict";
         $('#campaign-form').on('submit', function (e) {
             e.preventDefault();
             let formData = new FormData(this);
@@ -172,7 +167,7 @@ const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_ind
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.campaign.store-basic')}}',
                 data: formData,
                 cache: false,
@@ -191,12 +186,12 @@ const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_ind
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        __panel.setTimeout(function () {
+                        setTimeout(function () {
                             location.href = '{{route('admin.campaign.list', 'basic')}}';
                         }, 2000);
                     }
                 }
-            }));
+            });
         });
 
 
@@ -204,7 +199,5 @@ const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_ind
                 $('#choice_item').val(null).trigger('change');
                 $('#viewer').attr('src','{{dynamicAsset('public/assets/admin/img/900x400/img1.jpg')}}');
             })
-
-})();
-</script>
+        </script>
 @endpush

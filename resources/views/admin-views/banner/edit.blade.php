@@ -162,17 +162,8 @@
 @push('script_2')
 <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/banner-index.js"></script>
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_banner_edit_blade_php_0");
-__panel.globals({
-"banner_type_change": {get: () => banner_type_change, set: value => { banner_type_change = value; }},
-"getRequest": {get: () => getRequest, set: value => { getRequest = value; }}
-});
-
-
-    __panel.onTarget(document, 'ready', function () {
+    "use strict";
+    $(document).on('ready', function () {
         let zone_id = {{$banner->zone_id}};
         banner_type_change('{{$banner->type}}');
 
@@ -203,7 +194,7 @@ __panel.globals({
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = __panel.request($.ajax(params));
+                    let $request = $.ajax(params);
 
                     $request.then(success);
                     $request.fail(failure);
@@ -252,7 +243,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.banner.update', [$banner['id']])}}',
                 data: formData,
                 cache: false,
@@ -271,12 +262,12 @@ __panel.globals({
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        __panel.setTimeout(function () {
+                        setTimeout(function () {
                             location.href = '{{route('admin.banner.add-new')}}';
                         }, 2000);
                     }
                 }
-            }));
+            });
         });
 
         $('#reset_btn').click(function(){
@@ -285,7 +276,7 @@ __panel.globals({
             $('#viewer').attr('src','{{dynamicStorage('storage/app/public/banner')}}/{{$banner['image']}}');
             $('#customFileEg1').val(null);
             $('#zone').val("{{$banner->zone_id}}").trigger('change');
-            __panel.setTimeout(function () {
+            setTimeout(function () {
                 @if($banner->type == 'restaurant_wise')
                     $('#resturant_ids').val("{{$banner->data}}").trigger('change');
                 @elseif($banner->type == 'item_wise')
@@ -300,15 +291,13 @@ $('.get-request').on('change', function (){
 
 })
 function getRequest(route, id) {
-    __panel.request($.get({
+    $.get({
         url: route,
         dataType: 'json',
         success: function (data) {
             $('#' + id).empty().append(data.options);
         },
-    }));
+    });
 }
-
-})();
-</script>
+    </script>
 @endpush

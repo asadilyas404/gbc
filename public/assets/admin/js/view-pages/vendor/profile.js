@@ -1,9 +1,4 @@
-
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_vendor_profile_js");
-
 
 $("#customFileEg1").change(function () {
     readURL(this);
@@ -24,5 +19,3 @@ $("#passwordSection").click(function() {
         scrollTop: $("#passwordDiv").offset().top
     }, 2000);
 });
-
-})();

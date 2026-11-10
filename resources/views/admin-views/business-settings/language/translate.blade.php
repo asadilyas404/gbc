@@ -220,17 +220,8 @@
 @push('script_2')
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_language_translate_blade_php_0");
-__panel.globals({
-"auto_translate_all": {get: () => auto_translate_all, set: value => { auto_translate_all = value; }},
-"modal": {get: () => modal}
-});
-
-
-        __panel.onTarget(document, 'click', '.update-language-btn', function () {
+        "use strict"
+        $(document).on('click', '.update-language-btn', function () {
             let key = $(this).data('key');
             let id = $(this).data('id');
             let value = $('#value-'+id).val() ;
@@ -239,7 +230,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.ajax({
+            $.ajax({
                 url: "{{route('admin.language.translate-submit',[$lang])}}",
                 method: 'POST',
                 data: {
@@ -255,10 +246,10 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
 
-        __panel.onTarget(document, 'click', '.auto-translate-btn', function () {
+        $(document).on('click', '.auto-translate-btn', function () {
             let key = $(this).data('key');
             let id = $(this).data('id');
             $.ajaxSetup({
@@ -266,7 +257,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.ajax({
+            $.ajax({
                 url: "{{route('admin.language.auto-translate',[$lang])}}",
                 method: 'POST',
                 data: {
@@ -282,26 +273,26 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
 
 
 
 
 
-        __panel.onTarget(document, 'click', '#translate-confirm-btn', function () {
+        $(document).on('click', '#translate-confirm-btn', function () {
             $('#translate-confirm-modal').modal('show')
 
         });
-        __panel.onTarget(document, 'click', '.auto_translate_all', function () {
+        $(document).on('click', '.auto_translate_all', function () {
             auto_translate_all();
 
         });
-        __panel.onTarget(document, 'click', '.location_reload', function () {
+        $(document).on('click', '.location_reload', function () {
             location.reload();
 
         });
-        __panel.onTarget(document, 'click', '.close-tab', function () {
+        $(document).on('click', '.close-tab', function () {
             $('#translating-modal').removeClass('prevent-close')
             window.close();
 
@@ -314,7 +305,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.ajax({
+            $.ajax({
                 url: "{{route('admin.language.auto_translate_all',[$lang])}}",
                 method: 'get',
                 data: {
@@ -365,11 +356,11 @@ __panel.globals({
                 },
                 complete: function () {
                 },
-            }));
+            });
         }
 
         const modal = document.getElementById('translating-modal');
-        __panel.listen(window, 'beforeunload', (event) => {
+        window.addEventListener('beforeunload', (event) => {
 
             if (modal.classList.contains('prevent-close')) {
                 // $('#warning-modal').modal('show')
@@ -377,8 +368,6 @@ __panel.globals({
                 event.returnValue = '';
             }
         });
-
-})();
-</script>
+    </script>
 
 @endpush

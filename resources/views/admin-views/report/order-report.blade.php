@@ -501,11 +501,7 @@
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/hs.chartjs-matrix.js"></script>
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_report_order_report_blade_php_0");
-
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
 
             $('.js-data-example-ajax').select2({
                 ajax: {
@@ -526,7 +522,7 @@ const __panel = PanelPage.create("resources_views_admin_views_report_order_repor
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = __panel.request($.ajax(params));
+                        var $request = $.ajax(params);
 
                         $request.then(success);
                         $request.fail(failure);
@@ -558,7 +554,7 @@ const __panel = PanelPage.create("resources_views_admin_views_report_order_repor
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = __panel.request($.ajax(params));
+                        var $request = $.ajax(params);
 
                         $request.then(success);
                         $request.fail(failure);
@@ -568,15 +564,9 @@ const __panel = PanelPage.create("resources_views_admin_views_report_order_repor
                 }
             });
         });
-
-})();
-</script>
+    </script>
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_report_order_report_blade_php_1");
-
         $('#from_date,#to_date').change(function() {
             let fr = $('#from_date').val();
             let to = $('#to_date').val();
@@ -593,15 +583,9 @@ const __panel = PanelPage.create("resources_views_admin_views_report_order_repor
 
         })
 
-
-})();
-</script>
+    </script>
 
     {{-- <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_report_order_report_blade_php_2");
-
             $('#search-form').on('submit', function (e) {
             e.preventDefault();
             var formData = new FormData(this);
@@ -610,7 +594,7 @@ const __panel = PanelPage.create("resources_views_admin_views_report_order_repor
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.report.search_order_report')}}',
                 data: formData,
                 cache: false,
@@ -627,10 +611,8 @@ const __panel = PanelPage.create("resources_views_admin_views_report_order_repor
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
-
-})();
-</script> --}}
+    </script> --}}
 @endpush
 

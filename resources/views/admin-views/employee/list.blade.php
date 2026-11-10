@@ -151,18 +151,11 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_employee_list_blade_php_0");
-
-
+        "use strict";
         // Call the dataTables jQuery plugin
-        __panel.ready(function () {
+        $(document).ready(function () {
             $('#dataTable').DataTable();
         });
 
-
-})();
-</script>
+    </script>
 @endpush

@@ -144,13 +144,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_delivery_man_bonus_blade_php_0");
-
-
-        __panel.onTarget(document, 'ready', function () {
+        "use strict";
+        $(document).on('ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -201,7 +196,7 @@ const __panel = PanelPage.create("resources_views_admin_views_delivery_man_bonus
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         }
                     });
-                    __panel.request($.post({
+                    $.post({
                         url: '{{route('admin.delivery-man.bonus')}}',
                         data: formData,
                         cache: false,
@@ -224,13 +219,13 @@ const __panel = PanelPage.create("resources_views_admin_views_delivery_man_bonus
                                     CloseButton: true,
                                     ProgressBar: true
                                 });
-                                __panel.setTimeout(function () {
+                                setTimeout(function () {
                                     window.location.reload();
                                 }, 2000);
 
                             }
                         },
-                    }));
+                    });
                 }
             })
         })
@@ -250,7 +245,7 @@ const __panel = PanelPage.create("resources_views_admin_views_delivery_man_bonus
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = __panel.request($.ajax(params));
+                    let $request = $.ajax(params);
 
                     $request.then(success);
                     $request.fail(failure);
@@ -259,7 +254,5 @@ const __panel = PanelPage.create("resources_views_admin_views_delivery_man_bonus
                 }
             }
         });
-
-})();
-</script>
+    </script>
 @endpush

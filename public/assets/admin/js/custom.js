@@ -1,10 +1,3 @@
-
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("panelCustomLayout");
-__panel.globals({
-"HSDemo": {get: () => HSDemo, set: value => { HSDemo = value; }}
-});
 function HSDemo() {
     var settings = {
         headerMain: document.getElementById("headerMain").innerHTML,
@@ -395,5 +388,3 @@ function HSDemo() {
 }
 
 HSDemo();
-
-})();

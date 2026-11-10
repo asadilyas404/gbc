@@ -488,22 +488,8 @@
             src="https://maps.googleapis.com/maps/api/js?key={{ \App\Models\BusinessSetting::where('key', 'map_api_key')->first()->value }}&libraries=drawing,places&v=3.45.8">
     </script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_vendor_index_blade_php_0");
-__panel.globals({
-"myLatlng": {get: () => myLatlng, set: value => { myLatlng = value; }},
-"map": {get: () => map, set: value => { map = value; }},
-"zonePolygon": {get: () => zonePolygon, set: value => { zonePolygon = value; }},
-"infoWindow": {get: () => infoWindow, set: value => { infoWindow = value; }},
-"bounds": {get: () => bounds, set: value => { bounds = value; }},
-"initMap": {get: () => initMap, set: value => { initMap = value; }},
-"handleLocationError": {get: () => handleLocationError, set: value => { handleLocationError = value; }}
-});
-
-
-        __panel.onTarget(document, 'ready', function() {
+        "use strict";
+        $(document).on('ready', function() {
             $('.offcanvas').on('click', function(){
                 $('.offcanvas, .floating--date').removeClass('active')
             })
@@ -512,7 +498,7 @@ __panel.globals({
             })
         });
 
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
             @if (isset(auth('admin')->user()->zone_id))
             $('#choice_zones').trigger('change');
             @endif
@@ -535,7 +521,7 @@ __panel.globals({
             }
         });
 
-        __panel.ready(function() {
+        $(function() {
             $("#coba").spartanMultiImagePicker({
                 fieldName: 'identity_image[]',
                 maxCount: 5,
@@ -673,7 +659,7 @@ __panel.globals({
                 $('#choice_zones').on('change', function() {
                     infoWindow.close();
                     var id = $(this).val();
-                    __panel.request($.get({
+                    $.get({
                         url: '{{ url('/') }}/admin/zone/get-coordinates/' + id,
                         dataType: 'json',
                         success: function(data) {
@@ -728,9 +714,9 @@ __panel.globals({
                                     infoWindow.open(map);
                                 });
                             },
-                        }));
+                        });
                     });
-                    __panel.listen(document, 'keypress', function (e) {
+                    document.addEventListener('keypress', function (e) {
                 if (e.keyCode === 13 || e.which === 13) {
                     e.preventDefault();
                     return false;
@@ -769,7 +755,5 @@ __panel.globals({
         $("#time_view").val(min+' to '+max+' '+type);
 
     })
-
-})();
 </script>
 @endpush

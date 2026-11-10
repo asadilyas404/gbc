@@ -540,18 +540,7 @@
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/tags-input.min.js"></script>
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/view-pages/vendor/product-index.js"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_product_copy_blade_php_0");
-__panel.globals({
-"updatestockCount": {get: () => updatestockCount, set: value => { updatestockCount = value; }},
-"add_new_row_button": {get: () => add_new_row_button, set: value => { add_new_row_button = value; }},
-"removedVariationIDs": {get: () => removedVariationIDs, set: value => { removedVariationIDs = value; }},
-"removedVariationOptionIDs": {get: () => removedVariationOptionIDs, set: value => { removedVariationOptionIDs = value; }}
-});
-
-
+        "use strict";
         count = {{ isset($product->variations) ? count(json_decode($product->variations, true)) : 0 }};
 
 
@@ -581,9 +570,9 @@ __panel.globals({
             }
         }
 
-        __panel.ready(function() {
+        $(document).ready(function() {
             // Move up with slide animation
-            __panel.onTarget(document, 'click', '.move-up', function (e) {
+            $(document).on('click', '.move-up', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option-item');
@@ -598,7 +587,7 @@ __panel.globals({
                 }
             });
 
-            __panel.onTarget(document, 'click', '.move-option-up', function (e) {
+            $(document).on('click', '.move-option-up', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option_price_item');
@@ -614,7 +603,7 @@ __panel.globals({
             });
 
             // Move down with slide animation
-            __panel.onTarget(document, 'click', '.move-down', function (e) {
+            $(document).on('click', '.move-down', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option-item');
@@ -629,7 +618,7 @@ __panel.globals({
                 }
             });
 
-            __panel.onTarget(document, 'click', '.move-option-down', function (e) {
+            $(document).on('click', '.move-option-down', function (e) {
                 e.preventDefault();
 
                 const item = $(this).closest('.option_price_item');
@@ -875,8 +864,8 @@ __panel.globals({
         }
 
 
-        __panel.ready(function() {
-            __panel.setTimeout(function() {
+        $(document).ready(function() {
+            setTimeout(function() {
                 let category = $("#category-id").val();
                 let sub_category = '{{ count($product_category) >= 2 ? $product_category[1]->id : '' }}';
                 let sub_sub_category =
@@ -895,7 +884,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{ route('vendor.food.store') }}',
                 data: formData,
                 cache: false,
@@ -918,12 +907,12 @@ __panel.globals({
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        __panel.setTimeout(function() {
+                        setTimeout(function() {
                             location.href = '{{ route('vendor.food.list') }}';
                         }, 2000);
                     }
                 }
-            }));
+            });
         });
         $('#reset_btn').click(function() {
             location.reload(true);
@@ -932,11 +921,11 @@ __panel.globals({
         let removedVariationIDs = [];
         let removedVariationOptionIDs = [];
 
-        __panel.onTarget(document, 'click', '.remove_variation', function() {
+        $(document).on('click', '.remove_variation', function() {
             removedVariationIDs.push($(this).data('id'));
             $('#removedVariationIDs').val(removedVariationIDs.join(','));
         });
-        __panel.onTarget(document, 'click', '.remove_variation_option', function() {
+        $(document).on('click', '.remove_variation_option', function() {
             Swal.fire({
                 title: 'Are you sure?',
                 text: "This option will be deleted permanently!",
@@ -952,7 +941,5 @@ __panel.globals({
                 }
             });
         });
-
-})();
-</script>
+    </script>
 @endpush

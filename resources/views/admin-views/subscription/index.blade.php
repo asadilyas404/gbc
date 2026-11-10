@@ -384,15 +384,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_subscription_index_blade_php_0");
-__panel.globals({
-"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }}
-});
-
-
+        "use strict";
         $('.status_change_alert').on('click', function(event) {
             let url = $(this).data('url');
             let message = $(this).data('message');
@@ -417,7 +409,7 @@ __panel.globals({
                 }
             })
         }
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
 
             // INITIALIZATION OF DATATABLES
             // =======================================================
@@ -435,7 +427,7 @@ __panel.globals({
 
 
         "use strict";
-        __panel.onTarget(document, "click", ".status_change_alert", function() {
+        $(document).on("click", ".status_change_alert", function() {
             let url = $(this).data('url');
             let package_name = $(this).data('package_name');
             $('.show_all').removeAttr("hidden");
@@ -446,7 +438,7 @@ __panel.globals({
 
             status_change_alert(url, event)
         });
-        __panel.onTarget(document, "click", ".status_change_alert_reenable", function(e) {
+        $(document).on("click", ".status_change_alert_reenable", function(e) {
             e.preventDefault();
             let url = $(this).data('url');
             $('#status_change_now2').attr("href", url);
@@ -455,7 +447,7 @@ __panel.globals({
 
 
 
-        __panel.onTarget(document, "click", ".shift_package", function() {
+        $(document).on("click", ".shift_package", function() {
             $('#status-chage-deactive').modal('hide');
             $('#shift_package').modal('show');
         });
@@ -464,7 +456,7 @@ __panel.globals({
             e.preventDefault();
             $('#status-chage-deactive').modal('show');
         }
-        __panel.onTarget(document, "ready", function() {
+        $(document).on("ready", function() {
             $('.js-select2-custom').select2({
                 templateResult: function(option) {
                     if (option.element && (option.element).hasAttribute('hidden')) {
@@ -482,7 +474,5 @@ __panel.globals({
             nav: false,
             autoWidth: true,
         })
-
-})();
-</script>
+    </script>
 @endpush

@@ -3,7 +3,9 @@
 @endphp
 
 {{-- Audio Element & 30-Day Notification Sound Manager Partial with Deterministic Per-Order Alerts --}}
-<span id="order-sound-manager" hidden></span>
+<audio id="new-order-sound" preload="auto" data-turbo-permanent>
+    <source src="{{ asset('sounds/notification.wav') }}" type="audio/wav">
+</audio>
 
 <style>
     /* Continuous pulse animation for alerting cards */

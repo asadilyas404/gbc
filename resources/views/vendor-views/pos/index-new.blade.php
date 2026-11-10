@@ -991,10 +991,10 @@
             $.post('{{ route('vendor.pos.emptyCart') }}', {
                 _token: '{{ csrf_token() }}'
             }).done(function() {
+                Turbo.visit('/restaurant-panel/pos/new/' + selectedId);
                 // Clear the customer from local storage
                 localStorage.removeItem('posSelectedCustomer');
                 $('#customer').val(null).trigger('change');
-                Turbo.visit('/restaurant-panel/pos/new/' + selectedId);
             }).always(function() {
                 $('#loading').hide();
             });

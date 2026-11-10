@@ -85,19 +85,7 @@
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_delivery_man_view_conversations_blade_php_0");
-__panel.globals({
-"viewConvs": {get: () => viewConvs, set: value => { viewConvs = value; }},
-"page": {get: () => page, set: value => { page = value; }},
-"user_id": {get: () => user_id, set: value => { user_id = value; }},
-"loadMoreData": {get: () => loadMoreData, set: value => { loadMoreData = value; }},
-"fetch_data": {get: () => fetch_data, set: value => { fetch_data = value; }}
-});
-
-
+    "use strict";
 
     $('.view-conv').on('click', function (){
         let url = $(this).data('url');
@@ -111,13 +99,13 @@ __panel.globals({
         $('.customer-list').removeClass('conv-active');
         $('#' + id_to_active).addClass('conv-active');
         let new_url= "{{route('admin.delivery-man.preview', ['id'=>$dm->id, 'tab'=> 'conversation'])}}" + '?conversation=' + conv_id+ '&user=' + sender_id;
-            __panel.request($.get({
+            $.get({
                 url: url,
                 success: function(data) {
                     window.history.pushState('', 'New Page Title', new_url);
                     $('#dm-view-conversation').html(data.view);
                 }
-            }));
+            });
     }
 
     let page = 1;
@@ -131,14 +119,14 @@ __panel.globals({
     });
 
     function loadMoreData(page) {
-        __panel.request($.ajax({
+        $.ajax({
                 url: "{{ route('admin.delivery-man.message-list-search') }}" + '?page=' + page,
                 type: "get",
                 data:{"user_id":user_id},
                 beforeSend: function() {
 
                 }
-            }))
+            })
             .done(function(data) {
                 if (data.html == " ") {
                     return;
@@ -151,7 +139,7 @@ __panel.globals({
     };
 
     function fetch_data(page, query) {
-            __panel.request($.ajax({
+            $.ajax({
                 url: "{{ route('admin.delivery-man.message-list-search') }}" + '?page=' + page + "&key=" + query,
                 type: "get",
                 data:{"user_id":user_id},
@@ -159,14 +147,12 @@ __panel.globals({
                     $('#dm-conversation-list').empty();
                     $("#dm-conversation-list").append(data.html);
                 }
-            }))
+            })
         };
 
-        __panel.onTarget(document, 'keyup', '#serach', function() {
+        $(document).on('keyup', '#serach', function() {
             let query = $('#serach').val();
             fetch_data(page, query);
         });
-
-})();
 </script>
 @endpush

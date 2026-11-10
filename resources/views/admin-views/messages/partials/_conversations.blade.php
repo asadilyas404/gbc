@@ -250,12 +250,8 @@
 <script src="{{ dynamicAsset('public/assets/admin/js/chatting/picmo-emoji.js')}}"></script>
 <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/common.js"></script>
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_messages_partials__conversations_blade_php_0");
 
-
-    __panel.ready(function () {
+    $(document).ready(function () {
         $('.scroll-down').animate({
             scrollTop: $('#scroll-here').offset().top
         },0);
@@ -270,7 +266,7 @@ const __panel = PanelPage.create("resources_views_admin_views_messages_partials_
     });
 
 
-    __panel.ready(function () {
+    $(document).ready(function () {
         const { createPopup } = window.picmoPopup;
         const trigger = document.getElementById("trigger");
         const inputField = document.getElementById("msgInputValue");
@@ -317,7 +313,7 @@ const __panel = PanelPage.create("resources_views_admin_views_messages_partials_
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{ route('admin.message.store', [$user_id]) }}',
                 data: $('reply-form').serialize(),
                 data: formData,
@@ -376,8 +372,6 @@ const __panel = PanelPage.create("resources_views_admin_views_messages_partials_
                     $('#hide_icon').removeClass('d-none').addClass('d-inline-block');
                     $('#loader_icon').addClass('d-none');
                 }
-            }));
+            });
         });
-
-})();
 </script>

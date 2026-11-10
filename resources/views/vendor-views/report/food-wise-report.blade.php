@@ -316,19 +316,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_report_food_wise_report_blade_php_0");
-__panel.globals({
-"updatingChart": {get: () => updatingChart, set: value => { updatingChart = value; }},
-"ctx": {get: () => ctx, set: value => { ctx = value; }},
-"data": {get: () => data, set: value => { data = value; }},
-"options": {get: () => options, set: value => { options = value; }},
-"myLineChart": {get: () => myLineChart, set: value => { myLineChart = value; }}
-});
-
-
+        "use strict";
         // INITIALIZATION OF CHARTJS
         // =======================================================
         Chart.plugins.unregister(ChartDataLabels);
@@ -443,13 +431,11 @@ __panel.globals({
             },
         };
 
-        let myLineChart = __panel.resource(new Chart(ctx, {
+        let myLineChart = new Chart(ctx, {
             type: 'bar',
             data: data,
             options: options
-        }), "destroy");
+        });
 
-
-})();
-</script>
+    </script>
 @endpush

@@ -312,10 +312,6 @@
 
 @push('script')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_custom_role_edit_blade_php_0");
-
         $('#allSystem').change(function() {
             var isChecked = $(this).is(':checked');
             $('.system-checkbox').prop('checked', isChecked);
@@ -331,7 +327,5 @@ const __panel = PanelPage.create("resources_views_vendor_views_custom_role_edit_
                 }
             }
         }).trigger('change');
-
-})();
-</script>
+    </script>
 @endpush

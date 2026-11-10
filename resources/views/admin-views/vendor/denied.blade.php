@@ -231,16 +231,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_vendor_denied_blade_php_0");
-__panel.globals({
-"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }},
-"request_alert": {get: () => request_alert, set: value => { request_alert = value; }}
-});
-
-
+        "use strict";
         $('.status_change_alert').on('click', function (event) {
             let url = $(this).data('url');
             let message = $(this).data('message');
@@ -287,7 +278,7 @@ __panel.globals({
                 }
             })
         }
-        __panel.onTarget(document, 'ready', function () {
+        $(document).on('ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -327,8 +318,6 @@ __panel.globals({
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
             });
         });
-
-})();
-</script>
+    </script>
 
 @endpush

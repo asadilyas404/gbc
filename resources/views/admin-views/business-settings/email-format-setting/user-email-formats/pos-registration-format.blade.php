@@ -425,21 +425,12 @@
     <script src="{{dynamicAsset('public/assets/admin/js/view-pages/email-templates.js')}}"></script>
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_email_format_setting_user_email_formats_pos_registration_format_blade_php_0");
-__panel.globals({
-"editor2": {get: () => editor2, set: value => { editor2 = value; }}
-});
-
 
     let editor2 = CKEDITOR.replace('ckeditor2');
     editor2.on( 'change', function( evt ) {
         $('#mail-body2').empty().html(evt.editor.getData());
     });
-
-})();
-</script>
+    </script>
     <!-- Email Template End-->
 @endpush
 

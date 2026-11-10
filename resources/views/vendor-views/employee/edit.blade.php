@@ -178,12 +178,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_employee_edit_blade_php_0");
-
-
+        "use strict";
         $("#customFileUpload").change(function () {
             readURL(this);
         });
@@ -200,7 +195,5 @@ const __panel = PanelPage.create("resources_views_vendor_views_employee_edit_bla
         $('#reset_btn').click(function(){
             $('#viewer').attr('src','{{dynamicStorage('storage/app/public/vendor')}}/{{$e['image']}}');
         })
-
-})();
-</script>
+    </script>
 @endpush

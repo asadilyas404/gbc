@@ -1,10 +1,5 @@
-
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_customer_wallet_report_js");
-
-__panel.onTarget(document, 'ready', function () {
+$(document).on('ready', function () {
     // INITIALIZATION OF FLATPICKR
     // =======================================================
     $('.js-flatpickr').each(function () {
@@ -206,5 +201,3 @@ $('#from_date,#to_date').change(function () {
 $('#reset_btn').click(function(){
     $('#customer').val(null).trigger('change');
 })
-
-})();

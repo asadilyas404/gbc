@@ -161,15 +161,7 @@ active
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_subscription_settings_blade_php_0");
-__panel.globals({
-"status_change_alert": {get: () => status_change_alert, set: value => { status_change_alert = value; }}
-});
-
-
+    "use strict";
         $('.status_change_alert').on('click', function (event) {
         let title = $(this).data('title');
         let url = $(this).data('url');
@@ -195,8 +187,6 @@ __panel.globals({
             }
         })
     }
-
-})();
 </script>
 @endpush
 

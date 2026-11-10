@@ -328,28 +328,15 @@
     </script>
     <script src="{{dynamicAsset('public/assets/admin/js/view-pages/pos.js')}}"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_pos_index_blade_php_0");
-__panel.globals({
-"extra_charge": {get: () => extra_charge, set: value => { extra_charge = value; }},
-"initMap": {get: () => initMap, set: value => { initMap = value; }},
-"handleLocationError": {get: () => handleLocationError, set: value => { handleLocationError = value; }},
-"getVariantPrice": {get: () => getVariantPrice, set: value => { getVariantPrice = value; }},
-"payableAmount": {get: () => payableAmount, set: value => { payableAmount = value; }},
-"updateCart": {get: () => updateCart, set: value => { updateCart = value; }}
-});
 
-
-
+        "use strict";
 
 
         $( "#customer" ).change(function() {
             if($(this).val())
             {
                 $('#customer_id').val($(this).val());
-                __panel.request($.get({
+                $.get({
                 url: '{{ route('admin.pos.getUserData') }}',
                 dataType: 'json',
                 data: {
@@ -368,14 +355,14 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
             }
         });
 
 
 
 
-        __panel.onTarget(document, 'click', '.delivery_address_btn', function (event) {
+        $(document).on('click', '.delivery_address_btn', function (event) {
             event.preventDefault();
             if($(this).data('restaurant_id') == ''  ){
                 toastr.error('{{ translate('messages.Select_a_Restaurant_First') }}', {
@@ -386,7 +373,7 @@ __panel.globals({
                 $('#paymentModal').modal('show');
             }
         });
-        __panel.onTarget(document, 'submit', '#product_form', function (event) {
+        $(document).on('submit', '#product_form', function (event) {
             event.preventDefault();
             console.log(document.getElementById('phone').value.length);
             if(document.getElementById('phone').value.length <= 4){
@@ -399,7 +386,7 @@ __panel.globals({
                     document.getElementById('product_form').submit();
                 }
         });
-        __panel.onTarget(document, 'click', '.place-order-submit', function (event) {
+        $(document).on('click', '.place-order-submit', function (event) {
             event.preventDefault();
             let customer_id = document.getElementById('customer');
             if (customer_id.value) {
@@ -542,7 +529,7 @@ __panel.globals({
                 map.fitBounds(bounds);
             });
             @if ($restaurant_data)
-            __panel.request($.get({
+            $.get({
                 url: '{{ url('/') }}/admin/zone/get-coordinates/{{ $restaurant_data->zone_id }}',
                 dataType: 'json',
                 success: function (data) {
@@ -633,7 +620,7 @@ __panel.globals({
                                             }
                                             ?>
 
-                                        __panel.request($.get({
+                                        $.get({
                                             url: '{{ route('admin.pos.extra_charge') }}',
                                             dataType: 'json',
                                             data: {
@@ -658,7 +645,7 @@ __panel.globals({
                                                 document.getElementById('delivery_fee').value = delivery_charge;
                                                 $('#delivery_fee').siblings('strong').html(delivery_charge + ' ({{ Helpers::currency_symbol() }})');
                                             }
-                                        }));
+                                        });
 
                                     });
 
@@ -667,7 +654,7 @@ __panel.globals({
                         });
                     });
                 },
-            }));
+            });
             @endif
         }
         initMap();
@@ -681,7 +668,7 @@ __panel.globals({
             infoWindow.open(map);
         }
 
-        __panel.onTarget(document, 'ready', function () {
+        $(document).on('ready', function () {
             @if ($order)
             $('#print-invoice').modal('show');
             @endif
@@ -700,8 +687,8 @@ __panel.globals({
         });
 
 
-        __panel.onTarget(document, 'click', '.quick-View', function () {
-            __panel.request($.get({
+        $(document).on('click', '.quick-View', function () {
+            $.get({
                 url: '{{ route('admin.pos.quick-view') }}',
                 dataType: 'json',
                 data: {
@@ -717,11 +704,11 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
 
-        __panel.onTarget(document, 'click', '.quick-View-Cart-Item', function () {
-            __panel.request($.get({
+        $(document).on('click', '.quick-View-Cart-Item', function () {
+            $.get({
                 url: '{{ route('admin.pos.quick-view-cart-item') }}',
                 dataType: 'json',
                 data: {
@@ -739,7 +726,7 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
 
 
@@ -752,7 +739,7 @@ __panel.globals({
                         'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                     }
                 });
-                __panel.request($.ajax({
+                $.ajax({
                     type: "POST",
                     url: '{{ route('admin.pos.variant_price') }}',
                     data: $('#add-to-cart-form').serializeArray(),
@@ -784,18 +771,18 @@ __panel.globals({
 
                         }
                     }
-                }));
+                });
             }
         }
 
-        __panel.onTarget(document, 'click', '.add-To-Cart', function () {
+        $(document).on('click', '.add-To-Cart', function () {
             $.ajaxSetup({
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                 }
             });
             let form_id = 'add-to-cart-form';
-            __panel.request($.post({
+            $.post({
                 url: '{{ route('admin.pos.add-to-cart') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function () {
@@ -859,9 +846,9 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide();
                 }
-            }));
+            });
         });
-        __panel.onTarget(document, 'click', '.delivery-Address-Store', function (event) {
+        $(document).on('click', '.delivery-Address-Store', function (event) {
             if(document.getElementById('contact_person_name').value == ''){
                     toastr.error('{{ translate('messages.contact_person_name_is_missing') }}', {
                     CloseButton: true,
@@ -900,7 +887,7 @@ __panel.globals({
                     });
                     let form_id = 'delivery_address_store';
 
-                    __panel.request($.post({
+                    $.post({
                         url: '{{ route('admin.pos.add-delivery-address') }}',
                         data: $('#' + form_id).serializeArray(),
                         beforeSend: function () {
@@ -924,7 +911,7 @@ __panel.globals({
                             $('#loading').hide();
                             $('#paymentModal').modal('hide');
                         }
-                    }));
+                    });
                 }
         });
 
@@ -934,7 +921,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{ route('admin.pos.paid') }}',
                 data: $('#' + form_id).serializeArray(),
                 beforeSend: function () {
@@ -948,12 +935,12 @@ __panel.globals({
                     $('#loading').hide();
                     $('#insertPayableAmount').modal('hide');
                 }
-            }));
+            });
         }
 
-        __panel.onTarget(document, 'click', '.remove-From-Cart', function () {
+        $(document).on('click', '.remove-From-Cart', function () {
             let key = $(this).data('product-id');
-            __panel.request($.post('{{ route('admin.pos.remove-from-cart') }}', {
+            $.post('{{ route('admin.pos.remove-from-cart') }}', {
                 _token: '{{ csrf_token() }}',
                 key: key
             }, function (data) {
@@ -973,10 +960,10 @@ __panel.globals({
                     });
                 }
 
-            }));
+            });
         });
 
-        __panel.onTarget(document, 'click', '.empty-Cart', function (event) {
+        $(document).on('click', '.empty-Cart', function (event) {
             if(document.getElementById('cart_food_id').value == '' ){
                 event.preventDefault();
                     toastr.error("{{ translate('messages.your_cart_is_empty') }}", {
@@ -985,7 +972,7 @@ __panel.globals({
                 });
             } else{
 
-                __panel.request($.post('{{ route('admin.pos.emptyCart') }}', {
+                $.post('{{ route('admin.pos.emptyCart') }}', {
                     _token: '{{ csrf_token() }}'
                 }, function () {
                     $('#del-add').empty();
@@ -994,26 +981,26 @@ __panel.globals({
                         CloseButton: true,
                         ProgressBar: true
                     });
-                }));
+                });
             }
         });
 
         function updateCart() {
-            __panel.request($.post('<?php echo e(route('admin.pos.cart_items')); ?>?restaurant_id={{ request('restaurant_id') }}', {
+            $.post('<?php echo e(route('admin.pos.cart_items')); ?>?restaurant_id={{ request('restaurant_id') }}', {
                 _token: '<?php echo e(csrf_token()); ?>'
             }, function (data) {
                 $('#cart').empty().html(data);
-            }));
+            });
         }
 
-        __panel.onTarget(document, 'change', '[name="quantity"]', function (event) {
+        $(document).on('change', '[name="quantity"]', function (event) {
             getVariantPrice();
             if($('#option_ids').val() == ''){
                 $(this).attr('max', $(this).data('maximum_cart_quantity'));
             }
         });
 
-        __panel.onTarget(document, 'change', '.update-Quantity', function (event) {
+        $(document).on('change', '.update-Quantity', function (event) {
 
             let element = $(event.target);
             let minValue = parseInt(element.attr('min'));
@@ -1026,7 +1013,7 @@ __panel.globals({
 
             let oldvalue = element.data('value');
             if (valueCurrent >= minValue && maxValue >= valueCurrent) {
-                __panel.request($.post('{{ route('admin.pos.updateQuantity') }}', {
+                $.post('{{ route('admin.pos.updateQuantity') }}', {
                     _token: '{{ csrf_token() }}',
                     key: key,
                     option_ids: option_ids,
@@ -1044,7 +1031,7 @@ __panel.globals({
                     else{
                         updateCart();
                     }
-                }));
+                });
             } else {
                 element.val(oldvalue);
                 Swal.fire({
@@ -1070,7 +1057,7 @@ __panel.globals({
                 }
             }
         });
-        __panel.onTarget(document, 'change', '#customer', function (event) {
+        $(document).on('change', '#customer', function (event) {
             var selectedOption = $(this).find('option:selected');
             var selectedText = selectedOption.text().trim();
             var parts = selectedText.split("(");
@@ -1094,7 +1081,7 @@ __panel.globals({
                     };
                 },
                 __port: function (params, success, failure) {
-                    let $request = __panel.request($.ajax(params));
+                    let $request = $.ajax(params);
                     $request.then(success);
                     $request.fail(failure);
                     return $request;
@@ -1113,9 +1100,7 @@ __panel.globals({
             });
         });
 
-
-})();
-</script>
+    </script>
 
 @endpush
 

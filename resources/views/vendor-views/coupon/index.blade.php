@@ -290,12 +290,7 @@
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_coupon_index_blade_php_0");
-
-
+    "use strict";
     $("#date_from").on("change", function () {
         $('#date_to').attr('min',$(this).val());
     });
@@ -304,7 +299,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_coupon_index_blad
         $('#date_from').attr('max',$(this).val());
     });
 
-    __panel.onTarget(document, 'ready', function () {
+    $(document).on('ready', function () {
         $('#discount_type').on('change', function() {
          if($('#discount_type').val() == 'amount')
             {
@@ -385,7 +380,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_coupon_index_blad
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('vendor.coupon.search')}}',
                 data: formData,
                 cache: false,
@@ -402,7 +397,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_coupon_index_blad
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
 
         $('#reset_btn').click(function(){
@@ -419,7 +414,5 @@ const __panel = PanelPage.create("resources_views_vendor_views_coupon_index_blad
             $('#select_customer').val(null).trigger('change');
         })
 
-
-})();
-</script>
+    </script>
 @endpush

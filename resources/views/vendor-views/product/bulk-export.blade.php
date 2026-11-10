@@ -89,13 +89,8 @@
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_product_bulk_export_blade_php_0");
-
-
-    __panel.onTarget(document, 'ready', function (){
+    "use strict";
+    $(document).on('ready', function (){
         $('#date_from').attr('max',(new Date()).toISOString().split('T')[0]);
         $('#date_to').attr('max',(new Date()).toISOString().split('T')[0]);
         $('.id_wise').hide();
@@ -107,7 +102,5 @@ const __panel = PanelPage.create("resources_views_vendor_views_product_bulk_expo
             $('.'+$(this).val()).show();
         })
     });
-
-})();
 </script>
 @endpush

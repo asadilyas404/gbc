@@ -185,13 +185,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_vendor_view_discount_blade_php_0");
-
-
-        __panel.onTarget(document, 'ready', function () {
+        "use strict";
+        $(document).on('ready', function () {
             // INITIALIZATION OF SELECT2
             // =======================================================
             $('.js-select2-custom').each(function () {
@@ -217,7 +212,7 @@ const __panel = PanelPage.create("resources_views_admin_views_vendor_view_discou
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: "{{route('admin.restaurant.discount',[$restaurant['id']])}}",
                 data: formData,
                 cache: false,
@@ -237,14 +232,12 @@ const __panel = PanelPage.create("resources_views_admin_views_vendor_view_discou
                             ProgressBar: true
                         });
 
-                        __panel.setTimeout(function () {
+                        setTimeout(function () {
                             location.href = "{{route('admin.restaurant.view', ['restaurant'=>$restaurant->id, 'tab'=> 'discount'])}}";
                         }, 2000);
                     }
                 }
-            }));
+            });
         });
-
-})();
-</script>
+    </script>
 @endpush

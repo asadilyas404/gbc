@@ -442,14 +442,8 @@
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/subscription-create-edit.js"></script>
 
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_subscription_create_blade_php_0");
-
     @if (!$totla_count)
     $('#initial-modal').modal('show');
     @endif
-
-})();
 </script>
 @endpush

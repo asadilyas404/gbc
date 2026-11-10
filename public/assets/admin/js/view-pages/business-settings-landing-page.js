@@ -1,21 +1,13 @@
 
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
+
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_business_settings_landing_page_js");
-__panel.globals({
-"swiper": {get: () => swiper, set: value => { swiper = value; }}
-});
-
-
-
 $("img.svg").each(function() {
     let $img = jQuery(this);
     let imgID = $img.attr("id");
     let imgClass = $img.attr("class");
     let imgURL = $img.attr("src");
 
-    __panel.request(jQuery.get(
+    jQuery.get(
         imgURL,
         function(data) {
 
@@ -46,11 +38,11 @@ $("img.svg").each(function() {
             $img.replaceWith($svg);
         },
         "xml"
-    ));
+    );
 });
 
 
-__panel.ready(function () {
+$(document).ready(function () {
     $('.read-file').on('change', function () {
         readUrl(this);
     });
@@ -76,5 +68,3 @@ let swiper = new Swiper(".mySwiper", {
         dynamicBullets: true,
     },
 });
-
-})();

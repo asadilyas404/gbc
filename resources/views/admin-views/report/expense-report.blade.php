@@ -274,11 +274,7 @@
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/hs.chartjs-matrix.js"></script>
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_report_expense_report_blade_php_0");
-
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
             $('.js-data-example-ajax').select2({
                 ajax: {
                     url: '{{ url('/') }}/admin/restaurant/get-restaurants',
@@ -299,7 +295,7 @@ const __panel = PanelPage.create("resources_views_admin_views_report_expense_rep
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = __panel.request($.ajax(params));
+                        var $request = $.ajax(params);
 
                         $request.then(success);
                         $request.fail(failure);
@@ -332,7 +328,7 @@ const __panel = PanelPage.create("resources_views_admin_views_report_expense_rep
                         };
                     },
                     __port: function(params, success, failure) {
-                        var $request = __panel.request($.ajax(params));
+                        var $request = $.ajax(params);
 
                         $request.then(success);
                         $request.fail(failure);
@@ -342,15 +338,9 @@ const __panel = PanelPage.create("resources_views_admin_views_report_expense_rep
                 }
             });
         });
-
-})();
-</script>
+    </script>
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_report_expense_report_blade_php_1");
-
         $('#from_date,#to_date').change(function() {
             let fr = $('#from_date').val();
             let to = $('#to_date').val();
@@ -367,8 +357,6 @@ const __panel = PanelPage.create("resources_views_admin_views_report_expense_rep
 
         })
 
-
-})();
-</script>
+    </script>
 @endpush
 

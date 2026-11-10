@@ -33,26 +33,18 @@
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/style.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/internet-connection-alert.css') }}">
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/intltelinput/css/intlTelInput.css')}}">
-    @php
-        $panelHeadAssets = $__env->yieldPushContent('css_or_js');
-        preg_match_all('/<script\b[^>]*>[\s\S]*?<\/script>/i', $panelHeadAssets, $panelHeadScripts);
-    @endphp
-    {!! preg_replace('/<script\b[^>]*>[\s\S]*?<\/script>/i', '', $panelHeadAssets) !!}
+    @stack('css_or_js')
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/toastr.css') }}">
 
     <script src="{{ dynamicAsset('public/assets/admin/js/panel-page.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/@hotwired/turbo@8.0.13/dist/turbo.es2017-umd.js"></script>
     <script>Turbo.session.drive = false;</script>
-    <script src="{{ dynamicAsset('public/assets/admin/js/panel-navigation.js') }}"></script>
     <script src="{{ dynamicAsset('public/assets/admin/js/turbo-internal-links.js') }}" defer></script>
     <meta name="turbo-cache-control" content="no-cache">
 </head>
 
 <body class="footer-offset">
     @include('layouts.partials.internet-connection-alert')
-    @foreach ($panelHeadScripts[0] as $panelHeadScript)
-        {!! $panelHeadScript !!}
-    @endforeach
 
     @if(env('APP_MODE')=='demo')
     <div id="direction-toggle" class="direction-toggle">
@@ -245,23 +237,13 @@
     <script src="{{dynamicAsset('public/assets/admin/js/jquery.min.js')}}" data-turbo-eval="false"></script>
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_0");
-__panel.globals({
-"hide_loader": {get: () => hide_loader, set: value => { hide_loader = value; }}
-});
-
-
-    __panel.setTimeout(hide_loader, 1000);
+            "use strict";
+    setTimeout(hide_loader, 1000);
     function hide_loader(){
         $('#pre--loader').removeClass("pre--loader");;
     }
 
-
-})();
-</script>
+    </script>
     <script src="{{dynamicAsset('public/assets/admin/js/firebase.min.js')}}" data-turbo-eval="false"></script>
 
    @stack('script')
@@ -277,23 +259,18 @@ __panel.globals({
     <script src="{{ dynamicAsset('/public/assets/admin/plugins/lightbox/js/lightbox.min.js')}}" data-turbo-eval="false"></script>
 
    <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_1");
-
-
+    "use strict";
 
        $('.blinkings').on('mouseover', ()=> $('.blinkings').removeClass('active'))
        $('.blinkings').addClass('open-shadow')
-       __panel.setTimeout(() => {
+       setTimeout(() => {
            $('.blinkings').removeClass('active')
        }, 10000);
-       __panel.setTimeout(() => {
+       setTimeout(() => {
            $('.blinkings').removeClass('open-shadow')
        }, 5000);
 
-       __panel.ready(function(){
+       $(function(){
            var owl = $('.single-item-slider');
            owl.owlCarousel({
                autoplay: false,
@@ -317,38 +294,24 @@ const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_1"
                $('.slide-counter').html(+item+"/"+items)
            }
        });
-
-})();
-</script>
+   </script>
     {!! Toastr::message() !!}
 
     @if ($errors->any())
         <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_2");
-
-
+            "use strict";
             @foreach ($errors->all() as $error)
                 toastr.error('{{ translate($error) }}', Error, {
                     CloseButton: true,
                     ProgressBar: true
                 });
             @endforeach
-
-})();
-</script>
+        </script>
     @endif
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
 "use strict";
-const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_3");
-
-
-        __panel.ready(function(){
+        $(document).ready(function(){
             $(".direction-toggle").on("click", function () {
                 if($('html').hasClass('active')){
                     $('html').removeClass('active')
@@ -372,7 +335,7 @@ const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_3"
                     $("html").attr('dir', 'rtl');
                     $(".direction-toggle").find('span').text('Toggle LTR')
                 }
-                __panel.request($.get({
+                $.get({
                         url: '{{ route('admin.business-settings.site_direction') }}',
                         dataType: 'json',
                         data: {
@@ -381,12 +344,12 @@ const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_3"
                         success: function() {
                         },
 
-                    }));
+                    });
                 }
             });
 
 
-        __panel.ready(function() {
+        $(document).ready(function() {
 
             if (window.localStorage.getItem('hs-builder-popover') === null) {
                 $('#builderPopover').popover('show')
@@ -394,7 +357,7 @@ const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_3"
                         $('.popover').last().addClass('popover-dark')
                     });
 
-                __panel.onTarget(document, 'click', '#closeBuilderPopover', function() {
+                $(document).on('click', '#closeBuilderPopover', function() {
                     window.localStorage.setItem('hs-builder-popover', true);
                     $('#builderPopover').popover('dispose');
                 });
@@ -446,7 +409,6 @@ const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_3"
             // INITIALIZATION OF SELECT2
             // =======================================================
             $('.js-select2-custom').each(function() {
-                if ($(this).data('select2')) return;
                 var select2 = $.HSCore.components.HSSelect2.init($(this));
             });
 
@@ -495,25 +457,13 @@ const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_3"
                 var clipboard = $.HSCore.components.HSClipboard.init(this);
             });
         });
-
-})();
-</script>
+    </script>
 
     @stack('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_layouts_admin_app_blade_php_4");
-__panel.globals({
-"baseUrl": {get: () => baseUrl, set: value => { baseUrl = value; }}
-});
-
-
+        "use strict";
         var baseUrl = '{{ url('/') }}';
-
-})();
-</script>
+    </script>
     <script src="{{dynamicAsset('public/assets/admin/js/view-pages/common.js')}}"></script>
     <audio id="myAudio" data-turbo-permanent>
         <source src="{{ dynamicAsset('public/assets/admin/sound/notification.mp3') }}" type="audio/mpeg">
@@ -828,7 +778,7 @@ __panel.globals({
         if (/MSIE \d|Trident.*rv:/.test(navigator.userAgent)) document.write(
             '<script src="{{ dynamicAsset('public/assets/admin') }}/vendor/babel-polyfill/polyfill.min.js"><\/script>');
 
-        page.ready(() => $('.pre--loader').fadeOut(600));
+        $(window).on('load', ()=> $('.pre--loader').fadeOut(600))
 
         $('.log-out').on('click',function (){
                 Swal.fire({
@@ -851,7 +801,7 @@ __panel.globals({
 
             const inputs = document.querySelectorAll('input[type="tel"]');
             inputs.forEach(input => {
-                const telephone = window.intlTelInput(input, {
+                window.intlTelInput(input, {
                     initialCountry: "{{$countryCode}}",
                     utilsScript: "{{ dynamicAsset('public/assets/admin/intltelinput/js/utils.js') }}",
                     autoInsertDialCode: true,
@@ -863,7 +813,6 @@ __panel.globals({
                     onlyCountries: ["{{$countryCode}}"],
                     @endif
                 });
-                page.cleanup(() => telephone.destroy());
             });
 
 

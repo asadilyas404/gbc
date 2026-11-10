@@ -51,33 +51,14 @@
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
+
 "use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_db_index_blade_php_0");
-__panel.globals({
-"restaurant_dependent": {get: () => restaurant_dependent, set: value => { restaurant_dependent = value; }},
-"order_dependent": {get: () => order_dependent, set: value => { order_dependent = value; }},
-"zone_dependent": {get: () => zone_dependent, set: value => { zone_dependent = value; }},
-"user_info_dependent": {get: () => user_info_dependent, set: value => { user_info_dependent = value; }},
-"checked_restaurants": {get: () => checked_restaurants, set: value => { checked_restaurants = value; }},
-"checked_orders": {get: () => checked_orders, set: value => { checked_orders = value; }},
-"checked_conversations": {get: () => checked_conversations, set: value => { checked_conversations = value; }},
-"check_zone": {get: () => check_zone, set: value => { check_zone = value; }},
-"check_orders": {get: () => check_orders, set: value => { check_orders = value; }},
-"check_restaurant": {get: () => check_restaurant, set: value => { check_restaurant = value; }},
-"check_conversations": {get: () => check_conversations, set: value => { check_conversations = value; }},
-"check_messages": {get: () => check_messages, set: value => { check_messages = value; }}
-});
-
-
-
 
     let restaurant_dependent = ['restaurants','restaurant_schedule', 'discounts','campaign_restaurant','restaurant_configs','restaurant_notification_settings' ,'restaurant_subscriptions','restaurant_wallets','disbursements' ,'disbursement_details','disbursement_withdrawal_methods' ,'subscription_billing_and_refund_histories' ,'subscription_transactions'];
     let order_dependent = ['order_delivery_histories','d_m_reviews', 'delivery_histories', 'track_deliverymen', 'order_details', 'reviews','order_transactions','offline_payments','order_payments','refunds','cash_back_histories','expenses','subscriptions','subscription_logs','subscription_pauses','subscription_schedules'];
     let zone_dependent = ['restaurants','vendors', 'orders'];
     let user_info_dependent = ['conversations', 'messages'];
-    __panel.ready(function () {
+    $(document).ready(function () {
         $('.form-check-input').on('change', function(event){
             if($(this).is(':checked')){
                 if(event.target.id === 'zones' || event.target.id === 'restaurants' || event.target.id === 'vendors') {
@@ -205,7 +186,5 @@ __panel.globals({
                 }
             })
         });
-
-})();
-</script>
+    </script>
 @endpush

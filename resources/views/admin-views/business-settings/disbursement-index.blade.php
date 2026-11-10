@@ -373,13 +373,8 @@
 @php($flag = session('disbursement_exec'))
 <script src="{{dynamicAsset('public/assets/admin/js/view-pages/business-settings-disbursement.js')}}"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_disbursement_index_blade_php_0");
-
-
-        __panel.onTarget(document, 'ready', function() {
+        "use strict";
+        $(document).on('ready', function() {
             @if ($disbursement_type == 'manual')
             $('.automated_disbursement_section').hide();
             @endif
@@ -388,7 +383,5 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
                 $('#myModal').modal('show');
             @endif
         });
-
-})();
-</script>
+    </script>
 @endpush

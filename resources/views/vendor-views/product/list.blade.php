@@ -498,12 +498,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_product_list_blade_php_0");
-
         "use script";
-        __panel.onTarget(document, 'ready', function() {
+        $(document).on('ready', function() {
 
             $('#search-form').on('submit', function(e) {
                 e.preventDefault();
@@ -513,7 +509,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_product_list_blad
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
-                __panel.request($.post({
+                $.post({
                     url: '{{ route('vendor.food.search') }}',
                     data: formData,
                     cache: false,
@@ -529,7 +525,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_product_list_blad
                     complete: function() {
                         $('#loading').hide();
                     },
-                }));
+                });
             });
 
             // INITIALIZATION OF DATATABLES
@@ -557,7 +553,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_product_list_blad
 
                 if (oldValue == "") return;
 
-                __panel.setTimeout(function() {
+                setTimeout(function() {
                     let newValue = $input.val();
 
                     if (newValue == "") {
@@ -611,7 +607,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_product_list_blad
                     };
                 },
                 __port: function(params, success, failure) {
-                    let $request = __panel.request($.ajax(params));
+                    let $request = $.ajax(params);
 
                     $request.then(success);
                     $request.fail(failure);
@@ -620,7 +616,5 @@ const __panel = PanelPage.create("resources_views_vendor_views_product_list_blad
                 }
             }
         });
-
-})();
-</script>
+    </script>
 @endpush

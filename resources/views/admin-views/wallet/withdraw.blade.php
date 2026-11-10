@@ -166,13 +166,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_wallet_withdraw_blade_php_0");
 
-
-
+        "use strict";
         $('.status-filter').on('change',function () {
             let type = $(this).val();
             $.ajaxSetup({
@@ -180,7 +175,7 @@ const __panel = PanelPage.create("resources_views_admin_views_wallet_withdraw_bl
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.restaurant.status-filter')}}',
                 data: {
                     withdraw_status_filter: type
@@ -195,10 +190,8 @@ const __panel = PanelPage.create("resources_views_admin_views_wallet_withdraw_bl
                 complete: function () {
                     $('#loading').hide()
                 }
-            }));
+            });
         })
-
-})();
-</script>
+    </script>
 @endpush
 

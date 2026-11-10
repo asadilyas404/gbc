@@ -183,22 +183,14 @@
 
 @push('script')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_vendor_bulk_import_blade_php_0");
-__panel.globals({
-"myFunction": {get: () => myFunction, set: value => { myFunction = value; }}
-});
-
-
+        "use strict";
         $('#reset_btn').click(function(){
             $('#upload_excel').val('');
             $('.filename').text('{{translate('Must_be_Excel_files_using_our_Excel_template_above')}}');
             $('#bulk__import').val(null);
         })
 
-    __panel.onTarget(document, "click", ":submit", function(e){
+    $(document).on("click", ":submit", function(e){
         e.preventDefault();
             let data = $(this).val();
             myFunction(data)
@@ -209,7 +201,7 @@ __panel.globals({
             $(this).parent().addClass('active');
         });
 
-        __panel.onTarget(document, "click", ".update_or_import", function(e){
+        $(document).on("click", ".update_or_import", function(e){
             e.preventDefault();
             let upload_type = $('input[name="upload_type"]:checked').val();
             myFunction(upload_type)
@@ -234,7 +226,5 @@ __panel.globals({
             }
         })
     }
-
-})();
-</script>
+        </script>
 @endpush

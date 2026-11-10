@@ -537,12 +537,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_language_index_blade_php_0");
-
-
+     "use strict"
         $(".update-lang-status").click(function (e) {
                 e.preventDefault();
                 toastr.warning('{{translate('default_language_status_can_not_be_updated!_to_update_change_the_default_language_first!')}}');
@@ -566,7 +561,7 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
                 })
             });
             $(".status-update").click(function () {
-                __panel.request($.get({
+                $.get({
                     url: $(this).data('url'),
                     data: {
                         code: $(this).data('id'),
@@ -581,14 +576,12 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
                         toastr.success('{{translate('status_updated_successfully')}}');
                     }
                 }
-                }));
+                });
             });
 
             $(".update-default").click(function () {
                 window.location.href = $(this).data('url');
             });
 
-
-})();
-</script>
+    </script>
 @endpush

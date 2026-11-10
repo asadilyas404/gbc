@@ -98,12 +98,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_notification_edit_blade_php_0");
-
-
+        "use strict";
         $("#customFileEg1").change(function () {
             readURL(this);
         });
@@ -115,7 +110,5 @@ const __panel = PanelPage.create("resources_views_admin_views_notification_edit_
             $('#customFileEg1').val(null);
             $('#description').val("{{$notification['description']}}");
         })
-
-})();
-</script>
+    </script>
 @endpush

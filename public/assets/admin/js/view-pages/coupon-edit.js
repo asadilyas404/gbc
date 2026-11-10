@@ -1,12 +1,4 @@
-
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_coupon_edit_js");
-__panel.globals({
-"coupon_type_change": {get: () => coupon_type_change, set: value => { coupon_type_change = value; }}
-});
-
 $("#date_from").on("change", function () {
     $('#date_to').attr('min',$(this).val());
 });
@@ -64,7 +56,7 @@ function coupon_type_change(coupon_type) {
         $('#discount').removeAttr("readonly");
     }
 }
-    __panel.onTarget(document, 'ready', function () {
+    $(document).on('ready', function () {
         $('#discount_type').on('change', function() {
             if($('#discount_type').val() == 'amount')
             {
@@ -87,5 +79,3 @@ $('#reset_btn').click(function(){
     location.reload(true);
 
 })
-
-})();

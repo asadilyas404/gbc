@@ -226,15 +226,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_employee_add_new_blade_php_0");
-__panel.globals({
-"readURL": {get: () => readURL, set: value => { readURL = value; }}
-});
-
-
+        "use strict";
         function readURL(input) {
             if (input.files && input.files[0]) {
                 var reader = new FileReader();
@@ -265,7 +257,5 @@ __panel.globals({
             $('.preview-image').attr('src', "{{dynamicAsset('public/assets/admin/img/aspect-1.png')}}");
             $('#image').val(null);
         });
-
-})();
-</script>
+    </script>
 @endpush

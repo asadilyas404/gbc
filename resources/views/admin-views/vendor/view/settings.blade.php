@@ -678,13 +678,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
 "use strict";
-const __panel = PanelPage.create("resources_views_admin_views_vendor_view_settings_blade_php_0");
-
-
-        __panel.ready(function () {
+        $(document).ready(function () {
             $('#dataTable').DataTable();
 
             $('#exampleModal').on('show.bs.modal', function (event) {
@@ -697,7 +692,7 @@ const __panel = PanelPage.create("resources_views_admin_views_vendor_view_settin
             })
         });
 
-        __panel.onTarget(document, 'ready', function () {
+        $(document).on('ready', function () {
             $("#comission_status").on('change', function () {
                 if ($("#comission_status").is(':checked')) {
                     $('#comission').removeAttr('readonly');
@@ -709,7 +704,7 @@ const __panel = PanelPage.create("resources_views_admin_views_vendor_view_settin
         });
 
 
-        __panel.onTarget(document, 'click', '.delete-schedule', function () {
+        $(document).on('click', '.delete-schedule', function () {
             let route = $(this).data('url');
             Swal.fire({
                 title: '{{translate('messages.Want_to_delete_this_schedule_?')}}',
@@ -723,7 +718,7 @@ const __panel = PanelPage.create("resources_views_admin_views_vendor_view_settin
                 reverseButtons: true
             }).then((result) => {
                 if (result.value) {
-                    __panel.request($.get({
+                    $.get({
                         url: route,
                         beforeSend: function () {
                             $('#loading').show();
@@ -753,7 +748,7 @@ const __panel = PanelPage.create("resources_views_admin_views_vendor_view_settin
                         complete: function () {
                             $('#loading').hide();
                         },
-                    }));
+                    });
                 }
             })
         });
@@ -766,7 +761,7 @@ const __panel = PanelPage.create("resources_views_admin_views_vendor_view_settin
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.restaurant.add-schedule')}}',
                 data: formData,
                 cache: false,
@@ -801,9 +796,7 @@ const __panel = PanelPage.create("resources_views_admin_views_vendor_view_settin
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         });
-
-})();
-</script>
+    </script>
 @endpush

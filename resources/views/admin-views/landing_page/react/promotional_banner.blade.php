@@ -268,13 +268,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_landing_page_react_promotional_banner_blade_php_0");
-
-
-        __panel.onTarget(document, 'click', '.form-alert-service', function () {
+        "use strict";
+        $(document).on('click', '.form-alert-service', function () {
             Swal.fire({
                 title: $(this).data('message'),
                 text: $(this).data('message-2'),
@@ -292,7 +287,5 @@ const __panel = PanelPage.create("resources_views_admin_views_landing_page_react
             })
         });
 
-
-})();
-</script>
+    </script>
 @endpush

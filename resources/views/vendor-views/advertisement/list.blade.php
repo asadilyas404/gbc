@@ -327,15 +327,6 @@ active
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_advertisement_list_blade_php_0");
-__panel.globals({
-"url": {get: () => url, set: value => { url = value; }},
-"searchParams": {get: () => searchParams, set: value => { searchParams = value; }},
-"newUrl": {get: () => newUrl, set: value => { newUrl = value; }}
-});
-
     @if (request()->has('new_ad'))
     $('#created-sucessful-modal').modal('show')
         var url = new URL(window.location.href);
@@ -348,7 +339,5 @@ __panel.globals({
         window.history.replaceState(null, '', newUrl);
     @endif
 
-
-})();
 </script>
 @endpush

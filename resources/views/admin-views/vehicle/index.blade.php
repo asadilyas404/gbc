@@ -115,12 +115,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_vehicle_index_blade_php_0");
-
-
+        "use strict";
         $('#vehicle-form').on('submit', function (e) {
             e.preventDefault();
             let formData = new FormData(this);
@@ -129,7 +124,7 @@ const __panel = PanelPage.create("resources_views_admin_views_vehicle_index_blad
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.vehicle.store')}}',
                 data: formData,
                 cache: false,
@@ -148,12 +143,12 @@ const __panel = PanelPage.create("resources_views_admin_views_vehicle_index_blad
                             CloseButton: true,
                             ProgressBar: true
                         });
-                        __panel.setTimeout(function () {
+                        setTimeout(function () {
                             location.href = '{{route('admin.vehicle.list')}}';
                         }, 1000);
                     }
                 }
-            }));
+            });
         });
 
             $('#reset_btn').click(function(){
@@ -162,7 +157,5 @@ const __panel = PanelPage.create("resources_views_admin_views_vehicle_index_blad
             })
 
 
-
-})();
-</script>
+        </script>
 @endpush

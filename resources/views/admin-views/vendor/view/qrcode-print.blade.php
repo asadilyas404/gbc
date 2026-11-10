@@ -148,13 +148,6 @@
 
 @push('script')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_vendor_view_qrcode_print_blade_php_0");
-__panel.globals({
-"printDiv": {get: () => printDiv, set: value => { printDiv = value; }}
-});
-
         function printDiv(divName) {
 
             var printContents = document.getElementById(divName).innerHTML;
@@ -164,9 +157,7 @@ __panel.globals({
             document.body.innerHTML = originalContents;
 
         }
-
-})();
-</script>
+    </script>
 @endpush
 
 

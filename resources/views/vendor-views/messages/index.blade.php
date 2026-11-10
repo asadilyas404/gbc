@@ -63,31 +63,20 @@
 @push('script_2')
     <script src="{{ dynamicAsset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_messages_index_blade_php_0");
-__panel.globals({
-"viewConvs": {get: () => viewConvs, set: value => { viewConvs = value; }},
-"page": {get: () => page, set: value => { page = value; }},
-"loadMoreData": {get: () => loadMoreData, set: value => { loadMoreData = value; }},
-"fetch_data": {get: () => fetch_data, set: value => { fetch_data = value; }}
-});
-
-
+        "use strict";
         function viewConvs(url, id_to_active, conv_id, sender_id) {
             var tab = getUrlParameter('tab');
             $('.customer-list').removeClass('conv-active');
             $('#' + id_to_active).addClass('conv-active');
             let new_url= "{{ route('vendor.message.list') }}" + '?tab=' + tab+ '&conversation=' + conv_id+ '&user=' + sender_id;
-            __panel.request($.get({
+            $.get({
                 url: url,
                 success: function(data) {
                     window.history.pushState('', 'New Page Title', new_url);
                     $('#view-conversation').html(data.view);
                     converationList();
                 }
-            }));
+            });
 
         }
 
@@ -101,13 +90,13 @@ __panel.globals({
         });
 
         function loadMoreData(page) {
-            __panel.request($.ajax({
+            $.ajax({
                     url: "{{ route('vendor.message.list') }}" + '?tab=' + tab+ '&page=' + page,
                     type: "get",
                     beforeSend: function() {
 
                     }
-                }))
+                })
                 .done(function(data) {
                     if (data.html == " ") {
                         return;
@@ -121,7 +110,7 @@ __panel.globals({
 
         function fetch_data(page, query) {
             var tab = getUrlParameter('tab');
-            __panel.request($.ajax({
+            $.ajax({
                 url: "{{ route('vendor.message.list') }}" + '?tab=' + tab + '&page=' + page + "&key=" + query,
                 success: function(data) {
                     $('#admin-conversation-list').empty();
@@ -129,14 +118,12 @@ __panel.globals({
                     $("#admin-conversation-list").append(data.admin_html);
                     $("#conversation-list").append(data.html);
                 }
-            }))
+            })
         }
 
-        __panel.onTarget(document, 'keyup', '#serach', function() {
+        $(document).on('keyup', '#serach', function() {
             let query = $('#serach').val();
             fetch_data(page, query);
         });
-
-})();
-</script>
+    </script>
 @endpush

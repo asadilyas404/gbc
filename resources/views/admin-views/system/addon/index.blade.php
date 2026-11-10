@@ -315,23 +315,14 @@
 <script href="{{ dynamicAsset('public/assets/admin/vendor/swiper/swiper-bundle.min.js')}}"></script>
 
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_system_addon_index_blade_php_1");
-__panel.globals({
-"readUrl": {get: () => readUrl, set: value => { readUrl = value; }},
-"swiper": {get: () => swiper, set: value => { swiper = value; }}
-});
-
-
+    "use strict";
     $("img.svg").each(function () {
     let $img = jQuery(this);
     let imgID = $img.attr("id");
     let imgClass = $img.attr("class");
     let imgURL = $img.attr("src");
 
-        __panel.request(jQuery.get(
+        jQuery.get(
           imgURL,
           function (data) {
             // Get the SVG tag, ignore the rest
@@ -365,7 +356,7 @@ __panel.globals({
             $img.replaceWith($svg);
           },
           "xml"
-        ));
+        );
       });
         $('.read-file').on('change', function () {
             readUrl(this);
@@ -392,7 +383,7 @@ __panel.globals({
             });
 
             let formData = new FormData(document.getElementById('theme_form'));
-            __panel.request($.ajax({
+            $.ajax({
                 type: 'POST',
                 url: "{{route('admin.business-settings.system-addon.upload')}}",
                 data: formData,
@@ -434,7 +425,7 @@ __panel.globals({
                 complete: function () {
                     $('#upload_theme').removeAttr('disabled');
                 },
-            }));
+            });
         })
 
     $('.publish-addon').on('click', function () {
@@ -444,7 +435,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                     url: '{{route('admin.business-settings.system-addon.publish')}}',
                     data: {
                         'path': path
@@ -467,13 +458,13 @@ __panel.globals({
                                     CloseButton: true,
                                     ProgressBar: true
                                 });
-                                __panel.setTimeout(function () {
+                                setTimeout(function () {
                                     location.reload()
                                 }, 2000);
                             }
                         }
                     }
-                }));
+                });
             })
 
     $('.theme-delete').on('click', function () {
@@ -483,7 +474,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('admin.business-settings.system-addon.delete')}}',
                 data: {
                     path
@@ -493,7 +484,7 @@ __panel.globals({
                 },
                 success: function (data) {
                     if (data.status === 'success') {
-                        __panel.setTimeout(function () {
+                        setTimeout(function () {
                             location.reload()
                         }, 2000);
 
@@ -511,7 +502,7 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide();
                 },
-            }));
+            });
         })
 
         let swiper = new Swiper(".mySwiper", {
@@ -520,7 +511,5 @@ __panel.globals({
                 dynamicBullets: true,
             },
         });
-
-})();
-</script>
+    </script>
 @endpush

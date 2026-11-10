@@ -1407,28 +1407,7 @@
     </script>
     <script src="{{ dynamicAsset('public/assets/admin/js/spartan-multi-image-picker.js') }}"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_order_order_view_blade_php_0");
-__panel.globals({
-"last_location_view": {get: () => last_location_view, set: value => { last_location_view = value; }},
-"deliveryMan": {get: () => deliveryMan, set: value => { deliveryMan = value; }},
-"map": {get: () => map, set: value => { map = value; }},
-"myLatlng": {get: () => myLatlng, set: value => { myLatlng = value; }},
-"dmbounds": {get: () => dmbounds, set: value => { dmbounds = value; }},
-"locationbounds": {get: () => locationbounds, set: value => { locationbounds = value; }},
-"dmMarkers": {get: () => dmMarkers, set: value => { dmMarkers = value; }},
-"myOptions": {get: () => myOptions, set: value => { myOptions = value; }},
-"initializeGMap": {get: () => initializeGMap, set: value => { initializeGMap = value; }},
-"printOrder": {get: () => printOrder, set: value => { printOrder = value; }},
-"initializePrinters": {get: () => initializePrinters, set: value => { initializePrinters = value; }},
-"apiPrintOrder": {get: () => apiPrintOrder, set: value => { apiPrintOrder = value; }},
-"formatPakPhoneNumber": {get: () => formatPakPhoneNumber, set: value => { formatPakPhoneNumber = value; }},
-"formatOmanPhoneNumber": {get: () => formatOmanPhoneNumber, set: value => { formatOmanPhoneNumber = value; }}
-});
-
-
+        "use strict";
 
         $('.cancelled-status').on('click', function() {
             Swal.fire({
@@ -1540,7 +1519,7 @@ __panel.globals({
 
         $('.add-delivery-man').on('click', function() {
             let id = $(this).data('id');
-            __panel.request($.ajax({
+            $.ajax({
                 type: "GET",
                 url: '{{ url('/') }}/restaurant-panel/order/add-delivery-man/{{ $order['id'] }}/' +
                     id,
@@ -1559,7 +1538,7 @@ __panel.globals({
                         ProgressBar: true
                     });
                 }
-            }));
+            });
         })
 
         let deliveryMan = <?php echo json_encode($deliveryMen); ?>;
@@ -1660,7 +1639,7 @@ __panel.globals({
             };
         }
 
-        __panel.ready(function() {
+        $(document).ready(function() {
 
             // Re-init map before show modal
             $('#myModal').on('shown.bs.modal', function(event) {
@@ -1763,7 +1742,7 @@ __panel.globals({
                 map.panTo(dmMarkers[id].getPosition());
                 map.setZoom(13);
                 dmMarkers[id].setAnimation(google.maps.Animation.BOUNCE);
-                __panel.setTimeout(() => {
+                window.setTimeout(() => {
                     dmMarkers[id].setAnimation(null);
                 }, 3);
             });
@@ -1776,7 +1755,7 @@ __panel.globals({
                 map.panTo(dmMarkers[id].getPosition());
                 map.setZoom(13);
                 dmMarkers[id].setAnimation(google.maps.Animation.BOUNCE);
-                __panel.setTimeout(() => {
+                window.setTimeout(() => {
                     dmMarkers[id].setAnimation(null);
                 }, 3);
 
@@ -1784,7 +1763,7 @@ __panel.globals({
 
         })
 
-        __panel.ready(function() {
+        $(function() {
             $("#coba").spartanMultiImagePicker({
                 fieldName: 'order_proof[]',
                 maxCount: 6 -
@@ -1823,13 +1802,13 @@ __panel.globals({
         });
 
         // Print Order Functionality
-        __panel.onTarget(document, 'click', '.direct-print-btn', function() {
+        $(document).on('click', '.direct-print-btn', function() {
             const orderId = $(this).data('order-id');
             apiPrintOrder(orderId, 'kitchen');
         });
 
         // API Print Functionality
-        __panel.onTarget(document, 'click', '.api-print-btn', function() {
+        $(document).on('click', '.api-print-btn', function() {
             const orderId = $(this).data('order-id');
             apiPrintOrder(orderId, 'api');
         });
@@ -1839,7 +1818,7 @@ __panel.globals({
             toastr.info('Preparing print...');
 
             // Fetch order data and print content
-            __panel.request($.ajax({
+            $.ajax({
                 url: "{{ route('vendor.order.print-order', ['id' => '__id__']) }}".replace('__id__', orderId),
                 method: 'GET',
                 dataType: 'json',
@@ -1859,7 +1838,7 @@ __panel.globals({
                     console.error('Print preparation error:', error);
                     toastr.error('Failed to prepare print content');
                 }
-            }));
+            });
         }
 
         function initializePrinters() {
@@ -2006,7 +1985,7 @@ __panel.globals({
             return phone;
         }
 
-        __panel.onTarget(document, 'click', '.whatsapp-btn', function() {
+        $(document).on('click', '.whatsapp-btn', function() {
             const orderId = $(this).data('order-id');
             const orderSerial = $(this).data('order-serial');
             const button = $(this);
@@ -2015,7 +1994,7 @@ __panel.globals({
             button.prop('disabled', true);
             button.html('<i class="tio-time"></i> Sending...');
 
-            __panel.request($.ajax({
+            $.ajax({
                 url: "{{ route('vendor.order.fetch-customer-phone', ['id' => '__id__']) }}".replace('__id__', orderId),
                 type: 'GET',
                 success: function(response) {
@@ -2030,7 +2009,7 @@ __panel.globals({
 
                     var to = formatOmanPhoneNumber(data.phone);
 
-                    __panel.request($.ajax({
+                    $.ajax({
                         headers: {
                             'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                         },
@@ -2047,7 +2026,7 @@ __panel.globals({
                             const orderDate = new Date("{{ $order['created_at'] }}").toLocaleDateString();
                             const message = `Thank you for your valued order\n(*Order # ${orderSerial}*, Dated ${orderDate}, Amount: {{ \App\CentralLogics\Helpers::format_currency($order['order_amount']) }}).\n\nPlease find your order invoice attached.\n\nThank you and regards,\n{{ $order->restaurant->name ?? 'Restaurant' }}`;
 
-                            __panel.request($.ajax({
+                            $.ajax({
                                 headers: {
                                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                                 },
@@ -2078,7 +2057,7 @@ __panel.globals({
                                     button.prop('disabled', false);
                                     button.html(originalHtml);
                                 }
-                            }));
+                            });
                         },
                         error: function(xhr) {
                             const errorMsg = xhr.responseJSON?.error || "Failed to generate PDF.";
@@ -2086,7 +2065,7 @@ __panel.globals({
                             button.prop('disabled', false);
                             button.html(originalHtml);
                         }
-                    }));
+                    });
                 },
                 error: function(xhr) {
                     const errorMsg = xhr.responseJSON?.error || "Failed to fetch customer phone number.";
@@ -2094,11 +2073,9 @@ __panel.globals({
                     button.prop('disabled', false);
                     button.html(originalHtml);
                 }
-            }));
+            });
         });
-
-})();
-</script>
+    </script>
 
     <style>
         /* Minimal variation addon styling for order view */

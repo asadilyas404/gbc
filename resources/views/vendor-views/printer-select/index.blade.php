@@ -81,11 +81,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_printer_select_index_blade_php_0");
-
-        __panel.listen(document, "DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
             let today = new Date();
             let tomorrow = new Date();
             tomorrow.setDate(today.getDate() + 1); // only 1 day ahead
@@ -97,7 +93,7 @@ const __panel = PanelPage.create("resources_views_vendor_views_printer_select_in
             document.getElementById("ordersDate").setAttribute("max", format(tomorrow));
         });
         
-        __panel.listen(document, 'DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function() {
             loadSavedPrinters();
 
             function loadSavedPrinters() {
@@ -203,7 +199,5 @@ const __panel = PanelPage.create("resources_views_vendor_views_printer_select_in
                     });
             });
         });
-
-})();
-</script>
+    </script>
 @endpush

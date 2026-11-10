@@ -190,15 +190,7 @@
 @endsection
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_order_cancelation_reason_blade_php_0");
-__panel.globals({
-"showMyModal": {get: () => showMyModal, set: value => { showMyModal = value; }}
-});
-
-
+        "use strict";
         $('.show-modal').on('click',function (){
             let id = $(this).data('id');
             let data = $(this).data('reason');
@@ -211,7 +203,5 @@ __panel.globals({
             $(".modal-body #hiddenValuetype").val(type);
             $('#exampleModal').modal('show');
         }
-
-})();
-</script>
+    </script>
 @endpush

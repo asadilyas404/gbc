@@ -109,15 +109,7 @@
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_addon_edit_blade_php_0");
-__panel.globals({
-"stock_type": {get: () => stock_type, set: value => { stock_type = value; }}
-});
-
-
+        "use strict";
         $('#stock_type').on('change', function () {
         stock_type($(this).val());
         });
@@ -138,7 +130,5 @@ __panel.globals({
             stock_type('{{$addon->stock_type}}');
 
         })
-
-})();
 </script>
 @endpush

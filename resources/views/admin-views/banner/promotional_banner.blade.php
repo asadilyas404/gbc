@@ -166,11 +166,7 @@
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_banner_promotional_banner_blade_php_0");
-
-    __panel.ready(function() {
+    $(document).ready(function() {
         "use strict"
         $(".__upload-img, .upload-img-4, .upload-img-2, .upload-img-5, .upload-img-1, .upload-img").each(function(){
             var targetedImage = $(this).find('.img');
@@ -192,7 +188,5 @@ const __panel = PanelPage.create("resources_views_admin_views_banner_promotional
             })
         })
     });
-
-})();
 </script>
 @endpush

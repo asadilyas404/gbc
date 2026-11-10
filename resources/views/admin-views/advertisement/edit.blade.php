@@ -387,11 +387,7 @@ active
 
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit_blade_php_0");
-
-        __panel.ready(function() {
+        $(function() {
 
             $('input[name="dates"]').daterangepicker({
                 startDate: moment('{{ $advertisement->start_date }}').startOf('hour'),
@@ -409,17 +405,11 @@ const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit
             });
 
         });
-
-})();
-</script>
+    </script>
 
 
     <!-- Video Upload Handlr -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit_blade_php_1");
-
         $(".video_attachment").on("change", function (event) {
             const videoEl = $(".video > video")
             const prevVideoBox = $('.prev-video-box')
@@ -442,7 +432,7 @@ const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit
             })
         })
 
-        __panel.onTarget(window, 'load', function () {
+        $(window).on('load', function () {
             handleUploadBox();
 
             const videoEl = $(".video > video")
@@ -463,19 +453,10 @@ const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit
                 videoEl.attr('src', '');
             })
         })
-
-})();
-</script>
+    </script>
 
     <!-- Select Toggler Scripts -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit_blade_php_2");
-__panel.globals({
-"handleUploadBox": {get: () => handleUploadBox}
-});
-
         const handleUploadBox = () => {
             const value = $('.promotion_type').val();
             if (value == 'video_promotion') {
@@ -486,7 +467,7 @@ __panel.globals({
                 $('#profile-upload-box, #profile-preview-box').show();
             }
         }
-        __panel.onTarget(window, 'load', function () {
+        $(window).on('load', function () {
             handleUploadBox()
         })
 
@@ -497,16 +478,10 @@ __panel.globals({
 
 
 
-
-})();
-</script>
+    </script>
 
     <!-- Profile Promotion Image Upload Handlr -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit_blade_php_3");
-
         $(".js-upload-input").on("change", function (event) {
             let file = event.target.files[0];
             const target = $(this).data('target');
@@ -522,16 +497,10 @@ const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit
                 file ? $(this).closest('.upload-file').find('.js-upload-input').val(file) : ''
             })
         })
-
-})();
-</script>
+    </script>
 
     <!-- Title and Description Change Handlr -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit_blade_php_4");
-
         $('[data-preview-text]').on('input', function (event) {
             const target = $(this).data('preview-text');
             if (event.target.value) {
@@ -568,16 +537,10 @@ const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit
         $('#create-add-form').on('reset', function () {
             window.location.reload()
         })
-
-})();
-</script>
+    </script>
 
     <!-- Review and Rating Handlr -->
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit_blade_php_5");
-
         $('[name="review"]').on('change', function () {
             if ($(this).is(':checked')) {
                 $('.review-placeholder').hide()
@@ -604,7 +567,7 @@ const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit
         })
 
 
-        __panel.onTarget(window, 'load', function () {
+        $(window).on('load', function () {
             check_review_and_rating($('.js-data-example-ajax').val());
             $('[name="review"]').each(function () {
                 if ($(this).is(':checked')) {
@@ -632,20 +595,11 @@ const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit
                 $(this).attr('src', $(this).data('src'))
             })
         })
-
-})();
-</script>
+    </script>
 
 
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_advertisement_edit_blade_php_6");
-__panel.globals({
-"check_review_and_rating": {get: () => check_review_and_rating, set: value => { check_review_and_rating = value; }}
-});
-
-            __panel.onTarget(document, 'ready', function() {
+            $(document).on('ready', function() {
                     $('.js-data-example-ajax').select2({
                         ajax: {
                             url: '{{ url('/') }}/admin/restaurant/get-restaurants',
@@ -661,7 +615,7 @@ __panel.globals({
                                 };
                             },
                             __port: function(params, success, failure) {
-                                let $request = __panel.request($.ajax(params));
+                                let $request = $.ajax(params);
 
                                 $request.then(success);
                                 $request.fail(failure);
@@ -680,7 +634,7 @@ __panel.globals({
                                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                             }
                         });
-                        __panel.request($.post({
+                        $.post({
                             url: `{{ Request::is('admin/advertisement/copy-advertisement/*') ? route('admin.advertisement.copyAddPost',$advertisement->id) : route('admin.advertisement.update',$advertisement->id) }}`,
                             data: $('#create-add-form').serialize(),
                             data: formData,
@@ -712,22 +666,22 @@ __panel.globals({
                                         CloseButton: true,
                                         ProgressBar: true
                                     });
-                                    __panel.setTimeout(function () {
+                                    setTimeout(function () {
                                         location.href = '{{route('admin.advertisement.index')}}';
                                     }, 2000);
                                 }
                             }
-                        }));
+                        });
                     });
             });
 
 
 
-            __panel.onTarget(document, 'change', '.js-data-example-ajax', function () {
+            $(document).on('change', '.js-data-example-ajax', function () {
                 var restaurant_id= $(this).val();
                 check_review_and_rating(restaurant_id)
             });
-            __panel.onTarget(document, 'change', '#is_review_checked', function () {
+            $(document).on('change', '#is_review_checked', function () {
                 if($(this).is(':checked') == true){
                     var restaurant_id= $('.js-data-example-ajax').val();
                     if(restaurant_id){
@@ -736,7 +690,7 @@ __panel.globals({
                 }
 
             });
-            __panel.onTarget(document, 'change', '#is_rating_checked', function () {
+            $(document).on('change', '#is_rating_checked', function () {
                 if($(this).is(':checked') == true){
                     var restaurant_id= $('.js-data-example-ajax').val();
                     if(restaurant_id){
@@ -754,7 +708,7 @@ __panel.globals({
                         'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                     }
                 });
-                __panel.request($.ajax({
+                $.ajax({
                     url: "{{route('admin.restaurant.get-restaurant-ratings')}}",
                     method: 'get',
                     data: {
@@ -770,9 +724,7 @@ __panel.globals({
                     },
                     complete: function () {
                     },
-                }));
+                });
             }
-
-})();
 </script>
 @endpush

@@ -320,18 +320,6 @@
 
 
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_report_restaurant_report_blade_php_0");
-__panel.globals({
-"updatingChart": {get: () => updatingChart, set: value => { updatingChart = value; }},
-"getRequest": {get: () => getRequest, set: value => { getRequest = value; }},
-"ctx": {get: () => ctx, set: value => { ctx = value; }},
-"data": {get: () => data, set: value => { data = value; }},
-"options": {get: () => options, set: value => { options = value; }},
-"myLineChart": {get: () => myLineChart, set: value => { myLineChart = value; }}
-});
-
         // INITIALIZATION OF CHARTJS
         // =======================================================
         Chart.plugins.unregister(ChartDataLabels);
@@ -358,13 +346,13 @@ __panel.globals({
         })
 
         function getRequest(route, id) {
-            __panel.request($.get({
+            $.get({
                 url: route,
                 dataType: 'json',
                 success: function(data) {
                     $('#' + id).empty().append(data.options);
                 },
-            }));
+            });
         }
 
         let ctx = document.getElementById('chart1').getContext("2d");
@@ -471,14 +459,12 @@ __panel.globals({
             },
             };
 
-    let myLineChart = __panel.resource(new Chart(ctx, {
+    let myLineChart = new Chart(ctx, {
         type: 'bar',
         data: data,
         options: options
-    }), "destroy");
+    });
 
-
-})();
-</script>
+    </script>
 
 @endpush

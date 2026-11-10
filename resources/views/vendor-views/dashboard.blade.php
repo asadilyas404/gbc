@@ -260,15 +260,6 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_vendor_views_dashboard_blade_php_0");
-__panel.globals({
-"updatingChart": {get: () => updatingChart, set: value => { updatingChart = value; }},
-"order_stats_update": {get: () => order_stats_update, set: value => { order_stats_update = value; }},
-"insert_param": {get: () => insert_param, set: value => { insert_param = value; }}
-});
-
         $('#free-trial-modal').modal('show');
         // INITIALIZATION OF CHARTJS
         // =======================================================
@@ -291,7 +282,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
                 }
             });
-            __panel.request($.post({
+            $.post({
                 url: '{{route('vendor.dashboard.order-stats')}}',
                 data: {
                     statistics_type: type
@@ -306,7 +297,7 @@ __panel.globals({
                 complete: function () {
                     $('#loading').hide()
                 }
-            }));
+            });
         }
 
         function insert_param(key, value) {
@@ -333,9 +324,9 @@ __panel.globals({
             window.history.pushState('page2', 'Title', '{{url()->current()}}?' + params);
         }
 
-                __panel.onTarget(document, 'click', '.add-to-session', function () {
+                $(document).on('click', '.add-to-session', function () {
                     var session_data = $(this).data("id");
-                    __panel.request($.ajax({
+                    $.ajax({
                         url: '{{ route('vendor.food.addToSession') }}',
                         method: 'POST',
                         data: {
@@ -345,18 +336,16 @@ __panel.globals({
                             success: function(response) {
 
                             }
-                        }));
+                        });
                 });
 
-                __panel.onTarget(document, 'click', '#hide-warning', function () {
+                $(document).on('click', '#hide-warning', function () {
                 $('.hide-warning').hide();
                 });
-                __panel.onTarget(document, 'click', '#hide-warning-btn', function () {
+                $(document).on('click', '#hide-warning-btn', function () {
                 $('.hide-warning').hide();
                 });
 
 
-
-})();
-</script>
+    </script>
 @endpush

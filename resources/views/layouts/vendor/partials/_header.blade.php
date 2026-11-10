@@ -551,14 +551,10 @@ $subscription_deadline_warning_message = \App\Models\BusinessSetting::where('key
 </div>
 
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_layouts_vendor_partials__header_blade_php_0");
-
-    __panel.listen(document, 'DOMContentLoaded', function() {
-        __panel.onTarget(document, 'click', '.add-to-session', function() {
+    document.addEventListener('DOMContentLoaded', function() {
+        $(document).on('click', '.add-to-session', function() {
             var session_data = $(this).data("id");
-            __panel.request($.ajax({
+            $.ajax({
                 url: '{{ route('vendor.subscriptionackage.addToSession') }}',
                 method: 'POST',
                 data: {
@@ -568,9 +564,7 @@ const __panel = PanelPage.create("resources_views_layouts_vendor_partials__heade
                 success: function(response) {
                     $('#hide-subscription-warnings').addClass('d-none')
                 }
-            }));
+            });
         });
     });
-
-})();
 </script>

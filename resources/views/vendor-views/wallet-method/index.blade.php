@@ -170,15 +170,7 @@
 @endsection
 @push('script')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_wallet_method_index_blade_php_0");
-__panel.globals({
-"showMyModal": {get: () => showMyModal, set: value => { showMyModal = value; }}
-});
-
-
+    "use strict";
     $('#withdraw_method').on('change', function () {
         $('#submit_button').attr("disabled","true");
         let method_id = this.value;
@@ -189,7 +181,7 @@ __panel.globals({
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        __panel.request($.ajax({
+        $.ajax({
             url: "{{route('vendor.wallet.method-list')}}" + "?method_id=" + method_id,
             data: {},
             processData: false,
@@ -212,7 +204,7 @@ __panel.globals({
             error: function () {
 
             }
-        }));
+        });
     });
 
     function showMyModal(data) {
@@ -220,7 +212,5 @@ __panel.globals({
         $('#exampleModal').modal('show');
     }
 
-
-})();
 </script>
 @endpush

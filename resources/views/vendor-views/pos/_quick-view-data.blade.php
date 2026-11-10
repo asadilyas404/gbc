@@ -370,22 +370,7 @@
     </div>
 </div>
 <script type="text/javascript">
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_pos__quick_view_data_blade_php_0");
-__panel.globals({
-"initializeVariationAddonControls": {get: () => initializeVariationAddonControls, set: value => { initializeVariationAddonControls = value; }},
-"applyPOSDiscount": {get: () => applyPOSDiscount, set: value => { applyPOSDiscount = value; }},
-"calculateTotal": {get: () => calculateTotal, set: value => { calculateTotal = value; }},
-"variantPriceRequest": {get: () => variantPriceRequest, set: value => { variantPriceRequest = value; }},
-"getVariantPrice": {get: () => getVariantPrice, set: value => { getVariantPrice = value; }},
-"getCheckedPrice": {get: () => getCheckedPrice, set: value => { getCheckedPrice = value; }},
-"getCheckedInputs": {get: () => getCheckedInputs, set: value => { getCheckedInputs = value; }},
-"inputElements": {get: () => inputElements, set: value => { inputElements = value; }}
-});
-
-
+    "use strict";
     cartQuantityInitialize();
     // Initialize variation-specific addon quantity controls
     function initializeVariationAddonControls() {
@@ -394,7 +379,7 @@ __panel.globals({
         $(document).off('change.variationAddon');
 
         // Handle decrease buttons for variation addons
-        __panel.onTarget(document, 'click.variationAddon', '.variation-decrease-btn', function(e) {
+        $(document).on('click.variationAddon', '.variation-decrease-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
             var input = $(this).siblings('input[type="number"]');
@@ -407,7 +392,7 @@ __panel.globals({
         });
 
         // Handle increase buttons for variation addons
-        __panel.onTarget(document, 'click.variationAddon', '.variation-increase-btn', function(e) {
+        $(document).on('click.variationAddon', '.variation-increase-btn', function(e) {
             e.preventDefault();
             e.stopPropagation();
             var input = $(this).siblings('input[type="number"]');
@@ -418,13 +403,13 @@ __panel.globals({
         });
 
         // Handle variation addon checkbox changes
-        __panel.onTarget(document, 'change.variationAddon', 'input[name^="variation_addon_id"]', function() {
+        $(document).on('change.variationAddon', 'input[name^="variation_addon_id"]', function() {
             // getVariantPrice();
             calculateTotal();
         });
 
         // Handle variation addon quantity input changes
-        __panel.onTarget(document, 'change.variationAddon', 'input[name^="variation_addon_quantity"]', function() {
+        $(document).on('change.variationAddon', 'input[name^="variation_addon_quantity"]', function() {
             // getVariantPrice();
             calculateTotal();
         });
@@ -437,9 +422,9 @@ __panel.globals({
     // });
 
     // Also initialize when modal is shown (in case of dynamic loading)
-    __panel.onTarget(document, 'shown.bs.modal', function() {
+    $(document).on('shown.bs.modal', function() {
         // Small delay to ensure DOM is ready
-        __panel.setTimeout(function() {
+        setTimeout(function() {
             initializeVariationAddonControls();
             // getVariantPrice(); // Calculate price when modal is shown
             calculateTotal();
@@ -515,37 +500,37 @@ __panel.globals({
 
 
     // Add event handlers for all input changes to update price
-    __panel.onTarget(document, 'change', '#add-to-cart-form input[type="radio"], #add-to-cart-form input[type="checkbox"]', function() {
+    $(document).on('change', '#add-to-cart-form input[type="radio"], #add-to-cart-form input[type="checkbox"]', function() {
         // getVariantPrice();
         calculateTotal();
     });
 
     // Handle quantity changes
-    __panel.onTarget(document, 'change', '#add-to-cart-form input[name="quantity"]', function() {
+    $(document).on('change', '#add-to-cart-form input[name="quantity"]', function() {
         // getVariantPrice();
         calculateTotal();
     });
 
     // Handle discount changes
-    __panel.onTarget(document, 'input change keydown', '#add-to-cart-form select[name="product_discount"] ,#add-to-cart-form select[name="product_discount_type"]', function() {
+    $(document).on('input change keydown', '#add-to-cart-form select[name="product_discount"] ,#add-to-cart-form select[name="product_discount_type"]', function() {
         // getVariantPrice();
         calculateTotal();
     });
 
     // Handle addon changes
-    __panel.onTarget(document, 'change', '#add-to-cart-form input[name="addon_id[]"]', function() {
+    $(document).on('change', '#add-to-cart-form input[name="addon_id[]"]', function() {
         // getVariantPrice();
         calculateTotal();
     });
 
     // Handle addon quantity changes
-    __panel.onTarget(document, 'change', '#add-to-cart-form input[name^="addon-quantity"]', function() {
+    $(document).on('change', '#add-to-cart-form input[name^="addon-quantity"]', function() {
         // getVariantPrice();
         calculateTotal();
     });
 
     // Handle choice quantity changes for multi-select variations
-    __panel.onTarget(document, 'change', '#add-to-cart-form input[name^="choice-quantity"]', function() {
+    $(document).on('change', '#add-to-cart-form input[name^="choice-quantity"]', function() {
         // getVariantPrice();
         calculateTotal();
     });
@@ -565,7 +550,7 @@ __panel.globals({
                     'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
                 }
             });
-            variantPriceRequest = __panel.request($.ajax({
+            variantPriceRequest = $.ajax({
                 type: "POST",
                 url: '{{ route('vendor.pos.variant_price') }}',
                 data: $('#add-to-cart-form').serializeArray(),
@@ -598,7 +583,7 @@ __panel.globals({
                     $('#loading').hide();
                     toastr.error('Something went wrong. Please try again.');
                 }
-            }));
+            });
         }
     }
 
@@ -669,8 +654,6 @@ __panel.globals({
     inputElements.forEach(function(element) {
         element.addEventListener('change', getCheckedInputs);
     });
-
-})();
 </script>
 
 <style>

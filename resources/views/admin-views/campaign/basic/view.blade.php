@@ -130,12 +130,7 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_view_blade_php_0");
-
-
+        "use strict";
         $('.status-change-alert').on('click', function (event){
             let url = $(this).data('url');
             let message = $(this).data('message');
@@ -156,7 +151,7 @@ const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_vie
                 }
             })
         })
-        __panel.onTarget(document, 'ready', function () {
+        $(document).on('ready', function () {
             // INITIALIZATION OF DATATABLES
             // =======================================================
             let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
@@ -196,7 +191,5 @@ const __panel = PanelPage.create("resources_views_admin_views_campaign_basic_vie
                 let select2 = $.HSCore.components.HSSelect2.init($(this));
             });
         });
-
-})();
-</script>
+    </script>
 @endpush

@@ -127,13 +127,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_offline_payment_edit_blade_php_0");
-
-
-        __panel.onTarget(document, 'click', '.add-input-fields-group', function () {
+        "use strict"
+        $(document).on('click', '.add-input-fields-group', function () {
             let id = Math.floor((Math.random() + 1 )* 9999);
             let new_field = `<div class="row align-items-end" id="`+id+`" style="display: none;">
                             <div class="col-md-4">
@@ -163,7 +158,7 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
             $('#'+id).fadeIn();
         });
 
-        __panel.onTarget(document, 'click', '.add-customer-input-fields-group', function () {
+        $(document).on('click', '.add-customer-input-fields-group', function () {
 
             let id = Math.floor((Math.random() + 1 )* 9999);
             let new_field = `<div class="row align-items-end" id="`+id+`" style="display: none;">
@@ -201,12 +196,10 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
             $('#'+id).fadeIn();
         });
 
-        __panel.onTarget(document, 'click', '.remove-input-fields-group', function () {
+        $(document).on('click', '.remove-input-fields-group', function () {
             $('#'+$(this).data('id')).remove();
 
         });
 
-
-})();
-</script>
+    </script>
 @endpush

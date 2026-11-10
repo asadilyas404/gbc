@@ -1,15 +1,6 @@
 
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
+
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_business_settings_payment_page_js");
-__panel.globals({
-"readURL": {get: () => readURL, set: value => { readURL = value; }},
-"checkedFunc": {get: () => checkedFunc, set: value => { checkedFunc = value; }}
-});
-
-
-
 function readURL(input, gatewayName) {
     if (input.files && input.files[0]) {
         let reader = new FileReader();
@@ -20,7 +11,7 @@ function readURL(input, gatewayName) {
     }
 }
 
-__panel.onTarget(document, 'change', 'input[name="gateway_image"]', function () {
+$(document).on('change', 'input[name="gateway_image"]', function () {
     let gatewayName = $(this).attr('id').replace('-image', '');
     readURL(this, gatewayName);
 });
@@ -37,5 +28,3 @@ checkedFunc()
 $('.switch--custom-label .toggle-switch-input').on('change', checkedFunc)
 
 
-
-})();

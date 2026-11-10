@@ -90,11 +90,7 @@
 @push('script_2')
 <script src="{{dynamicAsset('public/assets/admin/ckeditor/ckeditor.js')}}"></script>
 <script type="text/javascript">
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_refund_policy_blade_php_0");
-
-        __panel.ready(function () {
+        $(document).ready(function () {
                 $('body').on('change','#data_status', function(){
                     let status;
                 if(this.checked){
@@ -103,7 +99,7 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
                     status = 0;
                 }
             let url= '{{ url('admin/business-settings/pages/refund-policy') }}/'+status;
-            __panel.request($.ajax({
+            $.ajax({
                 url: url,
                 method: 'get',
                 success: function() {
@@ -112,12 +108,10 @@ const __panel = PanelPage.create("resources_views_admin_views_business_settings_
                     ProgressBar: true
                     });
                 }
-            }));
+            });
 
             });
         });
-
-})();
 </script>
 
 @endpush

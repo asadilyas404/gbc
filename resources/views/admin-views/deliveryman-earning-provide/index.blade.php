@@ -174,15 +174,7 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin')}}/js/view-pages/deliveryman-earning-provide.js"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_deliveryman_earning_provide_index_blade_php_0");
-__panel.globals({
-"getAccountData": {get: () => getAccountData, set: value => { getAccountData = value; }}
-});
-
-
+        "use strict";
     $('#deliveryman').select2({
         ajax: {
             url: '{{url('/')}}/admin/delivery-man/get-deliverymen',
@@ -199,7 +191,7 @@ __panel.globals({
                 };
             },
             __port: function (params, success, failure) {
-                let $request = __panel.request($.ajax(params));
+                let $request = $.ajax(params);
 
                 $request.then(success);
                 $request.fail(failure);
@@ -211,13 +203,13 @@ __panel.globals({
 
     function getAccountData(route, data_id, type)
     {
-        __panel.request($.get({
+        $.get({
                 url: route+data_id,
                 dataType: 'json',
                 success: function (data) {
                     $('#account_info').html('({{translate('messages.payable_amount')}}: '+data.payable_amount+')');
                 },
-            }));
+            });
     }
 
     $('#add_transaction').on('submit', function (e) {
@@ -228,7 +220,7 @@ __panel.globals({
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
             }
         });
-        __panel.request($.post({
+        $.post({
             url: '{{route('admin.provide-deliveryman-earnings.store')}}',
             data: formData,
             cache: false,
@@ -247,14 +239,12 @@ __panel.globals({
                         CloseButton: true,
                         ProgressBar: true
                     });
-                    __panel.setTimeout(function () {
+                    setTimeout(function () {
                         location.href = '{{route('admin.provide-deliveryman-earnings.index')}}';
                     }, 2000);
                 }
             }
-        }));
+        });
     });
-
-})();
 </script>
 @endpush

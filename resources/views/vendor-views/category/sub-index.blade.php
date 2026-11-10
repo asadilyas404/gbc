@@ -276,15 +276,7 @@
 @push('script_2')
     <script src="{{ dynamicAsset('public/assets/admin') }}/js/view-pages/sub-category-index.js"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_vendor_views_category_sub_index_blade_php_0");
-__panel.globals({
-"readURL": {get: () => readURL, set: value => { readURL = value; }}
-});
-
-
+        "use strict";
 
         function readURL(input) {
             if (input.files && input.files[0]) {
@@ -306,7 +298,5 @@ __panel.globals({
             $('.preview-image').attr('src', "{{ dynamicAsset('public/assets/admin/img/aspect-1.png') }}");
             $('#image').val(null);
         });
-
-})();
-</script>
+    </script>
 @endpush

@@ -128,13 +128,6 @@ active
 
 @push('script_2')
 <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("resources_views_admin_views_subscription_wallet_transaction_blade_php_0");
-__panel.globals({
-"reset": {get: () => reset, set: value => { reset = value; }}
-});
-
     $("#date_from").on("change", function () {
         $('#date_to').attr('min',$(this).val());
     });
@@ -144,7 +137,7 @@ __panel.globals({
     });
 
 
-        __panel.onTarget(document, 'change','.filter', function () {
+        $(document).on('change','.filter', function () {
             if($(this).val() == 'custom'){
                 $('#date_from').removeAttr('readonly').attr('name', 'start_date').attr('required', true);
                 $('#date_to').removeAttr('readonly').attr('name', 'end_date').attr('required', true);
@@ -154,20 +147,18 @@ __panel.globals({
                 $('#date_to').attr('readonly',true).removeAttr('name', 'end_date').removeAttr('required');
             }
         });
-        __panel.ready(function() {
+        $(document).ready(function() {
             $('.printButton').click(function() {
                 window.open($(this).data('url'), '_blank');
             });
         });
-    __panel.onTarget(document, "click", "#reset_btn", function () {
-        __panel.setTimeout(reset, 10);
+    $(document).on("click", "#reset_btn", function () {
+        setTimeout(reset, 10);
     });
 
     function reset(){
         $('.filter').trigger('change');
     }
-
-})();
 </script>
 @endpush
 

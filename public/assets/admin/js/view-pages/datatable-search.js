@@ -1,12 +1,7 @@
 
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
+
 "use strict";
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_datatable_search_js");
-
-
-
-__panel.onTarget(document, 'ready', function () {
+$(document).on('ready', function () {
     let datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
     $('#column1_search').on('keyup', function () {
         datatable
@@ -35,5 +30,3 @@ __panel.onTarget(document, 'ready', function () {
             .draw();
     });
 });
-
-})();

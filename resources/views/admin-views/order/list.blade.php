@@ -547,13 +547,8 @@
 
 @push('script_2')
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_order_list_blade_php_0");
-
-
-        __panel.onTarget(document, 'ready', function () {
+        "use strict";
+        $(document).on('ready', function () {
             @if($filter_count>0)
             $('#filter_count').html({{$filter_count}});
             @endif
@@ -592,7 +587,7 @@ const __panel = PanelPage.create("resources_views_admin_views_order_list_blade_p
                         };
                     },
                     __port: function (params, success, failure) {
-                        let $request = __panel.request($.ajax(params));
+                        let $request = $.ajax(params);
 
                         $request.then(success);
                         $request.fail(failure);
@@ -655,7 +650,7 @@ const __panel = PanelPage.create("resources_views_admin_views_order_list_blade_p
 
                 if (oldValue == "") return;
 
-                __panel.setTimeout(function () {
+                setTimeout(function () {
                     let newValue = $input.val();
 
                     if (newValue == "") {
@@ -724,9 +719,7 @@ const __panel = PanelPage.create("resources_views_admin_views_order_list_blade_p
         $('.filter-show').on('click', function(){
             $('#datatableFilterSidebar,.hs-unfold-overlay').show(500);
         });
-
-})();
-</script>
+    </script>
 
 
 @endpush

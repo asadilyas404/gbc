@@ -276,20 +276,10 @@
 @push('script_2')
     <script src="{{dynamicAsset('public/assets/admin/js/view-pages/join-us-page.js')}}"></script>
     <script>
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-"use strict";
-const __panel = PanelPage.create("resources_views_admin_views_business_settings_join_us_page_setup_rest_join_blade_php_0");
-__panel.globals({
-"count": {get: () => count, set: value => { count = value; }},
-"optionSelected": {get: () => optionSelected, set: value => { optionSelected = value; }},
-"add_check_box": {get: () => add_check_box, set: value => { add_check_box = value; }}
-});
-
-
+        "use strict";
         let count= {{$count ?? 0 }};
 
-        __panel.onTarget(document, 'click', '.add-input-data-fields-group', function () {
+        $(document).on('click', '.add-input-data-fields-group', function () {
             count++;
             let new_field = `<div class="row mb-2 mt-2 align-items-end" id="`+count+`" style="display: none;">
                         <div class="col-md-3">
@@ -464,8 +454,6 @@ __panel.globals({
             `
             $('#check_box_data_main_'+parent_id).append(new_check_box_field);
         }
-
-})();
-</script>
+    </script>
 
 @endpush

@@ -1,10 +1,3 @@
-
-// data-panel-scope: page-owned script; cleaned up before Turbo replaces the body.
-(() => {
-const __panel = PanelPage.create("public_assets_admin_js_view_pages_apex_charts_js");
-__panel.globals({
-"newdonutChart": {get: () => newdonutChart, set: value => { newdonutChart = value; }}
-});
 function newdonutChart(id, value, labels, legendPosition = "bottom") {
     var options = {
         series: value,
@@ -85,8 +78,6 @@ function newdonutChart(id, value, labels, legendPosition = "bottom") {
             },
         },
     };
-    var chart = __panel.resource(new ApexCharts(document.querySelector(id), options), 'destroy');
+    var chart = new ApexCharts(document.querySelector(id), options);
     chart.render();
 }
-
-})();

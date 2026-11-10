@@ -1,7 +1,3 @@
-(() => {
-"use strict";
-const page = PanelPage.create('posControls');
-page.expose({cartQuantityInitialize, getUrlParameter, checkRestZone, checkZone});
 
 
 "use strict";
@@ -19,7 +15,7 @@ $("#insertPayableAmount").on('keydown', function(e) {
 
 
 
-page.on('click', '.addon-quantity-input-toggle', function (event) {
+$(document).on('click', '.addon-quantity-input-toggle', function (event) {
     let cb = $(event.target);
     if(cb.is(":checked"))
     {
@@ -168,7 +164,7 @@ $('#payment_cash').on('change', function() {
 
 
 $(function() {
-    page.on('click', 'input[type=number]', function() {
+    $(document).on('click', 'input[type=number]', function() {
         this.select();
     });
 });
@@ -194,5 +190,3 @@ $("#pos-div").on('keydown', function (e) {
         e.preventDefault();
     }
 })
-
-})();

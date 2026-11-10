@@ -189,9 +189,7 @@ if (isset($cart['paid'])) {
             @endif
 
             <script>
-(() => {
-const page = PanelPage.create('cartFocus');
-                page.ready(function() {
+                document.addEventListener('DOMContentLoaded', function() {
                     let focusRetryCount = 0;
                     const maxRetries = 10;
 
@@ -204,38 +202,38 @@ const page = PanelPage.create('cartFocus');
                                 input.focus();
                                 input.select();
 
-                                page.setTimeout(function() {
+                                setTimeout(function() {
                                     if (document.activeElement !== input) {
                                         attemptFocus(attempts + 1);
                                     }
                                 }, 50);
                             }
 
-                            page.setTimeout(function() {
+                            setTimeout(function() {
                                 attemptFocus();
                             }, 100);
                         }
                     }
 
-                    page.listen(document, 'click', function(e) {
+                    document.addEventListener('click', function(e) {
                         if (e.target.closest('button[data-target="#add-delivery-fee"]')) {
-                            page.setTimeout(function() {
+                            setTimeout(function() {
                                 autoFocusInput('delivery_fee_input');
                             }, 400);
                         }
                         else if (e.target.closest('button[data-target="#add-discount"]')) {
-                            page.setTimeout(function() {
+                            setTimeout(function() {
                                 autoFocusInput('discount_input');
                             }, 400);
                         }
                         else if (e.target.closest('button[data-target="#add-tax"]')) {
-                            page.setTimeout(function() {
+                            setTimeout(function() {
                                 autoFocusInput('tax');
                             }, 400);
                         }
                     });
 
-                    page.listen(document, 'shown.bs.modal', function(e) {
+                    document.addEventListener('shown.bs.modal', function(e) {
                         const modalId = e.target.id;
                         let inputId = '';
 
@@ -248,16 +246,14 @@ const page = PanelPage.create('cartFocus');
                         }
 
                         if (inputId) {
-                            page.setTimeout(function() {
+                            setTimeout(function() {
                                 autoFocusInput(inputId);
                             }, 200);
                         }
                     });
 
                 });
-
-})();
-</script>
+            </script>
 
 
             <dd class="col-12">
@@ -415,7 +411,7 @@ const page = PanelPage.create('cartFocus');
                                     type="tel"
                                     name="phone"
                                     class="form-control"
-                                    value="{{ old('phone', $draftDetails->phone ?? '') }}"
+                                    value=""
                                     placeholder="{{ translate('Phone') }}"
                                     maxlength="14"
                                     autocomplete="tel"
@@ -444,7 +440,7 @@ const page = PanelPage.create('cartFocus');
                                             {{ translate('Cash') }}
                                         </span>
                                     </label>
-                                </div>
+                                </div>        
                                 <div class="col-md-4 mb-1">
                                     <label for="payment_type_card" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_card" class="payment_type" name="select_payment_type" value="card_payment"
@@ -453,7 +449,7 @@ const page = PanelPage.create('cartFocus');
                                             {{ translate('Card') }}
                                         </span>
                                     </label>
-                                </div>
+                                </div>        
                                 <div class="col-md-4 mb-1">
                                     <label for="payment_type_both" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_both" class="payment_type" name="select_payment_type" value="both_payment" >
@@ -461,7 +457,7 @@ const page = PanelPage.create('cartFocus');
                                             {{ translate('Cash & Card') }}
                                         </span>
                                     </label>
-                                </div>
+                                </div> 
                                 <div class="col-md-4 mb-1" id="payment_type_credit_wrapper">
                                     <label for="payment_type_credit" class="form-group bg-light d-flex align-items-center gap-2 m-0 payment-selection-box">
                                         <input type="radio" id="payment_type_credit" class="payment_type" name="select_payment_type" value="credit_payment" >
@@ -518,7 +514,7 @@ const page = PanelPage.create('cartFocus');
                                            {{ translate('Take Away') }} <br /> {{ translate('سفري') }} 
                                         </span>
                                     </label>
-                                </div>
+                                </div> 
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_dine_in" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
                                         <input type="radio" id="delivery_type_dine_in" name="delivery_type" value="dine_in">
@@ -526,7 +522,7 @@ const page = PanelPage.create('cartFocus');
                                             {{ translate('Dine In') }} <br /> {{ translate('تناول في المطعم') }}
                                         </span>
                                     </label>
-                                </div>
+                                </div>     
                                 <div class="col-md-4 mb-1">
                                     <label for="delivery_type_delivery" class="form-group bg-light d-flex align-items-center gap-2 m-0 delivery_type-selection-box payment-selection-box">
                                         <input type="radio" id="delivery_type_delivery" name="delivery_type" value="delivery">

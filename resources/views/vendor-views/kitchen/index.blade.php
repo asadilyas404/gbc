@@ -135,9 +135,6 @@
 @push('script_2')
     <script>
         var orderType = @json($data['order_type']);
-(() => {
-const page = PanelPage.create('kitchen');
-page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
         let currentRequest = null;
 
         function updateAllOrders(type = null, id = null) {
@@ -224,7 +221,6 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
             console.error('[DEBUG] Pusher CONSTRUCTOR threw an error:', e);
         }
 
-        page.cleanup(() => { fallbackActive = false; clearFallbackTimer(); if (pusher) pusher.disconnect(); if (currentRequest) currentRequest.abort(); });
         let fallbackActive = false;
         let isSyncing = false;
         let fallbackTimeout = null;
@@ -239,7 +235,7 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
         function scheduleNextFallbackSync() {
             clearFallbackTimer();
             if (fallbackActive) {
-                fallbackTimeout = page.setTimeout(function() {
+                fallbackTimeout = setTimeout(function() {
                     syncKitchenOrders();
                 }, 40000);
             }
@@ -261,7 +257,7 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
 
         function applyCardHighlight($element) {
             $element.addClass('highlight-new-order');
-            page.setTimeout(function() {
+            setTimeout(function() {
                 $element.removeClass('highlight-new-order');
             }, 12000);
         }
@@ -432,12 +428,12 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
         });
 
         // Network offline / online events
-        page.listen(window, 'offline', function() {
+        window.addEventListener('offline', function() {
             console.warn('Network offline event detected.');
             startFallbackMode();
         });
 
-        page.listen(window, 'online', function() {
+        window.addEventListener('online', function() {
             console.log('Network online event detected.');
             if (pusher.connection.state === 'connected') {
                 stopFallbackMode();
@@ -446,7 +442,7 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
         });
 
         // Initial check if Pusher failed to connect on page load
-        page.setTimeout(function() {
+        setTimeout(function() {
             if (pusher.connection.state !== 'connected' || !navigator.onLine) {
                 startFallbackMode();
             }
@@ -507,7 +503,7 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
                     </div>`;
         }
 
-        page.on('click', '.startCooking', function() {
+        $(document).on('click', '.startCooking', function() {
             const thix = $(this);
             const data_id = thix.attr('data-id');
             thix.prop('disabled', true);
@@ -517,7 +513,7 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
             }
         });
 
-        page.on('click', '.orderReady', function() {
+        $(document).on('click', '.orderReady', function() {
             const thix = $(this);
             const dataId = thix.attr('data-id');
 
@@ -540,7 +536,7 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
             });
         });
 
-        page.on('click', '.orderCompleted', function() {
+        $(document).on('click', '.orderCompleted', function() {
             const thix = $(this);
             const data_id = thix.attr('data-id');
             thix.prop('disabled', true);
@@ -584,19 +580,19 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
                 }
 
                 update(); // Initial update
-                page.setInterval(update, 1000); // Update every second
+                setInterval(update, 1000); // Update every second
             });
         }
 
         updateTimers();
 
         // Save scroll position before the page unloads
-        page.listen(window, "beforeunload", function() {
+        window.addEventListener("beforeunload", function() {
             localStorage.setItem("scrollPosition", window.scrollY);
         });
 
         // Restore scroll position on page load
-        page.ready(function() {
+        window.addEventListener("load", function() {
             const scrollY = localStorage.getItem("scrollPosition");
             if (scrollY !== null) {
                 window.scrollTo(0, parseInt(scrollY));
@@ -742,7 +738,5 @@ page.expose({updateAllOrders, syncKitchenOrders, funViewCard});
         // } else {
         //     console.log('QZ Tray not available');
         // }
-
-})();
-</script>
+    </script>
 @endpush

@@ -40,10 +40,10 @@
            window.currentBranchId = {{ \App\CentralLogics\Helpers::get_restaurant_id() ?? 0 }};
        </script>
 
-    @php
+    <?php
         $panelHeadAssets = $__env->yieldPushContent('css_or_js');
         preg_match_all('/<script\b[^>]*>[\s\S]*?<\/script>/i', $panelHeadAssets, $panelHeadScripts);
-    @endphp
+    ?>
     {!! preg_replace('/<script\b[^>]*>[\s\S]*?<\/script>/i', '', $panelHeadAssets) !!}
 
     <script src="{{dynamicAsset('public/assets/admin/vendor/hs-navbar-vertical-aside/hs-navbar-vertical-aside-mini-cache.js')}}"></script>

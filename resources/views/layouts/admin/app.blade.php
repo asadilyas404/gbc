@@ -33,10 +33,10 @@
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/style.css') }}">
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/internet-connection-alert.css') }}">
     <link rel="stylesheet" href="{{dynamicAsset('public/assets/admin/intltelinput/css/intlTelInput.css')}}">
-    @php
+    <?php
         $panelHeadAssets = $__env->yieldPushContent('css_or_js');
         preg_match_all('/<script\b[^>]*>[\s\S]*?<\/script>/i', $panelHeadAssets, $panelHeadScripts);
-    @endphp
+    ?>
     {!! preg_replace('/<script\b[^>]*>[\s\S]*?<\/script>/i', '', $panelHeadAssets) !!}
     <link rel="stylesheet" href="{{ dynamicAsset('public/assets/admin/css/toastr.css') }}">
 

@@ -65,6 +65,8 @@ class FoodController extends Controller
             ]);
         }
 
+        $this->normalizePartnerPriceInput($request);
+
         $validator = Validator::make($request->all(), [
             'name' => 'array',
             'name.0' => 'required',
@@ -72,6 +74,9 @@ class FoodController extends Controller
             'category_id' => 'required',
             'image' => 'nullable|max:2048',
             'price' => 'required|numeric|min:0',
+            'partner_price' => 'sometimes|array',
+            'partner_price.*' => 'array',
+            'partner_price.*.price' => 'present|nullable|numeric|min:0',
             'description.*' => 'max:1000',
             'discount' => 'required|numeric|min:0',
         ], [
@@ -587,12 +592,17 @@ class FoodController extends Controller
             ]);
         }
 
+        $this->normalizePartnerPriceInput($request);
+
         $validator = Validator::make($request->all(), [
             'name' => 'array',
             'name.0' => 'required',
             'name.*' => 'max:191',
             'category_id' => 'required',
             'price' => 'required|numeric|min:0',
+            'partner_price' => 'sometimes|array',
+            'partner_price.*' => 'array',
+            'partner_price.*.price' => 'present|nullable|numeric|min:0',
             'description.*' => 'max:1000',
             'discount' => 'required|numeric|min:0',
             'image' => 'nullable|max:2048',
@@ -1584,6 +1594,28 @@ class FoodController extends Controller
 
         Toastr::success(translate('Partner prices copied successfully') . ". Foods: {$foodsUpdated}, Option prices: {$optionsUpdated}");
         return back();
+    }
+
+    private function normalizePartnerPriceInput(Request $request)
+    {
+        $partnerPrices = $request->input('partner_price');
+        if (!is_array($partnerPrices)) {
+            return;
+        }
+
+        foreach ($partnerPrices as $partnerId => $values) {
+            if (!is_array($values)) {
+                continue;
+            }
+
+            // Older add-food forms submitted quotes as part of the price key.
+            if (!array_key_exists('price', $values) && array_key_exists("'price'", $values)) {
+                $partnerPrices[$partnerId]['price'] = $values["'price'"];
+                unset($partnerPrices[$partnerId]["'price'"]);
+            }
+        }
+
+        $request->merge(['partner_price' => $partnerPrices]);
     }
 
     private function partnerIdsMatch($left, $right)

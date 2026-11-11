@@ -431,7 +431,7 @@
                                             <div class="input-group">
                                                 <input type="number" min="0" max="999999999999.99" step="0.01"
                                                 data-id="{{ $row->p_id }}"
-                                                value="{{ $row->price }}" name="partner_price[{{$row->p_id }}]['price']" class="form-control"
+                                                value="{{ $row->price }}" name="partner_price[{{$row->p_id }}][price]" class="form-control"
                                                 placeholder="{{ translate('messages.Ex :') }} 100" required>
                                                 <div class="input-group-append">
                                                   <div class="input-group-text py-0 px-2">

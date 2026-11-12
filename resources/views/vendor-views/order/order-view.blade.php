@@ -430,7 +430,7 @@
                                                                                             <span>{{ $key1 }} :
                                                                                             </span>
                                                                                             <span
-                                                                                                class="font-weight-bold">{{ $variation }}</span>
+                                                                                                class="font-weight-bold">{{ is_array($variation) ? implode(', ', \Illuminate\Support\Arr::flatten($variation)) : $variation }}</span>
                                                                                         </div>
                                                                                     @endforeach
                                                                                 @endif
@@ -520,7 +520,7 @@
                                                                                     <div class="font-size-sm text-body">
                                                                                         <span>{{ $key1 }} : </span>
                                                                                         <span
-                                                                                            class="font-weight-bold">{{ $variation }}</span>
+                                                                                            class="font-weight-bold">{{ is_array($variation) ? implode(', ', \Illuminate\Support\Arr::flatten($variation)) : $variation }}</span>
                                                                                     </div>
                                                                                 @endforeach
                                                                             @endif

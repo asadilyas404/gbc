@@ -476,8 +476,8 @@
                 </div>
             </div>
         </div>
-        @php($order = Order::find(session('last_order')))
-        @if ($order)
+        @php ($order = Order::find(session('last_order')))
+        @if ($order && 2 == 1)
             @php(session(['last_order' => false]))
 
             {{-- Load Bill Print --}}

@@ -318,7 +318,9 @@ class BranchRestaurantSyncController extends Controller
         $map = [];
         foreach (self::SYNC_ENTITY_TYPES as $entity) {
             $timestamp = optional($rows->get($entity))->last_synced_at;
-            $map[$entity] = $timestamp ? $this->parseTimestamp($timestamp) : null;
+            $map[$entity] = $this->parseTimestamp(
+                $timestamp ?? '2026-01-01 00:00:00'
+            );
         }
 
         return $map;

@@ -45,6 +45,7 @@ echo [6/6] Syncronizing Database...
 php artisan sync:schema ORDERS
 php artisan sync:schema ORDER_DETAILS
 php artisan sync:schema POS_ORDER_ADDITIONAL_DTL
+php artisan sync:schema RESTAURANTS
 php artisan sync:schema ORDER_WHATSAPP_MSG_LOG
 php artisan sync:schema TRANSLATIONS
 if errorlevel 1 goto :error

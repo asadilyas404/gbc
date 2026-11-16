@@ -257,7 +257,7 @@
                                         <input type="text" id="latitude" name="latitude" class="form-control h--45px "
                                             placeholder="{{ translate('messages.Ex:_-94.22213') }} " value="{{ old('latitude') }}" required>
                                     </div>
-                                    <div class="form-group mb-md-0">
+                                    <div class="form-group">
                                         <label class="input-label" for="longitude">{{ translate('messages.longitude') }}
                                                 <span data-toggle="tooltip" data-placement="right" data-original-title="{{ translate('messages.This_point_marks_the_longitude_of_the_restaurant’s_location_on_the_map') }}"
                                                 class="input-label-secondary"><img
@@ -266,6 +266,11 @@
                                                 </label>
                                         <input type="text" name="longitude" class="form-control h--45px " placeholder="{{ translate('messages.Ex:_103.344322') }} "
                                             id="longitude" value="{{ old('longitude') }}" required>
+                                    </div>
+                                    <div class="form-group mb-md-0">
+                                        <label class="input-label" for="place_id">{{ translate('messages.place_id') }}</label>
+                                        <input type="text" id="place_id" name="place_id" class="form-control h--45px"
+                                            maxlength="255" value="{{ old('place_id') }}">
                                     </div>
                                 </div>
                                 <div class="col-md-8">

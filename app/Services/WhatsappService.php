@@ -38,7 +38,7 @@ class WhatsappService
                 throw new \Exception('Order must have at least 1 item.');
             }
 
-            $templateName = config('whatsapp.order_confirmation_whatsapp_template', 'v3_order_confirmation_malek_al_pizza');
+            $templateName = config('whatsapp.order_confirmation_whatsapp_template', 'v3_malek_al_pizza_order_confirmation_notification');
 
             $parameters = [];
 
@@ -66,7 +66,9 @@ class WhatsappService
                     'type' => 'document',
                     'document' => [
                         'link' => $pdf['url'],
-                        'filename' => $orderSerial ?? 'Order Invoice.pdf',
+                        'filename' => 'Order - فاتورة'
+                        . (!empty($orderSerial) ? ' - ' . $orderSerial : '')
+                        . '.pdf',
                     ],
                 ],
             ];
@@ -194,6 +196,14 @@ class WhatsappService
             $parameters[] = $this->textParam('branch_phone_ar',$order->restaurant->phone ?? '-');
             $parameters[] = $this->textParam('branch_phone_en',$order->restaurant->phone ?? '-');
 
+            $buttonParameters = [
+                    [
+                        'type' => 'text',
+                        'text' => $order->restaurant->place_id ?? '-',
+                    ],
+                ];
+
+
             \Log::info('WhatsApp order ready parameters', [
                 'template_name' => $templateName,
                 'parameters' => $parameters,
@@ -217,6 +227,15 @@ class WhatsappService
                 $components[] = [
                     'type' => 'body',
                     'parameters' => $parameters,
+                ];
+            }
+
+            if (!empty($buttonParameters)) {
+                $components[] = [
+                    'type' => 'button',
+                    'sub_type' => 'url',
+                    'index' => 0,
+                    'parameters' => $buttonParameters,
                 ];
             }
 

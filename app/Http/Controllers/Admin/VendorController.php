@@ -77,6 +77,7 @@ class VendorController extends Controller
             'address' => 'required|max:1000',
             'latitude' => 'required|numeric|min:-90|max:90',
             'longitude' => 'required|numeric|min:-180|max:180',
+            'place_id' => 'nullable|string|max:255',
             'email' => 'required|unique:vendors',
             'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|min:9|max:20|unique:vendors',
             'minimum_delivery_time' => 'required',
@@ -172,6 +173,7 @@ class VendorController extends Controller
         $restaurant->address = $request->address[array_search('default', $request->lang)];
         $restaurant->latitude = $request->latitude;
         $restaurant->longitude = $request->longitude;
+        $restaurant->place_id = $request->place_id;
         $restaurant->vendor_id = $vendor->id;
         $restaurant->zone_id = $request->zone_id;
         $restaurant->tax = $request->tax;
@@ -275,6 +277,7 @@ class VendorController extends Controller
             'zone_id' => 'required',
             'latitude' => 'required|min:-90|max:90',
             'longitude' => 'required|min:-180|max:180',
+            'place_id' => 'nullable|string|max:255',
             'tax' => 'required',
             'password' => ['nullable', Password::min(8)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
             'minimum_delivery_time' => 'required',
@@ -375,6 +378,9 @@ class VendorController extends Controller
         $restaurant->address = $request->address[array_search('default', $request->lang)];
         $restaurant->latitude = $request->latitude;
         $restaurant->longitude = $request->longitude;
+        if ($request->has('place_id')) {
+            $restaurant->place_id = $request->place_id;
+        }
         $restaurant->zone_id = $request->zone_id;
         $restaurant->tax = $request->tax;
         $restaurant->delivery_time = $request->minimum_delivery_time . '-' . $request->maximum_delivery_time . '-' . $request->delivery_time_type;

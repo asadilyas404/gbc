@@ -8,5 +8,6 @@
         'branch_map_link' => env('BRANCH_MAP_LINK', 'https://maps.app.goo.gl/gv2XpfucXiyDxoqe9'),
         'invoice_slogan' => env('INVOICE_SLOGAN', 'لطلب الطعام من مالك البيتزا'),
         'cr_no' => env('CR_NO', '-'),
-        'vat_no'    => env('VAT_NO', '-')
+        'vat_no'    => env('VAT_NO', '-'),
+        'place_id' => env('PLACE_ID', 'ChIJFUI210LLjT4RWOYvYVQLvys')
     ];

@@ -1067,6 +1067,7 @@
   'address' => 'Address',
   'latitude' => 'Latitude',
   'longitude' => 'Longitude',
+  'place_id' => 'Place ID',
   'search_your_location_here' => 'Search your location here',
   'close' => 'Close',
   'save_changes' => 'Save changes',

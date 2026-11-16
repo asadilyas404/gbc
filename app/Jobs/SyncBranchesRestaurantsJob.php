@@ -160,10 +160,18 @@ class SyncBranchesRestaurantsJob implements ShouldQueue
                     }
 
                     foreach ($restaurantData['translations'] ?? [] as $translation) {
+                        // Translation IDs are generated independently on each database.
+                        unset($translation['id']);
+
                         DB::connection('oracle')
                             ->table('translations')
                             ->updateOrInsert(
-                                ['id' => $translation['id']],
+                                [
+                                    'translationable_type' => $translation['translationable_type'],
+                                    'translationable_id' => $translation['translationable_id'],
+                                    'locale' => $translation['locale'],
+                                    'key' => $translation['key'],
+                                ],
                                 $translation
                             );
                     }

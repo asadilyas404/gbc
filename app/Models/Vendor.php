@@ -31,14 +31,22 @@ class Vendor extends Authenticatable
 
     protected $appends = ['image_full_url', 'f_name','l_name'];
 
-    public function getFNameAttribute()
+    public function getFNameAttribute($value)
     {
+        if ($value !== null) {
+            return $value;
+        }
+
         $name = $this->attributes['name'] ?? '';
         return explode(' ', $name)[0] ?? '';
     }
 
-    public function getLNameAttribute()
+    public function getLNameAttribute($value)
     {
+        if ($value !== null) {
+            return $value;
+        }
+
         $name = $this->attributes['name'] ?? '';
         $parts = explode(' ', $name);
         array_shift($parts);

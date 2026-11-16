@@ -305,7 +305,7 @@
                                         <label class="input-label" for="f_name">{{ translate('messages.first_name') }}</label>
                                         <input id="f_name" type="text" name="f_name" class="form-control h--45px"
                                             placeholder="{{ translate('messages.Ex:_Jhon') }} "
-                                            value="{{ $restaurant->vendor->f_name }}" required>
+                                            value="{{ old('f_name', $restaurant->vendor->f_name) }}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4 col-12">
@@ -313,7 +313,7 @@
                                         <label class="input-label" for="l_name">{{ translate('messages.last_name') }}</label>
                                         <input id="l_name" type="text" name="l_name" class="form-control h--45px"
                                             placeholder="{{ translate('messages.Ex:_Doe') }} "
-                                            value="{{ $restaurant->vendor->l_name }}" required>
+                                            value="{{ old('l_name', $restaurant->vendor->l_name) }}" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4 col-12">

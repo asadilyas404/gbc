@@ -39,7 +39,7 @@ class PosCanceledOrderTest extends TestCase
     }
 
     /** @dataProvider orderCases */
-    public function testSavingUsesItemCancellationState($editing, $mode, $flags, $expectedStatus, $expectedPayment): void
+    public function testSavingUsesItemCancellationState($editing, $mode, $flags, $expectedStatus, $expectedPayment, $extraDiscount = null, $expectedDiscount = 0.0, $defaultDiscounts = []): void
     {
         $this->logPath = tempnam(sys_get_temp_dir(), 'pos-test-');
         $this->previousLog = ini_set('error_log', $this->logPath);
@@ -82,6 +82,18 @@ class PosCanceledOrderTest extends TestCase
         $branch->shouldReceive('where')->andReturnSelf();
         $branch->shouldReceive('first')->andReturn((object) ['orders_date' => date('Y-m-d')]);
         $database->shouldReceive('table')->with('tbl_soft_branch')->andReturn($branch);
+        if ($extraDiscount !== null) {
+            $discountSetting = Mockery::mock();
+            $discountSetting->shouldReceive('where')->with('key', \App\Services\PosDiscountService::ENABLED_SETTING)->andReturnSelf();
+            $discountSetting->shouldReceive('value')->with('value')->andReturn('1');
+            $database->shouldReceive('table')->with('business_settings')->andReturn($discountSetting);
+            $discount = Mockery::mock();
+            $discount->shouldReceive('where')->andReturnSelf();
+            $discount->shouldReceive('first')->andReturn((object) [
+                'id' => 2, 'default_discount' => 20, 'max_discount' => $extraDiscount,
+            ]);
+            $database->shouldReceive('table')->with('tbl_pos_discount_types')->andReturn($discount);
+        }
         $settings = Mockery::mock('alias:App\\Models\\BusinessSetting');
         $settings->shouldReceive('where')->andReturnSelf();
         $settings->shouldReceive('first')->andReturn((object) ['value' => 0]);
@@ -104,7 +116,15 @@ class PosCanceledOrderTest extends TestCase
         $details->shouldReceive('where')->andReturnSelf();
         $details->shouldReceive('get')->andReturn(collect([]));
         $details->shouldReceive('delete')->times($editing ? 1 : 0);
-        $details->shouldReceive('insert')->once()->with(Mockery::on(function ($rows) use ($flags) {
+        $details->shouldReceive('insert')->once()->with(Mockery::on(function ($rows) use ($flags, $defaultDiscounts) {
+            foreach ($rows as $key => $row) {
+                $snapshot = json_decode($row['food_details'], true);
+                $native = ($defaultDiscounts[$key] ?? 0) > 0;
+                if (($snapshot['pos_discount_source'] ?? null) !== ($native ? 'food_default' : 'none')
+                    || (float) ($snapshot['pos_discount_value'] ?? 0) !== (float) ($defaultDiscounts[$key] ?? 0)) {
+                    return false;
+                }
+            }
             return array_column($rows, 'is_deleted') === $flags;
         }))->andReturn(true);
         $additional = Mockery::mock('alias:App\\Models\\PosOrderAdditionalDtl');
@@ -131,14 +151,21 @@ class PosCanceledOrderTest extends TestCase
         $addons->shouldReceive('get')->andReturn(collect([]));
 
         $cart = [];
-        foreach ($flags as $flag) {
+        foreach ($flags as $key => $flag) {
             $cart[] = [
-                'id' => 1, 'quantity' => 1, 'price' => 10, 'discount' => 0,
+                'id' => 1, 'quantity' => 1, 'price' => 10, 'discount' => $defaultDiscounts[$key] ?? 0,
+                'discountAmount' => $defaultDiscounts[$key] ?? 0, 'discountType' => 'amount',
+                'discount_source' => ($defaultDiscounts[$key] ?? 0) > 0 ? 'food_default' : 'none',
                 'is_deleted' => $flag, 'variations' => [], 'add_ons' => [], 'add_on_qtys' => [],
             ];
         }
         if (!$flags) {
             $cart['tax'] = 0; // Cart metadata alone must not count as canceled items.
+        }
+        if ($extraDiscount !== null) {
+            $cart['order_discount_type_id'] = 2;
+            $cart['discount'] = 99; // The server must use the catalogue percentage.
+            $cart['discount_type'] = 'amount';
         }
         $session = new Store('pos-test', new ArraySessionHandler(120));
         $session->put('cart', collect($cart));
@@ -165,6 +192,14 @@ class PosCanceledOrderTest extends TestCase
         $this->assertNotNull($saved);
         $this->assertSame($expectedStatus, $saved->order_status);
         $this->assertSame($expectedPayment, $saved->payment_status);
+        $this->assertSame($expectedDiscount, $saved->restaurant_discount_amount);
+        $this->assertSame($extraDiscount !== null ? 2 : null, $saved->order_discount_type_id);
+        $activeCount = count(array_filter($flags, function ($flag) { return $flag === 'N'; }));
+        $defaultTotal = 0;
+        foreach ($flags as $key => $flag) {
+            if ($flag === 'N') { $defaultTotal += $defaultDiscounts[$key] ?? 0; }
+        }
+        $this->assertEquals($activeCount * 10 - $defaultTotal - $expectedDiscount, $saved->order_amount);
     }
 
     public function orderCases(): array
@@ -175,6 +210,13 @@ class PosCanceledOrderTest extends TestCase
                 $label = ($editing ? 'update' : 'create') . ' ' . $mode;
                 $cases[$label . ' canceled'] = [$editing, $mode, ['Y', 'Y'], 'canceled', 'paid'];
                 $cases[$label . ' mixed'] = [$editing, $mode, ['Y', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid'];
+                $cases[$label . ' capped extra discount'] = [$editing, $mode, ['N', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 3.125, 3.125];
+                $cases[$label . ' extra discount below cap, canceled item excluded'] = [$editing, $mode, ['Y', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 2.0];
+                $cases[$label . ' native and eligible foods'] = [$editing, $mode, ['N', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 2.0, [0 => 2]];
+                $cases[$label . ' native food only gets no extra discount'] = [$editing, $mode, ['N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 0.0, [0 => 2]];
+                $cases[$label . ' canceled native food excluded'] = [$editing, $mode, ['Y', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 2.0, [0 => 2]];
+                $cases[$label . ' canceled eligible food excluded'] = [$editing, $mode, ['N', 'Y'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 0.0, [0 => 2]];
+                $cases[$label . ' cap still applies with native food present'] = [$editing, $mode, ['N', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 1.125, 1.125, [0 => 2]];
             }
         }
         $cases['no item rows'] = [true, 'draft', [], 'cooking', 'unpaid'];

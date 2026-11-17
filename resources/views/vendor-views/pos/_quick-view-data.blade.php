@@ -2,6 +2,9 @@
     use App\CentralLogics\Helpers;
     use App\Models\AddOn;
     use App\Models\OptionsList;
+    $hasExtraDiscount = (new \App\Services\PosDiscountService())->hasOrderDiscount(session('cart', collect([])));
+    $defaultDiscountValue = $hasExtraDiscount ? 0 : ($product->discount ?? 0);
+    $defaultOffer = $defaultDiscountValue > 0 ? $discounts->firstWhere('id', 1) : null;
 @endphp
 <div class="initial-49">
     <div class="modal-header p-0">
@@ -36,7 +39,7 @@
 
                 <div class="mb-3 text-dark">
                     <span class="h3 font-weight-normal text-accent mr-1" id="product-price">
-                        {{ Helpers::get_price_range($product, true) }}
+                        {{ Helpers::get_price_range($product, !$hasExtraDiscount) }}
                     </span>
                     {{-- @if ($product->discount > 0 || Helpers::get_restaurant_discount($product->restaurant))
                     <span class="fz-12px line-through" id="original-price">
@@ -44,7 +47,7 @@
                     </span>
                     @endif --}}
                     <span
-                        class="fz-12px line-through {{ $product->discount > 0 || Helpers::get_restaurant_discount($product->restaurant) ? '' : 'd-none' }}"
+                        class="fz-12px line-through {{ !$hasExtraDiscount && ($product->discount > 0 || Helpers::get_restaurant_discount($product->restaurant)) ? '' : 'd-none' }}"
                         id="original-price">
                         {{ Helpers::get_price_range($product) }}
                     </span>
@@ -56,7 +59,7 @@
                 </div>
                 <div class="mb-1 text-dark">
                     <strong>{{ translate('messages.discount') }} : </strong>
-                    <strong id="set-discount-amount">{{ Helpers::get_product_discount($product) }}</strong>
+                    <strong id="set-discount-amount">{{ $hasExtraDiscount ? 0 : Helpers::get_product_discount($product) }}</strong>
                 </div>
                 {{-- @endif --}}
                 <div class="mb-1 text-dark chosen_price_div">
@@ -121,23 +124,28 @@
                             {{ translate("messages.Discount x Item's") }}:
                         </div>
                         <div class="form-group col-md-6 mb-1">
+                            <input type="hidden" name="use_food_default" id="use_food_default" value="{{ $defaultDiscountValue > 0 ? 1 : 0 }}">
                             <select name="pos_discount_type" class="form-control pos-discount-type"
-                                id="pos_discount_type" onchange="applyPOSDiscount()">
-                                <option value="" {{ $product->discount <= 0 ? 'selected' : '' }} data-type="percent" data-value="0" @if($product->discount > 0) disabled @endif>
-                                    Select Discount Type
+                                id="pos_discount_type" onchange="applyPOSDiscount()" @if($hasExtraDiscount) disabled @endif>
+                                <option value="{{ $defaultOffer->id ?? '' }}" selected data-food-default="{{ $defaultDiscountValue > 0 ? 1 : 0 }}" data-type="{{ $product->discount_type ?? 'percent' }}" data-value="{{ $defaultDiscountValue }}">
+                                    {{ $defaultDiscountValue > 0 ? ($defaultOffer->name ?? 'Offer') : 'No product discount' }}
                                 </option>
                                 @foreach ($discounts as $discount)
-                                    <option @if($product->discount > 0 && $discount->id == 1) selected @endif value="{{ $discount->id }}" @if($discount->id == 1) data-type="{{ $product->discount_type }}" @else data-type="percent" @endif @if($discount->id == 1) data-value="{{ $product->discount }}" @else data-value="{{ $discount->default_discount }}" @endif>
+                                    @continue($defaultOffer && $discount->id == $defaultOffer->id)
+                                    <option value="{{ $discount->id }}" data-type="percent" data-value="{{ $discount->default_discount }}">
                                         {{ $discount->name }}
                                     </option>
                                 @endforeach
                             </select>
+                            @if($hasExtraDiscount)
+                                <small class="form-text text-muted">Extra discount is selected. Default food discounts will not apply.</small>
+                            @endif
                         </div>
                         <div class="form-group col-md-3 mb-1">
-                            <input type="number" class="form-control" name="product_discount" min="0.0001"
+                            <input type="number" class="form-control" name="product_discount" min="0"
                             onwheel="this.blur()"
                             readonly="true"
-                                id="product_discount" value="{{ $product->discount }}"
+                                id="product_discount" value="{{ $defaultDiscountValue }}"
                                 onkeyup="calculateTotal()"
                                 max="{{ $product['discount_type'] == 'percent' ? 100 : 1000000000 }}" step="0.0001">
                         </div>
@@ -432,25 +440,10 @@
     });
 
     function applyPOSDiscount(){
-        const selectedDiscountId = $('#pos_discount_type').val();
-        if (selectedDiscountId) {
-            const selectedOption = $('#pos_discount_type option:selected');
-            const discountValue = parseFloat(selectedOption.data('value')) || 0;
-            $('#product_discount').val(discountValue);
-
-            // Also change the discount type to percentage
-            $('#product_discount_type').val(selectedOption.data('type') || 'percent');
-        } else {
-            var productDiscount = {{ $product->discount }};
-            if(productDiscount > 0){
-                $('#pos_discount_type').val(1);
-                $('#product_discount').val(productDiscount);
-                $('#product_discount_type').val('{{ $product->discount_type }}');
-            }else{
-                $('#product_discount').val(0);
-                $('#product_discount_type').val('percent');
-            }
-        }
+        const selectedOption = $('#pos_discount_type option:selected');
+        $('#use_food_default').val(selectedOption.attr('data-food-default') === '1' ? '1' : '0');
+        $('#product_discount').val(parseFloat(selectedOption.attr('data-value')) || 0);
+        $('#product_discount_type').val(selectedOption.attr('data-type') || 'percent');
         calculateTotal();
     }
 

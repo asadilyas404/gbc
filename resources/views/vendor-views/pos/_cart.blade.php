@@ -11,6 +11,14 @@
         <tbody>
             <?php
             use App\CentralLogics\Helpers;
+            $discountService = new \App\Services\PosDiscountService();
+            $cart = session()->get('cart', collect([]));
+            $extraDiscountEnabled = $discountService->isEnabled();
+            $orderDiscounts = $extraDiscountEnabled ? $discountService->orderDiscounts() : collect([]);
+            $selectedOrderDiscountId = $cart['order_discount_type_id'] ?? null;
+            $selectedOrderDiscount = $orderDiscounts->firstWhere('id', $selectedOrderDiscountId);
+            $hasManualProductDiscount = $discountService->hasManualProductDiscount($cart);
+            $extraDiscountError = null;
             $subtotal = 0;
             $addon_price = 0;
             $tax = Helpers::get_restaurant_data()->tax;
@@ -37,7 +45,7 @@
                 @foreach (session()->get('cart') as $key => $cartItem)
                     @if (is_array($cartItem))
                         <?php
-                        if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y'){
+                        if(trim($cartItem['is_deleted'] ?? 'N') === 'Y'){
                                 $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
                         }else{
                             $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
@@ -48,7 +56,7 @@
                         }
                         ?>
                         @if(!isset($cartItem['visibility']) || (int)$cartItem['visibility'] !== 0)
-                            <tr @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') class="bg-light pe-none" @endif>
+                            <tr @if(trim($cartItem['is_deleted'] ?? 'N') === 'Y') class="bg-light pe-none" @endif>
                                 <td 
                                     class="media cart--media align-items-center cursor-pointer quick-View-Cart-Item"
                                     data-product-id="{{ $cartItem['id'] }}" data-item-key="{{ $key }}" data-item-qty="{{ $cartItem['quantity'] }}">
@@ -81,7 +89,7 @@
                                 </td>
                                 <td class="align-items-center">
                                     <div class="btn--container justify-content-center">
-                                        @if(isset($cartItem['is_deleted']) && $cartItem['is_deleted'] == 'Y') 
+                                        @if(trim($cartItem['is_deleted'] ?? 'N') === 'Y')
                                             <span class="badge bg-danger text-white small">Removed</span>
                                         @else
                                             <a href="javascript:" data-product-id="{{ $key }}"
@@ -106,7 +114,13 @@ if (session()->has('address') && count(session()->get('address')) > 0) {
     $delivery_fee += session()->get('address')['delivery_fee'];
 }
 $total = $subtotal + $addon_price;
-$discount_amount = $discount_type == 'percent' && $discount > 0 ? (($total - $discount_on_product) * $discount) / 100 : $discount;
+$discountSubtotal = $discountService->eligibleSubtotal($cart);
+try {
+    $discount_amount = $discountService->amount($cart, $discountSubtotal);
+} catch (\Illuminate\Validation\ValidationException $exception) {
+    $discount_amount = 0;
+    $extraDiscountError = collect($exception->errors())->flatten()->first();
+}
 $total -= $discount_amount + $discount_on_product;
 $tax_included = Helpers::get_mail_status('tax_included') ?? 0;
 $total_tax_amount = $tax > 0 ? ($total * $tax) / 100 : 0;
@@ -158,12 +172,18 @@ if (isset($cart['paid'])) {
                 + {{ Helpers::format_currency(round($delivery_fee, 3)) }}
             </dd>
 
-            <dt class="col-6 font-regular">{{ translate('messages.extra_discount') }} :</dt>
+            <dt class="col-6 font-regular">{{ translate('messages.extra_discount') }} :
+                @if(!$extraDiscountEnabled)<small class="text-muted">(Disabled)</small>@endif
+            </dt>
             <dd class="col-6 text-right">
-                <button class="btn btn-sm" type="button" disabled data-toggle="modal" data-target="#add-discount"><i
+                <button class="btn btn-sm" type="button" @if(!$extraDiscountEnabled || (isset($editingOrder) && $editingOrder->payment_status === 'paid')) disabled @endif data-toggle="modal" data-target="#add-discount" aria-label="Edit extra discount"><i
                         class="tio-edit"></i></button>
                 - {{ Helpers::format_currency(round($discount_amount, 3)) }}
             </dd>
+
+            @if($extraDiscountEnabled && $extraDiscountError)
+                <dd class="col-12 text-danger" role="alert">{{ $extraDiscountError }}</dd>
+            @endif
 
             @if ($tax_included != 1)
                 <dt class="col-6 font-regular">{{ translate('messages.vat/tax') }}:</dt>
@@ -641,30 +661,46 @@ if (isset($cart['paid'])) {
                 </button>
             </div>
             <div class="modal-body">
-                <form action="{{ route('vendor.pos.discount') }}" method="post" class="row">
+                <form action="{{ route('vendor.pos.discount') }}" method="post" class="row" id="extra-discount-form" data-subtotal="{{ $discountService->subtotal($cart) }}" data-has-default-discount="{{ $discountService->hasDefaultFoodDiscount($cart) ? '1' : '0' }}">
                     @csrf
-                    <div class="form-group col-sm-6">
-                        <label for="discount_input">{{ translate('messages.discount') }}</label>
-                        <input type="number" class="form-control" name="discount" min="0.0001"
-                            id="discount_input" value="{{ $discount }}"
-                            max="{{ $discount_type == 'percent' ? 100 : 1000000000 }}" step="0.0001">
-                    </div>
-                    <div class="form-group col-sm-6">
-                        <label for="discount_input_type">{{ translate('messages.type') }}</label>
-                        <select name="type" class="form-control discount-type" id="discount_input_type">
-                            <option value="percent" {{ $discount_type == 'percent' ? 'selected' : '' }}>
-                                {{ translate('messages.percent') }}
-                                (%)
-                            </option>
-                            <option value="amount" {{ $discount_type == 'amount' ? 'selected' : '' }}>
-                                {{ translate('messages.amount') }}
-                                ({{ Helpers::currency_symbol() }})
-                            </option>
+                    <input type="hidden" name="confirm_default_discount_removal" value="0">
+                    <div class="form-group col-sm-12">
+                        <label for="order_discount_type_id">Discount Type</label>
+                        <select name="order_discount_type_id" id="order_discount_type_id" class="form-control" @if(!$extraDiscountEnabled) disabled @endif>
+                            <option value="">No extra discount</option>
+                            @foreach($orderDiscounts as $orderDiscount)
+                                <option value="{{ $orderDiscount->id }}"
+                                    data-rate="{{ $orderDiscount->default_discount }}"
+                                    data-maximum="{{ $orderDiscount->max_discount }}"
+                                    {{ (string)$selectedOrderDiscountId === (string)$orderDiscount->id ? 'selected' : '' }}
+                                    @if($hasManualProductDiscount) disabled @endif>{{ $orderDiscount->name }}</option>
+                            @endforeach
                         </select>
+                        @if($extraDiscountEnabled && $hasManualProductDiscount)
+                            <small class="form-text text-danger">Remove manually selected product discounts before applying extra discount.</small>
+                        @endif
+                        @if($extraDiscountEnabled && $selectedOrderDiscountId && !$selectedOrderDiscount)
+                            <small class="form-text text-danger">The saved discount is unavailable. Select another discount or remove it.</small>
+                        @elseif($extraDiscountEnabled && !$selectedOrderDiscountId && $discount > 0)
+                            <small class="form-text text-muted">This order has a previous extra discount. Select a discount to replace it, or submit No extra discount to remove it.</small>
+                        @endif
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <label for="discount_input">{{ translate('messages.discount') }}</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="discount_input" readonly
+                                value="{{ $selectedOrderDiscount->default_discount ?? 0 }}" aria-label="Discount percentage">
+                            <div class="input-group-append"><span class="input-group-text">%</span></div>
+                        </div>
+                    </div>
+                    <div class="form-group col-sm-12">
+                        <div>Maximum discount ({{ Helpers::currency_symbol() }}): <strong id="extra-discount-maximum">{{ $selectedOrderDiscount->max_discount ?? '0.000' }}</strong></div>
+                        <div>Applied discount ({{ Helpers::currency_symbol() }}): <strong id="extra-discount-preview">{{ number_format($discount_amount, 3, '.', '') }}</strong></div>
+                        <small class="form-text text-muted">Extra discount replaces default food discounts and applies to all active items and their add-ons, up to the maximum amount. New items will have no default food discount while extra discount is selected. Delivery, tax and other charges are excluded.</small>
                     </div>
                     <div class="form-group col-sm-12">
                         <button class="btn btn-sm btn--primary"
-                            type="submit">{{ translate('messages.submit') }}</button>
+                            type="submit" @if(!$extraDiscountEnabled) disabled @endif>{{ translate('messages.submit') }}</button>
                     </div>
                 </form>
             </div>

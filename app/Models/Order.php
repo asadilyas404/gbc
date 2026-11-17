@@ -19,6 +19,7 @@ class Order extends Model
         'coupon_discount_amount' => 'float',
         'total_tax_amount' => 'float',
         'restaurant_discount_amount' => 'float',
+        'order_discount_type_id' => 'integer',
         'delivery_address_id' => 'integer',
         'delivery_man_id' => 'integer',
         'delivery_charge' => 'float',

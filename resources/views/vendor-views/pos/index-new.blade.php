@@ -1313,7 +1313,7 @@
                             text: '{{ translate('messages.Sorry, product out of stock') }}'
                         });
                         return false;
-                    } else if (data.data === 'variation_error') {
+                    } else if (data.data === 'variation_error' || data.data === 'discount_error' || data.data === 'error') {
                         Swal.fire({
                             icon: 'error',
                             title: 'Cart',
@@ -2215,19 +2215,45 @@
         });
 
 
-        $(document).on('change', '#discount_input_type', function() {
-            let discountInput = $('#discount_input');
-            let discountInputType = $(this);
-            let maxLimit = (discountInputType.val() === 'percent') ? 100 : 1000000000;
-            discountInput.attr('max', maxLimit);
+        $(document).on('submit', '#extra-discount-form', function(event) {
+            const form = this;
+            const confirmation = form.querySelector('[name="confirm_default_discount_removal"]');
+            if (!form.querySelector('[name="order_discount_type_id"]').value ||
+                form.dataset.hasDefaultDiscount !== '1' || confirmation.value === '1') {
+                return;
+            }
+            event.preventDefault();
+            if (form.dataset.confirmationPending === '1') return;
+            form.dataset.confirmationPending = '1';
+            Swal.fire({
+                title: 'Replace default food discounts?',
+                text: 'Your cart contains food items with default discounts. Adding extra discount will remove those default discounts. New items will also have no default discount while extra discount is selected.',
+                type: 'warning',
+                target: form.closest('.modal') || document.body,
+                showCancelButton: true,
+                confirmButtonText: 'Add extra discount',
+                cancelButtonText: 'Cancel'
+            }).then(function(result) {
+                delete form.dataset.confirmationPending;
+                if ((result.isConfirmed === true || result.value === true) && document.contains(form)) {
+                    confirmation.value = '1';
+                    HTMLFormElement.prototype.submit.call(form);
+                }
+            });
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            let selectElement = document.querySelector('.discount-type');
-            selectElement.addEventListener('change', function() {
-                document.getElementById('discount_input').max = (this.value === 'percent' ? 100 :
-                    1000000000);
-            });
+        $(document).on('change', '#order_discount_type_id', function() {
+            const option = $(this).find('option:selected');
+            const rate = Number(option.attr('data-rate') || 0);
+            const maximum = Number(option.attr('data-maximum') || 0);
+            const subtotal = Number($('#extra-discount-form').attr('data-subtotal') || 0);
+            const valid = Number.isFinite(rate) && rate >= 0 && rate <= 100 &&
+                Number.isFinite(maximum) && maximum >= 0 &&
+                (!$(this).val() || (option.attr('data-rate') || '').trim() !== '' &&
+                    (option.attr('data-maximum') || '').trim() !== '');
+            $('#discount_input').val(valid ? rate : 0);
+            $('#extra-discount-maximum').text(valid ? maximum.toFixed(3) : 'Invalid');
+            $('#extra-discount-preview').text(valid ? Math.min(subtotal * rate / 100, maximum).toFixed(3) : 'Invalid');
         });
 
 

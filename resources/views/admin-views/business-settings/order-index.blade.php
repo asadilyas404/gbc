@@ -40,6 +40,7 @@
                             <div class="card-body">
                                 <div class="py-2">
                                     <div class="row g-3 align-items-end">
+                                        @include('admin-views.business-settings.partials.pos-extra-discount-setting')
                                         <div class="col-sm-6 col-lg-4">
                                             @php($odc = \App\Models\BusinessSetting::where('key', 'order_delivery_verification')->first())
                                             @php($odc = $odc ? $odc->value : 0)

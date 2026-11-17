@@ -249,6 +249,9 @@ class OrderController extends Controller
 
         foreach ($order->details as $item) {
             $food = json_decode($item->food_details, true) ?? [];
+            $discountState = (new \App\Services\PosDiscountService())->restoreProductDiscount(
+                $food, $item->pos_discount_type, (float) $item->price, (float) $item->discount_on_food
+            );
 
             // Safe defaults
             $variation_price = 0;
@@ -279,8 +282,9 @@ class OrderController extends Controller
                 'add_on_qtys' => $addon_qtys,
                 'addon_price' => $item->total_add_on_price,
                 'discount' => $item->discount_on_food,
-                'discountAmount' => $item->discount_on_food,
-                'discountType' => 'amount',
+                'discountAmount' => $discountState['discountAmount'],
+                'discountType' => $discountState['discountType'],
+                'discount_source' => $discountState['discount_source'],
                 'details' => $item->notes,
                 'image' => $food['image'] ?? null,
                 'is_deleted' => trim($item->is_deleted),
@@ -294,7 +298,7 @@ class OrderController extends Controller
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
                 'draft_product' => true,
-                'pos_discount_type' => $item->pos_discount_type ?? null,
+                'pos_discount_type' => $discountState['pos_discount_type'],
             ];
         }
 
@@ -308,6 +312,7 @@ class OrderController extends Controller
             $cartSession['discount'] = $order->restaurant_discount_amount;
             $cartSession['discount_type'] = 'amount';
         }
+        $cartSession['order_discount_type_id'] = $order->order_discount_type_id;
 
         if ($order->total_tax_amount > 0) {
             $subtotal = $order->order_amount - $order->total_tax_amount - $order->delivery_charge;

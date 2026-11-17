@@ -316,6 +316,9 @@ class BusinessSettingsController extends Controller
 
     public function update_order(Request $request)
     {
+        Validator::make($request->all(), [
+            'pos_extra_discount_enabled' => 'sometimes|required|boolean',
+        ])->validate();
 
         if ($request->home_delivery === null && $request->take_away === null) {
             Toastr::warning(translate('messages.can_not_disable_both_take_away_and_delivery'));
@@ -327,6 +330,12 @@ class BusinessSettingsController extends Controller
             return back();
         }
 
+
+        if ($request->has('pos_extra_discount_enabled')) {
+            Helpers::businessUpdateOrInsert(['key' => \App\Services\PosDiscountService::ENABLED_SETTING], [
+                'value' => $request->boolean('pos_extra_discount_enabled') ? 1 : 0,
+            ]);
+        }
 
         Helpers::businessUpdateOrInsert(['key' => 'instant_order'], [
             'value' => $request['instant_order'] ?? 0

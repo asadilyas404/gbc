@@ -19,6 +19,7 @@ use App\Models\PosOrderAdditionalDtl;
 use App\Models\SaleCustomer;
 use App\Models\User;
 use App\Services\WhatsappService;
+use App\Services\PosDiscountService;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
 use DebugBar\DataCollector\PDO\TraceablePDOStatement;
@@ -28,6 +29,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 
 class POSController extends Controller
 {
@@ -269,7 +271,7 @@ class POSController extends Controller
             }
         }
 
-        $discounts = DB::table('tbl_pos_discount_types')->where('status', 1)->orderBy('name', 'asc')->get();
+        $discounts = (new PosDiscountService())->productDiscounts();
 
         return response()->json([
             'success' => 1,
@@ -343,7 +345,7 @@ class POSController extends Controller
             $orderPaymentStatus = 'unpaid';
         }
 
-        $discounts = DB::table('tbl_pos_discount_types')->where('status', 1)->orderBy('name', 'asc')->get();
+        $discounts = (new PosDiscountService())->productDiscounts();
 
         return response()->json([
             'success' => 1,
@@ -520,6 +522,18 @@ class POSController extends Controller
     public function addToCart(Request $request)
     {
         try {
+            $discounts = new PosDiscountService();
+            Validator::make($request->all(), [
+                'pos_discount_type' => 'nullable|integer|min:1',
+                'product_discount' => 'nullable|numeric|min:0',
+                'product_discount_type' => 'nullable|in:percent,amount',
+                'use_food_default' => 'nullable|boolean',
+                'quantity' => 'required|integer|min:1',
+            ])->validate();
+            $discounts->validateProductSelection($request->pos_discount_type);
+            if ($request->product_discount_type === 'percent' && $request->product_discount > 100) {
+                throw ValidationException::withMessages(['discount' => 'Product discount percentage cannot exceed 100.']);
+            }
             $orderId = session('editing_order_id');
 
             // 1) Early check: cannot modify paid order
@@ -672,7 +686,7 @@ class POSController extends Controller
             // 8) Discount calculation (you can decide whether to include addons in discount)
             $unit_total_for_discount = $unit_base_plus_variation; // or + $addon_price if you want
 
-            if ($request->product_discount_type && $request->product_discount) {
+            if ($request->product_discount_type && $request->has('product_discount')) {
                 $discountAmount = (float) $request->product_discount;
                 $discountType = $request->product_discount_type;
 
@@ -694,6 +708,37 @@ class POSController extends Controller
             }
 
             $data['pos_discount_type'] = $request->pos_discount_type ?? null;
+            $data['discount_source'] = $discounts->isDefaultFoodDiscount(
+                $product, $data['pos_discount_type'], $unit_total_for_discount, (float) $data['discount'],
+                $request->boolean('use_food_default')
+            ) ? 'food_default' : ($data['discount'] > 0 ? 'manual' : 'none');
+            // Editing a saved default retains its original rate even if ERP has since changed it.
+            $originalItem = $request->session()->get('cart', collect([]))[$request->cart_item_key ?? ''] ?? null;
+            if (is_array($originalItem) && ($originalItem['discount_source'] ?? null) === 'food_default'
+                && (string) ($originalItem['id'] ?? '') === (string) $product->id
+                && (empty($data['pos_discount_type']) || ($request->boolean('use_food_default') && (string) $data['pos_discount_type'] === '1'))
+                && ($data['discountType'] ?? null) === ($originalItem['discountType'] ?? null)
+                && (float) ($data['discountAmount'] ?? 0) === (float) ($originalItem['discountAmount'] ?? 0)) {
+                $data['discount_source'] = 'food_default';
+            }
+            if ($request->boolean('use_food_default') && $data['discount_source'] !== 'food_default') {
+                throw ValidationException::withMessages(['discount' => 'The selected offer does not match this food\'s default discount.']);
+            }
+            if ($data['discount'] < 0 || $data['discount'] > $unit_total_for_discount) {
+                throw ValidationException::withMessages(['discount' => 'Discount cannot exceed the product price.']);
+            }
+            if ($data['discount'] > 0 && $data['discount_source'] !== 'food_default'
+                && $discounts->hasOrderDiscount($request->session()->get('cart', collect([])))) {
+                throw ValidationException::withMessages(['discount' => 'Remove the extra discount before adding a manual product discount.']);
+            }
+            if ($data['discount_source'] === 'food_default') {
+                $data['pos_discount_type'] = $discounts->defaultDiscountTypeId();
+                $data['discountAmount'] = $data['discountAmount'] ?? $product->discount;
+                $data['discountType'] = $data['discountType'] ?? $product->discount_type;
+            }
+            if ($discounts->hasOrderDiscount($request->session()->get('cart', collect([])))) {
+                $data = $discounts->withoutDefaultFoodDiscount($data);
+            }
             // Decide what you want to store as unit "price"
             $data['price'] = $unit_base_plus_variation; // keeping your original meaning
 
@@ -804,6 +849,8 @@ class POSController extends Controller
             return response()->json([
                 'data' => $data,
             ]);
+        } catch (ValidationException $exception) {
+            return response()->json(['data' => 'discount_error', 'message' => collect($exception->errors())->flatten()->first()]);
         } catch (\Throwable $th) {
             return response()->json([
                 'data' => 'error',
@@ -931,38 +978,39 @@ class POSController extends Controller
     public function update_discount(Request $request)
     {
         $cart = $request->session()->get('cart', collect([]));
-
-        $subtotal = 0;
-        $addon_price = 0;
-        $discount_on_product = 0;
-
-        foreach ($cart as $key => $cartItem) {
-            if (is_array($cartItem)) {
-                $product_subtotal = $cartItem['price'] * $cartItem['quantity'];
-                $discount_on_product += $cartItem['discount'] * $cartItem['quantity'];
-                $subtotal += $product_subtotal;
-                $addon_price += $cartItem['addon_price'];
-            }
-        }
-
-        $total = $subtotal + $addon_price;
-
-        $discount = $request->discount;
-        $discount_type = $request->type;
-
-        $discount_amount = $discount_type == 'percent' && $discount > 0
-            ? (($total - $discount_on_product) * $discount) / 100
-            : $discount;
-
-        $final_total = $total - $discount_amount - $discount_on_product;
-
-        if ($final_total < 0) {
-            Toastr::error(translate('messages.discount_cannot_exceed_order_amount'));
+        if (session('editing_order_id') && Order::where('id', session('editing_order_id'))->where('payment_status', 'paid')->exists()) {
+            Toastr::error('Cannot modify a paid order.');
             return back();
         }
-
-        $cart['discount'] = $request->discount;
-        $cart['discount_type'] = $request->type;
+        try {
+            Validator::make($request->all(), [
+                'order_discount_type_id' => 'present|nullable|integer|min:1',
+                'confirm_default_discount_removal' => 'nullable|boolean',
+            ])->validate();
+            // Work on a copy: rejected changes must leave the session untouched.
+            $cart = collect($cart);
+            $cart['order_discount_type_id'] = $request->input('order_discount_type_id') ?: null;
+            $cart['discount'] = 0;
+            $cart['discount_type'] = 'percent';
+            if ($cart['order_discount_type_id']) {
+                $discounts = new PosDiscountService();
+                $discount = $discounts->orderDiscount($cart['order_discount_type_id']);
+                if ($discounts->hasDefaultFoodDiscount($cart)) {
+                    if (!$request->boolean('confirm_default_discount_removal')) {
+                        throw ValidationException::withMessages(['discount' => 'Confirm Add extra discount to remove the default food discounts in this cart.']);
+                    }
+                    $cart = $discounts->withoutDefaultFoodDiscounts($cart);
+                }
+                $cart['discount'] = $discount->default_discount;
+                $discounts->amount($cart);
+                if ($discounts->subtotal($cart) <= 0) {
+                    throw ValidationException::withMessages(['discount' => 'Add an active product before applying extra discount.']);
+                }
+            }
+        } catch (ValidationException $exception) {
+            Toastr::error(collect($exception->errors())->flatten()->first());
+            return back();
+        }
         $request->session()->put('cart', $cart);
         return back();
     }
@@ -1127,10 +1175,25 @@ class POSController extends Controller
 
         $cart = $request->session()->get('cart') ?? collect([]);
 
+        // Check before stock, customer or order writes, including stale draft sessions.
+        try {
+            (new PosDiscountService())->amount($cart);
+            foreach ($cart as $item) {
+                if (is_array($item) && trim($item['is_deleted'] ?? 'N') !== 'Y'
+                    && ($item['discount_source'] ?? null) !== 'food_default') {
+                    (new PosDiscountService())->validateProductSelection($item['pos_discount_type'] ?? null);
+                }
+            }
+        } catch (ValidationException $exception) {
+            Toastr::error(collect($exception->errors())->flatten()->first());
+            return back()->withInput();
+        }
+
         $total_addon_price = 0;
         $product_price = 0;
         $discount_on_product = 0;
         $restaurant_discount_amount = 0;
+        $extra_discount_base = 0;
 
         $order_details = [];
 
@@ -1330,6 +1393,9 @@ class POSController extends Controller
                         }
                     }
 
+                    $product->pos_discount_source = $c['discount_source'] ?? ((float) $c['discount'] > 0 ? 'manual' : 'none');
+                    $product->pos_discount_value = $c['discountAmount'] ?? $c['discount'];
+                    $product->pos_discount_value_type = $c['discountType'] ?? 'amount';
                     $or_d = [
                         'food_id' => $c['id'],
                         'food_details' => json_encode($product),
@@ -1370,6 +1436,9 @@ class POSController extends Controller
                         $total_addon_price += $or_d['total_add_on_price'];
                         $product_price += $price * $or_d['quantity'];
                         $discount_on_product += $or_d['discount_on_food'] * $or_d['quantity'];
+                        if (($c['discount_source'] ?? null) !== 'food_default') {
+                            $extra_discount_base += $price * $or_d['quantity'] + $or_d['total_add_on_price'];
+                        }
                     }
                 }
             }
@@ -1387,8 +1456,12 @@ class POSController extends Controller
         if (isset($restaurant_discount)) {
             $order->discount_on_product_by = 'admin';
         }
-        if (isset($cart['discount'])) {
-            $restaurant_discount_amount += $cart['discount_type'] == 'percent' && $cart['discount'] > 0 ? ((($product_price + $total_addon_price - $discount_on_product) * $cart['discount']) / 100) : $cart['discount'];
+        try {
+            $restaurant_discount_amount = (new PosDiscountService())->amount($cart, $extra_discount_base);
+        } catch (ValidationException $exception) {
+            DB::rollBack();
+            Toastr::error(collect($exception->errors())->flatten()->first());
+            return back()->withInput();
         }
         
 
@@ -1429,6 +1502,7 @@ class POSController extends Controller
         $tax_a = $order->tax_status == 'included' ? 0 : $total_tax_amount;
         try {
             $order->restaurant_discount_amount = $restaurant_discount_amount;
+            $order->order_discount_type_id = $cart['order_discount_type_id'] ?? null;
             $order->total_tax_amount = $total_tax_amount;
 
             $order->order_amount = $total_price + $tax_a + $order->delivery_charge + $order->additional_charge;
@@ -1677,6 +1751,9 @@ class POSController extends Controller
 
         foreach ($order->details as $item) {
             $food = json_decode($item->food_details, true);
+            $discountState = (new PosDiscountService())->restoreProductDiscount(
+                $food ?? [], $item->pos_discount_type, (float) $item->price, (float) $item->discount_on_food
+            );
 
             $variation_price = 0;
             $variations = json_decode($item->variation, true) ?? [];
@@ -1703,8 +1780,9 @@ class POSController extends Controller
                 'add_on_qtys' => $addon_qtys,
                 'addon_price' => $item->total_add_on_price,
                 'discount' => $item->discount_on_food,
-                'discountAmount' => $item->discount_on_food,
-                'discountType' => 'amount',
+                'discountAmount' => $discountState['discountAmount'],
+                'discountType' => $discountState['discountType'],
+                'discount_source' => $discountState['discount_source'],
                 'details' => $item->notes,
                 'image' => $food['image'] ?? null,
                 'is_deleted' => trim($item->is_deleted),
@@ -1718,7 +1796,7 @@ class POSController extends Controller
                 'image_full_url' => $food['image_full_url'] ?? null,
                 'maximum_cart_quantity' => $food['maximum_cart_quantity'] ?? 1000,
                 'draft_product' => true,
-                'pos_discount_type' => $item->pos_discount_type ?? null,
+                'pos_discount_type' => $discountState['pos_discount_type'],
             ];
         }
 
@@ -1732,6 +1810,7 @@ class POSController extends Controller
             $cartSession['discount'] = $order->restaurant_discount_amount;
             $cartSession['discount_type'] = 'amount';
         }
+        $cartSession['order_discount_type_id'] = $order->order_discount_type_id;
 
         if ($order->total_tax_amount > 0) {
             $subtotal = $order->order_amount - $order->total_tax_amount - $order->delivery_charge;

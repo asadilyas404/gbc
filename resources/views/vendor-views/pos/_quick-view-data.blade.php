@@ -293,6 +293,7 @@
                                                         <input type="hidden"
                                                             name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"
                                                             value="{{ $add_on->price }}">
+                                                        <input type="hidden" name="variation_addon_mode[{{ $key }}][{{ $add_on->id }}]" value="food">
 
                                                         <input
                                                             class="btn-check addon-chek addon-quantity-input-toggle variation-addon-checkbox"
@@ -448,6 +449,7 @@
     }
 
     function calculateTotal() {
+        syncPOSAddonQuantities();
         // 1) Get totals from options + addons
         const value = getCheckedPrice(); // { selectedOptionsTotal, addonsTotal, total }
         const selectedOptionsTotal = value ? (value.selectedOptionsTotal || 0) : 0;
@@ -552,7 +554,7 @@
                 },
                 success: function(data) {
                     $('#loading').hide();
-                    if (data.error === 'quantity_error') {
+                    if (data.error === 'quantity_error' || data.error === 'discount_error') {
                         toastr.error(data.message);
                     } else if (data.error === 'stock_out') {
                         toastr.warning(data.message);
@@ -568,6 +570,7 @@
                         $('#add-to-cart-form .chosen_price_div .chosen_price').html(data.price);
                         $('.add-To-Cart').removeAttr("disabled");
                         $('.increase-button').removeAttr("disabled");
+                        syncPOSAddonQuantities();
                         $('#quantity_increase_button').removeAttr("disabled");
                     }
                 },

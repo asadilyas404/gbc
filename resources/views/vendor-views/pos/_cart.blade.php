@@ -115,13 +115,26 @@ if (session()->has('address') && count(session()->get('address')) > 0) {
 }
 $total = $subtotal + $addon_price;
 $discountSubtotal = $discountService->eligibleSubtotal($cart);
+$saleError = null;
+try {
+    $cartService = new \App\Services\PosCartService();
+    foreach ($cart as $item) {
+        if (is_array($item) && isset($item['id'])) {
+            $cartService->validateItem($item);
+        }
+    }
+    $cartService->nonnegative($tax, 'tax');
+    $cartService->nonnegative($delivery_fee, 'delivery_fee');
+} catch (\Illuminate\Validation\ValidationException $exception) {
+    $saleError = collect($exception->errors())->flatten()->first();
+}
 try {
     $discount_amount = $discountService->amount($cart, $discountSubtotal);
 } catch (\Illuminate\Validation\ValidationException $exception) {
     $discount_amount = 0;
     $extraDiscountError = collect($exception->errors())->flatten()->first();
 }
-$total -= $discount_amount + $discount_on_product;
+$total = max(0, round($total - $discount_amount - $discount_on_product, 3));
 $tax_included = Helpers::get_mail_status('tax_included') ?? 0;
 $total_tax_amount = $tax > 0 ? ($total * $tax) / 100 : 0;
 
@@ -133,8 +146,14 @@ $additional_charge = 0.0;
 if (Helpers::get_business_data('additional_charge_status')) {
     $additional_charge = Helpers::get_business_data('additional_charge');
 }
+try {
+    $cartService->nonnegative($additional_charge, 'additional_charge');
+} catch (\Illuminate\Validation\ValidationException $exception) {
+    $saleError = $saleError ?? collect($exception->errors())->flatten()->first();
+    $additional_charge = 0;
+}
 
-$total = $total + $delivery_fee;
+$total = max(0, $total + $delivery_fee);
 if (isset($cart['paid'])) {
     $paid = $cart['paid'];
     $change = $total + $tax_a + $additional_charge - $paid;
@@ -183,6 +202,9 @@ if (isset($cart['paid'])) {
 
             @if($extraDiscountEnabled && $extraDiscountError)
                 <dd class="col-12 text-danger" role="alert">{{ $extraDiscountError }}</dd>
+            @endif
+            @if($saleError)
+                <dd class="col-12 text-danger" role="alert">{{ $saleError }}</dd>
             @endif
 
             @if ($tax_included != 1)
@@ -344,6 +366,7 @@ if (isset($cart['paid'])) {
         <div class="row button--bottom-fixed g-1 bg-white">
             <div class="col-sm-6">
                 <button type="button" data-toggle="modal" id="orderFinalModal_btn"
+                    @if($saleError || ($extraDiscountEnabled && $extraDiscountError)) disabled @endif
                     class="btn btn--primary btn-sm btn-block">{{ translate('proceed') }} </button>
             </div>
 
@@ -564,12 +587,14 @@ if (isset($cart['paid'])) {
                                     <button type="button" class="btn btn-secondary"
                                         data-dismiss="modal">{{ translate('Close') }}</button>
                                     <button type="submit"
+                                    @if($saleError || ($extraDiscountEnabled && $extraDiscountError)) disabled @endif
                                     onclick="document.getElementById('order_draft').value='final'"
                                         class="btn btn--primary">{{ translate('Place Order') }}</button>
                                     @if(isset($editingOrder) && $editingOrder->payment_status == 'paid')
                                         {{-- hide button --}}
                                     @else
                                         <button type="submit" class="btn btn--warning"
+                                            @if($saleError || ($extraDiscountEnabled && $extraDiscountError)) disabled @endif
                                             id="unpaidOrderBtn"
                                             onclick="document.getElementById('order_draft').value='draft'">
                                             {{ translate('Unpaid Order') }}

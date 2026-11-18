@@ -55,6 +55,24 @@ disabled, including on drafts with a saved discount. The cart and discount modal
 show no disabled-setting warning or error. Server validation still rejects
 applying or saving extra discount while the setting is disabled.
 
+## POS totals and add-on quantities
+
+Adding/editing an item, changing cart quantity, and saving a draft or final order
+validate nonnegative prices and totals. A product discount is checked against the
+**unit** food/variation price, even when quantity is greater than one. Invalid
+quantities, prices, taxes, delivery fees, and excess discounts are rejected;
+valid 100% discounts can still produce a zero-value sale. Checkout also checks
+the calculated tax, charges, adjustment and final amount before saving. Rejected
+checkout changes roll back customer, stock and order writes in the transaction.
+
+Normal and variation add-ons follow food quantity by default. Cashiers can adjust
+each add-on independently: two pizzas with one cheese add-on is valid. Explicit
+quantities remain unchanged when food quantity changes and when saving/reloading
+the order. The quantity mode is stored in the existing add-on JSON; legacy
+quantities that differ from food quantity remain independent. Totals and stock
+checks use the selected quantities and catalogue prices. Stock checks aggregate
+repeated add-on IDs across variation groups. No new migration is required.
+
 ## Deployment
 
 Run this migration on the central restaurant database and each branch database

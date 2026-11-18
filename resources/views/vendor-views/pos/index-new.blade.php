@@ -1211,7 +1211,7 @@
                     ]), // Include discount values explicitly
                     success: function(data) {
                         console.log('Server response from variant_price:', data);
-                        if (data.error === 'quantity_error') {
+                        if (data.error === 'quantity_error' || data.error === 'discount_error') {
                             toastr.error(data.message);
                         } else if (data.error === 'stock_out') {
                             toastr.warning(data.message);
@@ -1791,7 +1791,7 @@
                     option_ids: option_ids,
                     quantity: valueCurrent
                 }, function(data) {
-                    if (data.data == 'stock_out') {
+                    if (data.data == 'stock_out' || data.data == 'discount_error') {
                         element.val(oldvalue);
                         Swal.fire({
                             icon: 'error',

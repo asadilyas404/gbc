@@ -2,6 +2,55 @@
 
 "use strict";
 
+function posAddonModeInput(input) {
+    const form = input.closest('form');
+    if (!form) return null;
+    let modeName;
+    if (input.name.startsWith('variation_addon_quantity[')) {
+        modeName = input.name.replace('variation_addon_quantity', 'variation_addon_mode');
+    } else if (input.name.startsWith('addon-quantity')) {
+        modeName = 'addon_mode[' + input.name.slice('addon-quantity'.length) + ']';
+    } else {
+        return null;
+    }
+    let mode = form.elements.namedItem(modeName);
+    if (!mode) {
+        mode = document.createElement('input');
+        mode.type = 'hidden';
+        mode.name = modeName;
+        const food = form.querySelector('input[name="quantity"]');
+        mode.value = Number(input.value) === Number(food ? food.value : 1) ? 'food' : 'manual';
+        form.appendChild(mode);
+    }
+    return mode;
+}
+
+// Capture explicit changes before the modal's existing handlers recalculate totals.
+document.addEventListener('click', function(event) {
+    const button = event.target.closest('button');
+    const controls = button ? button.closest('.addon-quantity-input') : null;
+    const input = controls ? controls.querySelector('input[type="number"]') : null;
+    const mode = input ? posAddonModeInput(input) : null;
+    if (mode) mode.value = 'manual';
+}, true);
+document.addEventListener('input', function(event) {
+    const mode = event.target.name ? posAddonModeInput(event.target) : null;
+    if (mode) mode.value = 'manual';
+}, true);
+
+function syncPOSAddonQuantities() {
+    const form = document.getElementById('add-to-cart-form');
+    if (!form) return;
+    const foodQuantity = form.querySelector('input[name="quantity"]');
+    const quantity = Number(foodQuantity ? foodQuantity.value : 1);
+    if (!Number.isInteger(quantity) || quantity < 1) return;
+    form.querySelectorAll('input[name^="addon-quantity"], input[name^="variation_addon_quantity"]').forEach(function(input) {
+        const mode = posAddonModeInput(input);
+        if (mode && mode.value === 'food') input.value = quantity;
+        input.readOnly = false;
+    });
+}
+
 $("#order_place").on('keydown', function(e) {
     if (e.keyCode === 13) {
         e.preventDefault();

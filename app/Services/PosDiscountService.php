@@ -170,9 +170,9 @@ class PosDiscountService
         if (!$discount) {
             $this->fail('Select an active overall-bill discount.');
         }
-        if (!is_numeric($discount->default_discount) || $discount->default_discount < 0
+        if (!is_numeric($discount->default_discount) || !is_finite((float) $discount->default_discount) || $discount->default_discount < 0
             || $discount->default_discount > 100 || !is_numeric($discount->max_discount)
-            || $discount->max_discount < 0) {
+            || !is_finite((float) $discount->max_discount) || $discount->max_discount < 0) {
             $this->fail('The selected overall-bill discount has an invalid percentage or maximum amount. Update it in ERP.');
         }
         return $discount;
@@ -180,6 +180,10 @@ class PosDiscountService
 
     public function amount($cart, ?float $subtotal = null): float
     {
+        $value = $cart['discount'] ?? 0;
+        if (!is_numeric($value) || !is_finite((float) $value) || $value < 0) {
+            $this->fail('Remove the invalid extra discount and select an overall-bill discount.');
+        }
         if (!$this->hasOrderDiscount($cart)) {
             return 0;
         }
@@ -199,7 +203,7 @@ class PosDiscountService
         // Keep pre-existing draft discounts (which had no catalogue ID) editable.
         $value = $cart['discount'] ?? 0;
         $type = $cart['discount_type'] ?? 'amount';
-        if (!is_numeric($value) || $value < 0 || !in_array($type, ['amount', 'percent'], true)
+        if (!in_array($type, ['amount', 'percent'], true)
             || ($type === 'percent' && $value > 100)) {
             $this->fail('Remove the invalid extra discount and select an overall-bill discount.');
         }

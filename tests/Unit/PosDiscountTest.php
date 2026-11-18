@@ -449,7 +449,7 @@ class PosDiscountTest extends TestCase
      * @preserveGlobalState disabled
      * @dataProvider draftLoadPaths
      */
-    public function testDraftLoadRestoresDiscountIdAndRecalculatesAfterChanges($path, $native = false, $legacy = false): void
+    public function testDraftLoadRestoresDiscountIdAndRecalculatesAfterChanges($path, $native = false, $legacy = false, $withAddons = false): void
     {
         $responses = Mockery::mock(ResponseFactory::class);
         $responses->shouldReceive('json')->andReturnUsing(function ($data) { return new JsonResponse($data); });
@@ -466,8 +466,12 @@ class PosDiscountTest extends TestCase
                     'name' => 'Pizza', 'discount' => 20, 'discount_type' => 'percent',
                 ], $legacy ? [] : ['pos_discount_source' => 'food_default',
                     'pos_discount_value' => 20, 'pos_discount_value_type' => 'percent']) : ['name' => 'Pizza']),
-                'variation' => '[]', 'add_ons' => '[]',
-                'quantity' => 1, 'price' => 10, 'discount_on_food' => $native ? 2 : 0, 'total_add_on_price' => 0,
+                'variation' => $withAddons ? json_encode([['addons' => [['id' => 8, 'price' => 0.5,
+                    'quantity' => 1, 'quantity_mode' => 'manual']]]]) : '[]',
+                'add_ons' => $withAddons ? json_encode([['id' => 7, 'price' => 0.25,
+                    'quantity' => 1, 'quantity_mode' => 'manual']]) : '[]',
+                'quantity' => $withAddons ? 2 : 1, 'price' => 10,
+                'discount_on_food' => $native ? 2 : 0, 'total_add_on_price' => $withAddons ? 0.75 : 0,
                 'pos_discount_type' => $legacy ? 1 : null,
                 'is_deleted' => 'N', 'cancel_reason' => '', 'cooking_status' => '', 'cancel_text' => '',
             ])]),
@@ -487,7 +491,13 @@ class PosDiscountTest extends TestCase
         $cart = $this->session->get('cart');
         $this->assertNotNull($cart);
         $this->assertSame(2, $cart['order_discount_type_id']);
-        $this->assertSame($native ? 0.0 : 2.0, $this->service->amount($cart));
+        $this->assertSame($withAddons ? 4.15 : ($native ? 0.0 : 2.0), $this->service->amount($cart));
+        if ($withAddons) {
+            $this->assertSame([1], $cart[0]['add_on_qtys']);
+            $this->assertSame(['manual'], $cart[0]['add_on_quantity_modes']);
+            $this->assertSame(1, $cart[0]['variations'][0]['addons'][0]['quantity']);
+            $this->assertSame('manual', $cart[0]['variations'][0]['addons'][0]['quantity_mode']);
+        }
         $this->assertSame($native ? 'food_default' : 'none', $cart[0]['discount_source']);
         if ($native) {
             $this->assertSame($legacy ? 1 : null, $cart[0]['pos_discount_type']);
@@ -505,7 +515,8 @@ class PosDiscountTest extends TestCase
     public function draftLoadPaths(): array
     {
         return [['draft'], ['payment'], ['draft', true], ['payment', true],
-            ['draft', true, true], ['payment', true, true]];
+            ['draft', true, true], ['payment', true, true],
+            ['draft', false, false, true], ['payment', false, false, true]];
     }
 
     /**
@@ -532,7 +543,7 @@ class PosDiscountTest extends TestCase
      */
     public function testCheckoutRevalidatesStaleCartBeforeAnyWrites($mode, $case, $message): void
     {
-        $restaurant = new \Illuminate\Support\Fluent(['self_delivery_system' => 1, 'restaurant_model' => 'commission']);
+        $restaurant = new \Illuminate\Support\Fluent(['self_delivery_system' => 1, 'restaurant_model' => 'commission', 'tax' => 0]);
         $guard = Mockery::mock();
         $guard->shouldReceive('id')->andReturn(7);
         $guard->shouldReceive('check')->andReturn(true);
@@ -551,8 +562,35 @@ class PosDiscountTest extends TestCase
             $cart['order_discount_type_id'] = 2;
         } elseif ($case === 'inactive') {
             $cart['order_discount_type_id'] = 3;
-        } else {
+        } elseif ($case === 'product scope') {
             $cart[0] = $this->item(['pos_discount_type' => 2]);
+        } else {
+            $extra = strpos($case, ' with extra') !== false;
+            $case = str_replace(' with extra', '', $case);
+            if ($extra) {
+                $cart['discount'] = 20;
+                $cart['discount_type'] = 'percent';
+            }
+            $overrides = [
+                'unit discount' => ['quantity' => 3, 'discount' => 11],
+                'negative price' => ['price' => -1],
+                'negative quantity' => ['quantity' => -1],
+                'zero quantity' => ['quantity' => 0],
+                'negative addon' => ['addon_price' => -1],
+                'nonfinite price' => ['price' => INF],
+            ];
+            if (isset($overrides[$case])) {
+                $cart[0] = $this->item($overrides[$case]);
+            } elseif ($case === 'negative fee') {
+                $cart['delivery_fee'] = -100;
+            } elseif ($case === 'negative tax') {
+                $cart['tax'] = -100;
+            } elseif ($case === 'excessive extra') {
+                $cart['discount'] = 11;
+                $cart['discount_type'] = 'amount';
+            } elseif ($case === 'negative extra') {
+                $cart['discount'] = -1;
+            }
         }
         $this->session->put('cart', $cart);
         $this->session->put('editing_order_id', 101);
@@ -578,11 +616,23 @@ class PosDiscountTest extends TestCase
 
     public function invalidCheckouts(): array
     {
-        return [
+        $cases = [
             ['draft', 'conflict', 'cannot be combined'], ['final', 'conflict', 'cannot be combined'],
             ['draft', 'inactive', 'active overall-bill discount'], ['final', 'inactive', 'active overall-bill discount'],
             ['draft', 'product scope', 'active per-product discount'],
         ];
+        foreach (['draft', 'final'] as $mode) {
+            foreach (['unit discount' => 'exceed the product price', 'negative price' => 'nonnegative',
+                'negative quantity' => 'nonnegative', 'zero quantity' => 'positive whole number',
+                'negative addon' => 'nonnegative', 'nonfinite price' => 'nonnegative',
+                'negative fee' => 'nonnegative', 'negative tax' => 'nonnegative'] as $case => $message) {
+                $cases[] = [$mode, $case, $message];
+                $cases[] = [$mode, $case . ' with extra', $message];
+            }
+            $cases[] = [$mode, 'excessive extra', 'exceed the order subtotal'];
+            $cases[] = [$mode, 'negative extra', 'invalid extra discount'];
+        }
+        return $cases;
     }
 
     /** @dataProvider offerSelectionCases */

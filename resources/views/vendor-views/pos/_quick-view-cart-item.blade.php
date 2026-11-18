@@ -317,6 +317,9 @@
                                                     <input type="hidden"
                                                         name="variation_addon_price[{{ $key }}][{{ $add_on->id }}]"
                                                         value="{{ $add_on->price }}">
+                                                    @php($savedAddon = collect($selected_variation_addons)->firstWhere('id', $add_on->id))
+                                                    <input type="hidden" name="variation_addon_mode[{{ $key }}][{{ $add_on->id }}]"
+                                                        value="{{ $savedAddon['quantity_mode'] ?? (isset($savedAddon['quantity']) && (float) $savedAddon['quantity'] !== (float) $cart_item['quantity'] ? 'manual' : 'food') }}">
                                                     <input class="btn-check addon-chek addon-quantity-input-toggle variation-addon-checkbox" type="checkbox"
                                                         id="variation_addon{{ $key }}_{{ $add_on->id }}"
                                                         name="variation_addon_id[{{ $key }}][]"
@@ -563,6 +566,7 @@
     }
 
     function calculateTotal(initial = 0) {
+        syncPOSAddonQuantities();
         // 1) Get totals from options + addons
         const value = getCheckedPrice(); // { selectedOptionsTotal, addonsTotal, total }
         const selectedOptionsTotal = value ? (value.selectedOptionsTotal || 0) : 0;

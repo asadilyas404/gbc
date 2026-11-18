@@ -39,7 +39,7 @@ class PosCanceledOrderTest extends TestCase
     }
 
     /** @dataProvider orderCases */
-    public function testSavingUsesItemCancellationState($editing, $mode, $flags, $expectedStatus, $expectedPayment, $extraDiscount = null, $expectedDiscount = 0.0, $defaultDiscounts = []): void
+    public function testSavingUsesItemCancellationState($editing, $mode, $flags, $expectedStatus, $expectedPayment, $extraDiscount = null, $expectedDiscount = 0.0, $defaultDiscounts = [], $quantity = 1, $withAddons = false, $addonQuantity = null): void
     {
         $this->logPath = tempnam(sys_get_temp_dir(), 'pos-test-');
         $this->previousLog = ini_set('error_log', $this->logPath);
@@ -116,13 +116,23 @@ class PosCanceledOrderTest extends TestCase
         $details->shouldReceive('where')->andReturnSelf();
         $details->shouldReceive('get')->andReturn(collect([]));
         $details->shouldReceive('delete')->times($editing ? 1 : 0);
-        $details->shouldReceive('insert')->once()->with(Mockery::on(function ($rows) use ($flags, $defaultDiscounts) {
+        $details->shouldReceive('insert')->once()->with(Mockery::on(function ($rows) use ($flags, $defaultDiscounts, $quantity, $withAddons, $addonQuantity) {
             foreach ($rows as $key => $row) {
                 $snapshot = json_decode($row['food_details'], true);
                 $native = ($defaultDiscounts[$key] ?? 0) > 0;
                 if (($snapshot['pos_discount_source'] ?? null) !== ($native ? 'food_default' : 'none')
                     || (float) ($snapshot['pos_discount_value'] ?? 0) !== (float) ($defaultDiscounts[$key] ?? 0)) {
                     return false;
+                }
+                if ($withAddons) {
+                    $addons = json_decode($row['add_ons'], true);
+                    $variations = json_decode($row['variation'], true);
+                    $expectedAddonQty = $addonQuantity ?? $quantity;
+                    if ($row['quantity'] !== $quantity || $addons[0]['quantity'] !== $expectedAddonQty
+                        || $variations[0]['addons'][0]['quantity'] !== $expectedAddonQty
+                        || $row['total_add_on_price'] !== 0.75 * $expectedAddonQty) {
+                        return false;
+                    }
                 }
             }
             return array_column($rows, 'is_deleted') === $flags;
@@ -147,17 +157,35 @@ class PosCanceledOrderTest extends TestCase
             return $product;
         });
         $addons = Mockery::mock('alias:App\\Models\\AddOn');
-        $addons->shouldReceive('whereIn', 'active')->andReturnSelf();
-        $addons->shouldReceive('get')->andReturn(collect([]));
+        $addons->shouldReceive('active')->andReturnSelf();
+        $addonIds = [];
+        $addons->shouldReceive('whereIn')->andReturnUsing(function ($column, $ids) use ($addons, &$addonIds) {
+            $addonIds = $ids;
+            return $addons;
+        });
+        $addons->shouldReceive('get')->andReturnUsing(function () use (&$addonIds) {
+            return collect([
+                new PosCanceledOrderFixture(['id' => 1, 'name' => 'Sauce', 'price' => 0.25, 'stock_type' => 'unlimited']),
+                new PosCanceledOrderFixture(['id' => 2, 'name' => 'Cheese', 'price' => 0.5, 'stock_type' => 'unlimited']),
+            ])->filter(function ($addon) use ($addonIds) { return in_array($addon->id, $addonIds); })->values();
+        });
 
         $cart = [];
         foreach ($flags as $key => $flag) {
             $cart[] = [
-                'id' => 1, 'quantity' => 1, 'price' => 10, 'discount' => $defaultDiscounts[$key] ?? 0,
+                'id' => 1, 'quantity' => $quantity, 'price' => 10, 'discount' => $defaultDiscounts[$key] ?? 0,
                 'discountAmount' => $defaultDiscounts[$key] ?? 0, 'discountType' => 'amount',
                 'discount_source' => ($defaultDiscounts[$key] ?? 0) > 0 ? 'food_default' : 'none',
                 'is_deleted' => $flag, 'variations' => [], 'add_ons' => [], 'add_on_qtys' => [],
             ];
+            if ($withAddons) {
+                $cart[$key]['add_ons'] = [1];
+                $cart[$key]['add_on_qtys'] = [1];
+                $cart[$key]['add_on_quantity_modes'] = [$addonQuantity === null ? 'food' : 'manual'];
+                $cart[$key]['addon_price'] = 0.75;
+                $cart[$key]['variations'] = [['addons' => [['id' => 2, 'name' => 'Cheese', 'price' => 0.5,
+                    'quantity' => $addonQuantity ?? 1, 'quantity_mode' => $addonQuantity === null ? 'food' : 'manual']]]];
+            }
         }
         if (!$flags) {
             $cart['tax'] = 0; // Cart metadata alone must not count as canceled items.
@@ -174,7 +202,7 @@ class PosCanceledOrderTest extends TestCase
         }
         $app->instance('session', $session);
         $request = Request::create('/restaurant-panel/pos/order', 'POST', [
-            'order_draft' => $mode, 'cash_paid' => 20,
+            'order_draft' => $mode, 'cash_paid' => 200,
         ], [], [], ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest']);
         $request->setLaravelSession($session);
         $app->instance('request', $request);
@@ -199,7 +227,8 @@ class PosCanceledOrderTest extends TestCase
         foreach ($flags as $key => $flag) {
             if ($flag === 'N') { $defaultTotal += $defaultDiscounts[$key] ?? 0; }
         }
-        $this->assertEquals($activeCount * 10 - $defaultTotal - $expectedDiscount, $saved->order_amount);
+        $this->assertEquals(($activeCount * 10 - $defaultTotal) * $quantity
+            + ($withAddons ? $activeCount * 0.75 * ($addonQuantity ?? $quantity) : 0) - $expectedDiscount, $saved->order_amount);
     }
 
     public function orderCases(): array
@@ -217,6 +246,10 @@ class PosCanceledOrderTest extends TestCase
                 $cases[$label . ' canceled native food excluded'] = [$editing, $mode, ['Y', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 2.0, [0 => 2]];
                 $cases[$label . ' canceled eligible food excluded'] = [$editing, $mode, ['N', 'Y'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 0.0, [0 => 2]];
                 $cases[$label . ' cap still applies with native food present'] = [$editing, $mode, ['N', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 1.125, 1.125, [0 => 2]];
+                $cases[$label . ' addon quantities and totals'] = [$editing, $mode, ['Y', 'N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', null, 0.0, [], 3, true];
+                $cases[$label . ' addon quantities with extra discount'] = [$editing, $mode, ['N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 5.0, [], 3, true];
+                $cases[$label . ' two foods with one addon each'] = [$editing, $mode, ['N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', null, 0.0, [], 2, true, 1];
+                $cases[$label . ' independent addons with extra discount'] = [$editing, $mode, ['N'], 'cooking', $mode === 'draft' ? 'unpaid' : 'paid', 5, 4.15, [], 2, true, 1];
             }
         }
         $cases['no item rows'] = [true, 'draft', [], 'cooking', 'unpaid'];

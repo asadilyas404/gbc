@@ -280,6 +280,7 @@ class OrderController extends Controller
                 'variation_option_ids' => '',
                 'add_ons' => $addon_ids,
                 'add_on_qtys' => $addon_qtys,
+                'add_on_quantity_modes' => collect($rawAddOns)->pluck('quantity_mode')->toArray(),
                 'addon_price' => $item->total_add_on_price,
                 'discount' => $item->discount_on_food,
                 'discountAmount' => $discountState['discountAmount'],

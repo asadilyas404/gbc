@@ -10,6 +10,11 @@
     // }
 @endphp
 
+@php
+    $billFooterTextEn = \App\CentralLogics\Helpers::get_business_settings('bill_footer_text_en', false);
+    $billFooterTextAr = \App\CentralLogics\Helpers::get_business_settings('bill_footer_text_ar', false);
+@endphp
+
 <div class="content container-fluid initial-38 new-invoice ">
     <div class="row justify-content-center" id="printableArea">
         <div class="col-md-12">
@@ -532,6 +537,13 @@
                 {{-- <div class="text-center">لطلب الطعام من مالك البيتزا </div> --}}
 
                 <div class="text-center"> {{ config('invoice.slogan') }} </div>
+
+                @if (filled($billFooterTextEn) || filled($billFooterTextAr))
+                    <div class="text-center mt-2" style="white-space: pre-line;">{{ $billFooterTextEn }}</div>
+                    @if (filled($billFooterTextAr))
+                        <div class="text-center" dir="rtl" style="white-space: pre-line;">{{ $billFooterTextAr }}</div>
+                    @endif
+                @endif
 
                 <dd class="col-12 border-bottom-dashed my-2"></dd>
 

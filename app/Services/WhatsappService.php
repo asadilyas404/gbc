@@ -193,6 +193,8 @@ class WhatsappService
             $parameters[] = $this->textParam('order_number_en',$orderSerial ?? '-');
             $parameters[] = $this->textParam('branch_name_ar',config('constants.invoice_branch_name') ?? '-');
             $parameters[] = $this->textParam('branch_name_en',$order->restaurant->branch->branch_name ?? '-');
+            $parameters[] = $this->textParam('delivery_note_ar',$order->order_type == 'delivery' ? ' .في المطعم، ويجري التحضير لإيصاله إليكم 🚚🍕' : '.');
+            $parameters[] = $this->textParam('delivery_note_en',$order->order_type == 'delivery' ? ' at the restaurant, and arrangements are underway for its delivery to you.' : '.');
             $parameters[] = $this->textParam('branch_phone_ar',$order->restaurant->phone ?? '-');
             $parameters[] = $this->textParam('branch_phone_en',$order->restaurant->phone ?? '-');
 

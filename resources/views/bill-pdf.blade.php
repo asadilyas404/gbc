@@ -10,6 +10,9 @@
     $subTotal = 0;
     $addOnsCost = 0;
 
+    $billFooterTextEn = \App\CentralLogics\Helpers::get_business_settings('bill_footer_text_en', false);
+    $billFooterTextAr = \App\CentralLogics\Helpers::get_business_settings('bill_footer_text_ar', false);
+
     $restaurantArabicName =
         optional($order->restaurant->translations()->where('key', 'name')->where('locale', 'ar')->first())->value ??
         config('constants.invoice_restaurant_name');
@@ -667,6 +670,14 @@
             {{ $order->order_note }}
         </div>
 
+        <div class="dash"></div>
+    @endif
+
+    @if (filled($billFooterTextEn) || filled($billFooterTextAr))
+        <div class="center" style="white-space: pre-line;">{{ $billFooterTextEn }}</div>
+        @if (filled($billFooterTextAr))
+            <div class="center arabic" dir="rtl" style="white-space: pre-line;">{{ $billFooterTextAr }}</div>
+        @endif
         <div class="dash"></div>
     @endif
 

@@ -318,6 +318,8 @@ class BusinessSettingsController extends Controller
     {
         Validator::make($request->all(), [
             'pos_extra_discount_enabled' => 'sometimes|required|boolean',
+            'bill_footer_text_en' => 'nullable|string|max:1000',
+            'bill_footer_text_ar' => 'nullable|string|max:1000',
         ])->validate();
 
         if ($request->home_delivery === null && $request->take_away === null) {
@@ -336,6 +338,13 @@ class BusinessSettingsController extends Controller
                 'value' => $request->boolean('pos_extra_discount_enabled') ? 1 : 0,
             ]);
         }
+
+        Helpers::businessUpdateOrInsert(['key' => 'bill_footer_text_en'], [
+            'value' => $request->input('bill_footer_text_en', ''),
+        ]);
+        Helpers::businessUpdateOrInsert(['key' => 'bill_footer_text_ar'], [
+            'value' => $request->input('bill_footer_text_ar', ''),
+        ]);
 
         Helpers::businessUpdateOrInsert(['key' => 'instant_order'], [
             'value' => $request['instant_order'] ?? 0

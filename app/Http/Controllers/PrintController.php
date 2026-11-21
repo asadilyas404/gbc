@@ -694,9 +694,34 @@ class PrintController extends Controller
                 $printer->text($linedash);
             }
 
+            // Configurable bill footer text from Business Settings.
+            $billFooterTextEn = Helpers::get_business_settings('bill_footer_text_en', false) ?? '';
+            $billFooterTextAr = Helpers::get_business_settings('bill_footer_text_ar', false) ?? '';
+
             $printer->feed(2);
             $printer->setJustification(Printer::JUSTIFY_CENTER);
             $printer->text("Thank you for your order!\n");
+
+            foreach (preg_split('/\r\n|\r|\n/', trim($billFooterTextEn)) as $footerLine) {
+                if (trim($footerLine) !== '') {
+                    $printer->text(trim($footerLine) . "\n");
+                }
+            }
+
+            foreach (preg_split('/\r\n|\r|\n/', trim($billFooterTextAr)) as $footerLine) {
+                if (trim($footerLine) === '') {
+                    continue;
+                }
+
+                $footerImagePath = ReceiptImageHelper::createArabicImageForPrinter(
+                    trim($footerLine),
+                    storage_path('app/public/prints/bill_footer_' . $count++ . '_arabic.png'),
+                    20
+                );
+                $footerImage = EscposImage::load($footerImagePath, false);
+                $printer->setPrintLeftMargin(0);
+                $printer->bitImageColumnFormat($footerImage);
+            }
             $rowPath = ReceiptImageHelper::createSingleRowImageForPrinter(
                 "",
                 "شكراً لطلبك",

@@ -298,6 +298,24 @@
                                         for="printer_settings">{{ translate('messages.settings') }}</label>
                                 </div>
                             </div>
+                            <div class="check-item">
+                                <div class="form-group form-check form--check">
+                                    <input type="checkbox" name="modules[]" value="call_center"
+                                        class="form-check-input system-checkbox" id="call_center"
+                                        {{ in_array('call_center', (array) json_decode($role['modules'])) ? 'checked' : '' }}>
+                                    <label class="form-check-label qcont"
+                                        for="call_center">Call Center</label>
+                                </div>
+                            </div>
+                            <div class="check-item">
+                                <div class="form-group form-check form--check">
+                                    <input type="checkbox" name="modules[]" value="call_center_settings"
+                                        class="form-check-input system-checkbox" id="call_center_settings"
+                                        {{ in_array('call_center_settings', (array) json_decode($role['modules'])) ? 'checked' : '' }}>
+                                    <label class="form-check-label qcont"
+                                        for="call_center_settings">Call Center Settings</label>
+                                </div>
+                            </div>
                         </div>
                         <div class="btn--container mt-4 justify-content-end">
                             <button type="reset" class="btn btn--reset">{{ translate('messages.reset') }}</button>

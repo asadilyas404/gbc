@@ -366,7 +366,7 @@
                     </div>
                 </div>
             </div>
-            <div class="order--pos-right">
+                <div class="order--pos-right">
                 <div class="d-flex justify-content-between align-items-center mb-2 mt-1">
                     <div class="order-date-display">
                         <div>
@@ -380,29 +380,40 @@
                             </span>
                         </div>
                     </div>
-                    
-                    <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
-                        title="{{ translate('messages.dashboard') }}">
-                        {{ translate('messages.dashboard') }}
-                    </a>
+
+                    <div>
+                        @if (!empty($callCenterMode))
+                            <button type="button" class="btn btn-outline-primary mr-2" id="open-requests">
+                                Requests <span class="badge badge-soft-info" id="requests-count">{{ $callCenterWaitingCount ?? 0 }}</span>
+                            </button>
+                        @endif
+                        <a class="btn btn--primary" href="{{ route('vendor.dashboard') }}"
+                            title="{{ translate('messages.dashboard') }}">
+                            {{ translate('messages.dashboard') }}
+                        </a>
+                    </div>
                 </div>
                 <div class="card">
                     <div class="card-header bg-light border-0 m-1 d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="card-title mb-0">
                                 <span>
-                                    {{ translate('Billing Section') }}
+                                    {{ !empty($callCenterMode) ? 'Cart' : translate('Billing Section') }}
                                 </span>
                                 
                             </h5>
-                            <p class="text-muted mb-0">
-                                {{\App\CentralLogics\Helpers::get_branch_name()}}
-                            </p>
+                            @if (empty($callCenterMode))
+                                <p class="text-muted mb-0">
+                                    {{\App\CentralLogics\Helpers::get_branch_name()}}
+                                </p>
+                            @endif
                         </div>
-                        <a class="btn btn--primary btn-sm" href="{{ route('vendor.order.list', ['draft']) }}"
-                            title="{{ translate('messages.Unpaid Orders') }}">
-                            {{ translate('messages.Unpaid Orders') }}
-                        </a>
+                        @if (empty($callCenterMode))
+                            <a class="btn btn--primary btn-sm" href="{{ route('vendor.order.list', ['draft']) }}"
+                                title="{{ translate('messages.Unpaid Orders') }}">
+                                {{ translate('messages.Unpaid Orders') }}
+                            </a>
+                        @endif
                     </div>
                     <div class="w-100">
                         @if($editingOrder)
@@ -423,9 +434,11 @@
                                 @endif
                             </div>
                         @endif
-                        <div class="justify-content-between p-2">
-                            <h1 class="bg-dark px-1 rounded-sm text-white d-none" id="newOrderHeading">New Order</h1>
-                        </div>
+                        @if (empty($callCenterMode))
+                            <div class="justify-content-between p-2">
+                                <h1 class="bg-dark px-1 rounded-sm text-white d-none" id="newOrderHeading">New Order</h1>
+                            </div>
+                        @endif
 
                         <div class="d-flex flex-wrap flex-row p-2 add--customer-btn">
                             <label for='customer'></label>
@@ -435,40 +448,172 @@
                             <button class="btn btn--primary" data-toggle="modal"
                                 data-target="#add-customer" @if(!empty($orderPartner)) disabled @endif>{{ translate('Add New Customer') }}</button>
                         </div>
-                        @if (
-                            ($restaurant_data->restaurant_model == 'commission' && $restaurant_data->self_delivery_system == 1) ||
-                                ($restaurant_data->restaurant_model == 'subscription' &&
-                                    isset($restaurant_data->restaurant_sub) &&
-                                    $restaurant_data->restaurant_sub->self_delivery == 1))
-                            <div class="pos--delivery-options">
-                                <div class="d-flex justify-content-between">
-                                    @if (empty($orderPartner))
-                                        <h5 class="card-title">
-                                            <span class="card-title-icon">
-                                                <i class="tio-user"></i>
-                                            </span>
-                                            <span>{{ translate('Delivery_Information') }}</span>
-                                        </h5>
-                                    
-                                        <span class="delivery--edit-icon text-primary" id="delivery_address" data-toggle="modal"
-                                        data-target="#paymentModal"><i class="tio-edit"></i></span>
-                                    @endif
-                                    
+                        @if (empty($callCenterMode))
+                            @if (
+                                ($restaurant_data->restaurant_model == 'commission' && $restaurant_data->self_delivery_system == 1) ||
+                                    ($restaurant_data->restaurant_model == 'subscription' &&
+                                        isset($restaurant_data->restaurant_sub) &&
+                                        $restaurant_data->restaurant_sub->self_delivery == 1))
+                                <div class="pos--delivery-options">
+                                    <div class="d-flex justify-content-between">
+                                        @if (empty($orderPartner))
+                                            <h5 class="card-title">
+                                                <span class="card-title-icon">
+                                                    <i class="tio-user"></i>
+                                                </span>
+                                                <span>{{ translate('Delivery_Information') }}</span>
+                                            </h5>
+                                        
+                                            <span class="delivery--edit-icon text-primary" id="delivery_address" data-toggle="modal"
+                                            data-target="#paymentModal"><i class="tio-edit"></i></span>
+                                        @endif
+                                        
+                                    </div>
+                                    <div class="pos--delivery-options-info d-flex flex-wrap" id="del-add">
+                                        @include('vendor-views.pos._address')
+                                    </div>
                                 </div>
-                                <div class="pos--delivery-options-info d-flex flex-wrap" id="del-add">
-                                    @include('vendor-views.pos._address')
-                                </div>
-                            </div>
+                            @endif
                         @endif
                     </div>  
                     <!-- <input type="hidden" name="partner_id" value="{{ $orderPartner }}" > -->
 
                     <div class='w-100' id="cart">
-                        @include('vendor-views.pos._cart',['orderPartner' => $orderPartner])
+                        @include('vendor-views.pos._cart',['orderPartner' => $orderPartner, 'callCenterMode' => !empty($callCenterMode)])
+                    </div>
+                </div>
+                @if (!empty($callCenterMode))
+                    @include('vendor-views.pos._call_center_this_call')
+                @endif
+            </div>
+        </div>
+
+        @if (!empty($callCenterMode))
+            <div class="modal fade" id="requests-modal" tabindex="-1">
+                <div class="modal-dialog cc-requests-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title mb-0">Requests</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        </div>
+                        <div class="modal-body" id="requests-body">
+                            <p class="text-muted mb-0 p-3">Loading requests…</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            <style>
+                #requests-modal .cc-requests-dialog {
+                    max-width: 920px;
+                    height: 560px;
+                    margin-top: 6vh;
+                }
+                #requests-modal .modal-content {
+                    height: 100%;
+                    display: flex;
+                    flex-direction: column;
+                    border: 0;
+                    border-radius: 0.75rem;
+                    overflow: hidden;
+                    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+                }
+                #requests-modal .modal-header {
+                    padding: 0.85rem 1.25rem;
+                    border-bottom: 1px solid #e7eaf3;
+                    flex: none;
+                }
+                #requests-modal .modal-body {
+                    padding: 0;
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    min-height: 0;
+                    overflow: hidden;
+                }
+                .cc-requests,
+                #cc-request-browser {
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+                    min-height: 0;
+                }
+                .cc-requests-toolbar {
+                    padding: 0.35rem 1.25rem 0.75rem;
+                    border-bottom: 1px solid #e7eaf3;
+                }
+                .cc-requests-toolbar .nav-tabs {
+                    border-bottom: 0;
+                    margin-bottom: 0.75rem;
+                }
+                .cc-requests-toolbar .nav-tabs .nav-link {
+                    border: 0;
+                    color: #677788;
+                    font-weight: 600;
+                    padding: 0.7rem 0.15rem;
+                    margin-right: 1.25rem;
+                }
+                .cc-requests-toolbar .nav-tabs .nav-link.active {
+                    color: #377dff;
+                    background: transparent;
+                    border-bottom: 2px solid #377dff;
+                }
+                .cc-requests-scroll {
+                    flex: 1;
+                    min-height: 0;
+                    overflow: auto;
+                }
+                .cc-request-table {
+                    margin-bottom: 0;
+                    color: #1e2022;
+                }
+                .cc-request-table thead th {
+                    position: sticky;
+                    top: 0;
+                    z-index: 1;
+                    background: #f8fafc;
+                    color: #677788;
+                    font-size: 0.75rem;
+                    font-weight: 600;
+                    letter-spacing: 0.02em;
+                    border-bottom: 1px solid #e7eaf3;
+                    padding: 0.7rem 1rem;
+                }
+                .cc-request-table tbody td {
+                    padding: 0.8rem 1rem;
+                    border-top: 1px solid #eef2f7;
+                    vertical-align: middle;
+                }
+                .cc-request-table tbody tr {
+                    cursor: pointer;
+                }
+                .cc-request-table tbody tr:hover td {
+                    background: #f8fafc;
+                }
+                .cc-requests-empty {
+                    height: 100%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: #677788;
+                }
+                .cc-requests-footer {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 1rem;
+                    padding: 0.65rem 1.25rem;
+                    border-top: 1px solid #e7eaf3;
+                    background: #fff;
+                }
+                .cc-request-detail {
+                    flex: 1;
+                    min-height: 0;
+                    overflow: auto;
+                    padding: 1rem 1.25rem 1.25rem;
+                }
+            </style>
+        @endif
+
         <div class="modal fade" id="quick-view" tabindex="-1">
             <div class="modal-dialog modal-lg">
                 <div class="modal-content" id="quick-view-modal">
@@ -1974,9 +2119,34 @@
             }
         }
 
+        @if (!empty($callCenterMode))
+        const CALL_CUSTOMERS_URL = @json(route('vendor.call-center.customers'));
+
+        function applyPosCustomerToCall(data) {
+            const parsed = parseCustomerData(data && data.id, data && data.text);
+            if (!parsed || !parsed.phone || typeof window.fillCallFromPosCustomer !== 'function') {
+                $('#cc_customer_phone, #cc_customer_name').val('');
+                $('#cc_customer_phone').trigger('input');
+                return;
+            }
+            window.fillCallFromPosCustomer({ name: parsed.name, phone: parsed.phone });
+            $.get(CALL_CUSTOMERS_URL, { q: parsed.phone }, function (rows) {
+                const match = (rows || []).find(function (row) {
+                    return String(row.id) === String(parsed.id) || String(row.phone) === String(parsed.phone);
+                });
+                if (match) {
+                    window.fillCallFromPosCustomer(match);
+                }
+            });
+        }
+        @endif
+
         $('#customer').on('select2:select', function(e) {
             let data = e.params.data;
             storeCustomerDetails(data.id, data.text);
+            @if (!empty($callCenterMode))
+            applyPosCustomerToCall(data);
+            @endif
             if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
                 setTimeout(() => fillDeliveryAddressModal(), 100);
             }
@@ -1984,6 +2154,10 @@
 
         $('#customer').on('select2:clear', function(e) {
             storeCustomerDetails(null, null);
+            @if (!empty($callCenterMode))
+            $('#cc_customer_phone, #cc_customer_name').val('');
+            $('#cc_customer_phone').trigger('input');
+            @endif
             if ($('#paymentModal').hasClass('show') || $('#paymentModal').is(':visible')) {
                 setTimeout(() => fillDeliveryAddressModal(), 100);
             }
@@ -2143,6 +2317,8 @@
 
             let form = $('#product_form');
             let formData = form.serialize();
+            const addedName = $('#f_name').val();
+            const addedPhone = $('#phone').val();
 
             $.ajax({
                 url: form.attr('action'),
@@ -2189,11 +2365,32 @@
                     $('#customer').off('select2:select change').on('select2:select', function(e) {
                         let data = e.params.data;
                         storeCustomerDetails(data.id, data.text);
+                        @if (!empty($callCenterMode))
+                        applyPosCustomerToCall(data);
+                        @endif
                     }).on('change', function() {
                         let customerId = $(this).val();
                         let customerText = $(this).find('option:selected').text();
                         storeCustomerDetails(customerId, customerText);
                     });
+
+                    @if (!empty($callCenterMode))
+                    if (addedPhone) {
+                        $.get(CALL_CUSTOMERS_URL, { q: addedPhone }, function (rows) {
+                            const match = (rows || []).find(function (row) {
+                                return String(row.phone) === String(addedPhone);
+                            });
+                            const name = match && match.name ? match.name : addedName;
+                            const phone = match && match.phone ? match.phone : addedPhone;
+                            const label = (name || '') + ' (' + phone + ')';
+                            const option = new Option(label, match && match.id ? match.id : phone, true, true);
+                            $('#customer').append(option).trigger('change');
+                            if (typeof window.fillCallFromPosCustomer === 'function') {
+                                window.fillCallFromPosCustomer(match || { name: name, phone: phone });
+                            }
+                        });
+                    }
+                    @endif
                 },
                 error: function(xhr) {
                     if (xhr.status === 422) {

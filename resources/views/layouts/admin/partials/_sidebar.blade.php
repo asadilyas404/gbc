@@ -1457,6 +1457,14 @@ $order = \App\Models\Order::Notpos()
                             <span class="text-truncate">{{ translate('messages.business_setup') }}</span>
                         </a>
                     </li>
+                    @if (config('callcenter.enabled'))
+                    <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/call-center/settings*') ? 'active' : '' }}">
+                        <a class="nav-link" href="{{ route('admin.call-center.settings') }}" title="Call Center Settings">
+                            <span class="tio-time nav-icon"></span>
+                            <span class="text-truncate">Call Center Settings</span>
+                        </a>
+                    </li>
+                    @endif
                     <!-- Subscription-->
                     @if (Helpers::subscription_check() == true && Helpers::module_permission_check('restaurant'))
                     <li

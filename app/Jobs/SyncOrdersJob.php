@@ -67,6 +67,10 @@ class SyncOrdersJob implements ShouldQueue
             $allOrdersData = [];
 
             foreach ($orders as $order) {
+                $orderRow = (array) $order;
+                // Live does not have this column until call-center:install runs there.
+                unset($orderRow['call_center_order'], $orderRow['CALL_CENTER_ORDER']);
+
                 $orderDetails = DB::connection('oracle')
                     ->table('order_details')
                     ->where('order_id', $order->id)
@@ -83,7 +87,7 @@ class SyncOrdersJob implements ShouldQueue
                     ->get();
 
                 $allOrdersData[] = [
-                    'order'             => (array) $order,
+                    'order'             => $orderRow,
                     'order_details'     => $orderDetails->map(fn($detail) => (array) $detail)->toArray(),
                     'additional_details' => $orderAdditionalDetails->map(fn($detail) => (array) $detail)->toArray(),
                     'kitchen_status'    => $kitchenStatus->map(fn($status) => (array) $status)->toArray(),

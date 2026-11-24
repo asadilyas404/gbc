@@ -245,8 +245,17 @@ class LoginController extends Controller
                     ->withErrors([translate('messages.inactive_vendor_warning')]);
                 }
 
-                if (config('constants.app_mode') == 'local' && $employee->restaurant_id != config('constants.branch_id')) {
-                    return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.account_not_registered_in_this_branch')]);
+                if (config('constants.app_mode') == 'local') {
+                    $branchId = (string) config('constants.branch_id');
+                    $registeredBranches = array_filter([
+                        (string) $employee->restaurant_id,
+                        (string) $employee->branch_id,
+                    ], function ($value) {
+                        return $value !== '';
+                    });
+                    if (!in_array($branchId, $registeredBranches, true)) {
+                        return redirect()->back()->withInput($request->only('email', 'remember'))->withErrors([translate('messages.account_not_registered_in_this_branch')]);
+                    }
                 }
             }
         }

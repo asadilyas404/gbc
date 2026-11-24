@@ -39,8 +39,8 @@ class EmployeeController extends Controller
             'l_name' => 'nullable|max:100',
             'role_id' => 'required',
             'image' => 'required|max:2048',
-            'email' => 'required|unique:vendor_employees',
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:20|unique:vendor_employees',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:20|unique:users,mobile_no',
             'password' => ['required', Password::min(8)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
 
 
@@ -54,18 +54,23 @@ class EmployeeController extends Controller
             'password.custom' => translate('The password cannot contain white spaces.'),
         ]);
 
+        $restaurantId = Helpers::get_restaurant_id();
         $maxId = VendorEmployee::max('id');
         $vendor = new VendorEmployee();
         $vendor->id = $maxId ? $maxId + 1 : 1;
-        $vendor->f_name = $request->f_name;
-        $vendor->l_name = $request->l_name;
+        $vendor->name = trim($request->f_name . ' ' . $request->l_name);
         $vendor->mobile_no = $request->phone;
         $vendor->email = $request->email;
         $vendor->employee_role_id = $request->role_id;
         $vendor->password = bcrypt($request->password);
         $vendor->vendor_id = Helpers::get_vendor_id();
-        $vendor->restaurant_id =Helpers::get_restaurant_id();
-        $vendor->image = Helpers::upload('vendor/', 'png', $request->file('image'));
+        $vendor->restaurant_id = $restaurantId;
+        $vendor->branch_id = $restaurantId;
+        $vendor->business_id = 1;
+        $vendor->company_id = 1;
+        $vendor->status = 1;
+        $vendor->user_type = 'erp';
+        $vendor->image_url = Helpers::upload('vendor/', 'png', $request->file('image'));
         $vendor->save();
 
         Toastr::success('Employee added successfully!');
@@ -107,8 +112,8 @@ class EmployeeController extends Controller
             'f_name' => 'required',
             'l_name' => 'nullable|max:100',
             'role_id' => 'required',
-            'email' => 'required|unique:vendor_employees,email,'.$id,
-            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:20|unique:vendor_employees,mobile_no,'.$id,
+            'email' => 'required|email|unique:users,email,'.$id,
+            'phone' => 'required|regex:/^([0-9\s\-\+\(\)]*)$/|max:20|unique:users,mobile_no,'.$id,
             'image' => 'nullable|max:2048',
             'password' => ['nullable', Password::min(8)->mixedCase()->letters()->numbers()->symbols()->uncompromised()],
 
@@ -137,22 +142,19 @@ class EmployeeController extends Controller
             $pass = bcrypt($request['password']);
         }
 
-        if ($request->has('image')) {
-            $e['image'] = Helpers::update('vendor/', $e->image, 'png', $request->file('image'));
+        $restaurantId = Helpers::get_restaurant_id();
+        $e->name = trim($request->f_name . ' ' . $request->l_name);
+        $e->mobile_no = $request->phone;
+        $e->email = $request->email;
+        $e->employee_role_id = $request->role_id;
+        $e->vendor_id = Helpers::get_vendor_id();
+        $e->restaurant_id = $restaurantId;
+        $e->branch_id = $restaurantId;
+        $e->password = $pass;
+        if ($request->hasFile('image')) {
+            $e->image_url = Helpers::update('vendor/', $e->image_url, 'png', $request->file('image'));
         }
-
-        DB::table('vendor_employees')->where(['id' => $id])->update([
-            'f_name' => $request->f_name,
-            'l_name' => $request->l_name,
-            'mobile_no' => $request->phone,
-            'email' => $request->email,
-            'employee_role_id' => $request->role_id,
-            'vendor_id'=> Helpers::get_vendor_id(),
-            'restaurant_id'=>Helpers::get_restaurant_id(),
-            'password' => $pass,
-            'image' => $e['image'],
-            'updated_at' => now(),
-        ]);
+        $e->save();
 
         Toastr::success('Employee updated successfully!');
         return redirect()->route('vendor.employee.list');

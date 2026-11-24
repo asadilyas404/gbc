@@ -254,6 +254,22 @@
                                                 for="printer_settings">{{ translate('messages.settings') }}</label>
                                         </div>
                                     </div>
+                                    <div class="check-item">
+                                        <div class="form-group form-check form--check">
+                                            <input type="checkbox" name="modules[]" value="call_center"
+                                                class="form-check-input system-checkbox" id="call_center">
+                                            <label class="form-check-label input-label qcont"
+                                                for="call_center">Call Center</label>
+                                        </div>
+                                    </div>
+                                    <div class="check-item">
+                                        <div class="form-group form-check form--check">
+                                            <input type="checkbox" name="modules[]" value="call_center_settings"
+                                                class="form-check-input system-checkbox" id="call_center_settings">
+                                            <label class="form-check-label input-label qcont"
+                                                for="call_center_settings">Call Center Settings</label>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="btn--container mt-4 justify-content-end">
                                     <button type="reset"

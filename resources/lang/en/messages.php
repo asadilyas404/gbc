@@ -6701,4 +6701,8 @@
   'Enter_the_WhatsApp_Access_Token' => 'Enter the WhatsApp Access Token',
   'Enter_the_WhatsApp_Phone_Number_ID' => 'Enter the WhatsApp Phone Number ID',
   'Enable Whatsapp Number Popup' => 'Enable Whatsapp Number Popup',
+  'call center' => 'Call center',
+  'call center settings' => 'Call center settings',
+  'You_can_not_edit_your_own_info' => 'You can not edit your own info',
+  'Forbidden' => 'Forbidden',
 );

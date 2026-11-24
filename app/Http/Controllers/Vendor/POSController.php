@@ -18,6 +18,10 @@ use App\Models\OrderDetail;
 use App\Models\PosOrderAdditionalDtl;
 use App\Models\SaleCustomer;
 use App\Models\User;
+use App\Models\CallCenterZone;
+use App\Models\OrderRequest;
+use App\Models\TblSoftBranch;
+use App\Services\CallCenter;
 use App\Services\WhatsappService;
 use App\Services\PosDiscountService;
 use App\Services\PosCartService;
@@ -196,6 +200,34 @@ class POSController extends Controller
         $reasons = OrderCancelReason::where('status', 1)->where('user_type', 'restaurant')->get();
         $cancelStatuses = ['Unprepared', 'Prepared', 'Wasted'];
 
+        $callCenterMode = CallCenter::isAgent();
+        $callCenterInstalled = false;
+        $callCenterBranches = collect();
+        $callCenterZones = collect();
+        $callCenterWaitingCount = 0;
+        $callCenterPreparationMinutes = 20;
+        $callCenterHandoverMinutes = 5;
+        $callCenterMapKey = null;
+        $callCenterMapLat = 23.5880;
+        $callCenterMapLng = 58.3829;
+
+        if ($callCenterMode) {
+            $callCenterInstalled = $this->callCenterTablesReady();
+            $callCenterBranches = TblSoftBranch::query()->orderBy('branch_name')->get();
+            $callCenterZones = $callCenterInstalled
+                ? CallCenterZone::query()->orderBy('name')->get()
+                : collect();
+            $callCenterWaitingCount = $callCenterInstalled
+                ? OrderRequest::query()->whereIn('status', ['pending', 'rejected'])->count()
+                : 0;
+            $callCenterPreparationMinutes = $callCenterInstalled ? CallCenter::preparationMinutes() : 20;
+            $callCenterHandoverMinutes = $callCenterInstalled ? CallCenter::handoverMinutes() : 5;
+            $callCenterMapKey = optional(BusinessSetting::where('key', 'map_api_key')->first())->value;
+            $restaurantData = Helpers::get_restaurant_data();
+            $callCenterMapLat = (float) ($restaurantData->latitude ?? 0) ?: 23.5880;
+            $callCenterMapLng = (float) ($restaurantData->longitude ?? 0) ?: 58.3829;
+        }
+
         return view('vendor-views.pos.index-new', compact(
             'categories',
             'subcategories',
@@ -212,8 +244,30 @@ class POSController extends Controller
             'bankaccounts',
             'updateDate',
             'reasons',
-            'cancelStatuses'
+            'cancelStatuses',
+            'callCenterMode',
+            'callCenterInstalled',
+            'callCenterBranches',
+            'callCenterZones',
+            'callCenterWaitingCount',
+            'callCenterPreparationMinutes',
+            'callCenterHandoverMinutes',
+            'callCenterMapKey',
+            'callCenterMapLat',
+            'callCenterMapLng'
         ));
+    }
+
+    private function callCenterTablesReady(): bool
+    {
+        try {
+            $row = DB::selectOne("SELECT COUNT(*) AS total FROM user_tables WHERE table_name = 'ORDER_REQUESTS'");
+            $values = array_change_key_case((array) $row, CASE_LOWER);
+
+            return (int) ($values['total'] ?? 0) > 0;
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function quick_view(Request $request)
@@ -851,11 +905,14 @@ class POSController extends Controller
             $draftDetails['delivery_type'] = $editingOrder->delivery_type ?? null;
         }
 
+        $callCenterMode = CallCenter::isAgent();
+
         return view('vendor-views.pos._cart', compact(
             'draftDetails',
             'editingOrder',
             'orderPartner',
-            'bankaccounts'
+            'bankaccounts',
+            'callCenterMode'
         ));
     }
 
@@ -1045,6 +1102,11 @@ class POSController extends Controller
 
     public function place_order(Request $request)
     {
+        if (CallCenter::isAgent()) {
+            Toastr::error('Call center agents can only save requests. Use Save request instead of Place order.');
+            return back();
+        }
+
         $activeSession = \App\Models\ShiftSession::current()
         ->where('user_id', auth('vendor')->id() ?? auth('vendor_employee')->id())
         ->first();

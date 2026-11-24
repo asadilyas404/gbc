@@ -84,6 +84,22 @@ use Illuminate\Support\Facades\DB;
                         </li>
                     @endif
 
+                    @if (config('callcenter.enabled') && !\App\Services\CallCenter::isAgent() && (\App\CentralLogics\Helpers::employee_module_permission_check('kitchen_orders') || \App\CentralLogics\Helpers::employee_module_permission_check('order')))
+                        <li
+                            class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/call-requests*') ? 'active' : '' }}">
+                            <a class="js-navbar-vertical-aside-menu-link nav-link"
+                                href="{{ route('vendor.call-requests.index') }}" title="Call requests">
+                                <i class="tio-call-talking nav-icon"></i>
+                                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate sidebar--badge-container">
+                                    Call requests
+                                    <span class="badge badge-soft-info badge-pill ml-1">
+                                        {{ \App\Models\OrderRequest::where('restaurant_id', \App\CentralLogics\Helpers::get_restaurant_id())->where('status', 'pending')->count() }}
+                                    </span>
+                                </span>
+                            </a>
+                        </li>
+                    @endif
+
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('order'))
                         {{-- <li class="nav-item">
                             <small class="nav-subtitle"
@@ -465,6 +481,15 @@ use Illuminate\Support\Facades\DB;
                     @endif
                     <!-- End Employee -->
 
+                    @if (config('callcenter.enabled') && \App\CentralLogics\Helpers::employee_module_permission_check('call_center_settings'))
+                        <li class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/call-center/settings*') ? 'active' : '' }}">
+                            <a class="js-navbar-vertical-aside-menu-link nav-link"
+                                href="{{ route('vendor.call-center.settings') }}" title="Call Center Settings">
+                                <i class="tio-time nav-icon"></i>
+                                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">Call Center Settings</span>
+                            </a>
+                        </li>
+                    @endif
                     @if (\App\CentralLogics\Helpers::employee_module_permission_check('printer_settings'))
                     <li
                         class="navbar-vertical-aside-has-menu {{ Request::is('restaurant-panel/printer/selection*') ? 'active' : '' }}">

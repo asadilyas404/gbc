@@ -378,6 +378,7 @@
         </div>
     </div>
 </div>
+@if (!($callCenter ?? false))
 <script type="text/javascript">
     "use strict";
     cartQuantityInitialize();
@@ -651,6 +652,7 @@
         element.addEventListener('change', getCheckedInputs);
     });
 </script>
+@endif
 
 <style>
     /* Variation-specific addon styling */

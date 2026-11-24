@@ -79,5 +79,6 @@ class Kernel extends HttpKernel
         'apiGuestCheck' => \App\Http\Middleware\APIGuestMiddleware::class,
         'maintenance' => \App\Http\Middleware\MaintenanceMode::class,
         'validate.api.token' => \App\Http\Middleware\ValidateApiToken::class,
+        'callcenter' => \App\Http\Middleware\EnsureCallCenterEnabled::class,
     ];
 }

@@ -30,6 +30,22 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
         Route::post('/update/run',  [POSUpdateController::class, 'run'])->name('update.run');
 
         Route::get('/', 'DashboardController@dashboard')->name('dashboard');
+
+        Route::group(['prefix' => 'call-center', 'as' => 'call-center.', 'middleware' => ['callcenter', 'module:call_center']], function () {
+            Route::get('requests', [\App\Http\Controllers\Admin\CallCenterOrderController::class, 'waiting'])->name('waiting');
+            Route::get('customers', [\App\Http\Controllers\Admin\CallCenterOrderController::class, 'customers'])->name('customers');
+            Route::post('requests', [\App\Http\Controllers\Admin\CallCenterOrderController::class, 'store'])->name('store');
+            Route::post('requests/{id}/cancel', [\App\Http\Controllers\Admin\CallCenterOrderController::class, 'cancel'])->name('cancel');
+            Route::post('requests/{id}/reassign', [\App\Http\Controllers\Admin\CallCenterOrderController::class, 'reassign'])->name('reassign');
+        });
+
+        Route::group(['prefix' => 'call-center', 'as' => 'call-center.', 'middleware' => ['callcenter', 'module:call_center_settings']], function () {
+            Route::get('settings', [\App\Http\Controllers\Admin\CallCenterSettingController::class, 'index'])->name('settings');
+            Route::post('settings', [\App\Http\Controllers\Admin\CallCenterSettingController::class, 'updateTimes'])->name('settings.update');
+            Route::post('zones', [\App\Http\Controllers\Admin\CallCenterSettingController::class, 'storeZone'])->name('zones.store');
+            Route::post('zones/{id}', [\App\Http\Controllers\Admin\CallCenterSettingController::class, 'updateZone'])->name('zones.update');
+            Route::delete('zones/{id}', [\App\Http\Controllers\Admin\CallCenterSettingController::class, 'destroyZone'])->name('zones.destroy');
+        });
         Route::get('/get-restaurant-data', 'DashboardController@restaurant_data')->name('get-restaurant-data');
         Route::post('/store-token', 'DashboardController@updateDeviceToken')->name('store.token');
         Route::get('/reviews', 'ReviewController@index')->name('reviews')->middleware(['module:reviews', 'subscription:reviews']);
@@ -149,6 +165,13 @@ Route::group(['namespace' => 'Vendor', 'as' => 'vendor.'], function () {
             Route::get('list', 'KitchenController@index')->name('index');
             Route::get('get-all-orders', 'KitchenController@getAllOrders')->name('get_all_orders');
             Route::get('sync', 'KitchenController@realtime_sync')->name('sync');
+        });
+
+        Route::group(['prefix' => 'call-requests', 'as' => 'call-requests.'], function () {
+            Route::get('/', 'CallRequestController@index')->name('index');
+            Route::get('{id}', 'CallRequestController@show')->name('show');
+            Route::post('{id}/accept', 'CallRequestController@accept')->name('accept');
+            Route::post('{id}/reject', 'CallRequestController@reject')->name('reject');
         });
 
         Route::post('food/food-variation-generate', 'FoodController@food_variation_generator')->name('food.food-variation-generate');

@@ -153,7 +153,9 @@ try {
     $additional_charge = 0;
 }
 
-$total = max(0, $total + $delivery_fee);
+if (empty($callCenterMode)) {
+    $total = max(0, $total + $delivery_fee);
+}
 if (isset($cart['paid'])) {
     $paid = $cart['paid'];
     $change = $total + $tax_a + $additional_charge - $paid;
@@ -184,12 +186,14 @@ if (isset($cart['paid'])) {
 
             <dt class="col-6 font-regular">{{ translate('messages.discount') }} :</dt>
             <dd class="col-6 text-right">- {{ Helpers::format_currency(round($discount_on_product, 3)) }}</dd>
-            <dt class="col-6 font-regular">{{ translate('messages.delivery_fee') }} :</dt>
-            <dd class="col-6 text-right" id="delivery_price">
-                <button class="btn btn-sm" type="button" data-toggle="modal" data-target="#add-delivery-fee"><i
-                        class="tio-edit"></i></button>
-                + {{ Helpers::format_currency(round($delivery_fee, 3)) }}
-            </dd>
+            @if (empty($callCenterMode))
+                <dt class="col-6 font-regular">{{ translate('messages.delivery_fee') }} :</dt>
+                <dd class="col-6 text-right" id="delivery_price">
+                    <button class="btn btn-sm" type="button" data-toggle="modal" data-target="#add-delivery-fee"><i
+                            class="tio-edit"></i></button>
+                    + {{ Helpers::format_currency(round($delivery_fee, 3)) }}
+                </dd>
+            @endif
 
             <dt class="col-6 font-regular">{{ translate('messages.extra_discount') }} :
                 @if(!$extraDiscountEnabled)<small class="text-muted">(Disabled)</small>@endif
@@ -364,19 +368,23 @@ if (isset($cart['paid'])) {
             </div>
         @endif --}}
         <div class="row button--bottom-fixed g-1 bg-white">
-            <div class="col-sm-6">
-                <button type="button" data-toggle="modal" id="orderFinalModal_btn"
-                    @if($saleError || ($extraDiscountEnabled && $extraDiscountError)) disabled @endif
-                    class="btn btn--primary btn-sm btn-block">{{ translate('proceed') }} </button>
-            </div>
-
-            {{-- <div class="col-sm-6">
-                <button type="submit"
-                        class="btn  btn--primary btn-sm btn-block">{{ translate('place_order') }} </button>
-            </div> --}}
-            <div class="col-sm-6">
-                <a href="#" class="btn btn--reset btn-sm btn-block empty-Cart">{{ translate('New_Order') }}</a>
-            </div>
+            @if (empty($callCenterMode))
+                <div class="col-sm-6">
+                    <button type="button" data-toggle="modal" id="orderFinalModal_btn"
+                        @if($saleError || ($extraDiscountEnabled && $extraDiscountError)) disabled @endif
+                        class="btn btn--primary btn-sm btn-block">{{ translate('proceed') }} </button>
+                </div>
+                <div class="col-sm-6">
+                    <a href="#" class="btn btn--reset btn-sm btn-block empty-Cart">{{ translate('New_Order') }}</a>
+                </div>
+            @else
+                <div class="col-sm-6">
+                    <button type="button" class="btn btn--primary btn-sm btn-block" data-toggle="modal" data-target="#this-call-modal">This call</button>
+                </div>
+                <div class="col-sm-6">
+                    <a href="#" class="btn btn--reset btn-sm btn-block empty-Cart">Clear cart</a>
+                </div>
+            @endif
         </div>
     </div>
 

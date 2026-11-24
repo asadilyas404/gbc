@@ -42,6 +42,7 @@ class Order extends Model
         'ref_bonus_amount' => 'float',
         'extra_packaging_amount' => 'float',
         'is_pushed' => 'string',
+        'call_center_order' => 'string',
         'printed' => 'boolean',
         'session_id' => 'string',
         'partner_id',

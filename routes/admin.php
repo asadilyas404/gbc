@@ -380,6 +380,14 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('export', 'NotificationController@export')->name('export');
         });
 
+        Route::group(['prefix' => 'call-center', 'as' => 'call-center.', 'middleware' => ['module:settings', 'callcenter']], function () {
+            Route::get('settings', 'CallCenterSettingController@index')->name('settings');
+            Route::post('settings', 'CallCenterSettingController@updateTimes')->name('settings.update');
+            Route::post('zones', 'CallCenterSettingController@storeZone')->name('zones.store');
+            Route::post('zones/{id}', 'CallCenterSettingController@updateZone')->name('zones.update');
+            Route::delete('zones/{id}', 'CallCenterSettingController@destroyZone')->name('zones.destroy');
+        });
+
         Route::group(['prefix' => 'business-settings', 'as' => 'business-settings.', 'middleware' => ['module:settings', 'actch']], function () {
             Route::post('update-landing-setup', 'BusinessSettingsController@landing_page_settings_update')->name('business-setup.update-landing-setup');
             Route::delete('delete-custom-landing-page', 'BusinessSettingsController@delete_custom_landing_page')->name('business-setup.delete-custom-landing-page');

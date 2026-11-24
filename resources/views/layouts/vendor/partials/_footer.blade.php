@@ -2,8 +2,10 @@
     <div class="row justify-content-between align-items-center">
         <div class="col">
             <p class="font-size-sm mb-0">
-                &copy; {{\App\CentralLogics\Helpers::get_branch_name()}}. <span
-                    class="d-none d-sm-inline-block"></span>
+                @if (!\App\Services\CallCenter::isAgent())
+                    &copy; {{\App\CentralLogics\Helpers::get_branch_name()}}.
+                @endif
+                <span class="d-none d-sm-inline-block"></span>
             </p>
         </div>
         <div class="col">

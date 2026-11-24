@@ -37,6 +37,11 @@ class VendorEmployee extends Authenticatable
         array_shift($parts);
         return implode(' ', $parts) ?? '';
     }
+
+    public function getPhoneAttribute()
+    {
+        return $this->attributes['mobile_no'] ?? null;
+    }
     
     public function getImageFullUrlAttribute(){
         $value = $this->image;

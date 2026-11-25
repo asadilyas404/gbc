@@ -9,6 +9,8 @@ class PosOrderAdditionalDtl extends Model
 {
     use HasFactory;
     protected $table = 'pos_order_additional_dtl';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'order_id',

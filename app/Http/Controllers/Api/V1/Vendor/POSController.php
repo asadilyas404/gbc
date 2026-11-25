@@ -41,10 +41,8 @@ class POSController extends Controller
 
         $order_details = [];
         $order = new Order();
-        $order->id = 100000 + Order::all()->count() + 1;
-        if (Order::find($order->id)) {
-            $order->id = Order::latest()->first()->id + 1;
-        }
+        $branchId = config('constants.branch_id') ?: $request->restaurant_id;
+        $order->id = Helpers::generateGlobalId($branchId);
         $order->payment_status = 'paid';
         $order->order_status = 'delivered';
         $order->order_type = 'pos';
@@ -142,6 +140,7 @@ class POSController extends Controller
             $order->order_amount = $total_price + $total_tax_amount + $order->delivery_charge;
             $order->save();
             foreach ($order_details as $key => $item) {
+                $order_details[$key]['id'] = Helpers::generateGlobalId($branchId, 'order_details');
                 $order_details[$key]['order_id'] = $order->id;
             }
             OrderDetail::insert($order_details);

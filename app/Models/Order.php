@@ -13,6 +13,8 @@ use Razorpay\Api\Customer;
 class Order extends Model
 {
     use ReportFilter,HasFactory;
+    public $incrementing = false;
+    protected $keyType = 'string';
     protected $guarded = ['id'];
     protected $casts = [
         'order_amount' => 'float',

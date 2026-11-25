@@ -91,12 +91,48 @@ class Helpers
         return (bool) BusinessSetting::where(['key' => 'schedule_order'])->first()->value;
     }
 
-    public static function generateGlobalId($restaurantId)
+    /**
+     * Generate a 19-digit numeric ID that is namespaced by the branch ID.
+     *
+     * Branch databases are synced into one live database, so checking only
+     * the local orders table is not enough. The branch ID must therefore be
+     * part of every generated ID and must be globally unique across branches.
+     * The leading 9 keeps the value at 19 digits. Two digits are reserved
+     * for the branch namespace (current branches are 05 through 16); the
+     * remaining 16 digits provide the local ID space.
+     *
+     * @param int|string $branchId
+     * @param string $scope
+     * @return string
+     * @throws \InvalidArgumentException
+     * @throws \Random\RandomException
+     */
+    public static function generateGlobalId($branchId, string $scope = 'orders')
     {
+        $tableByScope = [
+            'orders' => 'orders',
+            'order_details' => 'order_details',
+            'kitchen_order_status_logs' => 'kitchen_order_status_logs',
+            'pos_order_additional_dtl' => 'pos_order_additional_dtl',
+            'sale_customers' => 'sale_customers',
+            'shift_sessions' => 'shift_sessions',
+        ];
+
+        if (!isset($tableByScope[$scope])) {
+            throw new \InvalidArgumentException('Invalid global ID scope.');
+        }
+
+        if (!is_numeric($branchId) || (int) $branchId < 1 || (int) $branchId > 99) {
+            throw new \InvalidArgumentException('A valid branch ID is required to generate a global ID.');
+        }
+
+        $branchId = (int) $branchId;
+        $branchPart = str_pad((string) $branchId, 2, '0', STR_PAD_LEFT);
+
         do {
-            $randomPart = str_pad(rand(0, 99999999), 8, '0', STR_PAD_LEFT);
-            $globalId = $randomPart . $restaurantId;
-        } while (Order::where('id', $globalId)->exists());
+            $randomPart = str_pad((string) random_int(0, 9999999999999999), 16, '0', STR_PAD_LEFT);
+            $globalId = '7' . $branchPart . $randomPart;
+        } while (DB::table($tableByScope[$scope])->where('id', $globalId)->exists());
 
         return $globalId;
     }

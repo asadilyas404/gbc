@@ -175,7 +175,10 @@ class POSController extends Controller
             }
         }
 
-        $branchId = Helpers::get_restaurant_id();
+        // BRANCH_ID is the stable namespace shared with the live sync server.
+        // Do not use the vendor's restaurant object here because each branch
+        // may run its own database with cloned restaurant records.
+        $branchId = config('constants.branch_id') ?: Helpers::get_restaurant_id();
         $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
         $orderDate = $branch ? $branch->orders_date : null;
         $orderPartners = DB::table('tbl_sale_order_partners')->orderBy('created_at')->get();
@@ -1191,7 +1194,9 @@ class POSController extends Controller
 
         $editing_order_id = session('editing_order_id');
         $oldVariationJson = '';
-        $branchId = Helpers::get_restaurant_id();
+        // Use the configured branch namespace for IDs written to the local
+        // database and later synchronized to the live database.
+        $branchId = config('constants.branch_id') ?: Helpers::get_restaurant_id();
         DB::beginTransaction();
         try {
             if ($editing_order_id) {
@@ -1203,7 +1208,7 @@ class POSController extends Controller
                 // }
             } else {
                 $order = new Order();
-                $order->id = Helpers::generateGlobalId($restaurant->id);
+                $order->id = Helpers::generateGlobalId($branchId);
                 $order->is_pushed = 'N';
                 $branch = DB::table('tbl_soft_branch')->where('branch_id', $branchId)->first();
                 $orderDate = $branch ? $branch->orders_date : null;
@@ -1506,7 +1511,7 @@ class POSController extends Controller
                 KitchenOrderStatusLog::create([
                     "status" => 'pending',
                     "order_id" => $order->id,
-                    "id" => $order->id . '1',
+                    "id" => Helpers::generateGlobalId($branchId, 'kitchen_order_status_logs'),
                 ]);
             } 
 
@@ -1519,7 +1524,7 @@ class POSController extends Controller
 
             // Prepare new order details
             foreach ($order_details as $key => $item) {
-                $order_details[$key]['id'] = $order->id . $key;
+                $order_details[$key]['id'] = Helpers::generateGlobalId($branchId, 'order_details');
                 $order_details[$key]['order_id'] = $order->id;
             }
 
@@ -1537,7 +1542,9 @@ class POSController extends Controller
             }
 
             $posOrderDtl = PosOrderAdditionalDtl::firstOrNew(['order_id' => $order->id]);
-            $posOrderDtl->id = $order->id . '1';
+            if (!$posOrderDtl->exists) {
+                $posOrderDtl->id = Helpers::generateGlobalId($branchId, 'pos_order_additional_dtl');
+            }
             $posOrderDtl->restaurant_id = $order->restaurant_id;
             $posOrderDtl->customer_name = $request->customer_name;
             $posOrderDtl->car_number = $request->car_number;

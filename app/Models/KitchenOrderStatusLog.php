@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class KitchenOrderStatusLog extends Model
 {
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'id',

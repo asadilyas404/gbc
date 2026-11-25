@@ -16,7 +16,7 @@ class OrderDetail extends Model
         'total_add_on_price' => 'float',
         'tax_amount' => 'float',
         'food_id' => 'integer',
-        'order_id' => 'integer',
+        'order_id' => 'string',
         'quantity' => 'integer',
         'item_campaign_id' => 'integer',
         'details' => 'string',
@@ -27,6 +27,8 @@ class OrderDetail extends Model
 
 
     protected $primaryKey   = 'id';
+    public $incrementing = false;
+    protected $keyType = 'string';
 
     public function order()
     {

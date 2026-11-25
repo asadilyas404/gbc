@@ -56,7 +56,7 @@ class SaleCustomer extends Model
      */
     public static function generateCustomerId($restaurantId)
     {
-        return \App\CentralLogics\Helpers::generateGlobalId($restaurantId);
+        return \App\CentralLogics\Helpers::generateGlobalId($restaurantId, 'sale_customers');
     }
 
     public function orders()

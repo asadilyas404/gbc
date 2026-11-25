@@ -270,7 +270,8 @@ class WaiterController extends Controller
 
             // Create order
             $order = new Order();
-            $order->id = Helpers::generateGlobalId($request->restaurant_id);
+            $branchId = config('constants.branch_id') ?: $request->restaurant_id;
+            $order->id = Helpers::generateGlobalId($branchId);
 
             // Generate order serial
             $today = Carbon::today();
@@ -323,17 +324,20 @@ class WaiterController extends Controller
                 // Create kitchen status log
                 KitchenOrderStatusLog::create([
                     "status" => 'pending',
-                    "order_id" => $order->id
+                    "order_id" => $order->id,
+                    "id" => Helpers::generateGlobalId($branchId, 'kitchen_order_status_logs'),
                 ]);
 
                 // Create order details
                 foreach ($order_details as $key => $item) {
+                    $order_details[$key]['id'] = Helpers::generateGlobalId($branchId, 'order_details');
                     $order_details[$key]['order_id'] = $order->id;
                 }
                 OrderDetail::insert($order_details);
 
                 // Create POS order additional details
                 $posOrderDtl = new PosOrderAdditionalDtl();
+                $posOrderDtl->id = Helpers::generateGlobalId($branchId, 'pos_order_additional_dtl');
                 $posOrderDtl->order_id = $order->id;
                 $posOrderDtl->restaurant_id = $request->restaurant_id;
                 $posOrderDtl->customer_name = $request->customer_name;

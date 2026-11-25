@@ -14,6 +14,7 @@ class ShiftSession extends Model
     protected $table = 'shift_sessions';
     protected $primaryKey = 'session_id';
     public $incrementing = false;
+    protected $keyType = 'string';
 
     protected $fillable = [
         'session_id',
@@ -111,7 +112,7 @@ class ShiftSession extends Model
             $shiftSession->branch_id = $shiftSession->branch_id ?? Helpers::get_restaurant_id();
             $shiftSession->user_id = auth('vendor')->id() ?? auth('vendor_employee')->id();
 
-            $shiftSession->session_id = Helpers::generateGlobalId($shiftSession->branch_id);
+            $shiftSession->session_id = Helpers::generateGlobalId($shiftSession->branch_id, 'shift_sessions');
 
             $lastSession = static::where('branch_id', $shiftSession->branch_id)
                                 ->orderBy('session_no', 'desc')

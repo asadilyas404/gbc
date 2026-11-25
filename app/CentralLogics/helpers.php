@@ -97,7 +97,7 @@ class Helpers
      * Branch databases are synced into one live database, so checking only
      * the local orders table is not enough. The branch ID must therefore be
      * part of every generated ID and must be globally unique across branches.
-     * The leading 9 keeps the value at 19 digits. Two digits are reserved
+     * The leading 7 keeps the value at 19 digits. Two digits are reserved
      * for the branch namespace (current branches are 05 through 16); the
      * remaining 16 digits provide the local ID space.
      *
@@ -110,12 +110,12 @@ class Helpers
     public static function generateGlobalId($branchId, string $scope = 'orders')
     {
         $tableByScope = [
-            'orders' => 'orders',
-            'order_details' => 'order_details',
-            'kitchen_order_status_logs' => 'kitchen_order_status_logs',
-            'pos_order_additional_dtl' => 'pos_order_additional_dtl',
-            'sale_customers' => 'sale_customers',
-            'shift_sessions' => 'shift_sessions',
+            'orders' => ['table' => 'orders', 'column' => 'id'],
+            'order_details' => ['table' => 'order_details', 'column' => 'id'],
+            'kitchen_order_status_logs' => ['table' => 'kitchen_order_status_logs', 'column' => 'id'],
+            'pos_order_additional_dtl' => ['table' => 'pos_order_additional_dtl', 'column' => 'id'],
+            'tbl_sale_customers' => ['table' => 'tbl_sale_customers', 'column' => 'customer_id'],
+            'shift_sessions' => ['table' => 'shift_sessions', 'column' => 'session_id'],
         ];
 
         if (!isset($tableByScope[$scope])) {
@@ -132,7 +132,9 @@ class Helpers
         do {
             $randomPart = str_pad((string) random_int(0, 9999999999999999), 16, '0', STR_PAD_LEFT);
             $globalId = '7' . $branchPart . $randomPart;
-        } while (DB::table($tableByScope[$scope])->where('id', $globalId)->exists());
+        } while (DB::table($tableByScope[$scope]['table'])
+            ->where($tableByScope[$scope]['column'], $globalId)
+            ->exists());
 
         return $globalId;
     }

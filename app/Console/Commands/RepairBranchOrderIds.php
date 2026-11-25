@@ -52,6 +52,33 @@ class RepairBranchOrderIds extends Command
     {
         $branchId = (int) $this->option('branch');
 
+        if ($branchId < 5 || $branchId > 16) {
+            $this->error('A branch ID between 5 and 16 is required.');
+            return 1;
+        }
+
+        $lockPath = storage_path('app/order-id-repair/branch-' . $branchId . '.lock');
+        File::ensureDirectoryExists(dirname($lockPath));
+        $lockHandle = fopen($lockPath, 'c');
+
+        if (!$lockHandle || !flock($lockHandle, LOCK_EX | LOCK_NB)) {
+            if (is_resource($lockHandle)) {
+                fclose($lockHandle);
+            }
+            $this->error("Another repair command is already running for branch [$branchId].");
+            return 1;
+        }
+
+        try {
+            return $this->runRepair($branchId);
+        } finally {
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+        }
+    }
+
+    private function runRepair($branchId)
+    {
         $this->connection = DB::connection($this->option('connection'));
         $this->availableTables = $this->loadAvailableTables();
 
@@ -60,6 +87,11 @@ class RepairBranchOrderIds extends Command
                 $this->error("Required table [$table] was not found.");
                 return 1;
             }
+        }
+
+        if (!$this->hasTable('global_id_reservations')) {
+            $this->error('Run the global_id_reservations migration before repairing IDs.');
+            return 1;
         }
 
         $mappingPath = $this->option('mapping')
@@ -155,6 +187,18 @@ class RepairBranchOrderIds extends Command
         $orderMap = $plan['orders'];
         $sessionMap = $plan['sessions'];
 
+        foreach ($orderMap as $oldId => $newId) {
+            if ($oldId !== $newId) {
+                $this->reserveId($newId, $branchId, 'orders');
+            }
+        }
+
+        foreach ($sessionMap as $oldId => $newId) {
+            if ($oldId !== $newId) {
+                $this->reserveId($newId, $branchId, 'shift_sessions');
+            }
+        }
+
         $this->assertTargetsAreFree($orderMap, 'orders', 'id');
         $this->assertTargetsAreFree($sessionMap, 'shift_sessions', 'session_id');
 
@@ -203,7 +247,7 @@ class RepairBranchOrderIds extends Command
             foreach ($orderMap as $oldOrderId => $newOrderId) {
                 foreach ($this->connection->table($table)->where($foreignKey, $oldOrderId)->get() as $child) {
                     $data = (array) $child;
-                    $data['id'] = $this->generateId($table, 'id', $branchId);
+                    $data['id'] = $this->generateId($table, 'id', $branchId, true);
                     $data[$foreignKey] = $newOrderId;
                     $this->connection->table($table)->insert($data);
                     $this->connection->table($table)->where('id', $child->id)->delete();
@@ -292,21 +336,44 @@ class RepairBranchOrderIds extends Command
         }
     }
 
-    private function generateId($table, $column, $branchId)
+    private function generateId($table, $column, $branchId, $reserve = false)
     {
         $branchPart = str_pad((string) $branchId, 2, '0', STR_PAD_LEFT);
 
         do {
             $id = '7' . $branchPart . str_pad((string) random_int(0, 9999999999999999), 16, '0', STR_PAD_LEFT);
         } while (isset($this->reservedIds[$table][$id])
-            || $this->connection->table($table)->where($column, $id)->exists());
+            || $this->connection->table($table)->where($column, $id)->exists()
+            || $this->connection->table('global_id_reservations')->where('global_id', $id)->exists());
 
         if (!isset($this->reservedIds[$table])) {
             $this->reservedIds[$table] = [];
         }
         $this->reservedIds[$table][$id] = true;
 
+        if ($reserve) {
+            $this->reserveId($id, $branchId, $table);
+        }
+
         return $id;
+    }
+
+    private function reserveId($id, $branchId, $scope)
+    {
+        try {
+            $this->connection->table('global_id_reservations')->insert([
+                'global_id' => $id,
+                'branch_id' => $branchId,
+                'scope' => $scope,
+                'created_at' => now(),
+            ]);
+        } catch (\Throwable $exception) {
+            throw new \RuntimeException(
+                "ID [$id] is already reserved. Use --regenerate to create a new mapping.",
+                0,
+                $exception
+            );
+        }
     }
 
     private function isBranchId($id, $branchId)

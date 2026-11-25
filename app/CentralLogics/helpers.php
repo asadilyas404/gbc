@@ -40,6 +40,7 @@ use App\CentralLogics\OrderLogic;
 use App\Models\DeliveryManWallet;
 use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 use App\Mail\OrderVerificationMail;
 use App\Models\NotificationMessage;
 use App\Models\NotificationSetting;
@@ -114,7 +115,7 @@ class Helpers
             'order_details' => ['table' => 'order_details', 'column' => 'id'],
             'kitchen_order_status_logs' => ['table' => 'kitchen_order_status_logs', 'column' => 'id'],
             'pos_order_additional_dtl' => ['table' => 'pos_order_additional_dtl', 'column' => 'id'],
-            'tbl_sale_customers' => ['table' => 'tbl_sale_customers', 'column' => 'customer_id'],
+            'sale_customers' => ['table' => 'tbl_sale_customer', 'column' => 'customer_id'],
             'shift_sessions' => ['table' => 'shift_sessions', 'column' => 'session_id'],
         ];
 
@@ -129,14 +130,46 @@ class Helpers
         $branchId = (int) $branchId;
         $branchPart = str_pad((string) $branchId, 2, '0', STR_PAD_LEFT);
 
-        do {
+        $connection = DB::connection();
+
+        if (!$connection->getSchemaBuilder()->hasTable('global_id_reservations')) {
+            throw new \RuntimeException(
+                'global_id_reservations table is required before generating global IDs.'
+            );
+        }
+
+        // The reservation primary key closes the exists()-then-insert race.
+        // A database row is reserved before the caller inserts its order or
+        // child record, so a second concurrent request must retry.
+        for ($attempt = 0; $attempt < 25; $attempt++) {
             $randomPart = str_pad((string) random_int(0, 9999999999999999), 16, '0', STR_PAD_LEFT);
             $globalId = '7' . $branchPart . $randomPart;
-        } while (DB::table($tableByScope[$scope]['table'])
-            ->where($tableByScope[$scope]['column'], $globalId)
-            ->exists());
 
-        return $globalId;
+            if ($connection->table($tableByScope[$scope]['table'])
+                ->where($tableByScope[$scope]['column'], $globalId)
+                ->exists()) {
+                continue;
+            }
+
+            try {
+                $connection->table('global_id_reservations')->insert([
+                    'global_id' => $globalId,
+                    'branch_id' => $branchId,
+                    'scope' => $scope,
+                    'created_at' => now(),
+                ]);
+
+                return $globalId;
+            } catch (QueryException $exception) {
+                // ORA-00001 means another request reserved the same random
+                // value. Any other database error must be surfaced.
+                if (strpos($exception->getMessage(), 'ORA-00001') === false) {
+                    throw $exception;
+                }
+            }
+        }
+
+        throw new \RuntimeException('Could not reserve a unique global ID after multiple attempts.');
     }
 
     public static function variation_price($product, $variations, $partnerId = null)

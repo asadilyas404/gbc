@@ -141,8 +141,10 @@ class Helpers
         // The reservation primary key closes the exists()-then-insert race.
         // A database row is reserved before the caller inserts its order or
         // child record, so a second concurrent request must retry.
-        for ($attempt = 0; $attempt < 25; $attempt++) {
-            $randomPart = str_pad((string) random_int(0, 9999999999999999), 16, '0', STR_PAD_LEFT);
+        $attempt = 0;
+        while ($attempt < 25) {
+            $attempt++;
+            $randomPart = str_pad((string) random_int(0, 9999999999), 10, '0', STR_PAD_LEFT);
             $globalId = '7' . $branchPart . $randomPart;
 
             if ($connection->table($tableByScope[$scope]['table'])

@@ -117,6 +117,7 @@ class RepairBranchOrderIds extends Command
             ? $this->readPlan($mappingPath, $branchId, $startDate, $endDate)
             : $this->buildPlan($branchId, $mappingPath, $startDate, $endDate);
 
+        $this->validatePlanTargets($plan);
         $this->printPlan($plan, $mappingPath);
 
         if (!$this->option('apply')) {
@@ -203,6 +204,8 @@ class RepairBranchOrderIds extends Command
             }
         }
 
+        $this->assertPlanTargetsAreUnique($plan['orders'], $plan['sessions']);
+
         File::ensureDirectoryExists(dirname($mappingPath));
         File::put($mappingPath, json_encode($plan, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
@@ -239,24 +242,30 @@ class RepairBranchOrderIds extends Command
         $orderMap = $plan['orders'];
         $sessionMap = $plan['sessions'];
 
+        // Validate before reserving anything so an existing order produces a
+        // useful collision message instead of a misleading reservation error.
+        $this->validatePlanTargets($plan);
+
         foreach ($orderMap as $oldId => $newId) {
-            if ($oldId !== $newId) {
+            if (!$this->sameId($oldId, $newId)) {
                 $this->reserveId($newId, $branchId, 'orders');
             }
         }
 
         foreach ($sessionMap as $oldId => $newId) {
-            if ($oldId !== $newId) {
+            if (!$this->sameId($oldId, $newId)) {
                 $this->reserveId($newId, $branchId, 'shift_sessions');
             }
         }
 
+        // A legacy writer may have inserted a target between the first check
+        // and reservation. Recheck after reservation and before any inserts.
         $this->assertTargetsAreFree($orderMap, 'orders', 'id');
         $this->assertTargetsAreFree($sessionMap, 'shift_sessions', 'session_id');
 
         // Insert new session rows first, then update order session references.
         foreach ($sessionMap as $oldId => $newId) {
-            if ($oldId === $newId) {
+            if ($this->sameId($oldId, $newId)) {
                 continue;
             }
 
@@ -287,7 +296,7 @@ class RepairBranchOrderIds extends Command
             $this->replaceSessionReferences($data, $sessionMap);
             $this->setNotPushed($data);
 
-            if ($oldId !== $newId) {
+            if (!$this->sameId($oldId, $newId)) {
                 // ORDERS_U01 is unique on restaurant_id, order_serial and
                 // order_date. Move the old row's serial temporarily so the
                 // replacement row can be inserted with the original values.
@@ -321,7 +330,7 @@ class RepairBranchOrderIds extends Command
         // unchanged because they are not part of the order sync payload.
         foreach ($this->existingOrderReferenceTables() as $table) {
             foreach ($orderMap as $oldOrderId => $newOrderId) {
-                if ($oldOrderId !== $newOrderId) {
+                if (!$this->sameId($oldOrderId, $newOrderId)) {
                     $this->connection->table($table)
                         ->where('order_id', $oldOrderId)
                         ->update(['order_id' => $newOrderId]);
@@ -331,7 +340,7 @@ class RepairBranchOrderIds extends Command
 
         // Update session references after new parents exist.
         foreach ($sessionMap as $oldSessionId => $newSessionId) {
-            if ($oldSessionId === $newSessionId) {
+            if ($this->sameId($oldSessionId, $newSessionId)) {
                 continue;
             }
 
@@ -361,7 +370,7 @@ class RepairBranchOrderIds extends Command
 
         // Delete old order parents only after all child references were moved.
         foreach ($orderMap as $oldOrderId => $newOrderId) {
-            if ($oldOrderId !== $newOrderId) {
+            if (!$this->sameId($oldOrderId, $newOrderId)) {
                 $this->connection->table('orders')->where('id', $oldOrderId)->delete();
             }
         }
@@ -420,17 +429,82 @@ class RepairBranchOrderIds extends Command
         }
     }
 
+    private function sameId($left, $right)
+    {
+        return (string) $left === (string) $right;
+    }
+
+    private function validatePlanTargets(array $plan)
+    {
+        $this->assertPlanTargetsAreUnique($plan['orders'], $plan['sessions']);
+        $this->assertTargetsAreFree($plan['orders'], 'orders', 'id');
+        $this->assertTargetsAreFree($plan['sessions'], 'shift_sessions', 'session_id');
+        $this->assertTargetsAreUnreserved($plan['orders'], 'orders');
+        $this->assertTargetsAreUnreserved($plan['sessions'], 'shift_sessions');
+    }
+
+    private function assertPlanTargetsAreUnique(array $orderMap, array $sessionMap)
+    {
+        $targets = [];
+
+        foreach (['orders' => $orderMap, 'shift_sessions' => $sessionMap] as $scope => $map) {
+            foreach ($map as $oldId => $newId) {
+                if ($this->sameId($oldId, $newId)) {
+                    continue;
+                }
+
+                $target = (string) $newId;
+                $targetKey = 'id:' . $target;
+                if (isset($targets[$targetKey])) {
+                    throw new \RuntimeException(
+                        "Target ID [$target] is duplicated in the repair plan. Use --regenerate."
+                    );
+                }
+
+                $targets[$targetKey] = true;
+            }
+        }
+    }
+
+    private function assertTargetsAreUnreserved(array $map, $scope)
+    {
+        foreach (array_chunk($this->changedTargets($map), 900) as $chunk) {
+            $reserved = $this->connection->table('global_id_reservations')
+                ->whereIn('global_id', $chunk)
+                ->pluck('global_id');
+
+            foreach ($reserved as $newId) {
+                throw new \RuntimeException(
+                    "Target ID [$newId] is already reserved for [$scope]. Use --regenerate."
+                );
+            }
+        }
+    }
+
     private function assertTargetsAreFree(array $map, $table, $column)
     {
-        foreach ($map as $oldId => $newId) {
-            if ($oldId === $newId) {
-                continue;
-            }
+        foreach (array_chunk($this->changedTargets($map), 900) as $chunk) {
+            $existing = $this->connection->table($table)
+                ->whereIn($column, $chunk)
+                ->pluck($column);
 
-            if ($this->connection->table($table)->where($column, $newId)->exists()) {
+            foreach ($existing as $newId) {
                 throw new \RuntimeException("Target ID [$newId] already exists in [$table]. Regenerate the plan.");
             }
         }
+    }
+
+    private function changedTargets(array $map)
+    {
+        $targets = [];
+
+        foreach ($map as $oldId => $newId) {
+            if (!$this->sameId($oldId, $newId)) {
+                $targets[] = (string) $newId;
+            }
+        }
+
+        return array_values(array_unique($targets));
     }
 
     private function generateId($table, $column, $branchId, $reserve = false)
@@ -440,6 +514,7 @@ class RepairBranchOrderIds extends Command
         do {
             $id = '7' . $branchPart . str_pad((string) random_int(0, 9999999999), 10, '0', STR_PAD_LEFT);
         } while (isset($this->reservedIds[$table][$id])
+            || isset($this->reservedIds['global'][$id])
             || $this->connection->table($table)->where($column, $id)->exists()
             || $this->connection->table('global_id_reservations')->where('global_id', $id)->exists());
 
@@ -447,6 +522,7 @@ class RepairBranchOrderIds extends Command
             $this->reservedIds[$table] = [];
         }
         $this->reservedIds[$table][$id] = true;
+        $this->reservedIds['global'][$id] = true;
 
         if ($reserve) {
             $this->reserveId($id, $branchId, $table);
@@ -464,6 +540,7 @@ class RepairBranchOrderIds extends Command
                 'scope' => $scope,
                 'created_at' => now(),
             ]);
+            $this->reservedIds['global'][$id] = true;
         } catch (\Throwable $exception) {
             throw new \RuntimeException(
                 "ID [$id] is already reserved. Use --regenerate to create a new mapping.",
@@ -542,14 +619,14 @@ class RepairBranchOrderIds extends Command
     {
         $orderChanges = 0;
         foreach ($plan['orders'] as $oldId => $newId) {
-            if ($oldId !== $newId) {
+            if (!$this->sameId($oldId, $newId)) {
                 $orderChanges++;
             }
         }
 
         $sessionChanges = 0;
         foreach ($plan['sessions'] as $oldId => $newId) {
-            if ($oldId !== $newId) {
+            if (!$this->sameId($oldId, $newId)) {
                 $sessionChanges++;
             }
         }

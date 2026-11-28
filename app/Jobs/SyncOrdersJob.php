@@ -19,7 +19,6 @@ class SyncOrdersJob implements ShouldQueue
 
     private const BATCH_SIZE = 50;
 
-    public $connection = 'database';
     public $tries = 3;
     public $timeout = 240;
     public $backoff = [10, 30, 60];

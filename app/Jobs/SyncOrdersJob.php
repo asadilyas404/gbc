@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 
@@ -17,261 +16,205 @@ class SyncOrdersJob implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    private const BATCH_SIZE = 50;
-
-    public $tries = 3;
-    public $timeout = 240;
-    public $backoff = [10, 30, 60];
-
     private const SYNC_ENTITY_TYPES = [
         'orders',
         'shift_sessions',
     ];
 
-    public function middleware()
-    {
-        return [
-            (new WithoutOverlapping(
-                'sync-orders-' . (string) config('constants.branch_id', 'unknown')
-            ))
-                ->releaseAfter(15)
-                ->expireAfter(600),
-        ];
-    }
-
     public function handle()
     {
-        set_time_limit($this->timeout + 30);
-        $oracle = DB::connection('oracle');
-
-        $orders = $oracle->table('orders')
-            ->where(function ($q) {
-                $q->where('is_pushed', '!=', 'Y')
-                    ->orWhereNull('is_pushed');
-            })
-            ->orderBy('id')
-            ->limit(self::BATCH_SIZE)
-            ->get();
-
-        $shiftSessions = $oracle->table('shift_sessions')
-            ->where(function ($q) {
-                $q->where('is_pushed', '!=', 'Y')
-                    ->orWhereNull('is_pushed');
-            })
-            ->orderBy('session_id')
-            ->limit(self::BATCH_SIZE)
-            ->get();
-
-        if ($orders->isEmpty() && $shiftSessions->isEmpty()) {
-            Log::info('No orders or shift sessions to sync');
-            $this->updateLastSyncedRunAt('last_sync_run_at');
-            return;
-        }
-
-        $orderPayload = $this->buildOrderPayload($orders, $oracle);
-        $shiftPayload = $shiftSessions->map(function ($session) {
-            return (array) $session;
-        })->values()->toArray();
-
-        $orderIds = $orders->pluck('id')->values()->all();
-        $shiftSessionIds = $shiftSessions->pluck('session_id')->values()->all();
-
-        Log::info('SyncOrdersJob sending batch', [
-            'orders_count' => count($orderPayload),
-            'shift_sessions_count' => count($shiftPayload),
-        ]);
+        set_time_limit(600);
+        Log::info('SyncOrdersJob started (API-based)');
 
         try {
-            $response = Http::timeout(config('services.live_server.timeout', 60))
-                ->withToken(config('services.live_server.token'))
-                ->withoutVerifying()
-                ->retry(3, 1000)
-                ->post(config('services.live_server.url') . '/orders/sync-bulk', [
-                    'orders' => $orderPayload,
-                    'shift_sessions' => $shiftPayload,
-                ]);
-        } catch (\Throwable $e) {
-            Log::error('SyncOrdersJob batch request failed', [
+            // 1) Get shift sessions to sync
+            $shiftSessions = DB::connection('oracle')
+                ->table('shift_sessions')
+                ->where(function ($q) {
+                    $q->where('is_pushed', '!=', 'Y')
+                        ->orWhereNull('is_pushed');
+                })
+                ->get();
+
+            $shiftSessionsPayload = $shiftSessions->map(function ($session) {
+                return (array) $session;
+            })->toArray();
+
+            Log::info('Found shift sessions to sync', [
+                'count' => $shiftSessions->count(),
+            ]);
+
+            // 2) Get orders to sync
+            $orders = DB::connection('oracle')
+                ->table('orders')
+                ->where(function ($q) {
+                    $q->where('is_pushed', '!=', 'Y')
+                        ->orWhereNull('is_pushed');
+                })
+                ->get();
+
+            Log::info('Found orders to sync', [
+                'count' => $orders->count(),
+            ]);
+
+            if ($orders->isEmpty() && $shiftSessions->isEmpty()) {
+                Log::info('No orders or shift sessions to sync');
+                $this->updateLastSyncedRunAt('last_sync_run_at');
+                return;
+            }
+
+            // 3) Build allOrdersData payload
+            $allOrdersData = [];
+
+            foreach ($orders as $order) {
+                $orderDetails = DB::connection('oracle')
+                    ->table('order_details')
+                    ->where('order_id', $order->id)
+                    ->get();
+
+                $orderAdditionalDetails = DB::connection('oracle')
+                    ->table('pos_order_additional_dtl')
+                    ->where('order_id', $order->id)
+                    ->get();
+
+                $kitchenStatus = DB::connection('oracle')
+                    ->table('kitchen_order_status_logs')
+                    ->where('order_id', $order->id)
+                    ->get();
+
+                $allOrdersData[] = [
+                    'order'             => (array) $order,
+                    'order_details'     => $orderDetails->map(fn($detail) => (array) $detail)->toArray(),
+                    'additional_details' => $orderAdditionalDetails->map(fn($detail) => (array) $detail)->toArray(),
+                    'kitchen_status'    => $kitchenStatus->map(fn($status) => (array) $status)->toArray(),
+                ];
+            }
+
+            Log::info('Preparing chunked bulk API calls', [
+                'order_count'          => count($allOrdersData),
+                'shift_session_count'  => count($shiftSessionsPayload),
+            ]);
+
+            // 4) Chunking
+            $chunkSize          = 500; // tune this as needed
+            $orderChunks        = array_chunk($allOrdersData, $chunkSize);
+            $shiftSessionChunks = array_chunk($shiftSessionsPayload, $chunkSize);
+
+            $maxChunks = max(count($orderChunks), count($shiftSessionChunks));
+
+            for ($index = 0; $index < $maxChunks; $index++) {
+                $ordersChunk = $orderChunks[$index] ?? [];
+                $shiftChunk  = $shiftSessionChunks[$index] ?? [];
+
+                // Extract order IDs from nested structure
+                $orderIds = array_map(function ($item) {
+                    return $item['order']['id'];
+                }, $ordersChunk);
+
+                // Extract shift session IDs
+                $shiftSessionIds = array_map(function ($ss) {
+                    return $ss['session_id'];
+                }, $shiftChunk);
+
+                try {
+                    $response = Http::timeout(config('services.live_server.timeout', 60))
+                        ->withToken(config('services.live_server.token'))
+                        ->withoutVerifying()
+                        ->retry(3, 1000)
+                        ->post(config('services.live_server.url') . '/orders/sync-bulk', [
+                            'orders'         => $ordersChunk ?? [], // can be []
+                            'shift_sessions' => $shiftChunk ?? [],   // can be []
+                        ]);
+
+                    $responseData = $response->json();
+
+                    $isReallySynced =
+                        $response->successful()
+                        && is_array($responseData)
+                        && ($responseData['success'] ?? false) === true
+                        && ($responseData['failed'] ?? 0) == 0
+                        && ($responseData['shift_sessions_failed'] ?? 0) == 0;
+
+                    if ($isReallySynced) {
+                        // Mark orders pushed
+                        if (!empty($orderIds)) {
+                            DB::connection('oracle')
+                                ->table('orders')
+                                ->whereIn('id', $orderIds)
+                                ->update(['is_pushed' => 'Y']);
+                        }
+
+                        // Mark shift sessions pushed
+                        if (!empty($shiftSessionIds)) {
+                            DB::connection('oracle')
+                                ->table('shift_sessions')
+                                ->whereIn('session_id', $shiftSessionIds)
+                                ->update(['is_pushed' => 'Y']);
+                        }
+
+                        // Get the last Order and Shift Session from this chunk to update sync state
+                        $this->updateSyncState(
+                            collect($ordersChunk)->pluck('order')->toArray(),
+                            'orders'
+                        );
+
+                        $this->updateSyncState(
+                            $shiftChunk,
+                            'shift_sessions'
+                        );
+
+                        Log::info('Orders chunk synced successfully', [
+                            'chunk'                  => $index + 1,
+                            'orders_count'           => count($orderIds),
+                            'shift_sessions_count'   => count($shiftSessionIds),
+                            'order_ids'              => $orderIds,
+                            'session_ids'            => $shiftSessionIds,
+                        ]);
+                    } else {
+                        Log::error('Failed syncing orders chunk', [
+                            'chunk'                  => $index + 1,
+                            'status'                 => $response->status(),
+                            'response'               => $response->body(),
+                            'orders_count'           => count($orderIds),
+                            'shift_sessions_count'   => count($shiftSessionIds),
+                        ]);
+                    }
+                } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                    Log::error('Connection error syncing chunk', [
+                        'chunk' => $index + 1,
+                        'error' => $e->getMessage(),
+                    ]);
+                } catch (\Exception $e) {
+                    Log::error('Unexpected error syncing chunk', [
+                        'chunk' => $index + 1,
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString(),
+                    ]);
+                }
+            }
+
+            $this->updateLastSyncedRunAt('last_sync_run_at');
+
+            Log::info('SyncOrdersJob completed');
+        } catch (\Exception $e) {
+            Log::error('SyncOrdersJob failed', [
                 'error' => $e->getMessage(),
-                'orders_count' => count($orderPayload),
-                'shift_sessions_count' => count($shiftPayload),
+                'trace' => $e->getTraceAsString()
             ]);
-            throw $e;
         }
-
-        $responseData = $response->json();
-
-        if (!$response->successful() || !is_array($responseData) || ($responseData['success'] ?? false) !== true) {
-            Log::error('SyncOrdersJob batch rejected by live server', [
-                'status' => $response->status(),
-                'response' => $response->body(),
-                'orders_count' => count($orderPayload),
-                'shift_sessions_count' => count($shiftPayload),
-            ]);
-
-            throw new \RuntimeException('Live server rejected the order sync batch.');
-        }
-
-        $successfulOrderIds = $this->successfulIds(
-            $orderIds,
-            $responseData['order_ids'] ?? null,
-            (int) ($responseData['failed'] ?? 0) === 0
-                && (!array_key_exists('synced', $responseData)
-                    || (int) $responseData['synced'] === count($orderIds))
-        );
-        $successfulShiftSessionIds = $this->successfulIds(
-            $shiftSessionIds,
-            $responseData['shift_session_ids'] ?? null,
-            (int) ($responseData['shift_sessions_failed'] ?? 0) === 0
-                && (!array_key_exists('shift_sessions_synced', $responseData)
-                    || (int) $responseData['shift_sessions_synced'] === count($shiftSessionIds))
-        );
-
-        if (!empty($successfulOrderIds)) {
-            $oracle->table('orders')
-                ->whereIn('id', $successfulOrderIds)
-                ->update(['is_pushed' => 'Y']);
-        }
-
-        if (!empty($successfulShiftSessionIds)) {
-            $oracle->table('shift_sessions')
-                ->whereIn('session_id', $successfulShiftSessionIds)
-                ->update(['is_pushed' => 'Y']);
-        }
-
-        $failedOrders = (int) ($responseData['failed'] ?? 0);
-        $failedShiftSessions = (int) ($responseData['shift_sessions_failed'] ?? 0);
-
-        if ($failedOrders > 0 || $failedShiftSessions > 0) {
-            Log::warning('SyncOrdersJob batch partially failed', [
-                'failed_orders' => $failedOrders,
-                'failed_shift_sessions' => $failedShiftSessions,
-                'successful_orders' => count($successfulOrderIds),
-                'successful_shift_sessions' => count($successfulShiftSessionIds),
-            ]);
-
-            throw new \RuntimeException('Some records in the order sync batch failed.');
-        }
-
-        $this->updateSyncState(
-            $this->successfulRows($orderPayload, $successfulOrderIds),
-            'orders'
-        );
-        $this->updateSyncState(
-            $this->successfulRows($shiftPayload, $successfulShiftSessionIds, 'session_id'),
-            'shift_sessions'
-        );
-
-        Log::info('SyncOrdersJob batch synced successfully', [
-            'orders_count' => count($successfulOrderIds),
-            'shift_sessions_count' => count($successfulShiftSessionIds),
-        ]);
-
-        if ($this->hasPendingRecords($oracle)) {
-            self::dispatch()->delay(now()->addSecond());
-            return;
-        }
-
-        $this->updateLastSyncedRunAt('last_sync_run_at');
-        Log::info('SyncOrdersJob completed; no pending records remain');
     }
 
-    private function buildOrderPayload($orders, $oracle): array
-    {
-        $orderIds = $orders->pluck('id')->values()->all();
-
-        if (empty($orderIds)) {
-            return [];
-        }
-
-        $details = $this->groupRowsByOrderId(
-            $oracle->table('order_details')->whereIn('order_id', $orderIds)->get()
-        );
-        $additionalDetails = $this->groupRowsByOrderId(
-            $oracle->table('pos_order_additional_dtl')->whereIn('order_id', $orderIds)->get()
-        );
-        $kitchenStatuses = $this->groupRowsByOrderId(
-            $oracle->table('kitchen_order_status_logs')->whereIn('order_id', $orderIds)->get()
-        );
-
-        return $orders->map(function ($order) use ($details, $additionalDetails, $kitchenStatuses) {
-            $key = (string) $order->id;
-
-            return [
-                'order' => (array) $order,
-                'order_details' => $details[$key] ?? [],
-                'additional_details' => $additionalDetails[$key] ?? [],
-                'kitchen_status' => $kitchenStatuses[$key] ?? [],
-            ];
-        })->values()->toArray();
-    }
-
-    private function groupRowsByOrderId($rows): array
-    {
-        $grouped = [];
-
-        foreach ($rows as $row) {
-            $grouped[(string) $row->order_id][] = (array) $row;
-        }
-
-        return $grouped;
-    }
-
-    private function successfulIds(array $inputIds, $responseIds, bool $allSucceeded): array
-    {
-        if ($allSucceeded) {
-            return $inputIds;
-        }
-
-        if (!is_array($responseIds)) {
-            return [];
-        }
-
-        $successful = array_fill_keys(array_map('strval', $responseIds), true);
-
-        return array_values(array_filter($inputIds, function ($id) use ($successful) {
-            return isset($successful[(string) $id]);
-        }));
-    }
-
-    private function successfulRows(array $rows, array $successfulIds, string $idKey = 'id'): array
-    {
-        $successful = array_fill_keys(array_map('strval', $successfulIds), true);
-
-        return array_values(array_filter($rows, function ($row) use ($successful, $idKey) {
-            $id = $idKey === 'id' ? ($row['order']['id'] ?? null) : ($row[$idKey] ?? null);
-
-            return $id !== null && isset($successful[(string) $id]);
-        }));
-    }
-
-    private function hasPendingRecords($oracle): bool
-    {
-        return $oracle->table('orders')
-                ->where(function ($q) {
-                    $q->where('is_pushed', '!=', 'Y')
-                        ->orWhereNull('is_pushed');
-                })
-                ->exists()
-            || $oracle->table('shift_sessions')
-                ->where(function ($q) {
-                    $q->where('is_pushed', '!=', 'Y')
-                        ->orWhereNull('is_pushed');
-                })
-                ->exists();
-    }
-
-    public function updateLastSyncedRunAt(string $entityType)
+    function updateLastSyncedRunAt(string $entityType)
     {
         try {
             DB::table('branch_sync_state')->updateOrInsert(
                 [
                     'restaurant_id' => config('constants.branch_id'),
-                    'entity_type' => $entityType,
+                    'entity_type'   => $entityType,
                 ],
                 [
                     'last_synced_at' => now(),
-                    'updated_at' => now(),
+                    'updated_at'     => now()
                 ]
             );
         } catch (\Exception $e) {
@@ -281,12 +224,13 @@ class SyncOrdersJob implements ShouldQueue
         }
     }
 
-    public function updateSyncState(array $chunk, string $entityType, string $dateKey = 'updated_at')
+    function updateSyncState(array $chunk, string $entityType, string $dateKey = 'updated_at')
     {
         if (empty($chunk)) {
             return;
         }
 
+        // Always get the latest updated_at safely
         $latestSyncedAt = collect($chunk)
             ->pluck($dateKey)
             ->filter()
@@ -301,11 +245,11 @@ class SyncOrdersJob implements ShouldQueue
             DB::table('branch_sync_state')->updateOrInsert(
                 [
                     'restaurant_id' => config('constants.branch_id'),
-                    'entity_type' => $entityType,
+                    'entity_type'   => $entityType,
                 ],
                 [
                     'last_synced_at' => Carbon::parse($latestSyncedAt),
-                    'updated_at' => now(),
+                    'updated_at'     => now(),
                 ]
             );
         } catch (\Exception $e) {

@@ -174,8 +174,8 @@ class ShiftSessionController extends Controller
         // Shift closed successfully, now try syncing
         try {
             if($this->isInternetAvailable()) {
-                SyncOrdersJob::dispatch();
-                Toastr::success('Shift session closed & order sync queued successfully.');
+                SyncOrdersJob::dispatchSync();
+                Toastr::success('Shift session closed & synced started running successfully!');
             }else {
                 Toastr::error('Shift session closed successfully, but no internet connection for syncing. Please try syncing again when you have a connection.');
             }

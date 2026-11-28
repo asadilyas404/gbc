@@ -96,7 +96,7 @@ class SyncOrdersJob implements ShouldQueue
             ]);
 
             // 4) Chunking
-            $chunkSize          = 50; // tune this as needed
+            $chunkSize          = 500; // tune this as needed
             $orderChunks        = array_chunk($allOrdersData, $chunkSize);
             $shiftSessionChunks = array_chunk($shiftSessionsPayload, $chunkSize);
 

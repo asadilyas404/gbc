@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
@@ -10,6 +11,8 @@ class RepairBranchOrderIds extends Command
 {
     protected $signature = 'orders:repair-ids
                             {--branch= : Branch ID, for example 5}
+                            {--start-date= : Include orders from this order date (YYYY-MM-DD)}
+                            {--end-date= : Include orders through this order date (YYYY-MM-DD)}
                             {--connection=oracle : Source database connection}
                             {--mapping= : Mapping JSON path}
                             {--regenerate : Ignore an existing mapping and create a new plan}
@@ -53,7 +56,20 @@ class RepairBranchOrderIds extends Command
         $branchId = (int) $this->option('branch');
 
         if ($branchId < 5 || $branchId > 16) {
-            $this->error('A branch ID between 5 and 16 is required.');
+            $this->error('The branch must be between 5 and 16.');
+            return 1;
+        }
+
+        try {
+            $startDate = $this->parseDateOption('start-date');
+            $endDate = $this->parseDateOption('end-date');
+        } catch (\InvalidArgumentException $exception) {
+            $this->error($exception->getMessage());
+            return 1;
+        }
+
+        if ($startDate && $endDate && $startDate->gt($endDate)) {
+            $this->error('--start-date cannot be later than --end-date.');
             return 1;
         }
 
@@ -70,14 +86,14 @@ class RepairBranchOrderIds extends Command
         }
 
         try {
-            return $this->runRepair($branchId);
+            return $this->runRepair($branchId, $startDate, $endDate);
         } finally {
             flock($lockHandle, LOCK_UN);
             fclose($lockHandle);
         }
     }
 
-    private function runRepair($branchId)
+    private function runRepair($branchId, $startDate, $endDate)
     {
         $this->connection = DB::connection($this->option('connection'));
         $this->availableTables = $this->loadAvailableTables();
@@ -98,8 +114,8 @@ class RepairBranchOrderIds extends Command
             ?: storage_path('app/order-id-repair/branch-' . $branchId . '.json');
 
         $plan = File::exists($mappingPath) && !$this->option('regenerate')
-            ? $this->readPlan($mappingPath, $branchId)
-            : $this->buildPlan($branchId, $mappingPath);
+            ? $this->readPlan($mappingPath, $branchId, $startDate, $endDate)
+            : $this->buildPlan($branchId, $mappingPath, $startDate, $endDate);
 
         $this->printPlan($plan, $mappingPath);
 
@@ -130,26 +146,52 @@ class RepairBranchOrderIds extends Command
         return 0;
     }
 
-    private function buildPlan($branchId, $mappingPath)
+    private function buildPlan($branchId, $mappingPath, $startDate, $endDate)
     {
         $plan = [
-            'version' => 1,
+            'version' => 2,
             'branch_id' => $branchId,
+            'filters' => [
+                'start_date' => $startDate ? $startDate->toDateString() : null,
+                'end_date' => $endDate ? $endDate->toDateString() : null,
+            ],
             'created_at' => now()->toIso8601String(),
             'orders' => [],
             'sessions' => [],
         ];
 
-        foreach ($this->connection->table('orders')->orderBy('id')->get() as $order) {
+        $ordersQuery = $this->connection->table('orders')
+            ->where('restaurant_id', $branchId)
+            ->orderBy('id');
+
+        if ($startDate) {
+            $ordersQuery->where('order_date', '>=', $startDate->copy()->startOfDay());
+        }
+
+        if ($endDate) {
+            $ordersQuery->where('order_date', '<', $endDate->copy()->addDay()->startOfDay());
+        }
+
+        $orders = $ordersQuery->get();
+        $sessionIds = [];
+
+        foreach ($orders as $order) {
             $oldId = (string) $order->id;
             $plan['orders'][$oldId] = $this->isBranchId($oldId, $branchId)
                 ? $oldId
                 : $this->generateId('orders', 'id', $branchId);
+
+            foreach (['session_id', 'payment_user_session_id'] as $column) {
+                if (isset($order->{$column}) && $order->{$column} !== null) {
+                    $sessionIds[] = (string) $order->{$column};
+                }
+            }
         }
 
-        if ($this->hasTable('shift_sessions')) {
+        if ($this->hasTable('shift_sessions') && $sessionIds) {
             $sessions = $this->connection->table('shift_sessions')
                 ->where('branch_id', $branchId)
+                ->whereIn('session_id', array_values(array_unique($sessionIds)))
                 ->orderBy('session_id')
                 ->get();
 
@@ -167,12 +209,22 @@ class RepairBranchOrderIds extends Command
         return $plan;
     }
 
-    private function readPlan($mappingPath, $branchId)
+    private function readPlan($mappingPath, $branchId, $startDate, $endDate)
     {
         $plan = json_decode(File::get($mappingPath), true);
 
-        if (!is_array($plan) || (int) ($plan['branch_id'] ?? 0) !== $branchId) {
-            throw new \RuntimeException('Mapping file does not belong to the requested branch.');
+        if (!is_array($plan)
+            || (int) ($plan['version'] ?? 0) !== 2
+            || (int) ($plan['branch_id'] ?? 0) !== $branchId
+        ) {
+            throw new \RuntimeException('Mapping file is invalid, outdated, or belongs to another branch. Use --regenerate.');
+        }
+
+        $filters = $plan['filters'] ?? [];
+        if (($filters['start_date'] ?? null) !== ($startDate ? $startDate->toDateString() : null)
+            || ($filters['end_date'] ?? null) !== ($endDate ? $endDate->toDateString() : null)
+        ) {
+            throw new \RuntimeException('The mapping date range does not match the requested options. Use --regenerate.');
         }
 
         if (!isset($plan['orders']) || !isset($plan['sessions'])) {
@@ -236,6 +288,16 @@ class RepairBranchOrderIds extends Command
             $this->setNotPushed($data);
 
             if ($oldId !== $newId) {
+                // ORDERS_U01 is unique on restaurant_id, order_serial and
+                // order_date. Move the old row's serial temporarily so the
+                // replacement row can be inserted with the original values.
+                if (array_key_exists('order_serial', $data) && $data['order_serial'] !== null) {
+                    $temporaryOrderSerial = $this->temporaryOrderSerial($order, $oldId, $newId);
+                    $this->connection->table('orders')
+                        ->where('id', $oldId)
+                        ->update(['order_serial' => $temporaryOrderSerial]);
+                }
+
                 $this->connection->table('orders')->insert($data);
             } else {
                 $this->connection->table('orders')->where('id', $oldId)->update($data);
@@ -273,17 +335,28 @@ class RepairBranchOrderIds extends Command
                 continue;
             }
 
-            $this->connection->table('orders')
-                ->where('session_id', $oldSessionId)
-                ->update(['session_id' => $newSessionId]);
+            foreach (array_keys($orderMap) as $orderId) {
+                $this->connection->table('orders')
+                    ->where('id', $orderId)
+                    ->where('session_id', $oldSessionId)
+                    ->update(['session_id' => $newSessionId]);
 
-            $this->connection->table('orders')
-                ->where('payment_user_session_id', $oldSessionId)
-                ->update(['payment_user_session_id' => $newSessionId]);
+                $this->connection->table('orders')
+                    ->where('id', $orderId)
+                    ->where('payment_user_session_id', $oldSessionId)
+                    ->update(['payment_user_session_id' => $newSessionId]);
+            }
 
-            $this->connection->table('shift_sessions')
+            $sessionStillReferenced = $this->connection->table('orders')
                 ->where('session_id', $oldSessionId)
-                ->delete();
+                ->orWhere('payment_user_session_id', $oldSessionId)
+                ->exists();
+
+            if (!$sessionStillReferenced) {
+                $this->connection->table('shift_sessions')
+                    ->where('session_id', $oldSessionId)
+                    ->delete();
+            }
         }
 
         // Delete old order parents only after all child references were moved.
@@ -295,12 +368,18 @@ class RepairBranchOrderIds extends Command
 
         // Ensure existing/current IDs are also sent again after the reset.
         if ($this->hasTableColumn('orders', 'is_pushed')) {
-            $this->connection->table('orders')->update(['is_pushed' => 'N']);
+            foreach (array_values($orderMap) as $orderId) {
+                $this->connection->table('orders')
+                    ->where('id', $orderId)
+                    ->update(['is_pushed' => 'N']);
+            }
         }
         if ($this->hasTableColumn('shift_sessions', 'is_pushed')) {
-            $this->connection->table('shift_sessions')
-                ->where('branch_id', $branchId)
-                ->update(['is_pushed' => 'N']);
+            foreach (array_values($sessionMap) as $sessionId) {
+                $this->connection->table('shift_sessions')
+                    ->where('session_id', $sessionId)
+                    ->update(['is_pushed' => 'N']);
+            }
         }
     }
 
@@ -314,6 +393,24 @@ class RepairBranchOrderIds extends Command
                 }
             }
         }
+    }
+
+    private function temporaryOrderSerial($order, $oldId, $newId)
+    {
+        $base = 'R' . substr((string) $oldId, -6) . substr((string) $newId, -4);
+        $candidate = $base;
+        $suffix = 0;
+
+        while ($this->connection->table('orders')
+            ->where('restaurant_id', $order->restaurant_id)
+            ->where('order_serial', $candidate)
+            ->where('order_date', $order->order_date)
+            ->exists()) {
+            $suffix++;
+            $candidate = $base . '-' . $suffix;
+        }
+
+        return $candidate;
     }
 
     private function setNotPushed(array &$data)
@@ -341,7 +438,7 @@ class RepairBranchOrderIds extends Command
         $branchPart = str_pad((string) $branchId, 2, '0', STR_PAD_LEFT);
 
         do {
-            $id = '7' . $branchPart . str_pad((string) random_int(0, 9999999999999999), 16, '0', STR_PAD_LEFT);
+            $id = '7' . $branchPart . str_pad((string) random_int(0, 9999999999), 10, '0', STR_PAD_LEFT);
         } while (isset($this->reservedIds[$table][$id])
             || $this->connection->table($table)->where($column, $id)->exists()
             || $this->connection->table('global_id_reservations')->where('global_id', $id)->exists());
@@ -378,9 +475,25 @@ class RepairBranchOrderIds extends Command
 
     private function isBranchId($id, $branchId)
     {
-        return strlen((string) $id) === 19
+        return in_array(strlen((string) $id), [13, 19], true)
             && substr((string) $id, 0, 3) === '7' . str_pad((string) $branchId, 2, '0', STR_PAD_LEFT)
             && ctype_digit((string) $id);
+    }
+
+    private function parseDateOption($option)
+    {
+        $value = trim((string) $this->option($option));
+
+        if ($value === '') {
+            return null;
+        }
+
+        $date = Carbon::createFromFormat('!Y-m-d', $value);
+        if (!$date || $date->format('Y-m-d') !== $value) {
+            throw new \InvalidArgumentException("--{$option} must use the YYYY-MM-DD format.");
+        }
+
+        return $date;
     }
 
     private function loadAvailableTables()

@@ -19,6 +19,7 @@ class SyncOrdersJob implements ShouldQueue
 
     private const BATCH_SIZE = 50;
 
+    public $connection = 'database';
     public $tries = 3;
     public $timeout = 240;
     public $backoff = [10, 30, 60];
@@ -142,17 +143,6 @@ class SyncOrdersJob implements ShouldQueue
         $failedOrders = (int) ($responseData['failed'] ?? 0);
         $failedShiftSessions = (int) ($responseData['shift_sessions_failed'] ?? 0);
 
-        if ($failedOrders > 0 || $failedShiftSessions > 0) {
-            Log::warning('SyncOrdersJob batch partially failed', [
-                'failed_orders' => $failedOrders,
-                'failed_shift_sessions' => $failedShiftSessions,
-                'successful_orders' => count($successfulOrderIds),
-                'successful_shift_sessions' => count($successfulShiftSessionIds),
-            ]);
-
-            throw new \RuntimeException('Some records in the order sync batch failed.');
-        }
-
         $this->updateSyncState(
             $this->successfulRows($orderPayload, $successfulOrderIds),
             'orders'
@@ -162,13 +152,32 @@ class SyncOrdersJob implements ShouldQueue
             'shift_sessions'
         );
 
+        if ($failedOrders > 0 || $failedShiftSessions > 0) {
+            Log::warning('SyncOrdersJob batch partially failed', [
+                'failed_orders' => $failedOrders,
+                'failed_shift_sessions' => $failedShiftSessions,
+                'successful_orders' => count($successfulOrderIds),
+                'successful_shift_sessions' => count($successfulShiftSessionIds),
+            ]);
+
+            if (!empty($successfulOrderIds) || !empty($successfulShiftSessionIds)) {
+                if ($this->hasPendingRecords($oracle)) {
+                    self::dispatch()->onConnection('database')->delay(now()->addSecond());
+                }
+
+                return;
+            }
+
+            throw new \RuntimeException('Some records in the order sync batch failed.');
+        }
+
         Log::info('SyncOrdersJob batch synced successfully', [
             'orders_count' => count($successfulOrderIds),
             'shift_sessions_count' => count($successfulShiftSessionIds),
         ]);
 
         if ($this->hasPendingRecords($oracle)) {
-            self::dispatch()->delay(now()->addSecond());
+            self::dispatch()->onConnection('database')->delay(now()->addSecond());
             return;
         }
 

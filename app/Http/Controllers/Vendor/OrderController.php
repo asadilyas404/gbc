@@ -1440,7 +1440,7 @@ class OrderController extends Controller
             return back();
         }
 
-        SyncOrdersJob::dispatch();
+        SyncOrdersJob::dispatch()->onConnection('database');
         Toastr::success('Orders sync has been queued and will continue in the background.');
         return back();
     }
